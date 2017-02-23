@@ -1,0 +1,34 @@
+{
+    "name": "react-dom",
+    "libraryName": "React (react-dom)",
+    "sourceRepoURL": "https://www.github.com/DefinitelyTyped/DefinitelyTyped",
+    "data": {
+        "authors": "Asana <https://asana.com>, AssureSign <http://www.assuresign.com>, Microsoft <https://microsoft.com>",
+        "dependencies": {
+            "react": "*"
+        },
+        "pathMappings": {},
+        "libraryMajorVersion": 0,
+        "libraryMinorVersion": 14,
+        "typeScriptVersion": "2.1",
+        "libraryName": "React (react-dom)",
+        "typingsPackageName": "react-dom",
+        "projectName": "http://facebook.github.io/react/",
+        "sourceRepoURL": "https://www.github.com/DefinitelyTyped/DefinitelyTyped",
+        "globals": [
+            "ReactDOM",
+            "ReactDOMServer"
+        ],
+        "declaredModules": [
+            "react-dom/.",
+            "react-dom/server"
+        ],
+        "files": [
+            "index.d.ts",
+            "server.d.ts"
+        ],
+        "hasPackageJson": false,
+        "contentHash": "0a3e9ebed61848be2f94bbeddfa2ac318587ee312f7c217d7c41276c94b40362"
+    },
+    "isLatest": true
+}
