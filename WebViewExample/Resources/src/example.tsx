@@ -5,7 +5,10 @@
 import * as React from 'react';
 import * as Dependency from './dependency.js';
 
+declare var NativeApi: any;
+
 console.log(Dependency.x);
+
 
 class App extends React.Component<null, null> {
     render() {
@@ -14,9 +17,7 @@ class App extends React.Component<null, null> {
                 <div className="App-header">
                     <h2>Welcome to React</h2>
                 </div>
-                <p className="App-intro">
-                    To get started, edit <code>src/App.tsx</code> and save to reload.
-                </p>
+                { NativeApi.getItems().map((i: string)  => <div>{i}</div>) }
             </div>
         );
     }

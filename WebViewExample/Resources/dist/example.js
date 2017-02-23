@@ -18,10 +18,7 @@ define(["require", "exports", "react", "./dependency.js"], function (require, ex
             return (React.createElement("div", { className: "App" },
                 React.createElement("div", { className: "App-header" },
                     React.createElement("h2", null, "Welcome to React")),
-                React.createElement("p", { className: "App-intro" },
-                    "To get started, edit ",
-                    React.createElement("code", null, "src/App.tsx"),
-                    " and save to reload.")));
+                NativeApi.getItems().map(function (i) { return React.createElement("div", null, i); })));
         };
         return App;
     }(React.Component));

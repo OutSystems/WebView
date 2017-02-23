@@ -90,7 +90,7 @@
     <Compile Include="ParsedJSException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ProxyAuthentication.cs" />
-    <Compile Include="ReactWebView.cs" />
+    <Compile Include="ReactView.cs" />
     <Compile Include="WebView.CefDownloadHandler.cs" />
     <Compile Include="WebView.CefLifeSpanHandler.cs" />
     <Compile Include="WebView.CefRequestHandler.cs" />
