@@ -10,16 +10,37 @@ declare var NativeApi: any;
 console.log(Dependency.x);
 
 
-class App extends React.Component<null, null> {
+class App extends React.Component<null, { items: any[], i: number }> {
+
+    constructor() {
+        super();
+        this.state = { items: [], i: 0 };
+        
+    }
+
+    componentDidMount() {
+        console.time("native");
+        NativeApi.getItems().then((result: any) => {
+            this.setState({ items: result, i: 1 });
+            console.timeEnd("native");
+        }).catch(() => {
+            this.setState({ i: 2 });
+        });
+    }
+
     render() {
         return (
             <div className="App">
                 <div className="App-header">
-                    <h2>Welcome to React</h2>
+                    <h2>Welcome to React {this.state.i}</h2>
                 </div>
-                { NativeApi.getItems().map((i: string)  => <div>{i}</div>) }
+                {this.getItems()}
             </div>
         );
+    }
+
+    getItems() {
+        return this.state.items.length === 0 ? <div>No items</div> : this.state.items.map((i: any) => <div>{i.Value}</div>);
     }
 }
 

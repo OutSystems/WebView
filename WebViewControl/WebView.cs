@@ -60,7 +60,7 @@ namespace WebViewControl {
                 var tempDir = Path.GetTempPath();// Storage.NewStorageWithFilename("WebView");
                 var cefSettings = new CefSettings();
                 cefSettings.LogSeverity = LogSeverity.Verbose; // disable writing of debug.log
-
+                
                 // TODO jmn not needed probably cefSettings.CachePath = tempDir; // enable cache for external resources to speedup loading
 
                 foreach (var scheme in CustomSchemes) {
@@ -73,11 +73,7 @@ namespace WebViewControl {
                 //cefSettings.UserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.22 (KHTML, like Gecko) Safari/537.22 Chrome/" + Cef.ChromiumVersion + " DevelopmentEnvironment/" + OmlConstants.Version;
                 //cefSettings.BrowserSubprocessPath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "CefSharp.BrowserSubprocess.exe");
 
-                // TODO JMN cef 3 probably not needed cefSettings.RegisterScheme(new CefCustomScheme() {
-                //    SchemeName = LocalScheme,
-                //});
-
-                Cef.Initialize(cefSettings);
+                Cef.Initialize(cefSettings, performDependencyCheck: true, browserProcessHandler: null);
 
                 Application.Current.Exit += (o, e) => Cef.Shutdown(); // must shutdown cef to free cache files (so that storage cleanup on process exit is able to delete files)
             }
@@ -97,6 +93,7 @@ namespace WebViewControl {
             chromium.LifeSpanHandler = new CefLifeSpanHandler(this);
             chromium.PreviewKeyDown += OnPreviewKeyDown;
             chromium.RenderProcessMessageHandler = new RenderProcessMessageHandler(this);
+            chromium.MenuHandler = new MenuHandler(this);
             jsContextProvider = new JavascriptContextProvider(this);
             Content = chromium; 
         }
@@ -104,8 +101,6 @@ namespace WebViewControl {
         public void Dispose() {
             isDisposing = true;
 
-            // TODO JMN cef3
-            // webView.JavascriptContextCreated -= OnJavascriptContextCreated;
             chromium.RequestHandler = null;
             chromium.ResourceHandlerFactory = null;
             chromium.PreviewKeyDown -= OnPreviewKeyDown;
@@ -135,8 +130,12 @@ namespace WebViewControl {
         }
 
         public void ShowDeveloperTools() {
-            chromium.ShowDevTools();
-            isDeveloperToolsOpened = true;
+            if (IsBrowserInitialized) {
+                chromium.ShowDevTools();
+                isDeveloperToolsOpened = true;
+            } else {
+                pendingInitialization += ShowDeveloperTools;
+            }
         }
 
         public void CloseDeveloperTools() {
@@ -163,6 +162,11 @@ namespace WebViewControl {
             set { /*settings.HistoryDisabled = value;*/ }
         }
 
+        public bool DisableBuiltinContextMenus {
+            get;
+            set;
+        }
+
         public bool IsBrowserInitialized {
             get { return chromium.IsBrowserInitialized; }
         }
@@ -174,7 +178,7 @@ namespace WebViewControl {
             if (chromium.IsBrowserInitialized) {
                 initialize();
             } else {
-                pendingInitialization = initialize;
+                pendingInitialization += initialize;
             }
         }
 
@@ -194,8 +198,9 @@ namespace WebViewControl {
             Load(DefaultLocalUrl);
         }
 
+
         public void RegisterJavascriptObject(string name, object objectToBind) {
-            chromium.RegisterJsObject(name, objectToBind);
+            chromium.RegisterAsyncJsObject(name, objectToBind);
         }
 
         private object InternalEvaluateScript(string script, TimeSpan? timeout = default(TimeSpan?)) {
@@ -272,13 +277,6 @@ namespace WebViewControl {
             }
         }
 
-        private void OnJavascriptContextCreated(object sender) {
-            // TODO
-            if (JavascriptContextCreated != null) {
-                JavascriptContextCreated();
-            }
-        }
-
         private void ExecuteInUIThread(Action action) {
             // use begin invoke to avoid dead-locks, otherwise if another any browser instance tries, for instance, to evaluate js it would block
             Dispatcher.BeginInvoke(
@@ -329,7 +327,7 @@ namespace WebViewControl {
             // TODO ExecuteScript("window.onscroll = function () { " + ScrollListenerObj + ".notify(); }");
         }
 
-        private bool FilterRequest(IRequest request) {
+        private static bool FilterRequest(IRequest request) {
             return request.Url.ToLower().StartsWith("chrome-") ||
                    request.Url.Equals(DefaultLocalUrl, StringComparison.InvariantCultureIgnoreCase) ||
                    request.Url.Equals(DefaultEmbeddedUrl, StringComparison.InvariantCultureIgnoreCase);

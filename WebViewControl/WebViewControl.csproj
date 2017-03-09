@@ -94,6 +94,7 @@
     <Compile Include="WebView.CefDownloadHandler.cs" />
     <Compile Include="WebView.CefLifeSpanHandler.cs" />
     <Compile Include="WebView.CefRequestHandler.cs" />
+    <Compile Include="WebView.MenuHandler.cs" />
     <Compile Include="WebView.RenderProcessMessageHandler.cs" />
     <Compile Include="WebView.CefSchemeHandlerFactory.cs" />
     <Compile Include="WebView.CefResourceHandlerFactory.cs" />
@@ -106,6 +107,7 @@
     <Compile Include="ResourcesManager.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="packages.config" />
     <None Include="Resources\tsconfig.json" />
   </ItemGroup>

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows;
 using WebViewControl;
@@ -9,13 +10,21 @@ namespace WebViewExample {
     /// </summary>
     public partial class MainWindow : Window {
 
+        struct JsObj {
+            public JsObj(string value) {
+                Value = value;
+            }
+
+            public string Value;
+        }
+
         class NativeApi {
-            public string[] GetItems() {
-                return new[] {
-                    "a",
-                    "b",
-                    "c"
-                };
+            public JsObj[] GetItems() {
+                var result = new List<JsObj>();
+                for (var i = 0; i < 1000; i++) {
+                    result.Add(new JsObj("" + i));
+                }
+                return result.ToArray();
             }
         }
 
@@ -26,7 +35,6 @@ namespace WebViewExample {
             reactView = new ReactView("Resources", "dist", "example.js");
             reactView.NativeApi = new NativeApi();
             panel.Children.Add(reactView);
-
             //webview.LoadFrom("Resources");
             //webview.Load("https://www.google.pt/");
             //webview.LoadHtml(
@@ -80,10 +88,10 @@ namespace WebViewExample {
         //}
 
         private void Button_Click(object sender, RoutedEventArgs e) {
-        //    webview.ExecuteScriptFunction("setValue", "1");
-        //    webview.ExecuteScriptFunction("setValue", "2");
-        //    webview.ExecuteScriptFunction("setValue", "3");
-        //    Title = webview.EvaluateScriptFunction<string>("getResult");
+            //    webview.ExecuteScriptFunction("setValue", "1");
+            //    webview.ExecuteScriptFunction("setValue", "2");
+            //    webview.ExecuteScriptFunction("setValue", "3");
+            //    Title = webview.EvaluateScriptFunction<string>("getResult");
         }
     }
 }

@@ -25,7 +25,7 @@ namespace WebViewControl {
                     return OwnerWebView.htmlToLoad != null ? CefSharp.ResourceHandler.FromString(OwnerWebView.htmlToLoad, "html") : null;
                 }
 
-                if (request.Url != DefaultEmbeddedUrl && OwnerWebView.FilterRequest(request)) {
+                if (request.Url != DefaultEmbeddedUrl && FilterRequest(request)) {
                     return null;
                 }
                 

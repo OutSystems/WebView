@@ -49,6 +49,8 @@ namespace WebViewControl {
 
         public ReactView(params string[] source) : base() {
             reactWebView = new InternalReactWebView(Assembly.GetCallingAssembly(), source);
+            reactWebView.AllowDeveloperTools = true;
+            reactWebView.DisableBuiltinContextMenus = true;
             Content = reactWebView;
         }
 
