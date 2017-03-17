@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.IO;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -12,7 +13,7 @@ namespace WebViewControl {
 
     public partial class WebView : ContentControl, IDisposable {
 
-        private const string LocalScheme = "local";
+        public const string LocalScheme = "local";
         private const string EmbeddedScheme = "embedded";
         private static readonly string[] CustomSchemes = new[] {
             LocalScheme,
@@ -32,7 +33,7 @@ namespace WebViewControl {
         private Action pendingInitialization;
         private Action scrollChanged;
         private string htmlToLoad;
-        private JavascriptContextProvider jsContextProvider;
+        private JavascriptExecutor jsExecutor;
         private Assembly resourcesSource;
         private string resourcesNamespace;
 
@@ -49,11 +50,12 @@ namespace WebViewControl {
         public event Action<ResourceHandler> BeforeResourceLoad;
 
         public event Action<string> Navigated;
-        public event Action<string> ResourceLoadFailed;
+        public event Action<string> LoadFailed;
         public event Action<string, long, long> DownloadProgressChanged;
         public event Action<string> DownloadCompleted;
         public event Action<string> DownloadCanceled;
         public event Action JavascriptContextCreated;
+        public event Action TitleChanged;
 
         static WebView() {
             if (!Cef.IsInitialized) {
@@ -80,22 +82,32 @@ namespace WebViewControl {
         }
 
         public WebView() {
+            if (DesignerProperties.GetIsInDesignMode(this)) {
+                return;
+            }
+
+            Initialize();
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void Initialize() {
             settings = new BrowserSettings();
             settings.JavascriptOpenWindows = CefState.Disabled;
-            
+
             chromium = new CefSharp.Wpf.ChromiumWebBrowser();
             chromium.BrowserSettings = settings;
             chromium.IsBrowserInitializedChanged += OnWebViewIsBrowserInitializedChanged;
             chromium.FrameLoadEnd += OnWebViewFrameLoadEnd;
             chromium.LoadError += OnWebViewLoadError;
+            chromium.TitleChanged += OnWebViewTitleChanged;
             chromium.RequestHandler = new CefRequestHandler(this);
             chromium.ResourceHandlerFactory = new CefResourceHandlerFactory(this);
             chromium.LifeSpanHandler = new CefLifeSpanHandler(this);
             chromium.PreviewKeyDown += OnPreviewKeyDown;
             chromium.RenderProcessMessageHandler = new RenderProcessMessageHandler(this);
             chromium.MenuHandler = new MenuHandler(this);
-            jsContextProvider = new JavascriptContextProvider(this);
-            Content = chromium; 
+            jsExecutor = new JavascriptExecutor(this);
+            Content = chromium;
         }
 
         public void Dispose() {
@@ -108,10 +120,11 @@ namespace WebViewControl {
             BeforeNavigate = null;
             BeforeResourceLoad = null;
             Navigated = null;
-            ResourceLoadFailed = null;
+            LoadFailed = null;
             scrollChanged = null;
             
             CloseDeveloperTools();
+            jsExecutor.Dispose();
             settings.Dispose();
             chromium.Dispose();
             settings = null;
@@ -203,25 +216,20 @@ namespace WebViewControl {
             chromium.RegisterAsyncJsObject(name, objectToBind);
         }
 
-        private object InternalEvaluateScript(string script, TimeSpan? timeout = default(TimeSpan?)) {
-            var task = chromium.EvaluateScriptAsync(script, timeout);
-            task.Wait();
-            if (task.Result.Success) {
-                return task.Result.Result;
-            }
-            throw new JavascriptException(task.Result.Message);   
+        public T EvaluateScript<T>(string script, TimeSpan? timeout = default(TimeSpan?)) {
+            return jsExecutor.EvaluateScript<T>(script, timeout);
         }
 
-        private void InternalExecuteScript(string script) {
-            chromium.ExecuteScriptAsync(script);
+        public void ExecuteScript(string script) {
+            jsExecutor.ExecuteScript(script);
         }
 
         public void ExecuteScriptFunction(string functionName, params string[] args) {
-            jsContextProvider.ExecuteScriptFunction(functionName, args);
+            jsExecutor.ExecuteScriptFunction(functionName, args);
         }
 
         public T EvaluateScriptFunction<T>(string functionName, params string[] args) {
-            return jsContextProvider.EvaluateScriptFunction<T>(functionName, args);
+            return jsExecutor.EvaluateScriptFunction<T>(functionName, args);
         }
 
         public bool CanGoBack {
@@ -242,6 +250,11 @@ namespace WebViewControl {
 
         public string Title {
             get { return chromium.Title; }
+        }
+
+        public double ZoomLevel {
+            get { return chromium.ZoomLevel; }
+            set { chromium.ZoomLevel = value; }
         }
 
         private void OnWebViewIsBrowserInitializedChanged(object sender, DependencyPropertyChangedEventArgs e) {
@@ -272,8 +285,14 @@ namespace WebViewControl {
         private void OnWebViewLoadError(object sender, LoadErrorEventArgs e) {
             htmlToLoad = null;
             // TODO JMN cef3 load error?
-            if (ResourceLoadFailed != null) {
-                ExecuteInUIThread(() => ResourceLoadFailed(e.FailedUrl));
+            if (LoadFailed != null) {
+                ExecuteInUIThread(() => LoadFailed(e.FailedUrl));
+            }
+        }
+
+        private void OnWebViewTitleChanged(object sender, DependencyPropertyChangedEventArgs e) {
+            if (TitleChanged != null) {
+                TitleChanged();
             }
         }
 

@@ -84,8 +84,6 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="IJavascriptContextProvider.cs" />
-    <Compile Include="IJavascriptSerialization.cs" />
     <Compile Include="JavascriptSerializationHelper.cs" />
     <Compile Include="ParsedJSException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -100,7 +98,7 @@
     <Compile Include="WebView.CefResourceHandlerFactory.cs" />
     <Compile Include="WebView.cs" />
     <Compile Include="WebView.JavascriptException.cs" />
-    <Compile Include="WebView.JavascriptContextProvider.cs" />
+    <Compile Include="WebView.JavascriptExecutor.cs" />
     <Compile Include="WebView.Listener.cs" />
     <Compile Include="WebView.Request.cs" />
     <Compile Include="WebView.ResourceHandler.cs" />

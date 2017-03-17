@@ -6,59 +6,63 @@ using JavascriptObject = System.Collections.Generic.Dictionary<string, object>;
 
 namespace WebViewControl {
 
-    internal class JavascriptSerializationHelper : IJavascriptSerialization {
-        
-        public string SerializeArray(IEnumerable<string> arr) {
-            return "[" + string.Join(",", arr.Select(si => SerializeString(si))) + "]";
+    public interface IJavascriptObject {
+        JavascriptObject ToJavascriptObject();
+    }
+
+    public interface IJavascriptEnumValue {
+        string ToJavascriptEnumValue();
+    }
+
+    public static class JavascriptSerializer {
+
+        public static string Serialize(IEnumerable<string> arr) {
+            return "[" + string.Join(",", arr.Select(si => Serialize(si))) + "]";
         }
 
-        public string SerializeArray(IEnumerable<IJavascriptObject> arr) {
-            return SerializeArray(arr.Select(o => o.ToJavascriptObject()));
+        public static string Serialize(IEnumerable<IJavascriptObject> arr) {
+            return Serialize(arr.Select(o => o.ToJavascriptObject()));
         }
 
-        public string SerializeArray(IEnumerable<JavascriptObject> arr) {
-            return "[" + string.Join(",", arr.Select(o => SerializeJavascriptObject(o))) + "]";
+        public static string Serialize(IEnumerable<JavascriptObject> arr) {
+            return "[" + string.Join(",", arr.Select(o => Serialize(o))) + "]";
         }
 
         // TODO JMN cef3 this should not be dynamic
-        public string SerializeJavascriptObjectValue(object o) {
+        public static string SerializeJavascriptObject(object o) {
             if (o == null) return "null";
             if (o is ValueType) return o.ToString().ToLowerInvariant();
-            if (o is string) return SerializeString((string)o);
-            if (o is JavascriptObject) return SerializeJavascriptObject((JavascriptObject)o);
-            if (o is IJavascriptObject) return SerializeJavascriptObject((IJavascriptObject)o);
+            if (o is string) return Serialize((string)o);
+            if (o is JavascriptObject) return Serialize((JavascriptObject)o);
+            if (o is IJavascriptObject) return Serialize((IJavascriptObject)o);
             if (o is IJavascriptEnumValue) return ((IJavascriptEnumValue)o).ToJavascriptEnumValue();
-            if (o is IEnumerable<string>) return SerializeArray((IEnumerable<string>)o);
-            if (o is IEnumerable<JavascriptObject>) return SerializeArray((IEnumerable<JavascriptObject>)o);
-            if (o is IEnumerable<IJavascriptObject>) return SerializeArray((IEnumerable<IJavascriptObject>)o);
+            if (o is IEnumerable<string>) return Serialize((IEnumerable<string>)o);
+            if (o is IEnumerable<JavascriptObject>) return Serialize((IEnumerable<JavascriptObject>)o);
+            if (o is IEnumerable<IJavascriptObject>) return Serialize((IEnumerable<IJavascriptObject>)o);
             throw new ArgumentException("unexpected argument type: " + o.GetType().FullName);
         }
 
-        public string SerializeJavascriptObject(IJavascriptObject o) {
-            return SerializeJavascriptObject(o.ToJavascriptObject());
+        public static string Serialize(IJavascriptObject o) {
+            return Serialize(o.ToJavascriptObject());
         }
 
-        public string SerializeJavascriptObject(JavascriptObject o) {
-            return "{" + string.Join(",", o.Select(kvp => SerializeString(kvp.Key) + ":" + SerializeJavascriptObjectValue(kvp.Value))) + "}";
+        public static string Serialize(JavascriptObject o) {
+            return "{" + string.Join(",", o.Select(kvp => Serialize(kvp.Key) + ":" + SerializeJavascriptObject(kvp.Value))) + "}";
         }
 
-        public string SerializeString(string str) {
+        public static string Serialize(string str) {
             return str == null ? "null" : "\"" + Regex.Escape(str).Replace("\"", "\\\"") + "\"";
         }
 
-        public string SerializeBoolean(bool boolean) {
+        public static string Serialize(bool boolean) {
             return boolean.ToString().ToLowerInvariant();
         }
 
-        public T[] ToArray<T, S>(JavascriptObject obj, Func<S, T> converter) {
-            if (obj == null) {
+        public static T[] ToArray<T, S>(IEnumerable<object> objs, Func<S, T> converter) {
+            if (objs == null) {
                 return new T[0];
             }
-            var result = new T[obj.Count];
-            for (int i = 0; i < obj.Count; i++) {
-                result[i] = (T)obj[i.ToString()];
-            }
-            return result;
+            return objs.Cast<S>().Select(converter).ToArray();
         }
     }
 }
