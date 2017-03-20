@@ -50,7 +50,7 @@ namespace WebViewControl {
         public event Action<ResourceHandler> BeforeResourceLoad;
 
         public event Action<string> Navigated;
-        public event Action<string> LoadFailed;
+        public event Action<string, int> LoadFailed;
         public event Action<string, long, long> DownloadProgressChanged;
         public event Action<string> DownloadCompleted;
         public event Action<string> DownloadCanceled;
@@ -284,9 +284,8 @@ namespace WebViewControl {
 
         private void OnWebViewLoadError(object sender, LoadErrorEventArgs e) {
             htmlToLoad = null;
-            // TODO JMN cef3 load error?
             if (LoadFailed != null) {
-                ExecuteInUIThread(() => LoadFailed(e.FailedUrl));
+                ExecuteInUIThread(() => LoadFailed(e.FailedUrl, (int) e.ErrorCode));
             }
         }
 
