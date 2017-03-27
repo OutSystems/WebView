@@ -3,13 +3,10 @@ using System.Diagnostics;
 using CefSharp;
 
 namespace WebViewControl {
-    
+
     partial class WebView {
 
         private class CefLifeSpanHandler : ILifeSpanHandler {
-
-            // TODO JMN cef3 - duplicated
-            private static readonly string[] Exceptions = new string[] { "chrome-devtools:" };
 
             private readonly WebView OwnerWebView;
 
@@ -22,6 +19,11 @@ namespace WebViewControl {
             bool ILifeSpanHandler.OnBeforePopup(IWebBrowser browserControl, IBrowser browser, IFrame frame, string targetUrl, string targetFrameName, WindowOpenDisposition targetDisposition, bool userGesture, IPopupFeatures popupFeatures, IWindowInfo windowInfo, IBrowserSettings browserSettings, ref bool noJavascriptAccess, out IWebBrowser newBrowser) {
                 var url = frame.Url;
                 newBrowser = null;
+
+                if (url.StartsWith(WebView.ChromeInternalProtocol, StringComparison.InvariantCultureIgnoreCase)) {
+                    return false;
+                }
+
                 if (Uri.IsWellFormedUriString(url, UriKind.RelativeOrAbsolute)) {
                     var uri = new Uri(url);
                     if (!uri.IsAbsoluteUri) {
@@ -30,12 +32,6 @@ namespace WebViewControl {
                     }
                 } else {
                     return false; // if the url is not well formed let's use the browser to handle the things
-                }
-
-                foreach (var exception in Exceptions) {
-                    if (url.StartsWith(exception, System.StringComparison.InvariantCultureIgnoreCase)) {
-                        return false;
-                    }
                 }
 
                 // if we are opening a popup then this should go to the default browser

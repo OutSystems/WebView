@@ -20,6 +20,8 @@ namespace WebViewControl {
             EmbeddedScheme
         };
 
+        private const string ChromeInternalProtocol = "chrome-devtools:";
+
         protected const string BuiltinResourcesPath = "builtin/";
         private const string DefaultPath = "://webview/";
         private const string DefaultLocalUrl = LocalScheme + DefaultPath + "index.html";
@@ -100,12 +102,14 @@ namespace WebViewControl {
             chromium.FrameLoadEnd += OnWebViewFrameLoadEnd;
             chromium.LoadError += OnWebViewLoadError;
             chromium.TitleChanged += OnWebViewTitleChanged;
+            chromium.PreviewKeyDown += OnPreviewKeyDown;
             chromium.RequestHandler = new CefRequestHandler(this);
             chromium.ResourceHandlerFactory = new CefResourceHandlerFactory(this);
             chromium.LifeSpanHandler = new CefLifeSpanHandler(this);
-            chromium.PreviewKeyDown += OnPreviewKeyDown;
             chromium.RenderProcessMessageHandler = new RenderProcessMessageHandler(this);
             chromium.MenuHandler = new MenuHandler(this);
+            // TODO chromium.DownloadHandler = new CefDownloadHandler();
+            
             jsExecutor = new JavascriptExecutor(this);
             Content = chromium;
         }
@@ -173,6 +177,11 @@ namespace WebViewControl {
         public bool IsHistoryDisabled {
             get { return false/* TODO JMN cef3 settings.HistoryDisabled*/; }
             set { /*settings.HistoryDisabled = value;*/ }
+        }
+
+        public TimeSpan DefaultScriptsExecutionTimeout {
+            get;
+            set;
         }
 
         public bool DisableBuiltinContextMenus {
@@ -346,7 +355,7 @@ namespace WebViewControl {
         }
 
         private static bool FilterRequest(IRequest request) {
-            return request.Url.ToLower().StartsWith("chrome-") ||
+            return request.Url.ToLower().StartsWith(ChromeInternalProtocol) ||
                    request.Url.Equals(DefaultLocalUrl, StringComparison.InvariantCultureIgnoreCase) ||
                    request.Url.Equals(DefaultEmbeddedUrl, StringComparison.InvariantCultureIgnoreCase);
         }

@@ -154,7 +154,7 @@ namespace WebViewControl {
                     pendingFlushEvent.WaitOne();
                 }
 
-                SafeExecuteScript(() => result = InternalEvaluateScript<T>(script + " /* " + now + "*/", timeout));
+                SafeExecuteScript(() => result = InternalEvaluateScript<T>(script + " /* " + now + "*/", timeout ?? OwnerWebView.DefaultScriptsExecutionTimeout));
                 return result;
             }
 
@@ -177,7 +177,7 @@ namespace WebViewControl {
                 OwnerWebView.RegisterJavascriptObject(variableName, objectToBind);
             }
 
-            private T InternalEvaluateScript<T>(string script, TimeSpan? timeout = default(TimeSpan?)) {
+            private T InternalEvaluateScript<T>(string script, TimeSpan timeout) {
                 var task = OwnerWebView.chromium.EvaluateScriptAsync(script, timeout);
                 task.Wait();
                 if (task.Result.Success) {
