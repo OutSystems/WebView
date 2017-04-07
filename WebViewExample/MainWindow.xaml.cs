@@ -1,6 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using System.Globalization;
 using System.IO;
+using System.Reflection;
+using System.Runtime.Remoting.Messaging;
+using System.Runtime.Remoting.Proxies;
 using System.Windows;
 using WebViewControl;
 
@@ -10,31 +15,52 @@ namespace WebViewExample {
     /// </summary>
     public partial class MainWindow : Window {
 
-        struct JsObj {
-            public JsObj(string value) {
-                Value = value;
-            }
-
-            public string Value;
+        internal class ModelObject {
+            public int Id;
         }
 
-        class NativeApi {
-            public JsObj[] GetItems() {
+        //[TypeConverter(typeof(JsObjectConverter<JsObj>))]
+        public class JsObj : ReactView.ViewObject, IJsObj {
+
+            public string Value;
+
+            internal ModelObject ModelObj {
+                get;
+                set;
+            }
+
+            public void Execute(string newValue) {
+                Console.WriteLine("JS says hello: " + newValue + " (" + Value + ")");
+            }
+        }
+
+        class NativeApi : INativeApi {
+
+
+            public IJsObj[] GetItems() {
                 var result = new List<JsObj>();
                 for (var i = 0; i < 1000; i++) {
-                    result.Add(new JsObj("" + i));
+                    result.Add(new JsObj() { Value = "" + i, ModelObj = new ModelObject() { Id = i } });
                 }
                 return result.ToArray();
+            }
+
+            public void ExecuteOnItem(IJsObj item, string newValue) {
+                ((JsObj)item).Execute(newValue);
             }
         }
 
         private ReactView reactView;
+        private WebView webview;
 
         public MainWindow() {
             InitializeComponent();
-            reactView = new ReactView("Resources", "dist", "example.js");
-            reactView.NativeApi = new NativeApi();
-            panel.Children.Add(reactView);
+            //reactView = new ReactView("Resources", "dist", "example.js");
+            //reactView.NativeApi = new NativeApi();
+            //panel.Children.Add(reactView);
+            
+            //webview = new WebView();
+            //panel.Children.Add(webview);
             //webview.LoadFrom("Resources");
             //webview.Load("https://www.google.pt/");
             //webview.LoadHtml(
@@ -88,10 +114,19 @@ namespace WebViewExample {
         //}
 
         private void Button_Click(object sender, RoutedEventArgs e) {
-            //    webview.ExecuteScriptFunction("setValue", "1");
-            //    webview.ExecuteScriptFunction("setValue", "2");
-            //    webview.ExecuteScriptFunction("setValue", "3");
-            //    Title = webview.EvaluateScriptFunction<string>("getResult");
+            for (int i = 0, j = 0; i < 100; i++) {
+                webview.ExecuteScript("i = " + ++j);
+                webview.ExecuteScript("i = " + ++j);
+                webview.ExecuteScript("i = " + ++j);
+                webview.ExecuteScript("i = " + ++j);
+                var result = webview.EvaluateScript<int>("i");
+                if (result != j) {
+                    throw new InvalidOperationException();
+                }
+                webview.ExecuteScript("i = " + ++j);
+                //Title = result + "";
+            }
+            Console.WriteLine("Done");
         }
     }
 }

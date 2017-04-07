@@ -177,7 +177,7 @@ namespace WebViewControl {
                 OwnerWebView.RegisterJavascriptObject(variableName, objectToBind);
             }
 
-            private T InternalEvaluateScript<T>(string script, TimeSpan timeout) {
+            private T InternalEvaluateScript<T>(string script, TimeSpan? timeout = default(TimeSpan?)) {
                 var task = OwnerWebView.chromium.EvaluateScriptAsync(script, timeout);
                 task.Wait();
                 if (task.Result.Success) {

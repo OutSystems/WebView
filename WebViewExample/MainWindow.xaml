@@ -4,9 +4,12 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WebViewExample"
+        xmlns:wvc="clr-namespace:WebViewControl;assembly=WebViewControl"
         mc:Ignorable="d"
         Title="MainWindow" Height="350" Width="525">
 
     <DockPanel x:Name="panel">
-        <Button Click="Button_Click">Click</Button></DockPanel>
+        <Button Click="Button_Click">Click</Button>
+        <wvc:ReactView Source="Resources/dist/example.js"/>
+    </DockPanel>
 </Window>

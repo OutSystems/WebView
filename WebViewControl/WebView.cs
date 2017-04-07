@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Reflection;
@@ -8,10 +9,12 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
 using CefSharp;
+using CefSharp.ModelBinding;
 
 namespace WebViewControl {
 
     public partial class WebView : ContentControl, IDisposable {
+
 
         public const string LocalScheme = "local";
         private const string EmbeddedScheme = "embedded";
@@ -27,7 +30,7 @@ namespace WebViewControl {
         private const string DefaultLocalUrl = LocalScheme + DefaultPath + "index.html";
         protected const string DefaultEmbeddedUrl = EmbeddedScheme + DefaultPath + "index.html";
 
-        private CefSharp.Wpf.ChromiumWebBrowser chromium;
+        protected CefSharp.Wpf.ChromiumWebBrowser chromium;
         private bool isDeveloperToolsOpened = false;
         private BrowserSettings settings;
         private bool isDisposing;
@@ -179,7 +182,7 @@ namespace WebViewControl {
             set { /*settings.HistoryDisabled = value;*/ }
         }
 
-        public TimeSpan DefaultScriptsExecutionTimeout {
+        public TimeSpan? DefaultScriptsExecutionTimeout {
             get;
             set;
         }
@@ -205,7 +208,7 @@ namespace WebViewControl {
         }
 
         public void LoadFrom(string resourcesNamespace) {
-            LoadFrom(Assembly.GetExecutingAssembly(), resourcesNamespace);
+            LoadFrom(Assembly.GetCallingAssembly(), resourcesNamespace);
         }
 
         protected void LoadFrom(Assembly assembly, string resourcesNamespace) {
@@ -220,8 +223,7 @@ namespace WebViewControl {
             Load(DefaultLocalUrl);
         }
 
-
-        public void RegisterJavascriptObject(string name, object objectToBind) {
+        public virtual void RegisterJavascriptObject(string name, object objectToBind) {
             chromium.RegisterAsyncJsObject(name, objectToBind);
         }
 

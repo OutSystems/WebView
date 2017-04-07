@@ -4,3 +4,7 @@ packages/
 bin
 obj
 *.suo
+*.opendb
+*.db
+WebViewExample/Generated/
+WebViewExample/Resources/dist/
