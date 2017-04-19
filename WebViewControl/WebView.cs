@@ -15,7 +15,6 @@ namespace WebViewControl {
 
     public partial class WebView : ContentControl, IDisposable {
 
-
         public const string LocalScheme = "local";
         private const string EmbeddedScheme = "embedded";
         private static readonly string[] CustomSchemes = new[] {
@@ -63,6 +62,11 @@ namespace WebViewControl {
         public event Action TitleChanged;
 
         static WebView() {
+            InitializeCef();
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static void InitializeCef() {
             if (!Cef.IsInitialized) {
                 var tempDir = Path.GetTempPath();// Storage.NewStorageWithFilename("WebView");
                 var cefSettings = new CefSettings();
@@ -78,9 +82,9 @@ namespace WebViewControl {
                 }
                 // as we cannot obtain the default value of the user agent used in CEF we are hardcoding the first part of the string
                 //cefSettings.UserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.22 (KHTML, like Gecko) Safari/537.22 Chrome/" + Cef.ChromiumVersion + " DevelopmentEnvironment/" + OmlConstants.Version;
-                //cefSettings.BrowserSubprocessPath = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "CefSharp.BrowserSubprocess.exe");
+                cefSettings.BrowserSubprocessPath = CefLoader.GetBrowserSubProcessPath();
 
-                Cef.Initialize(cefSettings, performDependencyCheck: true, browserProcessHandler: null);
+                Cef.Initialize(cefSettings, performDependencyCheck: false, browserProcessHandler: null);
 
                 Application.Current.Exit += (o, e) => Cef.Shutdown(); // must shutdown cef to free cache files (so that storage cleanup on process exit is able to delete files)
             }

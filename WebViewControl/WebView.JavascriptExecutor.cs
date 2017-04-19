@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CefSharp;
-using JavascriptObject = System.Collections.Generic.Dictionary<string, object>;
+using JavascriptObject = System.Collections.Generic.IDictionary<string, object>;
 
 namespace WebViewControl {
 
@@ -24,8 +24,9 @@ namespace WebViewControl {
             private readonly AutoResetEvent hasScriptsEvent = new AutoResetEvent(false);
             private readonly AutoResetEvent pendingFlushEvent = new AutoResetEvent(false);
             private readonly CancellationTokenSource flushTaskCancelationToken = new CancellationTokenSource();
+            private readonly CefSharp.ModelBinding.DefaultBinder binder = new CefSharp.ModelBinding.DefaultBinder(new CefSharp.ModelBinding.DefaultFieldNameConverter());
             private long executionCounter = 0;
-                
+
             public JavascriptExecutor(WebView ownerWebView) {
                 OwnerWebView = ownerWebView;
                 OwnerWebView.BrowserInitialized += () => Task.Factory.StartNew(FlushScripts, flushTaskCancelationToken.Token);
@@ -181,9 +182,53 @@ namespace WebViewControl {
                 var task = OwnerWebView.chromium.EvaluateScriptAsync(script, timeout);
                 task.Wait();
                 if (task.Result.Success) {
-                    return (T) task.Result.Result;
+                    return GetResult<T>(task.Result.Result);
                 }
                 throw new JavascriptException(task.Result.Message);
+            }
+
+            private T GetResult<T>(object result) {
+                var targetType = typeof(T);
+                if (IsBasicType(targetType)) {
+                    return (T) result;
+                }
+                return (T) binder.Bind(result, targetType);
+                //return (T) GetResult(result, typeof(T));
+            }
+
+            //private static object GetResult(object result, Type targetType) {
+            //    if (IsBasicType(targetType)) {
+            //        return result;
+            //    }
+
+            //    if (targetType.IsArray || result is System.Collections.IList) {
+            //        var itemType = targetType.GetElementType();
+            //        Func<object, object> getItem;
+            //        if (IsBasicType(itemType)) {
+            //            getItem = (object value) => value;
+            //        } else {
+            //            // TODO JMN check performance ... should we use lambda expressions: https://vagifabilov.wordpress.com/2010/04/02/dont-use-activator-createinstance-or-constructorinfo-invoke-use-compiled-lambda-expressions/
+            //            getItem = (object value) => GetResult(value, itemType);
+            //        }
+            //        var list = (System.Collections.IList)result;
+            //        var targetArray = Array.CreateInstance(itemType, list.Count);
+            //        var i = 0;
+            //        foreach (var item in list) {
+            //            targetArray.SetValue(getItem(item), i++);
+            //        }
+            //        return targetArray;
+            //    }
+
+            //    var targetResult = Activator.CreateInstance(targetType);
+            //    var propertiesMap = (JavascriptObject)result;
+            //    foreach(var property in propertiesMap) {
+            //        targetType.GetField(property.Key).SetValue(targetResult, property.Value);
+            //    }
+            //    return targetResult;
+            //}
+
+            private static bool IsBasicType(Type type) {
+                return type.IsPrimitive || type.IsEnum || type == typeof(string);
             }
 
             public void Dispose() {

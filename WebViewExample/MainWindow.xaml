@@ -10,6 +10,6 @@
 
     <DockPanel x:Name="panel">
         <Button Click="Button_Click">Click</Button>
-        <wvc:ReactView Source="Resources/dist/example.js"/>
+        <wvc:ReactView x:Name="reactView" Source="Resources/dist/example.js"/>
     </DockPanel>
 </Window>
