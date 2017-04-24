@@ -45,15 +45,15 @@ namespace WebViewControl {
             return base.ResolveResourceAssembly(resourceUrl);
         }
 
-        protected override string[] ResolveResourcePath(Uri resourceUrl) {
+        protected override string[] ResolveResourcePath(Uri resourceUrl, string assemblyName) {
             if (resourceUrl.AbsoluteUri == DefaultEmbeddedUrl || IsBuiltinResource(resourceUrl)) {
                 if (resourceUrl.Segments.LastOrDefault() == ReactRootComponentPath) {
                     // root component is the component specified for this control
-                    return componentSource;
+                    return (new[] { assemblyName }).Concat(componentSource).ToArray();
                 }
-                return base.ResolveResourcePath(resourceUrl);
+                return base.ResolveResourcePath(resourceUrl, assemblyName);
             }
-            return componentSource.Take(componentSource.Length - 1).Concat(resourceUrl.Segments.Skip(1)).ToArray();
+            return (new[] { assemblyName }).Concat(componentSource.Take(componentSource.Length - 1).Concat(resourceUrl.Segments.Skip(1))).ToArray();
         }
 
         public override void RegisterJavascriptObject(string name, object objectToBind) {

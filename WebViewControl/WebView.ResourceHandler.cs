@@ -19,6 +19,10 @@ namespace WebViewControl {
                 Handler = CefSharp.ResourceHandler.FromStream(stream, CefSharp.ResourceHandler.GetMimeType(extension));
             }
 
+            public void Redirect(string url) {
+                Handler = new CefResourceHandler(url);
+            }
+
             internal CefSharp.ResourceHandler Handler {
                 get;
                 private set;
@@ -26,6 +30,10 @@ namespace WebViewControl {
 
             public bool Handled {
                 get { return Handler != null; }
+            }
+
+            public Stream Response {
+                get { return Handler != null ? Handler.Stream : null; }
             }
         }
     }

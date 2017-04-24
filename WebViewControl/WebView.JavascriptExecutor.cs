@@ -29,7 +29,7 @@ namespace WebViewControl {
 
             public JavascriptExecutor(WebView ownerWebView) {
                 OwnerWebView = ownerWebView;
-                OwnerWebView.BrowserInitialized += () => Task.Factory.StartNew(FlushScripts, flushTaskCancelationToken.Token);
+                OwnerWebView.WebViewInitialized += () => Task.Factory.StartNew(FlushScripts, flushTaskCancelationToken.Token);
             }
 
             // TODO JMN cef3

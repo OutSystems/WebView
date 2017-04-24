@@ -27,6 +27,8 @@ namespace WebViewControl {
         protected const string BuiltinResourcesPath = "builtin/";
         private const string DefaultPath = "://webview/";
         private const string DefaultLocalUrl = LocalScheme + DefaultPath + "index.html";
+        private const string AssemblyPrefix = EmbeddedScheme + DefaultPath + "assembly:";
+        private const string AssemblyPathSeparator = ";";
         protected const string DefaultEmbeddedUrl = EmbeddedScheme + DefaultPath + "index.html";
 
         protected CefSharp.Wpf.ChromiumWebBrowser chromium;
@@ -41,7 +43,7 @@ namespace WebViewControl {
         private Assembly resourcesSource;
         private string resourcesNamespace;
 
-        public event Action BrowserInitialized;
+        public event Action WebViewInitialized;
 
         /// <summary>
         /// NOTE: This event is not executed on the UI thread. Do not use Dipatcher.Invoke (use BeginInvoke) while in the context of this event otherwise it may lead to a dead-lock.
@@ -61,6 +63,11 @@ namespace WebViewControl {
         public event Action JavascriptContextCreated;
         public event Action TitleChanged;
 
+        /// <summary>
+        /// Executed when a web view is initialized. Can be used to attach or configure the webview before it's ready.
+        /// </summary>
+        public static event Action<WebView> GlobalWebViewInitialized;
+
         static WebView() {
             InitializeCef();
         }
@@ -70,7 +77,7 @@ namespace WebViewControl {
             if (!Cef.IsInitialized) {
                 var tempDir = Path.GetTempPath();// Storage.NewStorageWithFilename("WebView");
                 var cefSettings = new CefSettings();
-                cefSettings.LogSeverity = LogSeverity.Verbose; // disable writing of debug.log
+                cefSettings.LogSeverity = LogSeverity.Disable; // disable writing of debug.log
                 
                 // TODO jmn not needed probably cefSettings.CachePath = tempDir; // enable cache for external resources to speedup loading
 
@@ -116,9 +123,14 @@ namespace WebViewControl {
             chromium.RenderProcessMessageHandler = new RenderProcessMessageHandler(this);
             chromium.MenuHandler = new MenuHandler(this);
             // TODO chromium.DownloadHandler = new CefDownloadHandler();
-            
+
             jsExecutor = new JavascriptExecutor(this);
             Content = chromium;
+
+            var initialized = GlobalWebViewInitialized;
+            if (initialized != null) {
+                initialized(this);
+            }
         }
 
         public void Dispose() {
@@ -127,7 +139,7 @@ namespace WebViewControl {
             chromium.RequestHandler = null;
             chromium.ResourceHandlerFactory = null;
             chromium.PreviewKeyDown -= OnPreviewKeyDown;
-            BrowserInitialized = null;
+            WebViewInitialized = null;
             BeforeNavigate = null;
             BeforeResourceLoad = null;
             Navigated = null;
@@ -201,6 +213,8 @@ namespace WebViewControl {
         }
 
         public ProxyAuthentication ProxyAuthentication { get; set; }
+
+        public bool IgnoreNonExistingEmbeddedResources { get; set; }
 
         public void Load(string url) {
             Action initialize = () => chromium.Load(url);
@@ -278,8 +292,8 @@ namespace WebViewControl {
                     pendingInitialization();
                     pendingInitialization = null;
                 }
-                if (BrowserInitialized != null) {
-                    BrowserInitialized();
+                if (WebViewInitialized != null) {
+                    WebViewInitialized();
                 }
             }
         }
@@ -364,6 +378,31 @@ namespace WebViewControl {
             return request.Url.ToLower().StartsWith(ChromeInternalProtocol) ||
                    request.Url.Equals(DefaultLocalUrl, StringComparison.InvariantCultureIgnoreCase) ||
                    request.Url.Equals(DefaultEmbeddedUrl, StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        public static string BuildEmbeddedResourceUrl(Assembly assembly, params string[] path) {
+            return BuildEmbeddedResourceUrl(assembly.GetName().Name, path);
+        }
+
+        public static string BuildEmbeddedResourceUrl(string assemblyName, params string[] path) {
+            return AssemblyPrefix + assemblyName + AssemblyPathSeparator + string.Join("/", path);
+        }
+
+        private static string GetEmbeddedResourceAssemblyName(Uri url) {
+            if (url.AbsoluteUri.StartsWith(AssemblyPrefix)) {
+                var resourcePath = url.AbsoluteUri.Substring(AssemblyPrefix.Length);
+                var indexOfPath = resourcePath.IndexOf(AssemblyPathSeparator);
+                return resourcePath.Substring(0, indexOfPath);
+            }
+            return string.Empty;
+        }
+
+        private static string GetEmbeddedResourcePath(Uri url) {
+            if (url.AbsoluteUri.StartsWith(AssemblyPrefix)) {
+                var indexOfPath = url.AbsolutePath.IndexOf(AssemblyPathSeparator);
+                return url.AbsolutePath.Substring(indexOfPath + 1);
+            }
+            return string.Empty;
         }
     }
 }

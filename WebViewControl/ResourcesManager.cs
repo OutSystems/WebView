@@ -8,7 +8,7 @@ namespace WebViewControl {
 
     public static class ResourcesManager {
 
-        private static Stream InternalTryGetResource(string assemblyName, IEnumerable<string> resourcePath, bool failOnMissingResource) {
+        private static Stream InternalTryGetResource(string assemblyName, string defaultNamespace, IEnumerable<string> resourcePath, bool failOnMissingResource) {
             var assembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a => a.GetName().Name == assemblyName);
             if (assembly == null) {
                 if (failOnMissingResource) {
@@ -16,11 +16,11 @@ namespace WebViewControl {
                 }
                 return null;
             }
-            return InternalTryGetResource(assembly, resourcePath, failOnMissingResource);
+            return InternalTryGetResource(assembly, defaultNamespace, resourcePath, failOnMissingResource);
         }
 
-        private static Stream InternalTryGetResource(Assembly assembly, IEnumerable<string> resourcePath, bool failOnMissingResource) {
-            var resourceName = assembly.GetName().Name + "." + string.Join(".", resourcePath);
+        private static Stream InternalTryGetResource(Assembly assembly, string defaultNamespace, IEnumerable<string> resourcePath, bool failOnMissingResource) {
+            var resourceName = string.Join(".", (new[] { defaultNamespace }).Concat(resourcePath));
             var stream = assembly.GetManifestResourceStream(resourceName);
             if (failOnMissingResource && stream == null) {
                 throw new InvalidOperationException("Resource not found: " + resourceName);
@@ -28,20 +28,28 @@ namespace WebViewControl {
             return stream;
         }
 
+        public static Stream GetResourceWithFullPath(Assembly assembly, IEnumerable<string> resourcePath) {
+            return InternalTryGetResource(assembly, resourcePath.First(), resourcePath.Skip(1), true);
+        }
+
         public static Stream GetResource(Assembly assembly, IEnumerable<string> resourcePath) {
-            return InternalTryGetResource(assembly, resourcePath, true);
+            return InternalTryGetResource(assembly, assembly.GetName().Name, resourcePath, true);
         }
 
         public static Stream GetResource(string assemblyName, IEnumerable<string> resourcePath) {
-            return InternalTryGetResource(assemblyName, resourcePath, true);
+            return InternalTryGetResource(assemblyName, assemblyName, resourcePath, true);
         }
 
         public static Stream TryGetResource(Assembly assembly, IEnumerable<string> resourcePath) {
-            return InternalTryGetResource(assembly, resourcePath, false);
+            return InternalTryGetResource(assembly, assembly.GetName().Name, resourcePath, false);
         }
 
         public static Stream TryGetResource(string assemblyName, IEnumerable<string> resourcePath) {
-            return InternalTryGetResource(assemblyName, resourcePath, false);
+            return InternalTryGetResource(assemblyName, assemblyName, resourcePath, false);
+        }
+
+        public static Stream TryGetResourceWithFullPath(Assembly assembly, IEnumerable<string> resourcePath) {
+            return InternalTryGetResource(assembly, resourcePath.First(), resourcePath.Skip(1), false);
         }
 
         public static string GetMimeType(string resourceName) {

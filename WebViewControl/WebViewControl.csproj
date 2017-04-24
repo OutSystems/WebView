@@ -98,6 +98,7 @@
     <Compile Include="WebView.CefDownloadHandler.cs" />
     <Compile Include="WebView.CefLifeSpanHandler.cs" />
     <Compile Include="WebView.CefRequestHandler.cs" />
+    <Compile Include="WebView.CefResourceHandler.cs" />
     <Compile Include="WebView.MenuHandler.cs" />
     <Compile Include="WebView.RenderProcessMessageHandler.cs" />
     <Compile Include="WebView.CefSchemeHandlerFactory.cs" />
@@ -114,7 +115,9 @@
     <None Include="app.config" />
     <None Include="packages.config" />
     <None Include="Resources\tsconfig.json" />
-    <None Include="WebViewControl.nuspec" />
+    <None Include="WebViewControl.nuspec">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="WebViewControl.props" />
   </ItemGroup>
   <ItemGroup>
@@ -147,10 +150,8 @@
   <Import Project="..\packages\CefSharp.Wpf.55.0.0\build\CefSharp.Wpf.targets" Condition="Exists('..\packages\CefSharp.Wpf.55.0.0\build\CefSharp.Wpf.targets')" />
   <Target Name="InjectModuleInitializer" AfterTargets="AfterBuild">
     <Exec Command="..\packages\InjectModuleInitializer.1.5\tools\InjectModuleInitializer.exe &quot;$(TargetPath)&quot;" />
+    <Exec Command="&quot;$(ProjectDir)nuget&quot; pack &quot;$(ProjectPath)&quot; -OutputDirectory &quot;$(ProjectDir) &quot; -Properties Configuration=$(ConfigurationName)" />
   </Target>
-  <PropertyGroup>
-    <PostBuildEvent>"$(ProjectDir)nuget" pack "$(ProjectPath)" -OutputDirectory "$(ProjectDir) " -Properties Configuration=$(ConfigurationName)</PostBuildEvent>
-  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
