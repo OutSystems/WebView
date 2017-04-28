@@ -192,40 +192,12 @@ namespace WebViewControl {
                 if (IsBasicType(targetType)) {
                     return (T) result;
                 }
+                if (result == null && targetType.IsArray) {
+                    // return empty arrays when value is null and return type is array
+                    return (T) (object) Array.CreateInstance(targetType.GetElementType(), 0);
+                }
                 return (T) binder.Bind(result, targetType);
-                //return (T) GetResult(result, typeof(T));
             }
-
-            //private static object GetResult(object result, Type targetType) {
-            //    if (IsBasicType(targetType)) {
-            //        return result;
-            //    }
-
-            //    if (targetType.IsArray || result is System.Collections.IList) {
-            //        var itemType = targetType.GetElementType();
-            //        Func<object, object> getItem;
-            //        if (IsBasicType(itemType)) {
-            //            getItem = (object value) => value;
-            //        } else {
-            //            // TODO JMN check performance ... should we use lambda expressions: https://vagifabilov.wordpress.com/2010/04/02/dont-use-activator-createinstance-or-constructorinfo-invoke-use-compiled-lambda-expressions/
-            //            getItem = (object value) => GetResult(value, itemType);
-            //        }
-            //        var list = (System.Collections.IList)result;
-            //        var targetArray = Array.CreateInstance(itemType, list.Count);
-            //        var i = 0;
-            //        foreach (var item in list) {
-            //            targetArray.SetValue(getItem(item), i++);
-            //        }
-            //        return targetArray;
-            //    }
-
-            //    var targetResult = Activator.CreateInstance(targetType);
-            //    var propertiesMap = (JavascriptObject)result;
-            //    foreach(var property in propertiesMap) {
-            //        targetType.GetField(property.Key).SetValue(targetResult, property.Value);
-            //    }
-            //    return targetResult;
-            //}
 
             private static bool IsBasicType(Type type) {
                 return type.IsPrimitive || type.IsEnum || type == typeof(string);
