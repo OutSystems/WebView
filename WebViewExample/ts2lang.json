@@ -1,7 +1,7 @@
 {
     "tasks": [
         {
-            "input": "Resources/src/native-api.ts",
+            "input": "ResourcesExample/src/native-api.ts",
             "output": "Generated/NativeApi.Generated.cs",
             "template": "Generator/bin/api-generator.js",
             "parameters": {
@@ -9,7 +9,7 @@
             }
         },
         {
-            "input": "Resources/src/web-api.ts",
+            "input": "ResourcesExample/src/web-api.ts",
             "output": "Generated/WebApi.Generated.cs",
             "template": "Generator/bin/web-api-generator.js",
             "parameters": {

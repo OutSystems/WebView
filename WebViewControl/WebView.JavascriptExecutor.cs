@@ -1,16 +1,28 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using CefSharp;
-using JavascriptObject = System.Collections.Generic.IDictionary<string, object>;
 
 namespace WebViewControl {
 
     partial class WebView {
+
+        [DataContract]
+        internal class JsError {
+            [DataMember(Name="stack")]
+            public string Stack;
+            [DataMember(Name = "name")]
+            public string Name;
+            [DataMember(Name = "message")]
+            public string Message;
+        }
 
         internal class JavascriptExecutor : IDisposable {
 
@@ -24,89 +36,34 @@ namespace WebViewControl {
             private readonly AutoResetEvent hasScriptsEvent = new AutoResetEvent(false);
             private readonly AutoResetEvent pendingFlushEvent = new AutoResetEvent(false);
             private readonly CancellationTokenSource flushTaskCancelationToken = new CancellationTokenSource();
-            private readonly CefSharp.ModelBinding.DefaultBinder binder = new CefSharp.ModelBinding.DefaultBinder(new CefSharp.ModelBinding.DefaultFieldNameConverter());
             private long executionCounter = 0;
 
             public JavascriptExecutor(WebView ownerWebView) {
                 OwnerWebView = ownerWebView;
                 OwnerWebView.WebViewInitialized += () => Task.Factory.StartNew(FlushScripts, flushTaskCancelationToken.Token);
-            }
-
-            // TODO JMN cef3
-            protected string JavascriptExecutionWrapper {
-                get { return null; }
-            }
-
-            // TODO JMN cef3
-            protected string JavascriptExceptionGrabber {
-                get { return null; }
-            }
-
-            public string GetJavascriptContext() {
-                return InternalEvaluateScript<string>(
-                    @"'href:' + window.location.href + '\n' + " +
-                    @"'props:' + (function(r) {for (var p in window) {r+=p+'|'} return r})('')"
-                    , TimeSpan.FromSeconds(10));
-            }
-
-            public JavascriptObject GetLastJavascriptError() {
-                if (JavascriptExceptionGrabber == null) {
-                    return null;
-                } else {
-                    return InternalEvaluateScript< JavascriptObject>(JavascriptExceptionGrabber, TimeSpan.FromSeconds(10));
-                }
+                OwnerWebView.RenderProcessCrashed += () => flushTaskCancelationToken.Cancel();
             }
 
             [DebuggerNonUserCode]
-            private void SafeExecuteScript(Action action) {
+            private T InternalSafeEvaluateScript<T>(string script, TimeSpan? timeout) {
                 if (OwnerWebView.isDisposing) {
-                    return;
+                    return default(T);
                 }
 
                 try {
-                    action();
+                    script = "try {" + script + "; } catch (e) { throw JSON.stringify({ stack: e.stack, message: e.message, name: e.name }) }";
+                    return InternalEvaluateScript<T>(script, timeout ?? OwnerWebView.DefaultScriptsExecutionTimeout);
                 } catch (JavascriptException originalException) {
-                    Exception jsException = null;
-                    try {
-                        try {
-                            var jsError = GetLastJavascriptError();
-                            if (jsError != null) {
-                                jsException = new ParsedJSException(
-                                    (string)jsError["name"],
-                                    (string)jsError["message"], null, null);
-                                    // TODO JMN cef3
-                                    /*ToArray<string>((JSObject) jsError["stack"])
-                                        .Select(s => "   " + s.TrimStart(' '))
-                                        .Concat("   at " + javascript)
-                                        .ToArray(),
-                                    ToArray<string>((JSObject) jsError["messagelog"]));*/
-                            }
-                        } catch {
-                            // sometimes we get a "TraceUtils is not defined"
-                            // can we get some more info on that?
-                            try {
-                                var ctx = GetJavascriptContext();
-                                jsException = new Exception(ctx, originalException);
-                            } catch {
-                                // ignore, lets throw the original
-                            }
-                        }
-                    } catch {
-                        // ignore, lets throw the original
-                    }
-                    if (jsException != null) {
-                        throw jsException;
-                    }
-                    throw;
-                }
-            }
-
-            private string MakeScript(string functionName, string[] args) {
-                var argsSerialized = args.Select(a => a == null ? "null" : a);
-                if (JavascriptExecutionWrapper == null) {
-                    return functionName + "(" + string.Join(",", argsSerialized) + ")";
-                } else {
-                    return JavascriptExecutionWrapper + "(" + string.Join(",", (new[] { functionName }).Concat(argsSerialized)) + ")";
+                    var jsErrorJSON = originalException.Message;
+                    jsErrorJSON = jsErrorJSON.Substring(Math.Max(0, jsErrorJSON.IndexOf("{")));
+                    jsErrorJSON = jsErrorJSON.Substring(0, jsErrorJSON.LastIndexOf("}") + 1);
+                    var jsError = DeserializeJSON<JsError>(jsErrorJSON);
+                    jsError.Name = jsError.Name ?? "";
+                    jsError.Message = jsError.Message ?? "";
+                    jsError.Stack = jsError.Stack ?? "";
+                    var jsStack = jsError.Stack.Substring(Math.Min(jsError.Stack.Length, (jsError.Name + ": " + jsError.Message).Length)).Split(new [] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                    jsStack = jsStack.Select(l => l.Substring("    at ".Length)).ToArray();
+                    throw new JavascriptException(jsError.Name, jsError.Message, jsStack);
                 }
             }
 
@@ -116,47 +73,52 @@ namespace WebViewControl {
                 hasScriptsEvent.Set();
             }
 
-            private async void FlushScripts() {
+            private void FlushScripts() {
                 try {
                     while (!flushTaskCancelationToken.IsCancellationRequested) {
-                        await InnerFlushScripts();
+                        InnerFlushScripts();
                     }
                 } catch (OperationCanceledException) {
                     // stop
                 }
             }
 
-            private async Task InnerFlushScripts() {
+            private void InnerFlushScripts() {
                 WaitHandle.WaitAny(new[] { hasScriptsEvent, flushTaskCancelationToken.Token.WaitHandle });
 
-                var scriptsToExecute = pendingScripts.Select(s => s.Item2).ToArray();
-                var aggregatedScripts = string.Join(";", scriptsToExecute);
-
-                if (!string.IsNullOrEmpty(aggregatedScripts)) {
-                    await OwnerWebView.chromium.EvaluateScriptAsync(aggregatedScripts);
-                }
-
-                // remove the executed scripts from the queue
-                for(var i = 0; i < scriptsToExecute.Length; i++) {
-                    Tuple<long, string> script;
-                    if (!pendingScripts.TryDequeue(out script)) {
-                        throw new InvalidOperationException("Expected Dequeue to succeed");
+                try {
+                    if (flushTaskCancelationToken.IsCancellationRequested) {
+                        return;
                     }
-                }
 
-                pendingFlushEvent.Set();
+                    var scriptsToExecute = pendingScripts.Select(s => s.Item2).ToArray();
+                    var aggregatedScripts = string.Join(";", scriptsToExecute);
+
+                    if (!string.IsNullOrEmpty(aggregatedScripts)) {
+                        OwnerWebView.chromium.EvaluateScriptAsync(aggregatedScripts).Wait(flushTaskCancelationToken.Token);
+                    }
+
+                    // remove the executed scripts from the queue
+                    for (var i = 0; i < scriptsToExecute.Length; i++) {
+                        Tuple<long, string> script;
+                        if (!pendingScripts.TryDequeue(out script)) {
+                            throw new InvalidOperationException("Expected Dequeue to succeed");
+                        }
+                    }
+                } finally {
+                    // unblock anyone waiting
+                    pendingFlushEvent.Set();
+                }
             }
 
             public T EvaluateScript<T>(string script, TimeSpan? timeout = default(TimeSpan?)) {
-                T result = default(T);
                 var now = IncCounter();
                 Tuple<long, string> pendingScript;
-                while (pendingScripts.TryPeek(out pendingScript) && pendingScript.Item1 < now) {
+                while (!flushTaskCancelationToken.IsCancellationRequested && pendingScripts.TryPeek(out pendingScript) && pendingScript.Item1 < now) {
                     pendingFlushEvent.WaitOne();
                 }
 
-                SafeExecuteScript(() => result = InternalEvaluateScript<T>(script + " /* " + now + "*/", timeout ?? OwnerWebView.DefaultScriptsExecutionTimeout));
-                return result;
+                return InternalSafeEvaluateScript<T>(script, timeout);
             }
 
             public T EvaluateScriptFunction<T>(string functionName, params string[] args) {
@@ -180,11 +142,12 @@ namespace WebViewControl {
 
             private T InternalEvaluateScript<T>(string script, TimeSpan? timeout = default(TimeSpan?)) {
                 var task = OwnerWebView.chromium.EvaluateScriptAsync(script, timeout);
-                task.Wait();
+                task.Wait(flushTaskCancelationToken.Token);
+                    
                 if (task.Result.Success) {
                     return GetResult<T>(task.Result.Result);
                 }
-                throw new JavascriptException(task.Result.Message);
+                throw new JavascriptException("Error", task.Result.Message, new string[0]);
             }
 
             private T GetResult<T>(object result) {
@@ -196,11 +159,7 @@ namespace WebViewControl {
                     // return empty arrays when value is null and return type is array
                     return (T) (object) Array.CreateInstance(targetType.GetElementType(), 0);
                 }
-                return (T) binder.Bind(result, targetType);
-            }
-
-            private static bool IsBasicType(Type type) {
-                return type.IsPrimitive || type.IsEnum || type == typeof(string);
+                return (T) OwnerWebView.binder.Bind(result, targetType);
             }
 
             public void Dispose() {
@@ -211,6 +170,22 @@ namespace WebViewControl {
             private long IncCounter() {
                 lock (this) {
                     return ++executionCounter;
+                }
+            }
+
+            private static bool IsBasicType(Type type) {
+                return type.IsPrimitive || type.IsEnum || type == typeof(string);
+            }
+
+            private static string MakeScript(string functionName, string[] args) {
+                var argsSerialized = args.Select(a => a == null ? "null" : a);
+                return functionName + "(" + string.Join(",", argsSerialized) + ")";
+            }
+
+            private static T DeserializeJSON<T>(string json) {
+                var serializer = new DataContractJsonSerializer(typeof(JsError));
+                using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(json))) {
+                    return (T) serializer.ReadObject(stream);
                 }
             }
         }

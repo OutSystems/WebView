@@ -74,6 +74,7 @@ namespace WebViewControl {
             }
 
             void IRequestHandler.OnRenderProcessTerminated(IWebBrowser browserControl, IBrowser browser, CefTerminationStatus status) {
+                OwnerWebView.RenderProcessCrashed?.Invoke();
             }
 
             bool IRequestHandler.OnSelectClientCertificate(IWebBrowser browserControl, IBrowser browser, bool isProxy, string host, int port, X509Certificate2Collection certificates, ISelectClientCertificateCallback callback) {

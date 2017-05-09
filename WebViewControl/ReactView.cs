@@ -32,14 +32,11 @@ namespace WebViewControl {
         public string Source {
             get { return source; }
             set {
-                source = value;
-                var currentAssembly = this.GetType().Assembly;
-                var callingAssemblies = new StackTrace().GetFrames().Select(f => f.GetMethod().ReflectedType.Assembly).SkipWhile(a => a == currentAssembly);
-                var userAssembly = callingAssemblies.First(a => !IsFrameworkAssemblyName(a.GetName().Name));
-                if (userAssembly == null) {
-                    throw new InvalidOperationException("Unable to find calling assembly");
+                source = value ?? "";
+                if (!source.EndsWith(".js")) {
+                    source += ".js";
                 }
-                reactWebView.Load(userAssembly, (source ?? "").Split('/'));
+                reactWebView.Load(source.Split('/'));
             }
         }
 
@@ -65,10 +62,6 @@ namespace WebViewControl {
                 viewObj.TrackCode.Value = ++objectCounter;
                 jsObjects[viewObj.TrackCode.Value] = obj;
             }
-        }
-
-        private static bool IsFrameworkAssemblyName(string name) {
-            return name == "PresentationFramework" || name == "mscorlib" || name == "System.Xaml";
         }
 
         public T EvaluateScriptFunction<T>(string functionName, params string[] args) {

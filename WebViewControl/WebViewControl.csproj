@@ -75,6 +75,7 @@
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -86,12 +87,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CefLoader.cs" />
+    <Compile Include="InternalChromiumBrowser.cs" />
     <Compile Include="InternalReactView.cs" />
     <Compile Include="JavascriptSerializationHelper.cs" />
     <Compile Include="JsObjectBinder.cs" />
     <Compile Include="JsObjectInterceptor.cs" />
     <Compile Include="ModuleInitializer.cs" />
-    <Compile Include="ParsedJSException.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ProxyAuthentication.cs" />
     <Compile Include="ReactView.cs" />

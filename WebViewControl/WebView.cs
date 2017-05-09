@@ -1,7 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Windows;
@@ -16,22 +17,22 @@ namespace WebViewControl {
     public partial class WebView : ContentControl, IDisposable {
 
         public const string LocalScheme = "local";
-        private const string EmbeddedScheme = "embedded";
+        protected const string EmbeddedScheme = "embedded";
         private static readonly string[] CustomSchemes = new[] {
             LocalScheme,
             EmbeddedScheme
         };
 
         private const string ChromeInternalProtocol = "chrome-devtools:";
-
-        protected const string BuiltinResourcesPath = "builtin/";
-        private const string DefaultPath = "://webview/";
+        
+        protected const string DefaultPath = "://webview/";
         private const string DefaultLocalUrl = LocalScheme + DefaultPath + "index.html";
         private const string AssemblyPrefix = EmbeddedScheme + DefaultPath + "assembly:";
         private const string AssemblyPathSeparator = ";";
-        protected const string DefaultEmbeddedUrl = EmbeddedScheme + DefaultPath + "index.html";
 
-        protected CefSharp.Wpf.ChromiumWebBrowser chromium;
+        private readonly DefaultBinder binder = new DefaultBinder(new DefaultFieldNameConverter());
+
+        protected InternalChromiumBrowser chromium;
         private bool isDeveloperToolsOpened = false;
         private BrowserSettings settings;
         private bool isDisposing;
@@ -40,8 +41,6 @@ namespace WebViewControl {
         private Action scrollChanged;
         private string htmlToLoad;
         private JavascriptExecutor jsExecutor;
-        private Assembly resourcesSource;
-        private string resourcesNamespace;
 
         public event Action WebViewInitialized;
 
@@ -62,6 +61,8 @@ namespace WebViewControl {
         public event Action<string> DownloadCanceled;
         public event Action JavascriptContextCreated;
         public event Action TitleChanged;
+
+        private event Action RenderProcessCrashed;
 
         /// <summary>
         /// Executed when a web view is initialized. Can be used to attach or configure the webview before it's ready.
@@ -110,7 +111,7 @@ namespace WebViewControl {
             settings = new BrowserSettings();
             settings.JavascriptOpenWindows = CefState.Disabled;
 
-            chromium = new CefSharp.Wpf.ChromiumWebBrowser();
+            chromium = new InternalChromiumBrowser();
             chromium.BrowserSettings = settings;
             chromium.IsBrowserInitializedChanged += OnWebViewIsBrowserInitializedChanged;
             chromium.FrameLoadEnd += OnWebViewFrameLoadEnd;
@@ -146,7 +147,6 @@ namespace WebViewControl {
             LoadFailed = null;
             scrollChanged = null;
             
-            CloseDeveloperTools();
             jsExecutor.Dispose();
             settings.Dispose();
             chromium.Dispose();
@@ -185,7 +185,19 @@ namespace WebViewControl {
 
         public string Address {
             get { return chromium.Address; }
-            set { chromium.Address = value; }
+            set {
+                if (value.Contains("://") || value == "about:blank") {
+                    Action initialize = () => chromium.Load(value);
+                    if (chromium.IsBrowserInitialized) {
+                        initialize();
+                    } else {
+                        // must wait for the browser to be initialized otherwise navigation will be aborted
+                        pendingInitialization += initialize;
+                    }
+                } else {
+                    LoadFrom(value);
+                }
+            }
         }
 
         public bool IsSecurityDisabled {
@@ -214,38 +226,29 @@ namespace WebViewControl {
 
         public ProxyAuthentication ProxyAuthentication { get; set; }
 
-        public bool IgnoreNonExistingEmbeddedResources { get; set; }
+        public bool IgnoreMissingResources { get; set; }
 
-        public void Load(string url) {
-            Action initialize = () => chromium.Load(url);
-            if (chromium.IsBrowserInitialized) {
-                initialize();
-            } else {
-                pendingInitialization += initialize;
-            }
-        }
+        protected void LoadFrom(string source) {
+            var userAssembly = GetUserCallingAssembly();
 
-        public void LoadFrom(string resourcesNamespace) {
-            LoadFrom(Assembly.GetCallingAssembly(), resourcesNamespace);
-        }
-
-        protected void LoadFrom(Assembly assembly, string resourcesNamespace) {
-            resourcesSource = assembly;
-            this.resourcesNamespace = resourcesNamespace;
             IsSecurityDisabled = true;
-            Load(DefaultEmbeddedUrl);
+            Address = BuildEmbeddedResourceUrl(userAssembly, userAssembly.GetName().Name, source);
         }
 
         public void LoadHtml(string html) {
             htmlToLoad = html;
-            Load(DefaultLocalUrl);
+            Address = DefaultLocalUrl;
         }
 
         public virtual void RegisterJavascriptObject(string name, object objectToBind) {
-            chromium.RegisterAsyncJsObject(name, objectToBind);
+            chromium.RegisterAsyncJsObject(name, objectToBind, new BindingOptions() { Binder = binder });
         }
 
-        public T EvaluateScript<T>(string script, TimeSpan? timeout = default(TimeSpan?)) {
+        public T EvaluateScript<T>(string script) {
+            return jsExecutor.EvaluateScript<T>(script, default(TimeSpan?));
+        }
+
+        public T EvaluateScript<T>(string script, TimeSpan? timeout) {
             return jsExecutor.EvaluateScript<T>(script, timeout);
         }
 
@@ -376,8 +379,7 @@ namespace WebViewControl {
 
         private static bool FilterRequest(IRequest request) {
             return request.Url.ToLower().StartsWith(ChromeInternalProtocol) ||
-                   request.Url.Equals(DefaultLocalUrl, StringComparison.InvariantCultureIgnoreCase) ||
-                   request.Url.Equals(DefaultEmbeddedUrl, StringComparison.InvariantCultureIgnoreCase);
+                   request.Url.Equals(DefaultLocalUrl, StringComparison.InvariantCultureIgnoreCase);
         }
 
         public static string BuildEmbeddedResourceUrl(Assembly assembly, params string[] path) {
@@ -394,7 +396,7 @@ namespace WebViewControl {
                 var indexOfPath = resourcePath.IndexOf(AssemblyPathSeparator);
                 return resourcePath.Substring(0, indexOfPath);
             }
-            return string.Empty;
+            return url.Segments.Length > 1 ? url.Segments[1].TrimEnd('/') : string.Empty; // default assembly name to the first path
         }
 
         private static string GetEmbeddedResourcePath(Uri url) {
@@ -403,6 +405,20 @@ namespace WebViewControl {
                 return url.AbsolutePath.Substring(indexOfPath + 1);
             }
             return string.Empty;
+        }
+
+        private static bool IsFrameworkAssemblyName(string name) {
+            return name == "PresentationFramework" || name == "mscorlib" || name == "System.Xaml";
+        }
+
+        protected static Assembly GetUserCallingAssembly() {
+            var currentAssembly = typeof(WebView).Assembly;
+            var callingAssemblies = new StackTrace().GetFrames().Select(f => f.GetMethod().ReflectedType.Assembly).Where(a => a != currentAssembly);
+            var userAssembly = callingAssemblies.First(a => !IsFrameworkAssemblyName(a.GetName().Name));
+            if (userAssembly == null) {
+                throw new InvalidOperationException("Unable to find calling assembly");
+            }
+            return userAssembly;
         }
     }
 }

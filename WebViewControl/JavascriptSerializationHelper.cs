@@ -57,12 +57,5 @@ namespace WebViewControl {
         public static string Serialize(bool boolean) {
             return boolean.ToString().ToLowerInvariant();
         }
-
-        public static T[] ToArray<T, S>(IEnumerable<object> objs, Func<S, T> converter) {
-            if (objs == null) {
-                return new T[0];
-            }
-            return objs.Cast<S>().Select(converter).ToArray();
-        }
     }
 }
