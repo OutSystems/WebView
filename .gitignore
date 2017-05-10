@@ -8,3 +8,5 @@ obj
 *.db
 WebViewExample/Generated/
 WebViewExample/Resources/dist/
+*.nupkg
+WebViewExample/ResourcesExample/
