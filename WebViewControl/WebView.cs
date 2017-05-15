@@ -23,6 +23,9 @@ namespace WebViewControl {
             EmbeddedScheme
         };
 
+        private static readonly string TempDir = 
+            Path.Combine(Path.GetTempPath(), "WebView" + Guid.NewGuid().ToString().Replace("-", null) + DateTime.Now.Ticks);
+
         private const string ChromeInternalProtocol = "chrome-devtools:";
         
         protected const string DefaultPath = "://webview/";
@@ -78,11 +81,10 @@ namespace WebViewControl {
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void InitializeCef() {
             if (!Cef.IsInitialized) {
-                var tempDir = Path.GetTempPath();// Storage.NewStorageWithFilename("WebView");
                 var cefSettings = new CefSettings();
                 cefSettings.LogSeverity = LogSeverity.Disable; // disable writing of debug.log
-                
-                // TODO not needed probably cefSettings.CachePath = tempDir; // enable cache for external resources to speedup loading
+
+                cefSettings.CachePath = TempDir; // enable cache for external resources to speedup loading
 
                 foreach (var scheme in CustomSchemes) {
                     cefSettings.RegisterScheme(new CefCustomScheme() {
@@ -90,13 +92,12 @@ namespace WebViewControl {
                         SchemeHandlerFactory = new CefSchemeHandlerFactory()
                     });
                 }
-                // as we cannot obtain the default value of the user agent used in CEF we are hardcoding the first part of the string
-                //cefSettings.UserAgent = "Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.22 (KHTML, like Gecko) Safari/537.22 Chrome/" + Cef.ChromiumVersion + " DevelopmentEnvironment/" + OmlConstants.Version;
+
                 cefSettings.BrowserSubprocessPath = CefLoader.GetBrowserSubProcessPath();
 
                 Cef.Initialize(cefSettings, performDependencyCheck: false, browserProcessHandler: null);
 
-                Application.Current.Exit += (o, e) => Cef.Shutdown(); // must shutdown cef to free cache files (so that storage cleanup on process exit is able to delete files)
+                Application.Current.Exit += OnApplicationExit;
             }
         }
 
@@ -136,6 +137,20 @@ namespace WebViewControl {
                 initialized(this);
             }
         }
+
+        [DebuggerNonUserCode]
+        private static void OnApplicationExit(object sender, ExitEventArgs e) {
+            Cef.Shutdown(); // must shutdown cef to free cache files (so that cleanup is able to delete files)
+
+            try {
+                var dirInfo = new DirectoryInfo(TempDir);
+                if (dirInfo.Exists) {
+                    dirInfo.Delete(true);
+                }
+            } catch (IOException) {
+                // ignore
+            }
+    }
 
         public void Dispose() {
             isDisposing = true;
