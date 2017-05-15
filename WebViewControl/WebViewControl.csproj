@@ -100,6 +100,7 @@
     <Compile Include="WebView.CefLifeSpanHandler.cs" />
     <Compile Include="WebView.CefRequestHandler.cs" />
     <Compile Include="WebView.CefResourceHandler.cs" />
+    <Compile Include="WebView.CefDialogHandler.cs" />
     <Compile Include="WebView.MenuHandler.cs" />
     <Compile Include="WebView.RenderProcessMessageHandler.cs" />
     <Compile Include="WebView.CefSchemeHandlerFactory.cs" />
@@ -107,7 +108,6 @@
     <Compile Include="WebView.cs" />
     <Compile Include="WebView.JavascriptException.cs" />
     <Compile Include="WebView.JavascriptExecutor.cs" />
-    <Compile Include="WebView.Listener.cs" />
     <Compile Include="WebView.Request.cs" />
     <Compile Include="WebView.ResourceHandler.cs" />
     <Compile Include="ResourcesManager.cs" />

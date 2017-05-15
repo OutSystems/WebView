@@ -16,7 +16,7 @@ namespace WebViewControl {
 
         [DataContract]
         internal class JsError {
-            [DataMember(Name="stack")]
+            [DataMember(Name = "stack")]
             public string Stack;
             [DataMember(Name = "name")]
             public string Name;
@@ -40,8 +40,13 @@ namespace WebViewControl {
 
             public JavascriptExecutor(WebView ownerWebView) {
                 OwnerWebView = ownerWebView;
-                OwnerWebView.WebViewInitialized += () => Task.Factory.StartNew(FlushScripts, flushTaskCancelationToken.Token);
+                OwnerWebView.JavascriptContextCreated += OnJavascriptContextCreated;
                 OwnerWebView.RenderProcessCrashed += () => flushTaskCancelationToken.Cancel();
+            }
+
+            private void OnJavascriptContextCreated() {
+                OwnerWebView.JavascriptContextCreated -= OnJavascriptContextCreated;
+                Task.Factory.StartNew(FlushScripts, flushTaskCancelationToken.Token);
             }
 
             [DebuggerNonUserCode]
@@ -61,7 +66,7 @@ namespace WebViewControl {
                     jsError.Name = jsError.Name ?? "";
                     jsError.Message = jsError.Message ?? "";
                     jsError.Stack = jsError.Stack ?? "";
-                    var jsStack = jsError.Stack.Substring(Math.Min(jsError.Stack.Length, (jsError.Name + ": " + jsError.Message).Length)).Split(new [] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                    var jsStack = jsError.Stack.Substring(Math.Min(jsError.Stack.Length, (jsError.Name + ": " + jsError.Message).Length)).Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
                     jsStack = jsStack.Select(l => l.Substring("    at ".Length)).ToArray();
                     throw new JavascriptException(jsError.Name, jsError.Message, jsStack);
                 }
@@ -124,7 +129,7 @@ namespace WebViewControl {
             public T EvaluateScriptFunction<T>(string functionName, params string[] args) {
                 return EvaluateScript<T>(MakeScript(functionName, args));
             }
-            
+
             public void ExecuteScriptFunction(string functionName, params string[] args) {
                 QueueScript(MakeScript(functionName, args));
             }
@@ -143,7 +148,7 @@ namespace WebViewControl {
             private T InternalEvaluateScript<T>(string script, TimeSpan? timeout = default(TimeSpan?)) {
                 var task = OwnerWebView.chromium.EvaluateScriptAsync(script, timeout);
                 task.Wait(flushTaskCancelationToken.Token);
-                    
+
                 if (task.Result.Success) {
                     return GetResult<T>(task.Result.Result);
                 }
@@ -153,13 +158,13 @@ namespace WebViewControl {
             private T GetResult<T>(object result) {
                 var targetType = typeof(T);
                 if (IsBasicType(targetType)) {
-                    return (T) result;
+                    return (T)result;
                 }
                 if (result == null && targetType.IsArray) {
                     // return empty arrays when value is null and return type is array
-                    return (T) (object) Array.CreateInstance(targetType.GetElementType(), 0);
+                    return (T)(object)Array.CreateInstance(targetType.GetElementType(), 0);
                 }
-                return (T) OwnerWebView.binder.Bind(result, targetType);
+                return (T)OwnerWebView.binder.Bind(result, targetType);
             }
 
             public void Dispose() {
@@ -185,7 +190,7 @@ namespace WebViewControl {
             private static T DeserializeJSON<T>(string json) {
                 var serializer = new DataContractJsonSerializer(typeof(JsError));
                 using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(json))) {
-                    return (T) serializer.ReadObject(stream);
+                    return (T)serializer.ReadObject(stream);
                 }
             }
         }

@@ -30,15 +30,17 @@ namespace WebViewControl {
         private const string AssemblyPrefix = EmbeddedScheme + DefaultPath + "assembly:";
         private const string AssemblyPathSeparator = ";";
 
+        // converts cef zoom percentage to css zoom (between 0 and 1)
+        // from https://code.google.com/p/chromium/issues/detail?id=71484
+        private const float PercentageToZoomFactor = 1.2f;
+
         private readonly DefaultBinder binder = new DefaultBinder(new DefaultFieldNameConverter());
 
         protected InternalChromiumBrowser chromium;
         private bool isDeveloperToolsOpened = false;
         private BrowserSettings settings;
         private bool isDisposing;
-        private bool firstLoadCompleted;
         private Action pendingInitialization;
-        private Action scrollChanged;
         private string htmlToLoad;
         private JavascriptExecutor jsExecutor;
 
@@ -123,6 +125,7 @@ namespace WebViewControl {
             chromium.LifeSpanHandler = new CefLifeSpanHandler(this);
             chromium.RenderProcessMessageHandler = new RenderProcessMessageHandler(this);
             chromium.MenuHandler = new MenuHandler(this);
+            chromium.DialogHandler = new CefDialogHandler(this);
             // TODO chromium.DownloadHandler = new CefDownloadHandler();
 
             jsExecutor = new JavascriptExecutor(this);
@@ -145,13 +148,19 @@ namespace WebViewControl {
             BeforeResourceLoad = null;
             Navigated = null;
             LoadFailed = null;
-            scrollChanged = null;
             
             jsExecutor.Dispose();
             settings.Dispose();
             chromium.Dispose();
             settings = null;
             chromium = null;
+        }
+
+        protected override void OnGotFocus(RoutedEventArgs e) {
+            base.OnGotFocus(e);
+            ExecuteWhenInitialized(() => {
+                chromium.Dispatcher.BeginInvoke((Action) (() => chromium.Focus()));
+            });
         }
 
         private void OnPreviewKeyDown(object sender, KeyEventArgs e) {
@@ -166,12 +175,10 @@ namespace WebViewControl {
         }
 
         public void ShowDeveloperTools() {
-            if (IsBrowserInitialized) {
+            ExecuteWhenInitialized(() => {
                 chromium.ShowDevTools();
                 isDeveloperToolsOpened = true;
-            } else {
-                pendingInitialization += ShowDeveloperTools;
-            }
+            });
         }
 
         public void CloseDeveloperTools() {
@@ -187,13 +194,8 @@ namespace WebViewControl {
             get { return chromium.Address; }
             set {
                 if (value.Contains("://") || value == "about:blank") {
-                    Action initialize = () => chromium.Load(value);
-                    if (chromium.IsBrowserInitialized) {
-                        initialize();
-                    } else {
-                        // must wait for the browser to be initialized otherwise navigation will be aborted
-                        pendingInitialization += initialize;
-                    }
+                    // must wait for the browser to be initialized otherwise navigation will be aborted
+                    ExecuteWhenInitialized(() => chromium.Load(value));
                 } else {
                     LoadFrom(value);
                 }
@@ -216,6 +218,11 @@ namespace WebViewControl {
         }
 
         public bool DisableBuiltinContextMenus {
+            get;
+            set;
+        }
+
+        public bool DisableFileDialogs {
             get;
             set;
         }
@@ -284,9 +291,11 @@ namespace WebViewControl {
             get { return chromium.Title; }
         }
 
-        public double ZoomLevel {
-            get { return chromium.ZoomLevel; }
-            set { chromium.ZoomLevel = value; }
+        public double ZoomPercentage {
+            get { return Math.Pow(PercentageToZoomFactor, chromium.ZoomLevel); }
+            set {
+                ExecuteWhenInitialized(() => chromium.ZoomLevel = Math.Log(value, PercentageToZoomFactor));
+            }
         }
 
         private void OnWebViewIsBrowserInitializedChanged(object sender, DependencyPropertyChangedEventArgs e) {
@@ -304,11 +313,7 @@ namespace WebViewControl {
         private void OnWebViewFrameLoadEnd(object sender, FrameLoadEndEventArgs e) {
             htmlToLoad = null;
             if (e.Frame.IsMain) {
-                firstLoadCompleted = true;
                 if (Navigated != null) {
-                    if (scrollListenerRegistered) {
-                        RegisterScrollChangesOnPage();
-                    }
                     ExecuteInUIThread(() => Navigated(e.Url));
                 }
             }
@@ -348,33 +353,8 @@ namespace WebViewControl {
             Cef.GetGlobalCookieManager().SetCookieAsync(url, cookie);
         }
 
-        // TODO scoll
-        public event Action ScrollChanged {
-            add {
-                scrollChanged += value;
-                if (!scrollListenerRegistered) {
-                    RegisterScrollListener();
-                }
-                if (firstLoadCompleted) {
-                    RegisterScrollChangesOnPage();
-                }
-            }
-            remove {
-                scrollChanged -= value;
-            }
-        }
-
-        private const string ScrollListenerObj = "__ssScrollChanged";
-        private bool scrollListenerRegistered;
-        private void RegisterScrollListener() {    
-            var scrollListener = new Listener();
-            scrollListener.NotificationReceived = scrollChanged;
-            RegisterJavascriptObject(ScrollListenerObj, scrollListener);
-            scrollListenerRegistered = true;
-        }
-
-        private void RegisterScrollChangesOnPage() {
-            // TODO ExecuteScript("window.onscroll = function () { " + ScrollListenerObj + ".notify(); }");
+        public static string CookiesPath {
+            set { Cef.GetGlobalCookieManager().SetStoragePath(value, true); }
         }
 
         private static bool FilterRequest(IRequest request) {
@@ -419,6 +399,14 @@ namespace WebViewControl {
                 throw new InvalidOperationException("Unable to find calling assembly");
             }
             return userAssembly;
+        }
+
+        private void ExecuteWhenInitialized(Action action) {
+            if (IsBrowserInitialized) {
+                action();
+            } else {
+                pendingInitialization += action;
+            }
         }
     }
 }
