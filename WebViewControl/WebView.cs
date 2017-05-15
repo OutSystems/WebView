@@ -82,7 +82,7 @@ namespace WebViewControl {
                 var cefSettings = new CefSettings();
                 cefSettings.LogSeverity = LogSeverity.Disable; // disable writing of debug.log
                 
-                // TODO jmn not needed probably cefSettings.CachePath = tempDir; // enable cache for external resources to speedup loading
+                // TODO not needed probably cefSettings.CachePath = tempDir; // enable cache for external resources to speedup loading
 
                 foreach (var scheme in CustomSchemes) {
                     cefSettings.RegisterScheme(new CefCustomScheme() {
@@ -208,8 +208,8 @@ namespace WebViewControl {
         }
 
         public bool IsHistoryDisabled {
-            get { return false/* TODO JMN cef3 settings.HistoryDisabled*/; }
-            set { /*settings.HistoryDisabled = value;*/ }
+            get;
+            set;
         }
 
         public TimeSpan? DefaultScriptsExecutionTimeout {

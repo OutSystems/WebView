@@ -51,6 +51,10 @@ namespace WebViewControl {
                 if (FilterRequest(request)) {
                     return false;
                 }
+                
+                if (OwnerWebView.IsHistoryDisabled && (request.TransitionType & TransitionType.ForwardBack) == TransitionType.ForwardBack) {
+                    return true;
+                }
 
                 bool cancel = false;
                 if (OwnerWebView.BeforeNavigate != null) {
