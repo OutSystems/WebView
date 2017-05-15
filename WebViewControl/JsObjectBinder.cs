@@ -15,8 +15,8 @@ namespace WebViewControl {
         public override object Bind(object obj, Type modelType) {
             if (modelType.IsInterface) {
                 // TODO check if its a ViewObject
-                // TODO int .. might not be enough
-                // TODO trackcode
+                // int .. might not be enough
+                // trackcode
                 var trackCode = (int)((Dictionary<string, object>)obj)["Value"];
                 return reactView.GetTrackedObject(trackCode);
             }

@@ -26,11 +26,6 @@ namespace WebViewControl {
 
         internal class JavascriptExecutor : IDisposable {
 
-            // TODO JMN cef
-            //private static readonly TraceSwitch TraceSwitch = new TraceSwitch("WebView.JavascriptExecutor", string.Empty) {
-            //    Level = TraceLevel.Verbose
-            //};
-
             private readonly WebView OwnerWebView;
             private readonly ConcurrentQueue<Tuple<long, string>> pendingScripts = new ConcurrentQueue<Tuple<long, string>>();
             private readonly AutoResetEvent hasScriptsEvent = new AutoResetEvent(false);

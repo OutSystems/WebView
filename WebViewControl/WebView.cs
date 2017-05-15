@@ -60,7 +60,7 @@ namespace WebViewControl {
         public event Action<string, int> LoadFailed;
         public event Action<string, long, long> DownloadProgressChanged;
         public event Action<string> DownloadCompleted;
-        public event Action<string> DownloadCanceled;
+        public event Action<string> DownloadCancelled;
         public event Action JavascriptContextCreated;
         public event Action TitleChanged;
 
@@ -126,7 +126,7 @@ namespace WebViewControl {
             chromium.RenderProcessMessageHandler = new RenderProcessMessageHandler(this);
             chromium.MenuHandler = new MenuHandler(this);
             chromium.DialogHandler = new CefDialogHandler(this);
-            // TODO chromium.DownloadHandler = new CefDownloadHandler();
+            chromium.DownloadHandler = new CefDownloadHandler(this);
 
             jsExecutor = new JavascriptExecutor(this);
             Content = chromium;
