@@ -1,14 +1,9 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using CefSharp.ModelBinding;
 
 namespace WebViewControl {
 
-    internal class JsObjectInterceptor : IInterceptor {
+    internal class JsObjectInterceptor /* TODO : IInterceptor */ {
 
         private readonly ReactView reactView;
 

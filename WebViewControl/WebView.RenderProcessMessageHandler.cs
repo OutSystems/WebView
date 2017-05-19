@@ -1,4 +1,5 @@
-﻿using CefSharp;
+﻿using System;
+using CefSharp;
 
 namespace WebViewControl {
 
@@ -14,13 +15,17 @@ namespace WebViewControl {
 
             public void OnContextCreated(IWebBrowser browserControl, IBrowser browser, IFrame frame) {
                 if (OwnerWebView.JavascriptContextCreated != null) {
-                    OwnerWebView.JavascriptContextCreated();
-                }
+                    OwnerWebView.WithErrorHandling(() => {
+                        OwnerWebView.JavascriptContextCreated();
+                    });
+                };
             }
 
-            public void OnFocusedNodeChanged(IWebBrowser browserControl, IBrowser browser, IFrame frame, IDomNode node) {
-                
+            public void OnContextReleased(IWebBrowser browserControl, IBrowser browser, IFrame frame) {
+                OwnerWebView.JavascriptContextReleased?.Invoke();
             }
+
+            public void OnFocusedNodeChanged(IWebBrowser browserControl, IBrowser browser, IFrame frame, IDomNode node) { }
         }
     }
 }

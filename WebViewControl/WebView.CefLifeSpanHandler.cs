@@ -20,7 +20,7 @@ namespace WebViewControl {
                 var url = frame.Url;
                 newBrowser = null;
 
-                if (url.StartsWith(WebView.ChromeInternalProtocol, StringComparison.InvariantCultureIgnoreCase)) {
+                if (url.StartsWith(ChromeInternalProtocol, StringComparison.InvariantCultureIgnoreCase)) {
                     return false;
                 }
 

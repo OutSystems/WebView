@@ -28,7 +28,7 @@ namespace WebViewControl {
             return "[" + string.Join(",", arr.Select(o => Serialize(o))) + "]";
         }
 
-        // TODO JMN cef3 this should not be dynamic
+        // TODO this should not be dynamic
         public static string SerializeJavascriptObject(object o) {
             if (o == null) return "null";
             if (o is ValueType) return o.ToString().ToLowerInvariant();

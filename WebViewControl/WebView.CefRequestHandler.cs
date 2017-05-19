@@ -1,5 +1,4 @@
-﻿using System;
-using System.Security.Cryptography.X509Certificates;
+﻿using System.Security.Cryptography.X509Certificates;
 using CefSharp;
 
 namespace WebViewControl {
@@ -55,14 +54,16 @@ namespace WebViewControl {
                 if (OwnerWebView.IsHistoryDisabled && (request.TransitionType & TransitionType.ForwardBack) == TransitionType.ForwardBack) {
                     return true;
                 }
-
+               
                 bool cancel = false;
                 if (OwnerWebView.BeforeNavigate != null) {
                     var wrappedRequest = new Request(request);
-                    OwnerWebView.BeforeNavigate(wrappedRequest);
+                    OwnerWebView.WithErrorHandling(() => {
+                        OwnerWebView.BeforeNavigate(wrappedRequest);
+                    });
                     cancel = wrappedRequest.Canceled;
                 }
-                
+
                 return cancel;
             }
 
@@ -79,10 +80,25 @@ namespace WebViewControl {
 
             void IRequestHandler.OnRenderProcessTerminated(IWebBrowser browserControl, IBrowser browser, CefTerminationStatus status) {
                 OwnerWebView.RenderProcessCrashed?.Invoke();
+                string reason = "";
+                bool wasKilled = false;
+                switch (status) {
+                    case CefTerminationStatus.AbnormalTermination:
+                        reason = "terminated with an unknown reason";
+                        break;
+                    case CefTerminationStatus.ProcessCrashed:
+                        reason = "crashed";
+                        break;
+                    case CefTerminationStatus.ProcessWasKilled:
+                        reason = "was killed";
+                        wasKilled = true;
+                        break;
+                }
+                OwnerWebView.WithErrorHandling(() => { throw new RenderProcessTerminatedException("WebView render process " + reason, wasKilled); });
             }
 
             bool IRequestHandler.OnSelectClientCertificate(IWebBrowser browserControl, IBrowser browser, bool isProxy, string host, int port, X509Certificate2Collection certificates, ISelectClientCertificateCallback callback) {
-                throw new NotImplementedException();
+                return false;
             }
 
             void IRequestHandler.OnResourceRedirect(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, IResponse response, ref string newUrl) {

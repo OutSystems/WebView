@@ -17,15 +17,15 @@ namespace WebViewControl {
 
         private readonly ReactView reactView;
         private readonly IBinder binder;
-        private readonly IInterceptor interceptor;
+        // TODO private readonly IInterceptor interceptor;
 
         private string[] componentSource;
         private Assembly userCallingAssembly;
 
-        public InternalReactWebView(ReactView reactView, IBinder binder, IInterceptor interceptor) : base() {
+        public InternalReactWebView(ReactView reactView, IBinder binder/* TODO , IInterceptor interceptor */) : base() {
             this.reactView = reactView;
             this.binder = binder;
-            this.interceptor = interceptor;
+            // this.interceptor = interceptor;
         }
 
         private static bool IsBuiltinResource(Uri uri) {
@@ -77,7 +77,7 @@ namespace WebViewControl {
         public override void RegisterJavascriptObject(string name, object objectToBind) {
             var options = new BindingOptions() {
                 Binder = binder,
-                Interceptor = interceptor,
+                // TODO Interceptor = interceptor,
             };
             chromium.RegisterAsyncJsObject(name, objectToBind, options);
         }

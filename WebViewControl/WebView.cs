@@ -46,6 +46,7 @@ namespace WebViewControl {
         private Action pendingInitialization;
         private string htmlToLoad;
         private JavascriptExecutor jsExecutor;
+        private BrowserObjectListener eventsListener = new BrowserObjectListener();
 
         public event Action WebViewInitialized;
 
@@ -68,6 +69,7 @@ namespace WebViewControl {
         public event Action TitleChanged;
 
         private event Action RenderProcessCrashed;
+        private event Action JavascriptContextReleased;
 
         /// <summary>
         /// Executed when a web view is initialized. Can be used to attach or configure the webview before it's ready.
@@ -132,10 +134,9 @@ namespace WebViewControl {
             jsExecutor = new JavascriptExecutor(this);
             Content = chromium;
 
-            var initialized = GlobalWebViewInitialized;
-            if (initialized != null) {
-                initialized(this);
-            }
+            RegisterJavascriptObject(Listener.EventListenerObjName, eventsListener);
+
+            GlobalWebViewInitialized?.Invoke(this);
         }
 
         [DebuggerNonUserCode]
@@ -313,15 +314,28 @@ namespace WebViewControl {
             }
         }
 
+        public Listener AttachListener(string name, Action handler) {
+            Action<string> internalHandler = (eventName) => {
+                if (eventName == name) {
+                    handler();
+                }
+            };
+            var listener = new Listener(name, internalHandler);
+            eventsListener.NotificationReceived += internalHandler;
+            return listener;
+        }
+
+        public void DetachListener(Listener listener) {
+            eventsListener.NotificationReceived -= listener.Handler;
+        }
+
         private void OnWebViewIsBrowserInitializedChanged(object sender, DependencyPropertyChangedEventArgs e) {
             if (chromium.IsBrowserInitialized) {
                 if (pendingInitialization != null) {
                     pendingInitialization();
                     pendingInitialization = null;
                 }
-                if (WebViewInitialized != null) {
-                    WebViewInitialized();
-                }
+                WebViewInitialized?.Invoke();
             }
         }
 
@@ -342,16 +356,17 @@ namespace WebViewControl {
         }
 
         private void OnWebViewTitleChanged(object sender, DependencyPropertyChangedEventArgs e) {
-            if (TitleChanged != null) {
-                TitleChanged();
-            }
+            TitleChanged?.Invoke();
         }
 
         private void ExecuteInUIThread(Action action) {
+            if (isDisposing) {
+                return;
+            }
             // use begin invoke to avoid dead-locks, otherwise if another any browser instance tries, for instance, to evaluate js it would block
             Dispatcher.BeginInvoke(
                 (Action) (() => {
-                    if (chromium != null) {
+                    if (!isDisposing) {
                         // not disposed
                         action();
                     }
@@ -421,6 +436,15 @@ namespace WebViewControl {
                 action();
             } else {
                 pendingInitialization += action;
+            }
+        }
+
+        [DebuggerNonUserCode]
+        private void WithErrorHandling(Action action) {
+            try {
+                action();
+            } catch (Exception e) {
+                ExecuteInUIThread(() => { throw e; });
             }
         }
     }

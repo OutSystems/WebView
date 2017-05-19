@@ -36,12 +36,16 @@ namespace WebViewControl {
             public JavascriptExecutor(WebView ownerWebView) {
                 OwnerWebView = ownerWebView;
                 OwnerWebView.JavascriptContextCreated += OnJavascriptContextCreated;
-                OwnerWebView.RenderProcessCrashed += () => flushTaskCancelationToken.Cancel();
+                OwnerWebView.RenderProcessCrashed += StopFlush;
             }
 
             private void OnJavascriptContextCreated() {
                 OwnerWebView.JavascriptContextCreated -= OnJavascriptContextCreated;
                 Task.Factory.StartNew(FlushScripts, flushTaskCancelationToken.Token);
+            }
+
+            private void StopFlush() {
+                flushTaskCancelationToken.Cancel();
             }
 
             [DebuggerNonUserCode]
@@ -57,7 +61,15 @@ namespace WebViewControl {
                     var jsErrorJSON = originalException.Message;
                     jsErrorJSON = jsErrorJSON.Substring(Math.Max(0, jsErrorJSON.IndexOf("{")));
                     jsErrorJSON = jsErrorJSON.Substring(0, jsErrorJSON.LastIndexOf("}") + 1);
-                    var jsError = DeserializeJSON<JsError>(jsErrorJSON);
+                    if (string.IsNullOrEmpty(jsErrorJSON)) {
+                        throw originalException;
+                    }
+                    JsError jsError = null;
+                    try {
+                        jsError = DeserializeJSON<JsError>(jsErrorJSON);
+                    } catch {
+                        throw originalException;
+                    }
                     jsError.Name = jsError.Name ?? "";
                     jsError.Message = jsError.Message ?? "";
                     jsError.Stack = jsError.Stack ?? "";
@@ -74,13 +86,15 @@ namespace WebViewControl {
             }
 
             private void FlushScripts() {
-                try {
-                    while (!flushTaskCancelationToken.IsCancellationRequested) {
-                        InnerFlushScripts();
+                OwnerWebView.WithErrorHandling(() => {
+                    try {
+                        while (!flushTaskCancelationToken.IsCancellationRequested) {
+                            InnerFlushScripts();
+                        }
+                    } catch (OperationCanceledException) {
+                        // stop
                     }
-                } catch (OperationCanceledException) {
-                    // stop
-                }
+                });
             }
 
             private void InnerFlushScripts() {

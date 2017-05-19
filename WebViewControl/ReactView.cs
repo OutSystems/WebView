@@ -23,7 +23,7 @@ namespace WebViewControl {
         private string source;
 
         public ReactView() {
-            reactWebView = new InternalReactWebView(this, new JsObjectBinder(this), new JsObjectInterceptor(this));
+            reactWebView = new InternalReactWebView(this, new JsObjectBinder(this) /* TODO , new JsObjectInterceptor(this) */);
             reactWebView.AllowDeveloperTools = true;
             reactWebView.DisableBuiltinContextMenus = true;
             Content = reactWebView;
