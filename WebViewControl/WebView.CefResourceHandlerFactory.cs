@@ -72,7 +72,11 @@ namespace WebViewControl {
             }
 
             if (assemblies == null) {
-                assemblies = AppDomain.CurrentDomain.GetAssemblies().ToDictionary(a => a.GetName().Name, a => a);
+                assemblies = new Dictionary<string, Assembly>();
+                foreach (var domainAssembly in AppDomain.CurrentDomain.GetAssemblies()) {
+                    // replace if duplicated (can happen)
+                    assemblies[domainAssembly.GetName().Name] = domainAssembly;
+                }
             }
             Assembly assembly;
             var assemblyName = GetEmbeddedResourceAssemblyName(resourceUrl);
