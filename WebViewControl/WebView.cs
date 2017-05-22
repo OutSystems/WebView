@@ -103,6 +103,23 @@ namespace WebViewControl {
             }
         }
 
+        /// <summary>
+        /// Release all resources and shutdown web view
+        /// </summary>
+        [DebuggerNonUserCode]
+        public static void Cleanup() {
+            Cef.Shutdown(); // must shutdown cef to free cache files (so that cleanup is able to delete files)
+
+            try {
+                var dirInfo = new DirectoryInfo(TempDir);
+                if (dirInfo.Exists) {
+                    dirInfo.Delete(true);
+                }
+            } catch (IOException) {
+                // ignore
+            }
+        }
+
         public WebView() {
             if (DesignerProperties.GetIsInDesignMode(this)) {
                 return;
@@ -139,19 +156,10 @@ namespace WebViewControl {
             GlobalWebViewInitialized?.Invoke(this);
         }
 
-        [DebuggerNonUserCode]
+        
         private static void OnApplicationExit(object sender, ExitEventArgs e) {
-            Cef.Shutdown(); // must shutdown cef to free cache files (so that cleanup is able to delete files)
-
-            try {
-                var dirInfo = new DirectoryInfo(TempDir);
-                if (dirInfo.Exists) {
-                    dirInfo.Delete(true);
-                }
-            } catch (IOException) {
-                // ignore
-            }
-    }
+            Cleanup();
+        }
 
         public void Dispose() {
             isDisposing = true;
