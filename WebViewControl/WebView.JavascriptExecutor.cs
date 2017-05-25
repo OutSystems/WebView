@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Runtime.Serialization;
@@ -24,14 +24,31 @@ namespace WebViewControl {
             public string Message;
         }
 
+        internal class ScriptTask {
+
+            public ScriptTask(string script, TimeSpan? timeout = default(TimeSpan?), bool awaitable = false) {
+                Script = script;
+                if (awaitable) {
+                    WaitHandle = new ManualResetEvent(false);
+                }
+                Timeout = timeout;
+            }
+
+            public string Script { get; private set; }
+
+            public ManualResetEvent WaitHandle { get; private set; }
+
+            public JavascriptResponse Result { get; set; }
+
+            public TimeSpan? Timeout { get; set; }
+        }
+
         internal class JavascriptExecutor : IDisposable {
 
             private readonly WebView OwnerWebView;
-            private readonly ConcurrentQueue<Tuple<long, string>> pendingScripts = new ConcurrentQueue<Tuple<long, string>>();
-            private readonly AutoResetEvent hasScriptsEvent = new AutoResetEvent(false);
-            private readonly AutoResetEvent pendingFlushEvent = new AutoResetEvent(false);
+            private readonly BlockingCollection<ScriptTask> pendingScripts = new BlockingCollection<ScriptTask>();
             private readonly CancellationTokenSource flushTaskCancelationToken = new CancellationTokenSource();
-            private long executionCounter = 0;
+            private ManualResetEvent stoppedFlushHandle;
 
             public JavascriptExecutor(WebView ownerWebView) {
                 OwnerWebView = ownerWebView;
@@ -46,46 +63,20 @@ namespace WebViewControl {
 
             private void StopFlush() {
                 flushTaskCancelationToken.Cancel();
+                if (stoppedFlushHandle != null) {
+                    stoppedFlushHandle.WaitOne();
+                }
+                flushTaskCancelationToken.Dispose();
             }
 
-            [DebuggerNonUserCode]
-            private T InternalSafeEvaluateScript<T>(string script, TimeSpan? timeout) {
-                if (OwnerWebView.isDisposing) {
-                    return default(T);
-                }
-
-                try {
-                    script = "try {" + script + "; } catch (e) { throw JSON.stringify({ stack: e.stack, message: e.message, name: e.name }) }";
-                    return InternalEvaluateScript<T>(script, timeout ?? OwnerWebView.DefaultScriptsExecutionTimeout);
-                } catch (JavascriptException originalException) {
-                    var jsErrorJSON = originalException.Message;
-                    jsErrorJSON = jsErrorJSON.Substring(Math.Max(0, jsErrorJSON.IndexOf("{")));
-                    jsErrorJSON = jsErrorJSON.Substring(0, jsErrorJSON.LastIndexOf("}") + 1);
-                    if (string.IsNullOrEmpty(jsErrorJSON)) {
-                        throw originalException;
-                    }
-                    JsError jsError = null;
-                    try {
-                        jsError = DeserializeJSON<JsError>(jsErrorJSON);
-                    } catch {
-                        throw originalException;
-                    }
-                    jsError.Name = jsError.Name ?? "";
-                    jsError.Message = jsError.Message ?? "";
-                    jsError.Stack = jsError.Stack ?? "";
-                    var jsStack = jsError.Stack.Substring(Math.Min(jsError.Stack.Length, (jsError.Name + ": " + jsError.Message).Length)).Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                    jsStack = jsStack.Select(l => l.Substring("    at ".Length)).ToArray();
-                    throw new JavascriptException(jsError.Name, jsError.Message, jsStack);
-                }
-            }
-
-            private void QueueScript(string script) {
-                var counter = IncCounter();
-                pendingScripts.Enqueue(Tuple.Create(counter, script));
-                hasScriptsEvent.Set();
+            private ScriptTask QueueScript(string script, TimeSpan? timeout = default(TimeSpan?), bool awaitable = false) {
+                var scriptTask = new ScriptTask(script, timeout, awaitable);
+                pendingScripts.Add(scriptTask);
+                return scriptTask;
             }
 
             private void FlushScripts() {
+                stoppedFlushHandle = new ManualResetEvent(false);
                 OwnerWebView.WithErrorHandling(() => {
                     try {
                         while (!flushTaskCancelationToken.IsCancellationRequested) {
@@ -93,46 +84,77 @@ namespace WebViewControl {
                         }
                     } catch (OperationCanceledException) {
                         // stop
+                    } finally {
+                        stoppedFlushHandle.Set();
                     }
                 });
             }
 
             private void InnerFlushScripts() {
-                WaitHandle.WaitAny(new[] { hasScriptsEvent, flushTaskCancelationToken.Token.WaitHandle });
+                ScriptTask scriptToEvaluate = null;
+                var scriptsToExecute = new List<ScriptTask>();
 
-                try {
-                    if (flushTaskCancelationToken.IsCancellationRequested) {
-                        return;
+                do {
+                    var scriptTask = pendingScripts.Take(flushTaskCancelationToken.Token);
+                    if (scriptTask.WaitHandle == null) {
+                        scriptsToExecute.Add(scriptTask);
+                    } else { 
+                        scriptToEvaluate = scriptTask;
+                        break; // this script result needs to be handled separately
                     }
+                } while (pendingScripts.Count > 0);
 
-                    var scriptsToExecute = pendingScripts.Select(s => s.Item2).ToArray();
-                    var aggregatedScripts = string.Join(";", scriptsToExecute);
+                if (scriptsToExecute.Count > 0) {
+                    OwnerWebView.chromium.EvaluateScriptAsync(string.Join(";" + Environment.NewLine, scriptsToExecute.Select(s => s.Script))).Wait(flushTaskCancelationToken.Token);
+                }
 
-                    if (!string.IsNullOrEmpty(aggregatedScripts)) {
-                        OwnerWebView.chromium.EvaluateScriptAsync(aggregatedScripts).Wait(flushTaskCancelationToken.Token);
-                    }
-
-                    // remove the executed scripts from the queue
-                    for (var i = 0; i < scriptsToExecute.Length; i++) {
-                        Tuple<long, string> script;
-                        if (!pendingScripts.TryDequeue(out script)) {
-                            throw new InvalidOperationException("Expected Dequeue to succeed");
-                        }
-                    }
-                } finally {
-                    // unblock anyone waiting
-                    pendingFlushEvent.Set();
+                if (scriptToEvaluate != null) {
+                    // evaluate and signal waiting thread
+                    var task = OwnerWebView.chromium.EvaluateScriptAsync(scriptToEvaluate.Script, scriptToEvaluate.Timeout ?? OwnerWebView.DefaultScriptsExecutionTimeout);
+                    task.Wait(flushTaskCancelationToken.Token);
+                    scriptToEvaluate.Result = task.Result;
+                    scriptToEvaluate.WaitHandle.Set();
                 }
             }
 
             public T EvaluateScript<T>(string script, TimeSpan? timeout = default(TimeSpan?)) {
-                var now = IncCounter();
-                Tuple<long, string> pendingScript;
-                while (!flushTaskCancelationToken.IsCancellationRequested && pendingScripts.TryPeek(out pendingScript) && pendingScript.Item1 < now) {
-                    pendingFlushEvent.WaitOne();
+                if (OwnerWebView.isDisposing) {
+                    return default(T);
                 }
 
-                return InternalSafeEvaluateScript<T>(script, timeout);
+                script = "try {" + script + Environment.NewLine + " } catch (e) { throw JSON.stringify({ stack: e.stack, message: e.message, name: e.name }) }";
+
+                var scriptTask = QueueScript(script, timeout, true);
+                scriptTask.WaitHandle.WaitOne();
+
+                if (scriptTask.Result.Success) {
+                    return GetResult<T>(scriptTask.Result.Result);
+                }
+
+                // try parse js exception
+                var jsErrorJSON = scriptTask.Result.Message;
+                jsErrorJSON = jsErrorJSON.Substring(Math.Max(0, jsErrorJSON.IndexOf("{")));
+                jsErrorJSON = jsErrorJSON.Substring(0, jsErrorJSON.LastIndexOf("}") + 1);
+
+                if (!string.IsNullOrEmpty(jsErrorJSON)) {
+                    JsError jsError = null;
+                    try {
+                        jsError = DeserializeJSON<JsError>(jsErrorJSON);
+                    } catch {
+                        // ignore will throw error at the end   
+                    }
+                    if (jsError != null) {
+                        jsError.Name = jsError.Name ?? "";
+                        jsError.Message = jsError.Message ?? "";
+                        jsError.Stack = jsError.Stack ?? "";
+                        var jsStack = jsError.Stack.Substring(Math.Min(jsError.Stack.Length, (jsError.Name + ": " + jsError.Message).Length)).Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                        jsStack = jsStack.Select(l => l.Substring("    at ".Length)).ToArray();
+
+                        throw new JavascriptException(jsError.Name, jsError.Message, jsStack);
+                    }
+                }
+
+                throw new JavascriptException("Javascript Error", scriptTask.Result.Message, new string[0]);
             }
 
             public T EvaluateScriptFunction<T>(string functionName, params string[] args) {
@@ -154,16 +176,6 @@ namespace WebViewControl {
                 OwnerWebView.RegisterJavascriptObject(variableName, objectToBind);
             }
 
-            private T InternalEvaluateScript<T>(string script, TimeSpan? timeout = default(TimeSpan?)) {
-                var task = OwnerWebView.chromium.EvaluateScriptAsync(script, timeout);
-                task.Wait(flushTaskCancelationToken.Token);
-
-                if (task.Result.Success) {
-                    return GetResult<T>(task.Result.Result);
-                }
-                throw new JavascriptException("Error", task.Result.Message, new string[0]);
-            }
-
             private T GetResult<T>(object result) {
                 var targetType = typeof(T);
                 if (IsBasicType(targetType)) {
@@ -177,14 +189,7 @@ namespace WebViewControl {
             }
 
             public void Dispose() {
-                flushTaskCancelationToken.Cancel();
-                flushTaskCancelationToken.Dispose();
-            }
-
-            private long IncCounter() {
-                lock (this) {
-                    return ++executionCounter;
-                }
+                StopFlush();
             }
 
             private static bool IsBasicType(Type type) {

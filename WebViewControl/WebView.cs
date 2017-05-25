@@ -108,6 +108,10 @@ namespace WebViewControl {
         /// </summary>
         [DebuggerNonUserCode]
         public static void Cleanup() {
+            if (!Cef.IsInitialized) {
+                return;
+            }
+
             Cef.Shutdown(); // must shutdown cef to free cache files (so that cleanup is able to delete files)
 
             try {
