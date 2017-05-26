@@ -1,5 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\Microsoft.TypeScript.MSBuild.2.3.1\build\Microsoft.TypeScript.MSBuild.props" Condition="Exists('..\packages\Microsoft.TypeScript.MSBuild.2.3.1\build\Microsoft.TypeScript.MSBuild.props')" />
+  <Import Project="..\packages\WebViewControl.1.0.0\build\WebViewControl.props" Condition="Exists('..\packages\WebViewControl.1.0.0\build\WebViewControl.props')" />
+  <Import Project="..\packages\CefSharp.Wpf.55.0.0\build\CefSharp.Wpf.props" Condition="Exists('..\packages\CefSharp.Wpf.55.0.0\build\CefSharp.Wpf.props')" />
+  <Import Project="..\packages\CefSharp.Common.55.0.0\build\CefSharp.Common.props" Condition="Exists('..\packages\CefSharp.Common.55.0.0\build\CefSharp.Common.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -14,6 +18,8 @@
     <ProjectTypeGuids>{60dc8134-eba5-43b8-bcc9-bb4bc16c2548};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <WarningLevel>4</WarningLevel>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -132,45 +138,47 @@
     </EmbeddedResource>
     <None Include="app.manifest" />
     <None Include="Generator\tsconfig.json" />
+    <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <AppDesigner Include="Properties\" />
-    <None Include="Resources\tsconfig.json" />
+    <None Include="ResourcesExample\tsconfig.json" />
     <None Include="ts2lang.json" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="Generator\src\web-api-generator.ts" />
+    <TypeScriptCompile Include="Generator\src\native-api-generator.ts" />
+    <TypeScriptCompile Include="ResourcesExample\src\dependency.ts" />
+    <TypeScriptCompile Include="ResourcesExample\src\example.tsx" />
+    <TypeScriptCompile Include="ResourcesExample\src\native-api.ts" />
+    <TypeScriptCompile Include="ResourcesExample\src\web-api.ts" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="ResourcesExample\dist\dependency.js" />
+    <EmbeddedResource Include="ResourcesExample\dist\example.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="ResourcesExample\index.html" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\WebViewControl\WebViewControl.csproj">
-      <Project>{A1C2A0C7-DF81-4A8F-AEB5-B5375D5D1B47}</Project>
+      <Project>{a1c2a0c7-df81-4a8f-aeb5-b5375d5d1b47}</Project>
       <Name>WebViewControl</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="Generator\src\web-api-generator.ts" />
-    <TypeScriptCompile Include="Generator\src\native-api-generator.ts" />
-    <TypeScriptCompile Include="Resources\src\dependency.ts" />
-    <TypeScriptCompile Include="Resources\src\example.tsx" />
-    <TypeScriptCompile Include="Resources\src\native-api.ts" />
-    <TypeScriptCompile Include="Resources\src\web-api.ts" />
+    <EmbeddedResource Include="ResourcesExample\test.html" />
   </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\dist\dependency.js" />
-    <EmbeddedResource Include="Resources\dist\example.js" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\index.html" />
-  </ItemGroup>
-  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="Ts2LangBuild">
     <Message Text="Running ts2lang..." Importance="high" />
-    <Exec WorkingDirectory="$(ProjectDir)" Command="&quot;C:\svn\bCEF3\Commons\ThirdParty\nodejs\tsc&quot; -p Resources\tsconfig.json" StdErrEncoding="utf-8" StdOutEncoding="utf-8" />
-    <Exec WorkingDirectory="$(ProjectDir)" Command="&quot;C:\svn\bCEF3\Commons\ThirdParty\nodejs\tsc&quot; -p Generator\tsconfig.json" StdErrEncoding="utf-8" StdOutEncoding="utf-8" />
-    <Exec WorkingDirectory="$(ProjectDir)" Command="node &quot;C:\git\ts2lang\bin\ts2lang-main&quot; --file ts2lang.json" StdErrEncoding="utf-8" StdOutEncoding="utf-8" />
+    
+    
   </Target>
   <PropertyGroup>
     <BuildDependsOn>
@@ -178,6 +186,25 @@
         $(BuildDependsOn)
      </BuildDependsOn>
   </PropertyGroup>
+  <Import Project="..\packages\cef.redist.x64.3.2883.1552\build\cef.redist.x64.targets" Condition="Exists('..\packages\cef.redist.x64.3.2883.1552\build\cef.redist.x64.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\cef.redist.x64.3.2883.1552\build\cef.redist.x64.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\cef.redist.x64.3.2883.1552\build\cef.redist.x64.targets'))" />
+    <Error Condition="!Exists('..\packages\cef.redist.x86.3.2883.1552\build\cef.redist.x86.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\cef.redist.x86.3.2883.1552\build\cef.redist.x86.targets'))" />
+    <Error Condition="!Exists('..\packages\CefSharp.Common.55.0.0\build\CefSharp.Common.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\CefSharp.Common.55.0.0\build\CefSharp.Common.props'))" />
+    <Error Condition="!Exists('..\packages\CefSharp.Common.55.0.0\build\CefSharp.Common.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\CefSharp.Common.55.0.0\build\CefSharp.Common.targets'))" />
+    <Error Condition="!Exists('..\packages\CefSharp.Wpf.55.0.0\build\CefSharp.Wpf.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\CefSharp.Wpf.55.0.0\build\CefSharp.Wpf.props'))" />
+    <Error Condition="!Exists('..\packages\CefSharp.Wpf.55.0.0\build\CefSharp.Wpf.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\CefSharp.Wpf.55.0.0\build\CefSharp.Wpf.targets'))" />
+    <Error Condition="!Exists('..\packages\WebViewControl.1.0.0\build\WebViewControl.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\WebViewControl.1.0.0\build\WebViewControl.props'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.TypeScript.MSBuild.2.3.1\build\Microsoft.TypeScript.MSBuild.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.TypeScript.MSBuild.2.3.1\build\Microsoft.TypeScript.MSBuild.props'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.TypeScript.MSBuild.2.3.1\build\Microsoft.TypeScript.MSBuild.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.TypeScript.MSBuild.2.3.1\build\Microsoft.TypeScript.MSBuild.targets'))" />
+  </Target>
+  <Import Project="..\packages\cef.redist.x86.3.2883.1552\build\cef.redist.x86.targets" Condition="Exists('..\packages\cef.redist.x86.3.2883.1552\build\cef.redist.x86.targets')" />
+  <Import Project="..\packages\CefSharp.Common.55.0.0\build\CefSharp.Common.targets" Condition="Exists('..\packages\CefSharp.Common.55.0.0\build\CefSharp.Common.targets')" />
+  <Import Project="..\packages\CefSharp.Wpf.55.0.0\build\CefSharp.Wpf.targets" Condition="Exists('..\packages\CefSharp.Wpf.55.0.0\build\CefSharp.Wpf.targets')" />
+  <Import Project="..\packages\Microsoft.TypeScript.MSBuild.2.3.1\build\Microsoft.TypeScript.MSBuild.targets" Condition="Exists('..\packages\Microsoft.TypeScript.MSBuild.2.3.1\build\Microsoft.TypeScript.MSBuild.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

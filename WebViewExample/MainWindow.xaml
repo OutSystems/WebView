@@ -10,6 +10,8 @@
 
     <DockPanel x:Name="panel">
         <Button Click="Button_Click">Click</Button>
-        <wvc:ReactView x:Name="reactView" Source="Resources/dist/example.js"/>
+        <Label PreviewMouseLeftButtonDown="Label_PreviewMouseLeftButtonDown">Drag me</Label>
+        <!--<wvc:ReactView x:Name="reactView" Source="ResourcesExample/dist/example.js"/>-->
+        <wvc:WebView x:Name="webview" Address="ResourcesExample/test.html?size=16" AllowDrop="True" />
     </DockPanel>
 </Window>
