@@ -48,7 +48,8 @@ namespace WebViewControl {
             private readonly WebView OwnerWebView;
             private readonly BlockingCollection<ScriptTask> pendingScripts = new BlockingCollection<ScriptTask>();
             private readonly CancellationTokenSource flushTaskCancelationToken = new CancellationTokenSource();
-            private ManualResetEvent stoppedFlushHandle;
+            private readonly ManualResetEvent stoppedFlushHandle = new ManualResetEvent(false);
+            private bool flushRunning;
 
             public JavascriptExecutor(WebView ownerWebView) {
                 OwnerWebView = ownerWebView;
@@ -63,7 +64,7 @@ namespace WebViewControl {
 
             private void StopFlush() {
                 flushTaskCancelationToken.Cancel();
-                if (stoppedFlushHandle != null) {
+                if (flushRunning) {
                     stoppedFlushHandle.WaitOne();
                 }
                 flushTaskCancelationToken.Dispose();
@@ -76,15 +77,16 @@ namespace WebViewControl {
             }
 
             private void FlushScripts() {
-                stoppedFlushHandle = new ManualResetEvent(false);
                 OwnerWebView.WithErrorHandling(() => {
                     try {
+                        flushRunning = true;
                         while (!flushTaskCancelationToken.IsCancellationRequested) {
                             InnerFlushScripts();
                         }
                     } catch (OperationCanceledException) {
                         // stop
                     } finally {
+                        flushRunning = false;
                         stoppedFlushHandle.Set();
                     }
                 });
@@ -110,22 +112,29 @@ namespace WebViewControl {
 
                 if (scriptToEvaluate != null) {
                     // evaluate and signal waiting thread
-                    var task = OwnerWebView.chromium.EvaluateScriptAsync(scriptToEvaluate.Script, scriptToEvaluate.Timeout ?? OwnerWebView.DefaultScriptsExecutionTimeout);
-                    task.Wait(flushTaskCancelationToken.Token);
-                    scriptToEvaluate.Result = task.Result;
-                    scriptToEvaluate.WaitHandle.Set();
+                    try {
+                        var task = OwnerWebView.chromium.EvaluateScriptAsync(scriptToEvaluate.Script, scriptToEvaluate.Timeout ?? OwnerWebView.DefaultScriptsExecutionTimeout);
+                        task.Wait(flushTaskCancelationToken.Token);
+                        scriptToEvaluate.Result = task.Result;
+                    } finally {
+                        scriptToEvaluate.WaitHandle.Set();
+                    }
                 }
             }
 
             public T EvaluateScript<T>(string script, TimeSpan? timeout = default(TimeSpan?)) {
-                if (OwnerWebView.isDisposing) {
+                if (!flushRunning) {
                     return default(T);
                 }
 
-                script = "try {" + script + Environment.NewLine + " } catch (e) { throw JSON.stringify({ stack: e.stack, message: e.message, name: e.name }) }";
+                var scriptWithErrorHandling = "try {" + script + Environment.NewLine + " } catch (e) { throw JSON.stringify({ stack: e.stack, message: e.message, name: e.name }) }";
 
-                var scriptTask = QueueScript(script, timeout, true);
+                var scriptTask = QueueScript(scriptWithErrorHandling, timeout, true);
                 scriptTask.WaitHandle.WaitOne();
+
+                if (scriptTask.Result == null) {
+                    throw new JavascriptException("Timeout", timeout.HasValue ? ($"More than {timeout.Value.TotalMilliseconds}ms elapsed evaluating the script: '{script}'") : "", new string[0]);
+                }
 
                 if (scriptTask.Result.Success) {
                     return GetResult<T>(scriptTask.Result.Result);
