@@ -6,8 +6,5 @@ obj
 *.suo
 *.opendb
 *.db
-WebViewExample/Generated/
-WebViewExample/Resources/dist/
 *.nupkg
-WebViewExample/ResourcesExample/
 WebViewExample/
