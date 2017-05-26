@@ -259,6 +259,10 @@ namespace WebViewControl {
             get { return chromium.IsBrowserInitialized; }
         }
 
+        public bool IsJavascriptEngineInitialized {
+            get { return chromium.CanExecuteJavascriptInMainFrame; }
+        }
+
         public ProxyAuthentication ProxyAuthentication { get; set; }
 
         public bool IgnoreMissingResources { get; set; }
