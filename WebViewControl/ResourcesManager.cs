@@ -52,6 +52,10 @@ namespace WebViewControl {
             return InternalTryGetResource(assembly, resourcePath.First(), resourcePath.Skip(1), false);
         }
 
+        public static Stream TryGetResourceWithFullPath(string assemblyName, IEnumerable<string> resourcePath) {
+            return InternalTryGetResource(assemblyName, resourcePath.First(), resourcePath.Skip(1), false);
+        }
+
         public static string GetMimeType(string resourceName) {
             var extension = Path.GetExtension(resourceName);
             return CefSharp.ResourceHandler.GetMimeType(extension);
