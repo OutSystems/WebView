@@ -160,7 +160,6 @@ namespace WebViewControl {
             GlobalWebViewInitialized?.Invoke(this);
         }
 
-        
         private static void OnApplicationExit(object sender, ExitEventArgs e) {
             Cleanup();
         }
