@@ -114,12 +114,16 @@ namespace WebViewControl {
 
                 if (scriptToEvaluate != null) {
                     // evaluate and signal waiting thread
+                    Task<JavascriptResponse> task = null;
                     try {
-                        var task = OwnerWebView.chromium.EvaluateScriptAsync(scriptToEvaluate.Script, scriptToEvaluate.Timeout ?? OwnerWebView.DefaultScriptsExecutionTimeout);
+                        task = OwnerWebView.chromium.EvaluateScriptAsync(scriptToEvaluate.Script, scriptToEvaluate.Timeout ?? OwnerWebView.DefaultScriptsExecutionTimeout);
                         task.Wait(flushTaskCancelationToken.Token);
                         scriptToEvaluate.Result = task.Result;
                     } catch(Exception e) {
-                        scriptToEvaluate.Exception = e;
+                        if (task == null || !task.IsCanceled) {
+                            // not cancelled (if cancelled -> timeout)
+                            scriptToEvaluate.Exception = e;
+                        }
                     } finally {
                         scriptToEvaluate.WaitHandle.Set();
                     }
@@ -131,7 +135,7 @@ namespace WebViewControl {
                     return default(T);
                 }
 
-                var scriptWithErrorHandling = "try {(" + script + Environment.NewLine + ")} catch (e) { throw JSON.stringify({ stack: e.stack, message: e.message, name: e.name }) }";
+                var scriptWithErrorHandling = "try {" + script + Environment.NewLine + "} catch (e) { throw JSON.stringify({ stack: e.stack, message: e.message, name: e.name }) }";
 
                 var scriptTask = QueueScript(scriptWithErrorHandling, timeout, true);
                 scriptTask.WaitHandle.WaitOne();
@@ -196,6 +200,9 @@ namespace WebViewControl {
             private T GetResult<T>(object result) {
                 var targetType = typeof(T);
                 if (IsBasicType(targetType)) {
+                    if (result == null) {
+                        return default(T);
+                    }
                     return (T)result;
                 }
                 if (result == null && targetType.IsArray) {
