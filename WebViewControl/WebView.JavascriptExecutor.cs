@@ -40,6 +40,8 @@ namespace WebViewControl {
 
             public JavascriptResponse Result { get; set; }
 
+            public Exception Exception { get; set; }
+
             public TimeSpan? Timeout { get; set; }
         }
 
@@ -116,6 +118,8 @@ namespace WebViewControl {
                         var task = OwnerWebView.chromium.EvaluateScriptAsync(scriptToEvaluate.Script, scriptToEvaluate.Timeout ?? OwnerWebView.DefaultScriptsExecutionTimeout);
                         task.Wait(flushTaskCancelationToken.Token);
                         scriptToEvaluate.Result = task.Result;
+                    } catch(Exception e) {
+                        scriptToEvaluate.Exception = e;
                     } finally {
                         scriptToEvaluate.WaitHandle.Set();
                     }
@@ -127,13 +131,17 @@ namespace WebViewControl {
                     return default(T);
                 }
 
-                var scriptWithErrorHandling = "try {" + script + Environment.NewLine + " } catch (e) { throw JSON.stringify({ stack: e.stack, message: e.message, name: e.name }) }";
+                var scriptWithErrorHandling = "try {(" + script + Environment.NewLine + ")} catch (e) { throw JSON.stringify({ stack: e.stack, message: e.message, name: e.name }) }";
 
                 var scriptTask = QueueScript(scriptWithErrorHandling, timeout, true);
                 scriptTask.WaitHandle.WaitOne();
 
+                if (scriptTask.Exception != null) {
+                    throw scriptTask.Exception;
+                }
+
                 if (scriptTask.Result == null) {
-                    throw new JavascriptException("Timeout", timeout.HasValue ? ($"More than {timeout.Value.TotalMilliseconds}ms elapsed evaluating the script: '{script}'") : "", new string[0]);
+                    throw new JavascriptException("Timeout", (timeout.HasValue ? $"More than {timeout.Value.TotalMilliseconds}ms elapsed" : "Timeout ocurred") + $" evaluating the script: '{script}'", new string[0]);
                 }
 
                 if (scriptTask.Result.Success) {
