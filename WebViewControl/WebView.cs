@@ -231,7 +231,7 @@ namespace WebViewControl {
 
         public bool IsSecurityDisabled {
             get { return settings.WebSecurity != CefState.Enabled; }
-            set { settings.WebSecurity = value ? CefState.Disabled : CefState.Enabled; }
+            set { settings.WebSecurity = (value ? CefState.Disabled : CefState.Enabled); }
         }
 
         public bool IsHistoryDisabled {

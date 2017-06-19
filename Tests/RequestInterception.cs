@@ -9,17 +9,8 @@ namespace Tests {
 
         private const string HtmlWithResource = "<html><script src='resource.js' onerror='scriptFailed = true'></script><body>Test Page</body></html>";
 
-        private static readonly TimeSpan Timeout = TimeSpan.FromSeconds(5);
-
         protected override bool ReuseWebView {
             get { return false; }
-        }
-
-        private void LoadAndWaitReady(string html) {
-            var navigated = false;
-            TargetWebView.Navigated += (string url) => navigated = true;
-            TargetWebView.LoadHtml(html);
-            WaitFor(() => navigated, Timeout);
         }
 
         private static Stream ToStream(string str) {

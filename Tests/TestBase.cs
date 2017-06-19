@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Security.Permissions;
 using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
@@ -11,6 +13,8 @@ namespace Tests {
     [Apartment(ApartmentState.STA)]
     public class TestBase {
 
+        protected static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(5);
+
         private Window window;
         private WebView webView;
 
@@ -18,11 +22,16 @@ namespace Tests {
         protected void OneTimeSetUp() {
             if (Application.Current == null) {
                 new Application();
-                Application.Current.ShutdownMode = ShutdownMode.OnLastWindowClose;
+                Application.Current.ShutdownMode = ShutdownMode.OnExplicitShutdown;
             }
 
             window = new Window();
             window.Show();
+        }
+
+        [OneTimeTearDown]
+        protected void OneTimeTearDown() {
+            window.Close();
         }
 
         [SetUp]
@@ -63,12 +72,26 @@ namespace Tests {
         public static void WaitFor(Func<bool> predicate, TimeSpan timeout, string purpose = "") {
             var start = DateTime.Now;
             while (!predicate() && (DateTime.Now - start) < timeout && Application.Current != null) {
-                Application.Current.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => Thread.Sleep(1)));
+                DoEvents();
             }
-
+            var elapsed = DateTime.Now - start;
             if (!predicate()) {
                 throw new TimeoutException("Timed out waiting for " + purpose);
             }
+        }
+        protected void LoadAndWaitReady(string html) {
+            var navigated = false;
+            TargetWebView.Navigated += (string url) => navigated = true;
+            TargetWebView.LoadHtml(html);
+            WaitFor(() => navigated, DefaultTimeout);
+        }
+
+        [DebuggerNonUserCode]
+        [SecurityPermissionAttribute(SecurityAction.Demand, Flags = SecurityPermissionFlag.UnmanagedCode)]
+        private static void DoEvents() {
+            var frame = new DispatcherFrame();
+            Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Background, new DispatcherOperationCallback(_ => frame.Continue = false), frame);
+            Dispatcher.PushFrame(frame);
         }
     }
 }

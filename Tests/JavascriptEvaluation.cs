@@ -80,10 +80,10 @@ namespace Tests {
 
         public void EvaluationTimeoutIsThrown() {
             var exception = Assert.Throws<WebView.JavascriptException>(
-                () => TargetWebView.EvaluateScript<int>("var start = new Date().getTime(); while((new Date().getTime() - start) < 150);", 
+                () => TargetWebView.EvaluateScript<int>("var start = new Date().getTime(); while((new Date().getTime() - start) < 150);",
                 TimeSpan.FromMilliseconds(50)));
             Assert.True(exception.Message.Contains("Timeout"));
-            
+
         }
 
         [Test(Description = "Evaluation of null returns empty array when result is array type")]
