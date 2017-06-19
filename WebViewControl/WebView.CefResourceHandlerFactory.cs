@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using CefSharp;
 
 namespace WebViewControl {
@@ -25,7 +26,7 @@ namespace WebViewControl {
 
             IResourceHandler IResourceHandlerFactory.GetResourceHandler(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request) {
                 if (request.Url == DefaultLocalUrl) {
-                    return OwnerWebView.htmlToLoad != null ? CefSharp.ResourceHandler.FromString(OwnerWebView.htmlToLoad, "html") : null;
+                    return OwnerWebView.htmlToLoad != null ? CefSharp.ResourceHandler.FromString(OwnerWebView.htmlToLoad, Encoding.UTF8) : null;
                 }
 
                 if (FilterRequest(request)) {
