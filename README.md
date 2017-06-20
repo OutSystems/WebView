@@ -11,3 +11,7 @@ WebView is a WPF control that wraps CefSharp web view control. Provides the foll
 - Ability to disable history navigation
 - Error handling
 - Proxy configuration support
+
+# TODO
+- Add examples
+- Improve documentation
