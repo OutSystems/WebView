@@ -225,7 +225,7 @@ namespace WebViewControl {
         public string Address {
             get { return chromium.Address; }
             set {
-                if (value.Contains("://") || value == "about:blank") {
+                if (value.Contains("://") || value == "about:blank" || value.StartsWith("data:")) {
                     // must wait for the browser to be initialized otherwise navigation will be aborted
                     ExecuteWhenInitialized(() => chromium.Load(value));
                 } else {
