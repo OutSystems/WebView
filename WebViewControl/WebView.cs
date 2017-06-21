@@ -77,6 +77,11 @@ namespace WebViewControl {
         public static event Action<WebView> GlobalWebViewInitialized;
 
         static WebView() {
+#if DEBUG
+            if (!System.Diagnostics.Debugger.IsAttached) {
+                throw new InvalidOperationException("Running debug version");
+            }
+#endif
             InitializeCef();
         }
 

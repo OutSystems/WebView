@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\WebViewControl.1.0.94\build\WebViewControl.props" Condition="Exists('..\packages\WebViewControl.1.0.94\build\WebViewControl.props')" />
+  <Import Project="..\packages\WebViewControl.1.0.96\build\WebViewControl.props" Condition="Exists('..\packages\WebViewControl.1.0.96\build\WebViewControl.props')" />
   <Import Project="..\packages\CefSharp.Wpf.57.1.0\build\CefSharp.Wpf.props" Condition="Exists('..\packages\CefSharp.Wpf.57.1.0\build\CefSharp.Wpf.props')" />
   <Import Project="..\packages\CefSharp.Common.57.1.0\build\CefSharp.Common.props" Condition="Exists('..\packages\CefSharp.Common.57.1.0\build\CefSharp.Common.props')" />
   <PropertyGroup>
@@ -53,7 +53,7 @@
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="WebViewControl">
-      <HintPath>..\packages\WebViewControl.1.0.94\lib\net461\WebViewControl.dll</HintPath>
+      <HintPath>..\packages\WebViewControl.1.0.96\lib\net461\WebViewControl.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="WindowsBase" />
@@ -77,34 +77,34 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\packages\NUnit.ConsoleRunner.3.6.1\tools\nunit-agent.exe.config">
-      <Link>nunit-agent.exe.config</Link>
+      <Link>Nunit\nunit-agent.exe.config</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="..\packages\NUnit.ConsoleRunner.3.6.1\tools\nunit3-console.exe.config">
-      <Link>nunit3-console.exe.config</Link>
+      <Link>Nunit\nunit3-console.exe.config</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\packages\NUnit.ConsoleRunner.3.6.1\tools\Mono.Cecil.dll">
-      <Link>Mono.Cecil.dll</Link>
+      <Link>Nunit\Mono.Cecil.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="..\packages\NUnit.ConsoleRunner.3.6.1\tools\nunit-agent.exe">
-      <Link>nunit-agent.exe</Link>
+      <Link>Nunit\nunit-agent.exe</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="..\packages\NUnit.ConsoleRunner.3.6.1\tools\nunit.engine.api.dll">
-      <Link>nunit.engine.api.dll</Link>
+      <Link>Nunit\nunit.engine.api.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="..\packages\NUnit.ConsoleRunner.3.6.1\tools\nunit.engine.dll">
-      <Link>nunit.engine.dll</Link>
+      <Link>Nunit\nunit.engine.dll</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="..\packages\NUnit.ConsoleRunner.3.6.1\tools\nunit3-console.exe">
-      <Link>nunit3-console.exe</Link>
+      <Link>Nunit\nunit3-console.exe</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
@@ -144,7 +144,7 @@
     <Error Condition="!Exists('..\packages\CefSharp.Common.57.1.0\build\CefSharp.Common.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\CefSharp.Common.57.1.0\build\CefSharp.Common.targets'))" />
     <Error Condition="!Exists('..\packages\CefSharp.Wpf.57.1.0\build\CefSharp.Wpf.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\CefSharp.Wpf.57.1.0\build\CefSharp.Wpf.props'))" />
     <Error Condition="!Exists('..\packages\CefSharp.Wpf.57.1.0\build\CefSharp.Wpf.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\CefSharp.Wpf.57.1.0\build\CefSharp.Wpf.targets'))" />
-    <Error Condition="!Exists('..\packages\WebViewControl.1.0.94\build\WebViewControl.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\WebViewControl.1.0.94\build\WebViewControl.props'))" />
+    <Error Condition="!Exists('..\packages\WebViewControl.1.0.96\build\WebViewControl.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\WebViewControl.1.0.96\build\WebViewControl.props'))" />
   </Target>
   <Import Project="..\packages\cef.redist.x86.3.2883.1552\build\cef.redist.x86.targets" Condition="Exists('..\packages\cef.redist.x86.3.2883.1552\build\cef.redist.x86.targets')" />
   <Import Project="..\packages\cef.redist.x64.3.2987.1601\build\cef.redist.x64.targets" Condition="Exists('..\packages\cef.redist.x64.3.2987.1601\build\cef.redist.x64.targets')" />
