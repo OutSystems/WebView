@@ -104,7 +104,9 @@ namespace WebViewControl {
 
                 Cef.Initialize(cefSettings, performDependencyCheck: false, browserProcessHandler: null);
 
-                Application.Current.Exit += OnApplicationExit;
+                if (Application.Current != null) {
+                    Application.Current.Exit += OnApplicationExit;
+                }
             }
         }
 
