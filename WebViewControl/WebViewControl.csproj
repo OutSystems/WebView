@@ -22,7 +22,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>..\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -30,7 +30,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>..\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -140,7 +140,7 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="InjectModuleInitializer" AfterTargets="AfterBuild">
     <Exec Command="..\packages\InjectModuleInitializer.1.5\tools\InjectModuleInitializer.exe &quot;$(TargetPath)&quot;" />
-    <Exec Command="&quot;$(ProjectDir)nuget&quot; pack &quot;$(ProjectPath)&quot; -OutputDirectory &quot;$(ProjectDir) &quot; -Properties Configuration=$(ConfigurationName)" />
+    <Exec Command="&quot;$(ProjectDir)nuget&quot; pack &quot;$(ProjectPath)&quot; -OutputDirectory &quot;$(ProjectDir)..\Nuget\ &quot; -Properties Configuration=$(ConfigurationName)" />
   </Target>
   <Import Project="..\packages\cef.redist.x64.3.2987.1601\build\cef.redist.x64.targets" Condition="Exists('..\packages\cef.redist.x64.3.2987.1601\build\cef.redist.x64.targets')" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

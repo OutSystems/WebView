@@ -39,14 +39,15 @@ namespace Tests {
             if (webView == null) {
                 webView = new WebView();
 
-                var initialized = false;
-                webView.Navigated += (url) => initialized = true;
-                webView.LoadHtml("<html><script>;</script><body>Test page</body></html>");
-
                 window.Content = webView;
 
-                // wait for web view to load
-                WaitFor(() => initialized, TimeSpan.FromSeconds(10), "webview initialization");
+                if (WaitReady) {
+                    var initialized = false;
+                    webView.Navigated += (url) => initialized = true;
+                    webView.LoadHtml("<html><script>;</script><body>Test page</body></html>");
+                    // wait for web view to load
+                    WaitFor(() => initialized, TimeSpan.FromSeconds(10), "webview initialization");
+                }
             }
 
             window.Title = "Running: " + TestContext.CurrentContext.Test.Name;
@@ -62,6 +63,10 @@ namespace Tests {
         }
 
         protected virtual bool ReuseWebView {
+            get { return true; }
+        }
+
+        protected virtual bool WaitReady {
             get { return true; }
         }
 

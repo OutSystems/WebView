@@ -8,3 +8,5 @@ obj
 *.db
 *.nupkg
 WebViewExample/
+Release/
+Debug/

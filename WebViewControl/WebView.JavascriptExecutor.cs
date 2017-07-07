@@ -51,7 +51,7 @@ namespace WebViewControl {
             private readonly BlockingCollection<ScriptTask> pendingScripts = new BlockingCollection<ScriptTask>();
             private readonly CancellationTokenSource flushTaskCancelationToken = new CancellationTokenSource();
             private readonly ManualResetEvent stoppedFlushHandle = new ManualResetEvent(false);
-            private bool flushRunning;
+            private volatile bool flushRunning;
 
             public JavascriptExecutor(WebView ownerWebView) {
                 OwnerWebView = ownerWebView;
@@ -109,7 +109,8 @@ namespace WebViewControl {
                 } while (pendingScripts.Count > 0);
 
                 if (scriptsToExecute.Count > 0) {
-                    OwnerWebView.chromium.EvaluateScriptAsync(string.Join(";" + Environment.NewLine, scriptsToExecute.Select(s => s.Script))).Wait(flushTaskCancelationToken.Token);
+                    OwnerWebView.chromium.EvaluateScriptAsync(
+                        string.Join(";" + Environment.NewLine, scriptsToExecute.Select(s => s.Script)), OwnerWebView.DefaultScriptsExecutionTimeout).Wait(flushTaskCancelationToken.Token);
                 }
 
                 if (scriptToEvaluate != null) {
@@ -131,20 +132,23 @@ namespace WebViewControl {
             }
 
             public T EvaluateScript<T>(string script, TimeSpan? timeout = default(TimeSpan?)) {
-                if (!flushRunning) {
-                    return default(T);
-                }
-
                 var scriptWithErrorHandling = "try {" + script + Environment.NewLine + "} catch (e) { throw JSON.stringify({ stack: e.stack, message: e.message, name: e.name }) }";
 
                 var scriptTask = QueueScript(scriptWithErrorHandling, timeout, true);
-                scriptTask.WaitHandle.WaitOne();
+                if (!flushRunning) {
+                    scriptTask.WaitHandle.WaitOne((timeout ?? TimeSpan.FromSeconds(5))); // wait with timeout if flush is not running yet to avoid hanging forever
+                } else {
+                    scriptTask.WaitHandle.WaitOne();
+                }
 
                 if (scriptTask.Exception != null) {
                     throw scriptTask.Exception;
                 }
 
                 if (scriptTask.Result == null) {
+                    if (!flushRunning) {
+                        throw new JavascriptException("Timeout", "Javascript engine is not initialized", new string[0]);
+                    }
                     throw new JavascriptException("Timeout", (timeout.HasValue ? $"More than {timeout.Value.TotalMilliseconds}ms elapsed" : "Timeout ocurred") + $" evaluating the script: '{script}'", new string[0]);
                 }
 

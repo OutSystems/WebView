@@ -1,8 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\WebViewControl.1.0.96\build\WebViewControl.props" Condition="Exists('..\packages\WebViewControl.1.0.96\build\WebViewControl.props')" />
-  <Import Project="..\packages\CefSharp.Wpf.57.1.0\build\CefSharp.Wpf.props" Condition="Exists('..\packages\CefSharp.Wpf.57.1.0\build\CefSharp.Wpf.props')" />
-  <Import Project="..\packages\CefSharp.Common.57.1.0\build\CefSharp.Common.props" Condition="Exists('..\packages\CefSharp.Common.57.1.0\build\CefSharp.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
@@ -26,7 +23,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>..\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -39,12 +36,10 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
+  <PropertyGroup>
+    <StartupObject />
+  </PropertyGroup>
   <ItemGroup>
-    <Reference Include="CefSharp.Core, Version=55.0.0.0, Culture=neutral, PublicKeyToken=40c4b6fc221f4138, processorArchitecture=x86">
-      <HintPath>$(MSBuildThisFileDirectory)..\CefSharp\x86\CefSharp.Core.dll</HintPath>
-      <SpecificVersion>False</SpecificVersion>
-      <Private>False</Private>
-    </Reference>
     <Reference Include="nunit.framework, Version=3.7.1.0, Culture=neutral, PublicKeyToken=2638cd05610744eb, processorArchitecture=MSIL">
       <HintPath>..\packages\NUnit.3.7.1\lib\net45\nunit.framework.dll</HintPath>
       <Private>True</Private>
@@ -52,10 +47,6 @@
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
-    <Reference Include="WebViewControl">
-      <HintPath>..\packages\WebViewControl.1.0.96\lib\net461\WebViewControl.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <Choose>
@@ -68,6 +59,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="CommonTests.cs" />
+    <Compile Include="IsolatedJavascriptEvaluation.cs" />
     <Compile Include="JavascriptEvaluation.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RequestInterception.cs" />
@@ -111,6 +103,12 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\EmbeddedJavascriptFile.js" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\WebViewControl\WebViewControl.csproj">
+      <Project>{a1c2a0c7-df81-4a8f-aeb5-b5375d5d1b47}</Project>
+      <Name>WebViewControl</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
       <ItemGroup>
@@ -131,26 +129,6 @@
   </Choose>
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="..\packages\cef.redist.x64.3.2883.1552\build\cef.redist.x64.targets" Condition="Exists('..\packages\cef.redist.x64.3.2883.1552\build\cef.redist.x64.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\cef.redist.x64.3.2883.1552\build\cef.redist.x64.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\cef.redist.x64.3.2883.1552\build\cef.redist.x64.targets'))" />
-    <Error Condition="!Exists('..\packages\cef.redist.x86.3.2883.1552\build\cef.redist.x86.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\cef.redist.x86.3.2883.1552\build\cef.redist.x86.targets'))" />
-    <Error Condition="!Exists('..\packages\cef.redist.x64.3.2987.1601\build\cef.redist.x64.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\cef.redist.x64.3.2987.1601\build\cef.redist.x64.targets'))" />
-    <Error Condition="!Exists('..\packages\cef.redist.x86.3.2987.1601\build\cef.redist.x86.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\cef.redist.x86.3.2987.1601\build\cef.redist.x86.targets'))" />
-    <Error Condition="!Exists('..\packages\CefSharp.Common.57.1.0\build\CefSharp.Common.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\CefSharp.Common.57.1.0\build\CefSharp.Common.props'))" />
-    <Error Condition="!Exists('..\packages\CefSharp.Common.57.1.0\build\CefSharp.Common.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\CefSharp.Common.57.1.0\build\CefSharp.Common.targets'))" />
-    <Error Condition="!Exists('..\packages\CefSharp.Wpf.57.1.0\build\CefSharp.Wpf.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\CefSharp.Wpf.57.1.0\build\CefSharp.Wpf.props'))" />
-    <Error Condition="!Exists('..\packages\CefSharp.Wpf.57.1.0\build\CefSharp.Wpf.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\CefSharp.Wpf.57.1.0\build\CefSharp.Wpf.targets'))" />
-    <Error Condition="!Exists('..\packages\WebViewControl.1.0.96\build\WebViewControl.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\WebViewControl.1.0.96\build\WebViewControl.props'))" />
-  </Target>
-  <Import Project="..\packages\cef.redist.x86.3.2883.1552\build\cef.redist.x86.targets" Condition="Exists('..\packages\cef.redist.x86.3.2883.1552\build\cef.redist.x86.targets')" />
-  <Import Project="..\packages\cef.redist.x64.3.2987.1601\build\cef.redist.x64.targets" Condition="Exists('..\packages\cef.redist.x64.3.2987.1601\build\cef.redist.x64.targets')" />
-  <Import Project="..\packages\cef.redist.x86.3.2987.1601\build\cef.redist.x86.targets" Condition="Exists('..\packages\cef.redist.x86.3.2987.1601\build\cef.redist.x86.targets')" />
-  <Import Project="..\packages\CefSharp.Common.57.1.0\build\CefSharp.Common.targets" Condition="Exists('..\packages\CefSharp.Common.57.1.0\build\CefSharp.Common.targets')" />
-  <Import Project="..\packages\CefSharp.Wpf.57.1.0\build\CefSharp.Wpf.targets" Condition="Exists('..\packages\CefSharp.Wpf.57.1.0\build\CefSharp.Wpf.targets')" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
