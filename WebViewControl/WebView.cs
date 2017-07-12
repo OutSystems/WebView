@@ -285,8 +285,12 @@ namespace WebViewControl {
             Address = DefaultLocalUrl;
         }
 
-        public virtual void RegisterJavascriptObject(string name, object objectToBind) {
-            chromium.RegisterAsyncJsObject(name, objectToBind, new BindingOptions() { Binder = binder });
+        public virtual void RegisterJavascriptObject(string name, object objectToBind, Func<Func<object>, object> interceptCall = null) {
+            var bindingOptions = new BindingOptions() { Binder = binder };
+            if (interceptCall != null) {
+                bindingOptions.MethodInterceptor = new LambdaMethodInterceptor(interceptCall);
+            } 
+            chromium.RegisterAsyncJsObject(name, objectToBind, bindingOptions);
         }
 
         public T EvaluateScript<T>(string script) {

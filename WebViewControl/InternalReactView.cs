@@ -74,7 +74,7 @@ namespace WebViewControl {
         //    return (new[] { assemblyName }).Concat(componentSource.Take(componentSource.Length - 1).Concat(resourceUrl.Segments.Skip(1))).ToArray();*/
         //}
 
-        public override void RegisterJavascriptObject(string name, object objectToBind) {
+        public override void RegisterJavascriptObject(string name, object objectToBind, Func<Func<object>, object> interceptCall = null) {
             var options = new BindingOptions() {
                 Binder = binder,
                 // TODO Interceptor = interceptor,

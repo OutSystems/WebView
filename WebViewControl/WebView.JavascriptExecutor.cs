@@ -194,13 +194,6 @@ namespace WebViewControl {
                 QueueScript(script);
             }
 
-            public void BindVariable(string variableName, object objectToBind) {
-                if (objectToBind == null) {
-                    throw new InvalidOperationException("objectToBind");
-                }
-                OwnerWebView.RegisterJavascriptObject(variableName, objectToBind);
-            }
-
             private T GetResult<T>(object result) {
                 var targetType = typeof(T);
                 if (IsBasicType(targetType)) {
