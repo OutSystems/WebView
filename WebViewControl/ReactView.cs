@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Windows.Controls;
 
 namespace WebViewControl {
 
     public class ReactView : ContentControl {
+
+        private static readonly string AssemblyName = typeof(ReactView).Assembly.GetName().Name;
+        private static readonly string EmbeddedResourcesPath = AssemblyName + "/Resources/";
+        private static readonly string DefaultEmbeddedUrl = EmbeddedResourcesPath + "index.html";
+        private static readonly string BuiltinResourcesPath = EmbeddedResourcesPath + "builtin/";
 
         public struct TrackCode {
             public long Value;
@@ -17,16 +20,16 @@ namespace WebViewControl {
         }
 
         private readonly Dictionary<long, object> jsObjects = new Dictionary<long, object>();
-        private readonly InternalReactWebView reactWebView;
+        private readonly WebView webView;
 
         private long objectCounter;
         private string source;
 
         public ReactView() {
-            reactWebView = new InternalReactWebView(this, new JsObjectBinder(this) /* TODO , new JsObjectInterceptor(this) */);
-            reactWebView.AllowDeveloperTools = true;
-            reactWebView.DisableBuiltinContextMenus = true;
-            Content = reactWebView;
+            webView = new WebView();
+            webView.AllowDeveloperTools = true;
+            webView.DisableBuiltinContextMenus = true;
+            Content = webView;
         }
 
         public string Source {
@@ -36,12 +39,14 @@ namespace WebViewControl {
                 if (!source.EndsWith(".js")) {
                     source += ".js";
                 }
-                reactWebView.Load(source.Split('/'));
+                var userCallingAssembly = WebView.GetUserCallingAssembly();
+                var url = WebView.BuildEmbeddedResourceUrl(AssemblyName, DefaultEmbeddedUrl + "?" + "/" + BuiltinResourcesPath + "&/" + userCallingAssembly.GetName().Name + "/" + Source);
+                webView.Address = url;
             }
         }
 
         public object NativeApi {
-            set { reactWebView.RegisterJavascriptObject("NativeApi", value); }
+            set { webView.RegisterJavascriptObject("NativeApi", value); }
         }
 
         internal object GetTrackedObject(long id) {
@@ -65,7 +70,7 @@ namespace WebViewControl {
         }
 
         public T EvaluateScriptFunction<T>(string functionName, params string[] args) {
-            return reactWebView.EvaluateScriptFunction<T>(functionName, args);
+            return webView.EvaluateScriptFunction<T>(functionName, args);
         }
     }
 }

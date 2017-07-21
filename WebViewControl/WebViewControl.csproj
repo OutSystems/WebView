@@ -89,7 +89,6 @@
   <ItemGroup>
     <Compile Include="CefLoader.cs" />
     <Compile Include="InternalChromiumBrowser.cs" />
-    <Compile Include="InternalReactView.cs" />
     <Compile Include="JavascriptSerializationHelper.cs" />
     <Compile Include="JsObjectBinder.cs" />
     <Compile Include="JsObjectInterceptor.cs" />

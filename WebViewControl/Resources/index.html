@@ -3,13 +3,24 @@
 <head>
     <meta charset="utf-8" />
     <title></title>
-    <script data-main="builtin/index" src="builtin/require.js"></script>
+    <script src="builtin/require.js"></script>
     <script>
-      /*require.config({
-          baseUrl: "/"
-                
-      });*/
-        /*require(["index"], function () { });*/
+        var urlParams = location.search.substring(1).split("&");
+        var builtinNamespace = urlParams[0];
+        var userComponent = urlParams[1];
+        var userNamespace = userComponent.substring(0, userComponent.lastIndexOf("/") + 1);
+
+        require.config({
+            baseUrl: userNamespace,
+            paths: {
+                "react": builtinNamespace + "react",
+                "react-dom": builtinNamespace + "react-dom"
+            }
+        });
+
+        require([builtinNamespace + "index.js"], function (IndexModule) {
+            IndexModule.initialize(userComponent);
+        });
     </script>
 </head>
 <body>

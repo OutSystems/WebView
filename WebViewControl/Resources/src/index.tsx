@@ -1,20 +1,23 @@
-﻿///<amd-dependency path="./webview-root-component" name="WebViewComponentModule" />
-import * as React from 'react';
+﻿import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 
-declare var WebViewComponentModule: any;
 declare var NativeApi: any;
+declare var require: any;
 
-let WebViewComponent = WebViewComponentModule.default;
+export function initialize(componentUrl: string) {
+    require([componentUrl], function (WebViewComponentModule: any) {
+        let WebViewComponent = WebViewComponentModule.default;
+        ReactDOM.render(
+            <WebViewComponent />,
+            document.getElementById("webview_root")
+        );
+    });
+}
 
-ReactDOM.render(
-    <WebViewComponent/>,
-    document.getElementById("webview_root")
-);
-
-function wrapNativeApi(api: Object) {
+/*function wrapNativeApi(api: Object) {
     debugger;
 }
 
-wrapNativeApi(NativeApi);
-
+if (typeof NativeApi !== undefined) {
+    wrapNativeApi(NativeApi);
+}*/

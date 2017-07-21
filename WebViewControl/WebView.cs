@@ -285,7 +285,7 @@ namespace WebViewControl {
             Address = DefaultLocalUrl;
         }
 
-        public virtual void RegisterJavascriptObject(string name, object objectToBind, Func<Func<object>, object> interceptCall = null) {
+        public void RegisterJavascriptObject(string name, object objectToBind, Func<Func<object>, object> interceptCall = null) {
             var bindingOptions = new BindingOptions() { Binder = binder };
             if (interceptCall != null) {
                 bindingOptions.MethodInterceptor = new LambdaMethodInterceptor(interceptCall);
@@ -447,7 +447,7 @@ namespace WebViewControl {
             return name == "PresentationFramework" || name == "mscorlib" || name == "System.Xaml";
         }
 
-        protected static Assembly GetUserCallingAssembly() {
+        internal static Assembly GetUserCallingAssembly() {
             var currentAssembly = typeof(WebView).Assembly;
             var callingAssemblies = new StackTrace().GetFrames().Select(f => f.GetMethod().ReflectedType.Assembly).Where(a => a != currentAssembly);
             var userAssembly = callingAssemblies.First(a => !IsFrameworkAssemblyName(a.GetName().Name));

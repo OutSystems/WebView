@@ -53,7 +53,7 @@ namespace WebViewControl {
             }
         }
 
-        protected virtual void LoadEmbeddedResource(ResourceHandler resourceHandler, Uri url) {
+        protected void LoadEmbeddedResource(ResourceHandler resourceHandler, Uri url) {
             var resourceAssembly = ResolveResourceAssembly(url);
             var resourcePath = ResolveResourcePath(url, resourceAssembly.GetName().Name);
 
@@ -65,13 +65,7 @@ namespace WebViewControl {
             }
         }
 
-        protected virtual Assembly ResolveResourceAssembly(Uri resourceUrl) {
-            if (!resourceUrl.AbsoluteUri.StartsWith(AssemblyPrefix)) {
-                //if (resourcesSource != null) {
-                //    return resourcesSource;
-                //}
-            }
-
+        protected Assembly ResolveResourceAssembly(Uri resourceUrl) {
             if (assemblies == null) {
                 assemblies = new Dictionary<string, Assembly>();
                 foreach (var domainAssembly in AppDomain.CurrentDomain.GetAssemblies()) {
@@ -93,7 +87,7 @@ namespace WebViewControl {
         /// embedded://webview/assembly:AssemblyName;Path/To/Resource
         /// embedded://webview/AssemblyName/Path/To/Resource (AssemblyName is also assumed as default namespace)
         /// </summary>
-        protected virtual string[] ResolveResourcePath(Uri resourceUrl, string assemblyName) {
+        protected string[] ResolveResourcePath(Uri resourceUrl, string assemblyName) {
             if (resourceUrl.AbsoluteUri.StartsWith(AssemblyPrefix)) {
                 return GetEmbeddedResourcePath(resourceUrl).Split('/');
             }
