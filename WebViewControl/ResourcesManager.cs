@@ -20,23 +20,11 @@ namespace WebViewControl {
         }
 
         private static string ComputeResourceName(string defaultNamespace, IEnumerable<string> resourcePath) {
-            var resourcePathSize = resourcePath.Count();
-            IEnumerable<string> resourcePathPreprocessed;
-            var defaultNamespacePreprocessed = defaultNamespace.Replace('-', '_');
-            if (resourcePathSize > 1) {
-                var paths = new string[resourcePathSize];
-                var i = 0;
-                while (i < resourcePathSize - 1) {
-                    paths[i] = resourcePath.ElementAt(i).Replace('-', '_');
-                    i+=1;
-                }
-                paths[i] = resourcePath.ElementAt(i);
-                resourcePathPreprocessed = paths;
-            } else {
-                resourcePathPreprocessed = resourcePath;
+            var resourceParts = (new[] { defaultNamespace }).Concat(resourcePath).ToArray();
+            for (int i = 0; i < resourceParts.Length - 1; i++) {
+                resourceParts[i] = resourceParts[i].Replace('-', '_');
             }
-
-            return string.Join(".", (new[] { defaultNamespacePreprocessed }).Concat(resourcePathPreprocessed));
+            return string.Join(".", resourceParts);
         }
 
         private static Stream InternalTryGetResource(Assembly assembly, string defaultNamespace, IEnumerable<string> resourcePath, bool failOnMissingResource) {
