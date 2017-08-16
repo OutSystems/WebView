@@ -19,8 +19,16 @@ namespace WebViewControl {
             return InternalTryGetResource(assembly, defaultNamespace, resourcePath, failOnMissingResource);
         }
 
+        private static string ComputeResourceName(string defaultNamespace, IEnumerable<string> resourcePath) {
+            var resourceParts = (new[] { defaultNamespace }).Concat(resourcePath).ToArray();
+            for (int i = 0; i < resourceParts.Length - 1; i++) {
+                resourceParts[i] = resourceParts[i].Replace('-', '_');
+            }
+            return string.Join(".", resourceParts);
+        }
+
         private static Stream InternalTryGetResource(Assembly assembly, string defaultNamespace, IEnumerable<string> resourcePath, bool failOnMissingResource) {
-            var resourceName = string.Join(".", (new[] { defaultNamespace }).Concat(resourcePath));
+            var resourceName = ComputeResourceName(defaultNamespace, resourcePath);
             var stream = assembly.GetManifestResourceStream(resourceName);
             if (failOnMissingResource && stream == null) {
                 throw new InvalidOperationException("Resource not found: " + resourceName);
