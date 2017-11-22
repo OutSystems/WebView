@@ -29,7 +29,7 @@ namespace Tests {
         public void EmbeddedFilesWithDashesInFilenameLoad() {
             var embeddedResourceUrl = WebViewControl.WebView.BuildEmbeddedResourceUrl(GetType().Assembly, "Tests", "Resources", "dash-folder", "EmbeddedJavascriptFile-With-Dashes.js");
             LoadAndWaitReady($"<html><script src='{embeddedResourceUrl}'></script></html>");
-            var embeddedFileLoaded = TargetWebView.EvaluateScript<bool>("embeddedFileLoaded");
+            var embeddedFileLoaded = TargetView.EvaluateScript<bool>("embeddedFileLoaded");
             Assert.IsTrue(embeddedFileLoaded);
         }
     }
