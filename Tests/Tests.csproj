@@ -47,6 +47,7 @@
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
+    <Reference Include="System.Xaml" />
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <Choose>
@@ -61,11 +62,14 @@
     <Compile Include="CommonTests.cs" />
     <Compile Include="IsolatedJavascriptEvaluation.cs" />
     <Compile Include="JavascriptEvaluation.cs" />
+    <Compile Include="ObjectTracking.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ReactViewTestBase.cs" />
     <Compile Include="RequestInterception.cs" />
     <Compile Include="ResourcesLoading.cs" />
     <Compile Include="Setup.cs" />
     <Compile Include="TestBase.cs" />
+    <Compile Include="WebViewTestBase.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\packages\NUnit.ConsoleRunner.3.6.1\tools\nunit-agent.exe.config">
@@ -108,6 +112,12 @@
       <Project>{a1c2a0c7-df81-4a8f-aeb5-b5375d5d1b47}</Project>
       <Name>WebViewControl</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <TypeScriptCompile Include="ReactViewResources\TestApp.tsx" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="ReactViewResources\testapp.js" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

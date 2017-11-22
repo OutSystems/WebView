@@ -4,20 +4,18 @@ using WebViewControl;
 
 namespace Tests {
 
-    public class IsolatedJavascriptEvaluation : TestBase {
+    public class IsolatedJavascriptEvaluation : WebViewTestBase {
 
-        protected override bool ReuseWebView {
+        protected override bool ReuseView {
             get { return false; }
         }
 
-        protected override bool WaitReady {
-            get { return false; }
-        }
+        protected override void InitializeView() { }
 
         [Test(Description = "Evaluation timeouts when javascript engine is not initialized")]
         public void JavascriptEngineInitializationTimeout() {
             LoadAndWaitReady("<html><body></body></html>");
-            var exception = Assert.Throws<WebView.JavascriptException>(() => TargetWebView.EvaluateScript<int>("1", TimeSpan.FromSeconds(1)));
+            var exception = Assert.Throws<WebView.JavascriptException>(() => TargetView.EvaluateScript<int>("1", TimeSpan.FromSeconds(1)));
             Assert.IsNotNull(exception);
             Assert.IsTrue(exception.Message.Contains("not initialized"));
         }
@@ -35,7 +33,7 @@ namespace Tests {
                 interceptorCalled = true;
                 return originalFunc();
             };
-            TargetWebView.RegisterJavascriptObject(DotNetObject, functionToCall, interceptor);
+            TargetView.RegisterJavascriptObject(DotNetObject, functionToCall, interceptor);
             LoadAndWaitReady("<html><script>DotNetObject.invoke();</script><body></body></html>");
             WaitFor(() => functionCalled, TimeSpan.FromSeconds(2));
             Assert.IsTrue(functionCalled);

@@ -2,7 +2,7 @@
   "compilerOptions": {
     "outDir": "builtin",
     "module": "amd",
-    "target": "es5",
+    "target": "es6",
     "sourceMap": false,
     "allowJs": true,
     "jsx": "react",

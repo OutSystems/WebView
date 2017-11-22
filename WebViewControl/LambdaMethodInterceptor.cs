@@ -3,7 +3,7 @@ using CefSharp.ModelBinding;
 
 namespace WebViewControl {
 
-    public class LambdaMethodInterceptor : IMethodInterceptor {
+    internal class LambdaMethodInterceptor : IMethodInterceptor {
 
         private readonly Func<Func<object>, object> interceptCall;
 

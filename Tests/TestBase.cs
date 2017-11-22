@@ -5,18 +5,17 @@ using System.Threading;
 using System.Windows;
 using System.Windows.Threading;
 using NUnit.Framework;
-using WebViewControl;
 
 namespace Tests {
 
     [TestFixture]
     [Apartment(ApartmentState.STA)]
-    public class TestBase {
+    public abstract class TestBase<T> where T : class, IDisposable, new() {
 
         protected static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(5);
 
         private Window window;
-        private WebView webView;
+        private T view;
 
         [OneTimeSetUp]
         protected void OneTimeSetUp() {
@@ -36,42 +35,33 @@ namespace Tests {
 
         [SetUp]
         protected void SetUp() {
-            if (webView == null) {
-                webView = new WebView();
+            if (view == null) {
+                view = new T();
 
-                window.Content = webView;
+                window.Content = view;
 
-                if (WaitReady) {
-                    var initialized = false;
-                    webView.Navigated += (url) => initialized = true;
-                    webView.LoadHtml("<html><script>;</script><body>Test page</body></html>");
-                    // wait for web view to load
-                    WaitFor(() => initialized, TimeSpan.FromSeconds(10), "webview initialization");
-                }
+                InitializeView();
             }
-
             window.Title = "Running: " + TestContext.CurrentContext.Test.Name;
         }
 
+        protected abstract void InitializeView();
+
         [TearDown]
         protected void TearDown() {
-            if (!ReuseWebView) {
-                webView.Dispose();
+            if (!ReuseView) {
+                view.Dispose();
                 window.Content = null;
-                webView = null;
+                view = null;
             }
         }
 
-        protected virtual bool ReuseWebView {
+        protected virtual bool ReuseView {
             get { return true; }
         }
 
-        protected virtual bool WaitReady {
-            get { return true; }
-        }
-
-        protected WebView TargetWebView {
-            get { return webView; }
+        protected T TargetView {
+            get { return view; }
         }
 
         public static void WaitFor(Func<bool> predicate, TimeSpan timeout, string purpose = "") {
@@ -83,12 +73,6 @@ namespace Tests {
             if (!predicate()) {
                 throw new TimeoutException("Timed out waiting for " + purpose);
             }
-        }
-        protected void LoadAndWaitReady(string html) {
-            var navigated = false;
-            TargetWebView.Navigated += (string url) => navigated = true;
-            TargetWebView.LoadHtml(html);
-            WaitFor(() => navigated, DefaultTimeout);
         }
 
         [DebuggerNonUserCode]
