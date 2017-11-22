@@ -24,5 +24,13 @@ namespace Tests {
             var embeddedFileLoaded = TargetView.EvaluateScript<bool>("embeddedFileLoaded");
             Assert.IsTrue(embeddedFileLoaded);
         }
+
+        [Test(Description = "Embedded files with dashes in the filename are correctly loaded")]
+        public void EmbeddedFilesWithDashesInFilenameLoad() {
+            var embeddedResourceUrl = WebViewControl.WebView.BuildEmbeddedResourceUrl(GetType().Assembly, "Tests", "Resources", "dash-folder", "EmbeddedJavascriptFile-With-Dashes.js");
+            LoadAndWaitReady($"<html><script src='{embeddedResourceUrl}'></script></html>");
+            var embeddedFileLoaded = TargetWebView.EvaluateScript<bool>("embeddedFileLoaded");
+            Assert.IsTrue(embeddedFileLoaded);
+        }
     }
 }

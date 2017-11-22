@@ -119,6 +119,15 @@
   <ItemGroup>
     <EmbeddedResource Include="ReactViewResources\testapp.js" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\packages\NUnit.3.7.1\lib\net45\nunit.framework.dll">
+      <Link>Nunit\nunit.framework.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\dash-folder\EmbeddedJavascriptFile-With-Dashes.js" />
+  </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
       <ItemGroup>
