@@ -9,6 +9,8 @@ namespace WebViewControl {
         private class CefLifeSpanHandler : ILifeSpanHandler {
 
             private readonly WebView OwnerWebView;
+            public Action</*url*/string> OpenPopup;
+
 
             public CefLifeSpanHandler(WebView webView) {
                 OwnerWebView = webView;
@@ -36,7 +38,11 @@ namespace WebViewControl {
 
                 // if we are opening a popup then this should go to the default browser
                 try {
-                    Process.Start(url);
+                    if (OpenPopup != null) {
+                        OpenPopup(url);
+                    } else {
+                        Process.Start(url);
+                    }
                 } catch {
                     // Try this method for machines which are not properly configured
                     try {
