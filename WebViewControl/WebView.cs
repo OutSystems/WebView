@@ -77,11 +77,6 @@ namespace WebViewControl {
         public static event Action<WebView> GlobalWebViewInitialized;
 
         static WebView() {
-#if DEBUG
-            if (!System.Diagnostics.Debugger.IsAttached) {
-                throw new InvalidOperationException("Running debug version");
-            }
-#endif
             InitializeCef();
         }
 
@@ -135,6 +130,12 @@ namespace WebViewControl {
             if (DesignerProperties.GetIsInDesignMode(this)) {
                 return;
             }
+
+#if DEBUG
+            if (!System.Diagnostics.Debugger.IsAttached) {
+                throw new InvalidOperationException("Running debug version");
+            }
+#endif
 
             Initialize();
         }
@@ -227,6 +228,9 @@ namespace WebViewControl {
         public string Address {
             get { return chromium.Address; }
             set {
+                if (value != DefaultLocalUrl) {
+                    htmlToLoad = null;
+                }
                 if (value.Contains("://") || value == "about:blank" || value.StartsWith("data:")) {
                     // must wait for the browser to be initialized otherwise navigation will be aborted
                     ExecuteWhenInitialized(() => chromium.Load(value));
@@ -381,7 +385,8 @@ namespace WebViewControl {
 
         private void OnWebViewLoadError(object sender, LoadErrorEventArgs e) {
             htmlToLoad = null;
-            if (LoadFailed != null) {
+            if (e.ErrorCode != CefErrorCode.Aborted && LoadFailed != null) {
+                // ignore aborts, to prevent situations where we try to load an address inside Load failed handler (and its aborted)
                 ExecuteInUIThread(() => LoadFailed(e.FailedUrl, (int) e.ErrorCode));
             }
         }
@@ -389,7 +394,7 @@ namespace WebViewControl {
         private void OnWebViewTitleChanged(object sender, DependencyPropertyChangedEventArgs e) {
             TitleChanged?.Invoke();
         }
-
+        
         private void ExecuteInUIThread(Action action) {
             if (isDisposing) {
                 return;
@@ -434,7 +439,7 @@ namespace WebViewControl {
         private static string GetEmbeddedResourceAssemblyName(Uri url) {
             if (url.AbsoluteUri.StartsWith(AssemblyPrefix)) {
                 var resourcePath = url.AbsoluteUri.Substring(AssemblyPrefix.Length);
-                var indexOfPath = resourcePath.IndexOf(AssemblyPathSeparator);
+                var indexOfPath = Math.Max(0, resourcePath.IndexOf(AssemblyPathSeparator));
                 return resourcePath.Substring(0, indexOfPath);
             }
             return url.Segments.Length > 1 ? url.Segments[1].TrimEnd('/') : string.Empty; // default assembly name to the first path
