@@ -142,6 +142,10 @@ namespace WebViewControl {
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void Initialize() {
+            // subscribe exit again, first time might have failed if Application.Current was null
+            Application.Current.Exit -= OnApplicationExit;
+            Application.Current.Exit += OnApplicationExit;
+
             settings = new BrowserSettings();
             settings.JavascriptOpenWindows = CefState.Disabled;
 
