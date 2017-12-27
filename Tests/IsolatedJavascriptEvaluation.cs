@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using NUnit.Framework;
 using WebViewControl;
 
@@ -29,7 +30,7 @@ namespace Tests {
                 functionCalled = true;
                 return 10;
             };
-            Func<Func<object>, object> interceptor = (originalFunc) => {
+            Func<Func<object>, CancellationToken, object> interceptor = (originalFunc, token) => {
                 interceptorCalled = true;
                 return originalFunc();
             };

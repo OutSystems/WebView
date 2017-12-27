@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -39,6 +40,8 @@ namespace WebViewControl {
 
         private readonly DefaultBinder binder = new DefaultBinder(new DefaultFieldNameConverter());
 
+        private static bool subscribedApplicationExit = false;
+
         protected InternalChromiumBrowser chromium;
         private bool isDeveloperToolsOpened = false;
         private BrowserSettings settings;
@@ -47,6 +50,7 @@ namespace WebViewControl {
         private string htmlToLoad;
         private JavascriptExecutor jsExecutor;
         private BrowserObjectListener eventsListener = new BrowserObjectListener();
+        private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
         public event Action WebViewInitialized;
 
@@ -98,9 +102,10 @@ namespace WebViewControl {
                 cefSettings.BrowserSubprocessPath = CefLoader.GetBrowserSubProcessPath();
 
                 Cef.Initialize(cefSettings, performDependencyCheck: false, browserProcessHandler: null);
-
+                
                 if (Application.Current != null) {
                     Application.Current.Exit += OnApplicationExit;
+                    subscribedApplicationExit = true;
                 }
             }
         }
@@ -142,12 +147,13 @@ namespace WebViewControl {
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void Initialize() {
-            // subscribe exit again, first time might have failed if Application.Current was null
-            Application.Current.Exit -= OnApplicationExit;
-            Application.Current.Exit += OnApplicationExit;
+            if (!subscribedApplicationExit) {
+                // subscribe exit again, first time might have failed if Application.Current was null
+                Application.Current.Exit += OnApplicationExit;
+                subscribedApplicationExit = true;
+            }
 
             settings = new BrowserSettings();
-            settings.JavascriptOpenWindows = CefState.Disabled;
 
             chromium = new InternalChromiumBrowser();
             chromium.BrowserSettings = settings;
@@ -179,6 +185,7 @@ namespace WebViewControl {
         public void Dispose() {
             isDisposing = true;
 
+            cancellationTokenSource.Cancel();
             chromium.RequestHandler = null;
             chromium.ResourceHandlerFactory = null;
             chromium.PreviewKeyDown -= OnPreviewKeyDown;
@@ -191,6 +198,7 @@ namespace WebViewControl {
             jsExecutor.Dispose();
             settings.Dispose();
             chromium.Dispose();
+            cancellationTokenSource.Dispose();
             settings = null;
             chromium = null;
         }
@@ -293,16 +301,30 @@ namespace WebViewControl {
             Address = DefaultLocalUrl;
         }
 
-        public void RegisterJavascriptObject(string name, object objectToBind, Func<Func<object>, object> interceptCall = null, Func<object, Type, object> bind = null) {
+        public void RegisterJavascriptObject(string name, object objectToBind, Func<Func<object>, CancellationToken, object> interceptCall = null, Func<object, Type, object> bind = null) {
             var bindingOptions = new BindingOptions();
             if (bind != null) {
                 bindingOptions.Binder = new LambdaMethodBinder(bind);
             } else {
                 bindingOptions.Binder = binder;
             }
-            if (interceptCall != null) {
-                bindingOptions.MethodInterceptor = new LambdaMethodInterceptor(interceptCall);
+            Func<Func<object>, object> interceptorWrapper;
+            if (interceptCall != null) { 
+                interceptorWrapper = target => {
+                    if (isDisposing) {
+                        return null;
+                    }
+                    return interceptCall(target, cancellationTokenSource.Token);
+                };
+            } else {
+                interceptorWrapper = target => {
+                    if (isDisposing) {
+                        return null;
+                    }
+                    return target();
+                };
             }
+            bindingOptions.MethodInterceptor = new LambdaMethodInterceptor(interceptorWrapper);
             chromium.RegisterAsyncJsObject(name, objectToBind, bindingOptions);
         }
 
