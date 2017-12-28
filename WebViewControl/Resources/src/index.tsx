@@ -1,6 +1,5 @@
 ﻿import * as React from "react";
 import * as ReactDOM from "react-dom";
-import "object-tracker";
 
 declare var __WebviewListener__: {
     notify: (eventName: string) => void;

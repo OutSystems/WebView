@@ -41,7 +41,7 @@ namespace WebViewControl {
         }
 
         public object NativeApi {
-            set { webView.RegisterJavascriptObject("NativeApi", value, /*InjectTracker*/ bind: ResolveObject); }
+            set { webView.RegisterJavascriptObject("NativeApi", value); }
         }
 
         public T EvaluateScriptFunction<T>(string functionName, params string[] args) {

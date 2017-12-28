@@ -99,7 +99,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ProxyAuthentication.cs" />
     <Compile Include="ReactView.cs" />
-    <Compile Include="ReactView.ObjectTracker.cs" />
     <Compile Include="RenderProcessClosedException.cs" />
     <Compile Include="WebView.CefDownloadHandler.cs" />
     <Compile Include="WebView.CefLifeSpanHandler.cs" />
@@ -131,7 +130,6 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="Resources\src\index.tsx" />
-    <TypeScriptCompile Include="Resources\src\object-tracker.ts" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\builtin\index.js" />
