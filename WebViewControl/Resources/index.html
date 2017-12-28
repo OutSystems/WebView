@@ -14,11 +14,13 @@
             baseUrl: userNamespace,
             paths: {
                 "react": builtinNamespace + "react",
-                "react-dom": builtinNamespace + "react-dom"
+				"react-dom": builtinNamespace + "react-dom",
+				"index": builtinNamespace + "index",
+				"object-tracker": builtinNamespace + "index"
             }
         });
 
-        require([builtinNamespace + "index.js"], function (IndexModule) {
+        require(["index"], function (IndexModule) {
             IndexModule.initialize(userComponent);
         });
     </script>

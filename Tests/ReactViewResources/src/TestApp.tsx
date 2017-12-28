@@ -21,4 +21,4 @@ class App extends React.Component<null, {}> {
     }
 }
 
-export default App;
+export default App; 
