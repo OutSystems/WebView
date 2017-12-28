@@ -7,10 +7,17 @@ namespace Tests {
 
     public class JavascriptEvaluation : WebViewTestBase {
 
+        enum Kind {
+            A,
+            B,
+            C
+        }
+
         class TestObject {
             public string Name;
             public int Age;
             public TestObject Parent;
+            public Kind Kind;
         }
 
         [Test(Description = "A simple script evaluates correctly")]
@@ -43,13 +50,14 @@ namespace Tests {
 
         [Test(Description = "Evaluation of complex objects returns the expected results")]
         public void ComplexObjectsEvaluation() {
-            var result = TargetView.EvaluateScript<TestObject>("({ Name: 'Snows', Age: 32, Parent: { Name: 'Snows Parent', Age: 60 } })");
+            var result = TargetView.EvaluateScript<TestObject>("({ Name: 'Snows', Age: 32, Parent: { Name: 'Snows Parent', Age: 60 }, Kind: 2 })");
             Assert.IsNotNull(result);
             Assert.AreEqual("Snows", result.Name);
             Assert.AreEqual(32, result.Age);
             Assert.IsNotNull(result.Parent);
             Assert.AreEqual("Snows Parent", result.Parent.Name);
             Assert.AreEqual(60, result.Parent.Age);
+            Assert.AreEqual(Kind.C, result.Kind);
         }
 
         [Test(Description = "Evaluation of scripts with errors returns stack and message details")]
