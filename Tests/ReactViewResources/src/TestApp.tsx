@@ -1,6 +1,10 @@
 ﻿import * as React from 'react';
 
-class App extends React.Component<null, {}> {
+interface IAppProperties {
+    event: (args: string) => void;
+}
+
+class App extends React.Component<IAppProperties, {}> {
 
     constructor() {
         super();
@@ -18,6 +22,10 @@ class App extends React.Component<null, {}> {
                 </div>
             </div>
         );
+    }
+
+    callEvent() {
+        this.props.event("");
     }
 }
 

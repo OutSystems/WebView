@@ -69,6 +69,7 @@
     <Compile Include="ResourcesLoading.cs" />
     <Compile Include="Setup.cs" />
     <Compile Include="TestBase.cs" />
+    <Compile Include="TestReactView.cs" />
     <Compile Include="WebViewTestBase.cs" />
   </ItemGroup>
   <ItemGroup>

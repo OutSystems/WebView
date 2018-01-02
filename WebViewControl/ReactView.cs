@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Threading;
 using System.Windows.Controls;
-using CefSharp.ModelBinding;
+using System.Windows.Threading;
 
 namespace WebViewControl {
 
-    public partial class ReactView : ContentControl, IDisposable {
+    public abstract partial class ReactView : ContentControl, IDisposable {
+
+        private const string RootObject = "__Root__";
 
         private static readonly string AssemblyName = typeof(ReactView).Assembly.GetName().Name;
         private static readonly string EmbeddedResourcesPath = AssemblyName + "/Resources/";
@@ -12,10 +15,6 @@ namespace WebViewControl {
         private static readonly string BuiltinResourcesPath = EmbeddedResourcesPath + "builtin/";
 
         private readonly WebView webView = new WebView();
-        private readonly IBinder defaultBinder = new DefaultBinder(new DefaultFieldNameConverter());
-
-        private long objectCounter;
-        private string source;
 
         public event Action Ready;
 
@@ -24,32 +23,53 @@ namespace WebViewControl {
             webView.DisableBuiltinContextMenus = true;
             webView.IgnoreMissingResources = false;
             webView.AttachListener("Ready", () => Ready?.Invoke());
+
+            SetSource(Source);
+
+            var rootPropertiesObject = CreateRootPropertiesObject();
+            if (rootPropertiesObject != null) {
+                webView.RegisterJavascriptObject("__RootProperties__", rootPropertiesObject, ExecuteNativeCallsOnUI);
+            }
+
             Content = webView;
         }
 
-        public string Source {
-            get { return source; }
-            set {
-                source = value ?? "";
-                if (!source.EndsWith(".js")) {
-                    source += ".js";
-                }
-                var userCallingAssembly = WebView.GetUserCallingAssembly();
-                var url = WebView.BuildEmbeddedResourceUrl(AssemblyName, DefaultEmbeddedUrl + "?" + "/" + BuiltinResourcesPath + "&/" + userCallingAssembly.GetName().Name + "/" + Source);
-                webView.Address = url;
+        protected void SetSource(string value) {
+            value = value ?? "";
+            if (!value.EndsWith(".js")) {
+                value += ".js";
             }
-        }
-
-        public object NativeApi {
-            set { webView.RegisterJavascriptObject("NativeApi", value); }
-        }
-
-        public T EvaluateScriptFunction<T>(string functionName, params string[] args) {
-            return webView.EvaluateScriptFunction<T>(functionName, args);
+            var userCallingAssembly = WebView.GetUserCallingAssembly();
+            var url = WebView.BuildEmbeddedResourceUrl(AssemblyName, DefaultEmbeddedUrl + "?" + "/" + BuiltinResourcesPath + "&/" + userCallingAssembly.GetName().Name + "/" + value);
+            webView.Address = url;
         }
 
         public void Dispose() {
             webView.Dispose();
+        }
+
+        protected void ExecuteScript(string script) {
+            webView.ExecuteScript(script);
+        }
+
+        protected void ExecuteMethodOnRoot(string methodCall, params string[] args) {
+            ExecuteScript(RootObject + "." + methodCall + "(" + string.Join(",", args) + ")");
+        }
+
+        protected T EvaluateMethodOnRoot<T>(string methodCall, params string[] args) {
+            return webView.EvaluateScriptFunction<T>(RootObject + "." + methodCall, args);
+        }
+
+        protected virtual object CreateRootPropertiesObject() {
+            return null;
+        }
+
+        protected abstract string Source { get; }
+
+        private object ExecuteNativeCallsOnUI(Func<object> originalFunc, CancellationToken cancellationToken) {
+            var op = Dispatcher.InvokeAsync(originalFunc, DispatcherPriority.Normal, cancellationToken);
+            op.Task.Wait(cancellationToken);
+            return op.Result;
         }
     }
 }

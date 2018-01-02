@@ -14,7 +14,6 @@
 		"noImplicitAny": true,
 		"strictNullChecks": true,
 		"suppressImplicitAnyIndexErrors": true,
-		"noUnusedLocals": true,
 		"outFile": "builtin/index.js"
 	},
 	"compileOnSave": true,
