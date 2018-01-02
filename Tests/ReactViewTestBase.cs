@@ -36,5 +36,19 @@ namespace Tests {
 
             WaitFor(() => disposed, TimeSpan.FromSeconds(10), "view disposed");
         }
+
+        [Test(Description = "Tests stylesheets get loaded")]
+        public void StylesheetsAreLoaded() {
+            string stylesheet = null;
+            TargetView.Event += (args) => {
+                stylesheet = args;
+            };
+
+            TargetView.ExecuteMethodOnRoot("checkStyleSheetLoaded");
+
+            WaitFor(() => stylesheet != null, TimeSpan.FromSeconds(10), "stylesheet load");
+
+            Assert.IsTrue(stylesheet.Contains(".foo"));
+        }
     }
 }

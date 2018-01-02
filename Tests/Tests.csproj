@@ -127,7 +127,9 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\dash-folder\EmbeddedJavascriptFile-With-Dashes.js" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="ReactViewResources\css\styles.css" />
+  </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ReactViewResources\dist\TestApp.js" />
   </ItemGroup>

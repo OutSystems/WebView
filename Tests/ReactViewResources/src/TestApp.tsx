@@ -1,4 +1,5 @@
 ﻿import * as React from 'react';
+import "css!../css/styles.css";
 
 interface IAppProperties {
     event: (args: string) => void;
@@ -8,10 +9,6 @@ class App extends React.Component<IAppProperties, {}> {
 
     constructor() {
         super();
-    }
-
-    componentDidMount() {
-        
     }
 
     render() {
@@ -26,6 +23,16 @@ class App extends React.Component<IAppProperties, {}> {
 
     callEvent() {
         this.props.event("");
+    }
+
+    checkStyleSheetLoaded() {
+        var intervalHandle = 0;
+        intervalHandle = setInterval(() => {
+            if (document.styleSheets.length > 0) {
+                this.props.event((document.styleSheets[0] as CSSStyleSheet).rules[0].cssText);
+                clearInterval(intervalHandle);
+            }
+        }, 50);
     }
 }
 
