@@ -48,12 +48,8 @@ namespace WebViewControl {
             webView.Dispose();
         }
 
-        protected void ExecuteScript(string script) {
-            webView.ExecuteScript(script);
-        }
-
         protected void ExecuteMethodOnRoot(string methodCall, params string[] args) {
-            ExecuteScript(RootObject + "." + methodCall + "(" + string.Join(",", args) + ")");
+            webView.ExecuteScriptFunction(RootObject + "." + methodCall, args);
         }
 
         protected T EvaluateMethodOnRoot<T>(string methodCall, params string[] args) {

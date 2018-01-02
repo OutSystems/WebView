@@ -25,10 +25,6 @@ namespace Tests {
 
         protected override string Source => "ReactViewResources/dist/TestApp";
 
-        public new void ExecuteScript(string script) {
-            base.ExecuteScript(script);
-        }
-
         public new T EvaluateMethodOnRoot<T>(string methodCall, params string[] args) {
             return base.EvaluateMethodOnRoot<T>(methodCall, args);
         }
