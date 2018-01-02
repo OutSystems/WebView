@@ -3,19 +3,20 @@
 <head>
     <meta charset="utf-8" />
     <title></title>
-    <script src="builtin/require.js"></script>
+    <script src="node_modules/requirejs/require.js"></script>
     <script>
         var urlParams = location.search.substring(1).split("&");
-        var builtinNamespace = urlParams[0];
+		var resourcesPath = urlParams[0];
+		var libsPath = resourcesPath + "node_modules/";
         var userComponent = urlParams[1];
         var userNamespace = userComponent.substring(0, userComponent.lastIndexOf("/") + 1);
 
         require.config({
             baseUrl: userNamespace,
             paths: {
-                "react": builtinNamespace + "react",
-				"react-dom": builtinNamespace + "react-dom",
-				"index": builtinNamespace + "index"
+				"react": libsPath + "react/dist/react.min",
+				"react-dom": libsPath + "react-dom/dist/react-dom.min",
+				"index": resourcesPath + "builtin/index"
             }
         });
 

@@ -12,7 +12,6 @@ namespace WebViewControl {
         private static readonly string AssemblyName = typeof(ReactView).Assembly.GetName().Name;
         private static readonly string EmbeddedResourcesPath = AssemblyName + "/Resources/";
         private static readonly string DefaultEmbeddedUrl = EmbeddedResourcesPath + "index.html";
-        private static readonly string BuiltinResourcesPath = EmbeddedResourcesPath + "builtin/";
 
         private readonly WebView webView = new WebView();
 
@@ -40,7 +39,7 @@ namespace WebViewControl {
                 value += ".js";
             }
             var userCallingAssembly = WebView.GetUserCallingAssembly();
-            var url = WebView.BuildEmbeddedResourceUrl(AssemblyName, DefaultEmbeddedUrl + "?" + "/" + BuiltinResourcesPath + "&/" + userCallingAssembly.GetName().Name + "/" + value);
+            var url = WebView.BuildEmbeddedResourceUrl(AssemblyName, DefaultEmbeddedUrl + "?" + "/" + EmbeddedResourcesPath + "&/" + userCallingAssembly.GetName().Name + "/" + value);
             webView.Address = url;
         }
 

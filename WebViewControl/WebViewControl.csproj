@@ -134,9 +134,11 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\builtin\index.js" />
-    <EmbeddedResource Include="Resources\builtin\react-dom.js" />
-    <EmbeddedResource Include="Resources\builtin\react.js" />
-    <EmbeddedResource Include="Resources\builtin\require.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\node_modules\react-dom\dist\react-dom.min.js" />
+    <EmbeddedResource Include="Resources\node_modules\react\dist\react.min.js" />
+    <EmbeddedResource Include="Resources\node_modules\requirejs\require.js" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="InjectModuleInitializer" AfterTargets="AfterBuild">

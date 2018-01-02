@@ -12,7 +12,8 @@ Release/
 Debug/
 Tests/ReactViewResources/testapp.js
 Tests/ReactViewResources/node_modules/
-WebViewControl/Resources/builtin/index.js
 .vs/config/applicationhost.config
 Tests/ReactViewResources/dist/
 .vs/
+WebViewControl/Resources/builtin/
+WebViewControl/Resources/node_modules/
