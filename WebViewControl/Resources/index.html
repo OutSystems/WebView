@@ -17,7 +17,12 @@
 				"react": libsPath + "react/dist/react.min",
 				"react-dom": libsPath + "react-dom/dist/react-dom.min",
 				"index": resourcesPath + "builtin/index"
-            }
+			},
+			map: {
+				'*': {
+					'css': libsPath + "require-css/css.min.js"
+				}
+			}
         });
 
         require(["index"], function (IndexModule) {

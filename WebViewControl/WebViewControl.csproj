@@ -140,6 +140,9 @@
     <EmbeddedResource Include="Resources\node_modules\react\dist\react.min.js" />
     <EmbeddedResource Include="Resources\node_modules\requirejs\require.js" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\node_modules\require-css\css.min.js" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="InjectModuleInitializer" AfterTargets="AfterBuild">
     <Exec Command="..\packages\InjectModuleInitializer.1.5\tools\InjectModuleInitializer.exe &quot;$(TargetPath)&quot;" />
