@@ -7,8 +7,9 @@
     <script>
         var urlParams = location.search.substring(1).split("&");
 		var resourcesPath = urlParams[0];
+		var userComponent = urlParams[1];
+		var userDefaultStylesheet = urlParams[2];
 		var libsPath = resourcesPath + "node_modules/";
-        var userComponent = urlParams[1];
         var userNamespace = userComponent.substring(0, userComponent.lastIndexOf("/") + 1);
 
         require.config({
@@ -25,7 +26,11 @@
 			}
         });
 
-        require(["index"], function (IndexModule) {
+		if (userDefaultStylesheet) {
+			userDefaultStylesheet = "css!" + userDefaultStylesheet;
+		}
+
+		require(["index", userDefaultStylesheet], function (IndexModule) {
             IndexModule.initialize(userComponent);
         });
     </script>

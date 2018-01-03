@@ -1,11 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Reflection;
 using System.Threading;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 
 namespace WebViewControl {
 
-    public abstract partial class ReactView : ContentControl, IDisposable {
+    public partial class ReactView : ContentControl, IDisposable {
 
         private const string RootObject = "__Root__";
 
@@ -14,32 +18,55 @@ namespace WebViewControl {
         private static readonly string DefaultEmbeddedUrl = EmbeddedResourcesPath + "index.html";
 
         private readonly WebView webView = new WebView();
+        private readonly Assembly userCallingAssembly;
+
+        private bool isSourceSet = false;
 
         public event Action Ready;
-
+        
         public ReactView() {
+            userCallingAssembly = WebView.GetUserCallingAssembly();
+
             webView.AllowDeveloperTools = true;
             webView.DisableBuiltinContextMenus = true;
             webView.IgnoreMissingResources = false;
             webView.AttachListener("Ready", () => Ready?.Invoke());
 
-            SetSource(Source);
-
             var rootPropertiesObject = CreateRootPropertiesObject();
             if (rootPropertiesObject != null) {
                 webView.RegisterJavascriptObject("__RootProperties__", rootPropertiesObject, ExecuteNativeCallsOnUI);
             }
-
+            
             Content = webView;
         }
 
-        protected void SetSource(string value) {
-            value = value ?? "";
-            if (!value.EndsWith(".js")) {
-                value += ".js";
+        public override void OnApplyTemplate() {
+            base.OnApplyTemplate();
+            if (!isSourceSet) {
+                // wait for default stylesheet property to be set
+                LoadSource();
+                isSourceSet = true;
             }
-            var userCallingAssembly = WebView.GetUserCallingAssembly();
-            var url = WebView.BuildEmbeddedResourceUrl(AssemblyName, DefaultEmbeddedUrl + "?" + "/" + EmbeddedResourcesPath + "&/" + userCallingAssembly.GetName().Name + "/" + value);
+        }
+
+        private void LoadSource() {
+            var source = Source ?? "";
+            if (!source.EndsWith(".js")) {
+                source += ".js";
+            }
+
+            var callingAssemblyName = userCallingAssembly.GetName().Name;
+
+            var urlParams = new List<string>() {
+                "/" + EmbeddedResourcesPath,
+                source.StartsWith("/") ? source : $"/{callingAssemblyName}/{source}"
+            };
+
+            if (DefaultStyleSheet != null) { 
+                urlParams.Add(DefaultStyleSheet.StartsWith("/") ? DefaultStyleSheet : $"/{callingAssemblyName}/{DefaultStyleSheet}");
+            }
+
+            var url = WebView.BuildEmbeddedResourceUrl(AssemblyName, DefaultEmbeddedUrl + "?" + string.Join("&", urlParams));
             webView.Address = url;
         }
 
@@ -59,12 +86,23 @@ namespace WebViewControl {
             return null;
         }
 
-        protected abstract string Source { get; }
+        protected virtual string Source => null;
 
+        [DebuggerNonUserCode]
         private object ExecuteNativeCallsOnUI(Func<object> originalFunc, CancellationToken cancellationToken) {
             var op = Dispatcher.InvokeAsync(originalFunc, DispatcherPriority.Normal, cancellationToken);
             op.Task.Wait(cancellationToken);
             return op.Result;
+        }
+
+        public static readonly DependencyProperty DefaultStyleSheetProperty = DependencyProperty.Register(
+            "DefaultStyleSheet", 
+            typeof(string),
+            typeof(ReactView));
+
+        public string DefaultStyleSheet {
+            get { return (string) GetValue(DefaultStyleSheetProperty); }
+            set { SetValue(DefaultStyleSheetProperty, value); }
         }
     }
 }

@@ -29,7 +29,8 @@ class App extends React.Component<IAppProperties, {}> {
         var intervalHandle = 0;
         intervalHandle = setInterval(() => {
             if (document.styleSheets.length > 0) {
-                this.props.event((document.styleSheets[0] as CSSStyleSheet).rules[0].cssText);
+                var stylesheets = Array.from(document.styleSheets).map(s => Array.from((s as CSSStyleSheet).rules).map(r => r.cssText).join("\n")).join("\n");
+                this.props.event(stylesheets);
                 clearInterval(intervalHandle);
             }
         }, 50);

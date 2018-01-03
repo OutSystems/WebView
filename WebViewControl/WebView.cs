@@ -183,6 +183,10 @@ namespace WebViewControl {
         }
 
         public void Dispose() {
+            if (isDisposing) {
+                return;
+            }
+
             isDisposing = true;
 
             cancellationTokenSource.Cancel();
@@ -480,7 +484,7 @@ namespace WebViewControl {
         }
 
         private static bool IsFrameworkAssemblyName(string name) {
-            return name == "PresentationFramework" || name == "mscorlib" || name == "System.Xaml";
+            return name == "PresentationFramework" || name == "PresentationCore" || name == "mscorlib" || name == "System.Xaml";
         }
 
         internal static Assembly GetUserCallingAssembly() {
