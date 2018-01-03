@@ -138,6 +138,9 @@
   <ItemGroup>
     <EmbeddedResource Include="ReactViewResources\css\default.css" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="ReactViewResources\css\styles-dependency.css" />
+  </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
       <ItemGroup>

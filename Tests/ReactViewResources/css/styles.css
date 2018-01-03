@@ -1,3 +1,5 @@
-﻿.foo {
+﻿@import "styles-dependency.css";
+
+.foo {
 	color: red;
 }

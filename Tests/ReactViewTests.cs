@@ -40,11 +40,12 @@ namespace Tests {
                 stylesheet = args;
             };
 
-            TargetView.ExecuteMethodOnRoot("checkStyleSheetLoaded");
+            TargetView.ExecuteMethodOnRoot("checkStyleSheetLoaded", "1");
 
             WaitFor(() => stylesheet != null, TimeSpan.FromSeconds(10), "stylesheet load");
 
             Assert.IsTrue(stylesheet.Contains(".foo"));
+            Assert.IsTrue(stylesheet.Contains(".baz")); // from dependency
         }
 
         [Test(Description = "Tests stylesheets get loaded")]

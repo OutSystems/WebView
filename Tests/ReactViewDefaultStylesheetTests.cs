@@ -17,7 +17,7 @@ namespace Tests {
                 stylesheet = args;
             };
 
-            TargetView.ExecuteMethodOnRoot("checkStyleSheetLoaded");
+            TargetView.ExecuteMethodOnRoot("checkStyleSheetLoaded", "2");
 
             WaitFor(() => stylesheet != null, TimeSpan.FromSeconds(10), "stylesheet load");
 

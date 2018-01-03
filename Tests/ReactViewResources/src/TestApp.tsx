@@ -25,11 +25,21 @@ class App extends React.Component<IAppProperties, {}> {
         this.props.event("");
     }
 
-    checkStyleSheetLoaded() {
+    checkStyleSheetLoaded(stylesheetsCount: number) {
+        function getText(stylesheet: CSSStyleSheet): string {
+            return Array.from(stylesheet.rules).map(rule => {
+                if (rule instanceof CSSImportRule) {
+                    return getText(rule.styleSheet);
+                } else {
+                    return rule.cssText;
+                }
+            }).join("\n");
+        }
+
         var intervalHandle = 0;
         intervalHandle = setInterval(() => {
-            if (document.styleSheets.length > 0) {
-                var stylesheets = Array.from(document.styleSheets).map(s => Array.from((s as CSSStyleSheet).rules).map(r => r.cssText).join("\n")).join("\n");
+            if (document.styleSheets.length >= stylesheetsCount) {
+                var stylesheets = Array.from(document.styleSheets).map(s => getText(s as CSSStyleSheet)).join("\n");
                 this.props.event(stylesheets);
                 clearInterval(intervalHandle);
             }
