@@ -11,7 +11,7 @@
 		var userDefaultStylesheet = urlParams[2];
 		var libsPath = resourcesPath + "node_modules/";
         var userNamespace = userComponent.substring(0, userComponent.lastIndexOf("/") + 1);
-
+		
         require.config({
             baseUrl: userNamespace,
             paths: {
@@ -32,7 +32,9 @@
 
 		require(["index", userDefaultStylesheet], function (IndexModule) {
             IndexModule.initialize(userComponent);
-        });
+		});
+
+		document.write("<base href='" + userNamespace + "'/>"); // let images and other resources load from the appropriate path
     </script>
 </head>
 <body>

@@ -141,6 +141,10 @@
   <ItemGroup>
     <EmbeddedResource Include="ReactViewResources\css\styles-dependency.css" />
   </ItemGroup>
+  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="ReactViewResources\imgs\image.png" />
+  </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
       <ItemGroup>
