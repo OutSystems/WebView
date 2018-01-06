@@ -50,6 +50,8 @@ namespace WebViewControl {
         private string htmlToLoad;
         private JavascriptExecutor jsExecutor;
         private BrowserObjectListener eventsListener = new BrowserObjectListener();
+        private CefLifeSpanHandler lifeSpanHandler;
+
         private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
         public event Action WebViewInitialized;
@@ -147,6 +149,7 @@ namespace WebViewControl {
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void Initialize() {
+            lifeSpanHandler = new CefLifeSpanHandler(this);
             if (!subscribedApplicationExit) {
                 // subscribe exit again, first time might have failed if Application.Current was null
                 Application.Current.Exit += OnApplicationExit;
@@ -164,7 +167,7 @@ namespace WebViewControl {
             chromium.PreviewKeyDown += OnPreviewKeyDown;
             chromium.RequestHandler = new CefRequestHandler(this);
             chromium.ResourceHandlerFactory = new CefResourceHandlerFactory(this);
-            chromium.LifeSpanHandler = new CefLifeSpanHandler(this);
+            chromium.LifeSpanHandler = lifeSpanHandler;
             chromium.RenderProcessMessageHandler = new RenderProcessMessageHandler(this);
             chromium.MenuHandler = new MenuHandler(this);
             chromium.DialogHandler = new CefDialogHandler(this);
@@ -198,7 +201,8 @@ namespace WebViewControl {
             BeforeResourceLoad = null;
             Navigated = null;
             LoadFailed = null;
-            
+            OpenPopup = null;
+
             jsExecutor.Dispose();
             settings.Dispose();
             chromium.Dispose();
@@ -503,6 +507,10 @@ namespace WebViewControl {
             } else {
                 pendingInitialization += action;
             }
+        }
+
+        public Action</*url*/string> OpenPopup {
+            set { lifeSpanHandler.OpenPopup = value; }
         }
 
         [DebuggerNonUserCode]
