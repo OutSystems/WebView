@@ -3,24 +3,38 @@
 <head>
     <meta charset="utf-8" />
     <title></title>
-    <script src="builtin/require.js"></script>
+    <script src="node_modules/requirejs/require.js"></script>
     <script>
         var urlParams = location.search.substring(1).split("&");
-        var builtinNamespace = urlParams[0];
-        var userComponent = urlParams[1];
+		var resourcesPath = urlParams[0];
+		var userComponent = urlParams[1];
+		var userDefaultStylesheet = urlParams[2];
+		var libsPath = resourcesPath + "node_modules/";
         var userNamespace = userComponent.substring(0, userComponent.lastIndexOf("/") + 1);
-
+		
         require.config({
             baseUrl: userNamespace,
             paths: {
-                "react": builtinNamespace + "react",
-                "react-dom": builtinNamespace + "react-dom"
-            }
+				"react": libsPath + "react/dist/react.min",
+				"react-dom": libsPath + "react-dom/dist/react-dom.min",
+				"index": resourcesPath + "builtin/index"
+			},
+			map: {
+				'*': {
+					'css': libsPath + "require-css/css.min.js"
+				}
+			}
         });
 
-        require([builtinNamespace + "index.js"], function (IndexModule) {
+		if (userDefaultStylesheet) {
+			userDefaultStylesheet = "css!" + userDefaultStylesheet;
+		}
+
+		require(["index", userDefaultStylesheet], function (IndexModule) {
             IndexModule.initialize(userComponent);
-        });
+		});
+
+		document.write("<base href='" + userNamespace + "'/>"); // let images and other resources load from the appropriate path
     </script>
 </head>
 <body>

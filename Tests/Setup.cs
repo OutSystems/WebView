@@ -9,7 +9,8 @@ namespace Tests {
 
         [OneTimeTearDown]
         public void RunAfterAnyTests() {
-            if (TestContext.CurrentContext.Result.FailCount == 0 &&
+            if (!Process.GetCurrentProcess().ProcessName.StartsWith("vstest") &&
+                TestContext.CurrentContext.Result.FailCount == 0 &&
                 TestContext.CurrentContext.Result.InconclusiveCount == 0 &&
                 TestContext.CurrentContext.Result.SkipCount == 0 &&
                 TestContext.CurrentContext.Result.WarningCount == 0) {

@@ -23,7 +23,7 @@ namespace WebViewControl {
                 Handler = new CefResourceHandler(url);
             }
 
-            internal CefSharp.ResourceHandler Handler {
+            internal IResourceHandler Handler {
                 get;
                 private set;
             }
@@ -33,7 +33,10 @@ namespace WebViewControl {
             }
 
             public Stream Response {
-                get { return Handler != null ? Handler.Stream : null; }
+                get {
+                    var handler = Handler as CefSharp.ResourceHandler;
+                    return handler != null ? handler.Stream : null;
+                }
             }
         }
     }

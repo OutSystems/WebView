@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using NUnit.Framework;
 using WebViewControl;
 
@@ -29,7 +30,7 @@ namespace Tests {
                 functionCalled = true;
                 return 10;
             };
-            Func<Func<object>, object> interceptor = (originalFunc) => {
+            Func<Func<object>, CancellationToken, object> interceptor = (originalFunc, token) => {
                 interceptorCalled = true;
                 return originalFunc();
             };
@@ -38,6 +39,25 @@ namespace Tests {
             WaitFor(() => functionCalled, TimeSpan.FromSeconds(2));
             Assert.IsTrue(functionCalled);
             Assert.IsTrue(interceptorCalled);
+        }
+
+        [Test(Description = ".Net Method params serialization works with nulls")]
+        public void RegisteredJsObjectMethodNullParamsSerialization() {
+            const string DotNetObject = "DotNetObject";
+            var functionCalled = false;
+            string obtainedArg1 = "";
+            string[] obtainedArg2 = null;
+            Action<string, string[]> functionToCall = (string arg1, string[] arg2) => {
+                functionCalled = true;
+                obtainedArg1 = arg1;
+                obtainedArg2 = arg2;
+            };
+            TargetView.RegisterJavascriptObject(DotNetObject, functionToCall);
+            LoadAndWaitReady("<html><script>DotNetObject.invoke(null, ['hello', null, 'world']);</script><body></body></html>");
+            WaitFor(() => functionCalled, TimeSpan.FromSeconds(2));
+            Assert.IsTrue(functionCalled);
+            Assert.AreEqual(null, obtainedArg1);
+            Assert.That(new[] { "hello", null, "world" }, Is.EquivalentTo(obtainedArg2));
         }
     }
 }

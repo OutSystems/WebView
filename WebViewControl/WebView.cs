@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -39,6 +40,8 @@ namespace WebViewControl {
 
         private readonly DefaultBinder binder = new DefaultBinder(new DefaultFieldNameConverter());
 
+        private static bool subscribedApplicationExit = false;
+
         protected InternalChromiumBrowser chromium;
         private bool isDeveloperToolsOpened = false;
         private BrowserSettings settings;
@@ -49,6 +52,7 @@ namespace WebViewControl {
         private BrowserObjectListener eventsListener = new BrowserObjectListener();
         private CefLifeSpanHandler lifeSpanHandler;
 
+        private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
         public event Action WebViewInitialized;
 
@@ -79,11 +83,6 @@ namespace WebViewControl {
         public static event Action<WebView> GlobalWebViewInitialized;
 
         static WebView() {
-#if DEBUG
-            if (!System.Diagnostics.Debugger.IsAttached) {
-                throw new InvalidOperationException("Running debug version");
-            }
-#endif
             InitializeCef();
         }
 
@@ -105,9 +104,10 @@ namespace WebViewControl {
                 cefSettings.BrowserSubprocessPath = CefLoader.GetBrowserSubProcessPath();
 
                 Cef.Initialize(cefSettings, performDependencyCheck: false, browserProcessHandler: null);
-
+                
                 if (Application.Current != null) {
                     Application.Current.Exit += OnApplicationExit;
+                    subscribedApplicationExit = true;
                 }
             }
         }
@@ -138,14 +138,25 @@ namespace WebViewControl {
                 return;
             }
 
+#if DEBUG
+            if (!System.Diagnostics.Debugger.IsAttached) {
+                throw new InvalidOperationException("Running debug version");
+            }
+#endif
+
             Initialize();
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void Initialize() {
             lifeSpanHandler = new CefLifeSpanHandler(this);
+            if (!subscribedApplicationExit) {
+                // subscribe exit again, first time might have failed if Application.Current was null
+                Application.Current.Exit += OnApplicationExit;
+                subscribedApplicationExit = true;
+            }
+
             settings = new BrowserSettings();
-            settings.JavascriptOpenWindows = CefState.Disabled;
 
             chromium = new InternalChromiumBrowser();
             chromium.BrowserSettings = settings;
@@ -175,8 +186,13 @@ namespace WebViewControl {
         }
 
         public void Dispose() {
+            if (isDisposing) {
+                return;
+            }
+
             isDisposing = true;
 
+            cancellationTokenSource.Cancel();
             chromium.RequestHandler = null;
             chromium.ResourceHandlerFactory = null;
             chromium.PreviewKeyDown -= OnPreviewKeyDown;
@@ -190,6 +206,7 @@ namespace WebViewControl {
             jsExecutor.Dispose();
             settings.Dispose();
             chromium.Dispose();
+            cancellationTokenSource.Dispose();
             settings = null;
             chromium = null;
         }
@@ -231,6 +248,9 @@ namespace WebViewControl {
         public string Address {
             get { return chromium.Address; }
             set {
+                if (value != DefaultLocalUrl) {
+                    htmlToLoad = null;
+                }
                 if (value.Contains("://") || value == "about:blank" || value.StartsWith("data:")) {
                     // must wait for the browser to be initialized otherwise navigation will be aborted
                     ExecuteWhenInitialized(() => chromium.Load(value));
@@ -289,16 +309,30 @@ namespace WebViewControl {
             Address = DefaultLocalUrl;
         }
 
-        public void RegisterJavascriptObject(string name, object objectToBind, Func<Func<object>, object> interceptCall = null, Func<object, Type, object> bind = null) {
+        public void RegisterJavascriptObject(string name, object objectToBind, Func<Func<object>, CancellationToken, object> interceptCall = null, Func<object, Type, object> bind = null) {
             var bindingOptions = new BindingOptions();
             if (bind != null) {
                 bindingOptions.Binder = new LambdaMethodBinder(bind);
             } else {
                 bindingOptions.Binder = binder;
             }
-            if (interceptCall != null) {
-                bindingOptions.MethodInterceptor = new LambdaMethodInterceptor(interceptCall);
+            Func<Func<object>, object> interceptorWrapper;
+            if (interceptCall != null) { 
+                interceptorWrapper = target => {
+                    if (isDisposing) {
+                        return null;
+                    }
+                    return interceptCall(target, cancellationTokenSource.Token);
+                };
+            } else {
+                interceptorWrapper = target => {
+                    if (isDisposing) {
+                        return null;
+                    }
+                    return target();
+                };
             }
+            bindingOptions.MethodInterceptor = new LambdaMethodInterceptor(interceptorWrapper);
             chromium.RegisterAsyncJsObject(name, objectToBind, bindingOptions);
         }
 
@@ -385,7 +419,8 @@ namespace WebViewControl {
 
         private void OnWebViewLoadError(object sender, LoadErrorEventArgs e) {
             htmlToLoad = null;
-            if (LoadFailed != null) {
+            if (e.ErrorCode != CefErrorCode.Aborted && LoadFailed != null) {
+                // ignore aborts, to prevent situations where we try to load an address inside Load failed handler (and its aborted)
                 ExecuteInUIThread(() => LoadFailed(e.FailedUrl, (int) e.ErrorCode));
             }
         }
@@ -393,7 +428,7 @@ namespace WebViewControl {
         private void OnWebViewTitleChanged(object sender, DependencyPropertyChangedEventArgs e) {
             TitleChanged?.Invoke();
         }
-
+        
         private void ExecuteInUIThread(Action action) {
             if (isDisposing) {
                 return;
@@ -438,7 +473,7 @@ namespace WebViewControl {
         private static string GetEmbeddedResourceAssemblyName(Uri url) {
             if (url.AbsoluteUri.StartsWith(AssemblyPrefix)) {
                 var resourcePath = url.AbsoluteUri.Substring(AssemblyPrefix.Length);
-                var indexOfPath = resourcePath.IndexOf(AssemblyPathSeparator);
+                var indexOfPath = Math.Max(0, resourcePath.IndexOf(AssemblyPathSeparator));
                 return resourcePath.Substring(0, indexOfPath);
             }
             return url.Segments.Length > 1 ? url.Segments[1].TrimEnd('/') : string.Empty; // default assembly name to the first path
@@ -453,7 +488,7 @@ namespace WebViewControl {
         }
 
         private static bool IsFrameworkAssemblyName(string name) {
-            return name == "PresentationFramework" || name == "mscorlib" || name == "System.Xaml";
+            return name == "PresentationFramework" || name == "PresentationCore" || name == "mscorlib" || name == "System.Xaml";
         }
 
         internal static Assembly GetUserCallingAssembly() {

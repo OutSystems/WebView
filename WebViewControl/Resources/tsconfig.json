@@ -1,23 +1,25 @@
 ﻿{
-  "compilerOptions": {
-    "outDir": "builtin",
-    "module": "amd",
-    "target": "es6",
-    "sourceMap": false,
-    "allowJs": true,
-    "jsx": "react",
-    "moduleResolution": "node",
-    "rootDir": "src",
-    "forceConsistentCasingInFileNames": true,
-    "noImplicitReturns": true,
-    "noImplicitThis": true,
-    "noImplicitAny": true,
-    "strictNullChecks": true,
-    "suppressImplicitAnyIndexErrors": true,
-    "noUnusedLocals": true
-  },
-  "exclude": [
-    "node_modules",
-    "builtin"
-  ]
+	"compilerOptions": {
+		"outDir": "builtin",
+		"module": "amd",
+		"target": "es6",
+		"sourceMap": false,
+		"allowJs": true,
+		"jsx": "react",
+		"moduleResolution": "node",
+		"rootDir": "src",
+		"forceConsistentCasingInFileNames": true,
+		"noImplicitReturns": true,
+		"noImplicitThis": true,
+		"noImplicitAny": true,
+		"strictNullChecks": true,
+		"suppressImplicitAnyIndexErrors": true,
+		"outFile": "builtin/index.js"
+	},
+	"compileOnSave": true,
+	"exclude": [
+		"node_modules",
+		"builtin",
+		"."
+	]
 }
