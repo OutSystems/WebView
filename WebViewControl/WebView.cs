@@ -171,15 +171,20 @@ namespace WebViewControl {
             chromium.DownloadHandler = new CefDownloadHandler(this);
 
             jsExecutor = new JavascriptExecutor(this);
-            Content = chromium;
 
             RegisterJavascriptObject(Listener.EventListenerObjName, eventsListener);
 
+            Content = chromium;
+            
             GlobalWebViewInitialized?.Invoke(this);
         }
 
         private static void OnApplicationExit(object sender, ExitEventArgs e) {
             Cleanup();
+        }
+
+        ~WebView() {
+            Dispose();
         }
 
         public void Dispose() {
@@ -205,6 +210,8 @@ namespace WebViewControl {
             cancellationTokenSource.Dispose();
             settings = null;
             chromium = null;
+
+            GC.SuppressFinalize(this);
         }
 
         protected override void OnGotFocus(RoutedEventArgs e) {
@@ -379,10 +386,15 @@ namespace WebViewControl {
             }
         }
 
-        public Listener AttachListener(string name, Action handler) {
+        public Listener AttachListener(string name, Action handler, bool executeInUIThread = true) {
             Action<string> internalHandler = (eventName) => {
-                if (eventName == name) {
-                    handler();
+                if (!isDisposing && eventName == name) {
+                    if (executeInUIThread) {
+                        // invoke async otherwise if we try to execute some script  on the browser as a result of this notification, it will block forever
+                        Application.Current.Dispatcher.InvokeAsync(handler, DispatcherPriority.Normal, cancellationTokenSource.Token);
+                    } else {
+                        handler();
+                    }
                 }
             };
             var listener = new Listener(name, internalHandler);

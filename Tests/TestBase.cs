@@ -35,6 +35,7 @@ namespace Tests {
 
         [SetUp]
         protected void SetUp() {
+            window.Title = "Running: " + TestContext.CurrentContext.Test.Name;
             if (view == null) {
                 view = new T();
 
@@ -42,7 +43,6 @@ namespace Tests {
 
                 InitializeView();
             }
-            window.Title = "Running: " + TestContext.CurrentContext.Test.Name;
         }
 
         protected abstract void InitializeView();

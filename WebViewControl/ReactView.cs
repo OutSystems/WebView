@@ -12,6 +12,7 @@ namespace WebViewControl {
     public partial class ReactView : ContentControl, IDisposable {
 
         private const string RootObject = "__Root__";
+        private const string ReadyEventName = "Ready";
 
         private static readonly string AssemblyName = typeof(ReactView).Assembly.GetName().Name;
         private static readonly string EmbeddedResourcesPath = AssemblyName + "/Resources/";
@@ -21,8 +22,16 @@ namespace WebViewControl {
         private readonly Assembly userCallingAssembly;
 
         private bool isSourceSet = false;
+        private Listener readyEventListener;
 
-        public event Action Ready;
+        public event Action Ready {
+            add { readyEventListener = webView.AttachListener(ReadyEventName, value); }
+            remove {
+                if (readyEventListener != null) {
+                    webView.DetachListener(readyEventListener);
+                }
+            }
+        }
         
         public ReactView() {
             userCallingAssembly = WebView.GetUserCallingAssembly();
@@ -30,7 +39,7 @@ namespace WebViewControl {
             webView.AllowDeveloperTools = true;
             webView.DisableBuiltinContextMenus = true;
             webView.IgnoreMissingResources = false;
-            webView.AttachListener("Ready", () => Ready?.Invoke());
+            webView.AttachListener(ReadyEventName, () => IsReady = true, executeInUIThread: false);
 
             var rootPropertiesObject = CreateRootPropertiesObject();
             if (rootPropertiesObject != null) {
@@ -104,5 +113,7 @@ namespace WebViewControl {
             get { return (string) GetValue(DefaultStyleSheetProperty); }
             set { SetValue(DefaultStyleSheetProperty, value); }
         }
+
+        public bool IsReady { get; private set; }
     }
 }
