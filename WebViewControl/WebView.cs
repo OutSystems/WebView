@@ -149,7 +149,6 @@ namespace WebViewControl {
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void Initialize() {
-            lifeSpanHandler = new CefLifeSpanHandler(this);
             if (!subscribedApplicationExit) {
                 // subscribe exit again, first time might have failed if Application.Current was null
                 Application.Current.Exit += OnApplicationExit;
@@ -157,6 +156,7 @@ namespace WebViewControl {
             }
 
             settings = new BrowserSettings();
+            lifeSpanHandler = new CefLifeSpanHandler(this);
 
             chromium = new InternalChromiumBrowser();
             chromium.BrowserSettings = settings;
@@ -206,7 +206,6 @@ namespace WebViewControl {
             BeforeResourceLoad = null;
             Navigated = null;
             LoadFailed = null;
-            OpenPopup = null;
 
             jsExecutor.Dispose();
             settings.Dispose();
@@ -521,8 +520,9 @@ namespace WebViewControl {
             }
         }
 
-        public Action</*url*/string> OpenPopup {
-            set { lifeSpanHandler.OpenPopup = value; }
+        public event Action</*url*/string> PopupOpening {
+            add { lifeSpanHandler.PopupOpening += value; }
+            remove { lifeSpanHandler.PopupOpening -= value; }
         }
 
         [DebuggerNonUserCode]

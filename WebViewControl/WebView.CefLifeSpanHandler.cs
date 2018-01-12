@@ -9,12 +9,12 @@ namespace WebViewControl {
         private class CefLifeSpanHandler : ILifeSpanHandler {
 
             private readonly WebView OwnerWebView;
-            public Action</*url*/string> OpenPopup;
-
 
             public CefLifeSpanHandler(WebView webView) {
                 OwnerWebView = webView;
             }
+
+            public event Action</*url*/string> PopupOpening;
 
             void ILifeSpanHandler.OnBeforeClose(IWebBrowser browserControl, IBrowser browser) { }
             
@@ -34,13 +34,13 @@ namespace WebViewControl {
                 } else {
                     return false; // if the url is not well formed let's use the browser to handle the things
                 }
-
-                // if we are opening a popup then this should go to the default browser
+                
                 try {
-                    if (OpenPopup != null) {
-                        OpenPopup(url);
+                    if (PopupOpening != null) {
+                        PopupOpening(targetUrl);
                     } else {
-                        Process.Start(url);
+                        // if we are opening a popup then this should go to the default browser
+                        Process.Start(targetUrl);
                     }
                 } catch {
                     // Try this method for machines which are not properly configured
