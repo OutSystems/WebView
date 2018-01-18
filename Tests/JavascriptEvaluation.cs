@@ -71,7 +71,7 @@ namespace Tests {
         }
 
         [Test(Description = "Evaluation of scripts with comments, json objects, and var declarations")]
-        public void ScriptsSyntax() {
+        public void ScriptsWithComplexSyntaxAreEvaluated() {
             var result = TargetView.EvaluateScript<int>("2+1 // some comments");
             Assert.AreEqual(3, result);
 

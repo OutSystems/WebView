@@ -222,7 +222,7 @@ namespace WebViewControl {
 
         protected override void OnGotFocus(RoutedEventArgs e) {
             base.OnGotFocus(e);
-            ExecuteWhenInitialized(() => AsyncExecuteInUI(() => chromium.Focus()));
+            ExecuteWhenInitialized(() => AsyncExecuteInUI(() => { chromium.Focus(); }));
         }
 
         private void OnPreviewKeyDown(object sender, KeyEventArgs e) {
@@ -316,31 +316,38 @@ namespace WebViewControl {
             Address = DefaultLocalUrl;
         }
 
-        public void RegisterJavascriptObject(string name, object objectToBind, Func<Func<object>, CancellationToken, object> interceptCall = null, Func<object, Type, object> bind = null) {
-            var bindingOptions = new BindingOptions();
-            if (bind != null) {
-                bindingOptions.Binder = new LambdaMethodBinder(bind);
+        public void RegisterJavascriptObject(string name, object objectToBind, Func<Func<object>, object> interceptCall = null, Func<object, Type, object> bind = null, bool executeCallsInUI = false) {
+            if (executeCallsInUI) {
+                Func<Func<object>, object> interceptorWrapper = target => AsyncExecuteInUI(target);
+                RegisterJavascriptObject(name, objectToBind, interceptorWrapper, bind, false);
+
             } else {
-                bindingOptions.Binder = binder;
+                var bindingOptions = new BindingOptions();
+                if (bind != null) {
+                    bindingOptions.Binder = new LambdaMethodBinder(bind);
+                } else {
+                    bindingOptions.Binder = binder;
+                }
+
+                Func<Func<object>, object> interceptorWrapper;
+                if (interceptCall != null) {
+                    interceptorWrapper = target => {
+                        if (isDisposing) {
+                            return null;
+                        }
+                        return interceptCall(target);
+                    };
+                } else {
+                    interceptorWrapper = target => {
+                        if (isDisposing) {
+                            return null;
+                        }
+                        return target();
+                    };
+                }
+                bindingOptions.MethodInterceptor = new LambdaMethodInterceptor(interceptorWrapper);
+                chromium.RegisterAsyncJsObject(name, objectToBind, bindingOptions);
             }
-            Func<Func<object>, object> interceptorWrapper;
-            if (interceptCall != null) { 
-                interceptorWrapper = target => {
-                    if (isDisposing) {
-                        return null;
-                    }
-                    return interceptCall(target, cancellationTokenSource.Token);
-                };
-            } else {
-                interceptorWrapper = target => {
-                    if (isDisposing) {
-                        return null;
-                    }
-                    return target();
-                };
-            }
-            bindingOptions.MethodInterceptor = new LambdaMethodInterceptor(interceptorWrapper);
-            chromium.RegisterAsyncJsObject(name, objectToBind, bindingOptions);
         }
 
         public T EvaluateScript<T>(string script) {
@@ -388,10 +395,10 @@ namespace WebViewControl {
             set { ExecuteWhenInitialized(() => chromium.ZoomLevel = Math.Log(value, PercentageToZoomFactor)); }
         }
 
-        public Listener AttachListener(string name, Action handler, bool executeInUIThread = true) {
+        public Listener AttachListener(string name, Action handler, bool executeInUI = true) {
             Action<string> internalHandler = (eventName) => {
                 if (!isDisposing && eventName == name) {
-                    if (executeInUIThread) {
+                    if (executeInUI) {
                         // invoke async otherwise if we try to execute some script  on the browser as a result of this notification, it will block forever
                         AsyncExecuteInUI(handler);
                     } else {
@@ -508,12 +515,12 @@ namespace WebViewControl {
             remove { lifeSpanHandler.PopupOpening -= value; }
         }
 
-        private DispatcherOperation AsyncExecuteInUI(Action action) {
+        private void AsyncExecuteInUI(Action action) {
             if (isDisposing) {
-                return null;
+                return;
             }
             // use async call to avoid dead-locks, otherwise if the source action tries to to evaluate js it would block
-            return Dispatcher.InvokeAsync(
+            Dispatcher.InvokeAsync(
                 () => {
                     if (!isDisposing) {
                         ExecuteWithAsyncErrorHandling(action);
@@ -521,6 +528,30 @@ namespace WebViewControl {
                 },
                 DispatcherPriority.Normal, 
                 cancellationTokenSource.Token);
+        }
+
+        private object AsyncExecuteInUI(Func<object> func) {
+            if (isDisposing) {
+                return null;
+            }
+            try {
+                // use async call to avoid dead-locks, otherwise if the source action tries to to evaluate js it would block
+                var operation = Dispatcher.InvokeAsync(
+                    () => {
+                        if (!isDisposing) {
+                            func();
+                        }
+                    },
+                    DispatcherPriority.Normal,
+                    cancellationTokenSource.Token);
+                operation.Task.Wait(cancellationTokenSource.Token);
+                return operation.Result;
+            } catch (OperationCanceledException) {
+                return null;
+            } catch (Exception e) {
+                UnhandledAsyncException?.Invoke(e);
+                return null;
+            }
         }
 
         [DebuggerNonUserCode]

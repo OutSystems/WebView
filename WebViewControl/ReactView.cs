@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Reflection;
-using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Threading;
 
 namespace WebViewControl {
 
@@ -24,6 +21,22 @@ namespace WebViewControl {
         private bool isSourceSet = false;
         private Listener readyEventListener;
 
+        public ReactView() {
+            userCallingAssembly = WebView.GetUserCallingAssembly();
+
+            webView.AllowDeveloperTools = true;
+            webView.DisableBuiltinContextMenus = true;
+            webView.IgnoreMissingResources = false;
+            webView.AttachListener(ReadyEventName, () => IsReady = true, executeInUI: false);
+
+            var rootPropertiesObject = CreateRootPropertiesObject();
+            if (rootPropertiesObject != null) {
+                webView.RegisterJavascriptObject("__RootProperties__", rootPropertiesObject, executeCallsInUI:true);
+            }
+            
+            Content = webView;
+        }
+
         public event Action Ready {
             add { readyEventListener = webView.AttachListener(ReadyEventName, value); }
             remove {
@@ -32,21 +45,10 @@ namespace WebViewControl {
                 }
             }
         }
-        
-        public ReactView() {
-            userCallingAssembly = WebView.GetUserCallingAssembly();
 
-            webView.AllowDeveloperTools = true;
-            webView.DisableBuiltinContextMenus = true;
-            webView.IgnoreMissingResources = false;
-            webView.AttachListener(ReadyEventName, () => IsReady = true, executeInUIThread: false);
-
-            var rootPropertiesObject = CreateRootPropertiesObject();
-            if (rootPropertiesObject != null) {
-                webView.RegisterJavascriptObject("__RootProperties__", rootPropertiesObject, ExecuteNativeCallsOnUI);
-            }
-            
-            Content = webView;
+        public event Action<Exception> UnhandledAsyncException {
+            add { webView.UnhandledAsyncException += value; }
+            remove { webView.UnhandledAsyncException -= value; }
         }
 
         public override void OnApplyTemplate() {
@@ -96,13 +98,6 @@ namespace WebViewControl {
         }
 
         protected virtual string Source => null;
-
-        [DebuggerNonUserCode]
-        private object ExecuteNativeCallsOnUI(Func<object> originalFunc, CancellationToken cancellationToken) {
-            var op = Dispatcher.InvokeAsync(originalFunc, DispatcherPriority.Normal, cancellationToken);
-            op.Task.Wait(cancellationToken);
-            return op.Result;
-        }
 
         public static readonly DependencyProperty DefaultStyleSheetProperty = DependencyProperty.Register(
             "DefaultStyleSheet", 

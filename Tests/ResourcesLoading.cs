@@ -5,7 +5,7 @@ namespace Tests {
     public class ResourcesLoading : WebViewTestBase {
 
         [Test(Description = "Html load encoding is well handled")]
-        public void HtmlEncoding() {
+        public void HtmlIsWellEncoded() {
             const string BodyContent = "some text and a double byte char '●'";
             var navigated = false;
             TargetView.Navigated += _ => navigated = true;

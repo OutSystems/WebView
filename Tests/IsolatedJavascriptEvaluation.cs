@@ -1,6 +1,7 @@
 ﻿using System;
-using System.Threading;
+using System.Windows;
 using NUnit.Framework;
+using System.Windows.Threading;
 using WebViewControl;
 
 namespace Tests {
@@ -30,15 +31,32 @@ namespace Tests {
                 functionCalled = true;
                 return 10;
             };
-            Func<Func<object>, CancellationToken, object> interceptor = (originalFunc, token) => {
+            Func<Func<object>, object> interceptor = (originalFunc) => {
                 interceptorCalled = true;
                 return originalFunc();
             };
             TargetView.RegisterJavascriptObject(DotNetObject, functionToCall, interceptor);
             LoadAndWaitReady("<html><script>DotNetObject.invoke();</script><body></body></html>");
+
             WaitFor(() => functionCalled, TimeSpan.FromSeconds(2));
             Assert.IsTrue(functionCalled);
             Assert.IsTrue(interceptorCalled);
+        }
+
+        [Test(Description = "Registered object methods are called in Dispatcher thread")]
+        public void RegisteredJsObjectMethodExecutesInDispactherThread() {
+            const string DotNetObject = "DotNetObject";
+            bool? canAccessDispatcher = null;
+
+            Func<int> functionToCall = () => {
+                canAccessDispatcher = TargetView.Dispatcher.CheckAccess();
+                return 10;
+            };
+            TargetView.RegisterJavascriptObject(DotNetObject, functionToCall, executeCallsInUI: true);
+            LoadAndWaitReady("<html><script>DotNetObject.invoke();</script><body></body></html>");
+
+            WaitFor(() => canAccessDispatcher != null, TimeSpan.FromSeconds(2));
+            Assert.IsTrue(canAccessDispatcher);
         }
 
         [Test(Description = ".Net Method params serialization works with nulls")]
@@ -54,6 +72,7 @@ namespace Tests {
             };
             TargetView.RegisterJavascriptObject(DotNetObject, functionToCall);
             LoadAndWaitReady("<html><script>DotNetObject.invoke(null, ['hello', null, 'world']);</script><body></body></html>");
+
             WaitFor(() => functionCalled, TimeSpan.FromSeconds(2));
             Assert.IsTrue(functionCalled);
             Assert.AreEqual(null, obtainedArg1);

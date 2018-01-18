@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 using System.Windows;
 using NUnit.Framework;
 
@@ -48,18 +47,17 @@ namespace Tests {
             Assert.IsTrue(stylesheet.Contains(".baz")); // from dependency
         }
 
-        [Test(Description = "Events are handled in the dispatcher thread")]
+        [Test(Description = "Events are handled in the Dispatcher thread")]
         public void EventsAreHandledInDispatcherThread() {
-            int? threadId = null;
+            bool? canAccessDispatcher = null;
             TargetView.Event += (args) => {
-                threadId = Thread.CurrentThread.ManagedThreadId;
+                canAccessDispatcher = TargetView.Dispatcher.CheckAccess();
             };
 
             TargetView.ExecuteMethodOnRoot("callEvent");
 
-            WaitFor(() => threadId != null, TimeSpan.FromSeconds(10), "event call");
-
-            Assert.AreEqual(Application.Current.Dispatcher.Thread.ManagedThreadId, threadId, "Not the UI thread");
+            WaitFor(() => canAccessDispatcher != null, TimeSpan.FromSeconds(10), "event call");
+            Assert.IsTrue(canAccessDispatcher, "Cannot access dispatcher");
         }
     }
 }
