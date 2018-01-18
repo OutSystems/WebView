@@ -79,7 +79,7 @@ namespace WebViewControl {
             }
 
             private void FlushScripts() {
-                OwnerWebView.WithErrorHandling(() => {
+                OwnerWebView.ExecuteWithAsyncErrorHandling(() => {
                     try {
                         flushRunning = true;
                         while (!flushTaskCancelationToken.IsCancellationRequested) {
@@ -109,8 +109,14 @@ namespace WebViewControl {
                 } while (pendingScripts.Count > 0);
 
                 if (scriptsToExecute.Count > 0) {
-                    OwnerWebView.chromium.EvaluateScriptAsync(
-                        string.Join(";" + Environment.NewLine, scriptsToExecute.Select(s => s.Script)), OwnerWebView.DefaultScriptsExecutionTimeout).Wait(flushTaskCancelationToken.Token);
+                    var task = OwnerWebView.chromium.EvaluateScriptAsync(
+                        WrapScriptWithErrorHandling(string.Join(";" + Environment.NewLine, scriptsToExecute.Select(s => s.Script))), 
+                        OwnerWebView.DefaultScriptsExecutionTimeout);
+                    task.Wait(flushTaskCancelationToken.Token);
+                    var response = task.Result;
+                    if (!response.Success) {
+                        OwnerWebView.ExecuteWithAsyncErrorHandling(() => throw ParseResponseException(response));
+                    }
                 }
 
                 if (scriptToEvaluate != null) {
@@ -132,7 +138,7 @@ namespace WebViewControl {
             }
 
             public T EvaluateScript<T>(string script, TimeSpan? timeout = default(TimeSpan?)) {
-                var scriptWithErrorHandling = "try {" + script + Environment.NewLine + "} catch (e) { throw JSON.stringify({ stack: e.stack, message: e.message, name: e.name }) }";
+                var scriptWithErrorHandling = WrapScriptWithErrorHandling(script);
 
                 var scriptTask = QueueScript(scriptWithErrorHandling, timeout, true);
                 if (!flushRunning) {
@@ -155,31 +161,8 @@ namespace WebViewControl {
                 if (scriptTask.Result.Success) {
                     return GetResult<T>(scriptTask.Result.Result);
                 }
-
-                // try parse js exception
-                var jsErrorJSON = scriptTask.Result.Message;
-                jsErrorJSON = jsErrorJSON.Substring(Math.Max(0, jsErrorJSON.IndexOf("{")));
-                jsErrorJSON = jsErrorJSON.Substring(0, jsErrorJSON.LastIndexOf("}") + 1);
-
-                if (!string.IsNullOrEmpty(jsErrorJSON)) {
-                    JsError jsError = null;
-                    try {
-                        jsError = DeserializeJSON<JsError>(jsErrorJSON);
-                    } catch {
-                        // ignore will throw error at the end   
-                    }
-                    if (jsError != null) {
-                        jsError.Name = jsError.Name ?? "";
-                        jsError.Message = jsError.Message ?? "";
-                        jsError.Stack = jsError.Stack ?? "";
-                        var jsStack = jsError.Stack.Substring(Math.Min(jsError.Stack.Length, (jsError.Name + ": " + jsError.Message).Length)).Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                        jsStack = jsStack.Select(l => l.Substring("    at ".Length)).ToArray();
-
-                        throw new JavascriptException(jsError.Name, jsError.Message, jsStack);
-                    }
-                }
-
-                throw new JavascriptException("Javascript Error", scriptTask.Result.Message, new string[0]);
+                
+                throw ParseResponseException(scriptTask.Result);
             }
 
             public T EvaluateScriptFunction<T>(string functionName, params string[] args) {
@@ -222,11 +205,43 @@ namespace WebViewControl {
                 return functionName + "(" + string.Join(",", argsSerialized) + ")";
             }
 
+            private static string WrapScriptWithErrorHandling(string script) {
+                return "try {" + script + Environment.NewLine + "} catch (e) { throw JSON.stringify({ stack: e.stack, message: e.message, name: e.name }) }";
+            }
+
             private static T DeserializeJSON<T>(string json) {
                 var serializer = new DataContractJsonSerializer(typeof(JsError));
                 using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(json))) {
                     return (T)serializer.ReadObject(stream);
                 }
+            }
+
+            private static Exception ParseResponseException(JavascriptResponse response) {
+                var jsErrorJSON = response.Message;
+
+                // try parse js exception
+                jsErrorJSON = jsErrorJSON.Substring(Math.Max(0, jsErrorJSON.IndexOf("{")));
+                jsErrorJSON = jsErrorJSON.Substring(0, jsErrorJSON.LastIndexOf("}") + 1);
+
+                if (!string.IsNullOrEmpty(jsErrorJSON)) {
+                    JsError jsError = null;
+                    try {
+                        jsError = DeserializeJSON<JsError>(jsErrorJSON);
+                    } catch {
+                        // ignore will throw error at the end   
+                    }
+                    if (jsError != null) {
+                        jsError.Name = jsError.Name ?? "";
+                        jsError.Message = jsError.Message ?? "";
+                        jsError.Stack = jsError.Stack ?? "";
+                        var jsStack = jsError.Stack.Substring(Math.Min(jsError.Stack.Length, (jsError.Name + ": " + jsError.Message).Length)).Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                        jsStack = jsStack.Select(l => l.Substring("    at ".Length)).ToArray();
+
+                        return new JavascriptException(jsError.Name, jsError.Message, jsStack);
+                    }
+                }
+
+                return new JavascriptException("Javascript Error", response.Message, new string[0]);
             }
         }
     }

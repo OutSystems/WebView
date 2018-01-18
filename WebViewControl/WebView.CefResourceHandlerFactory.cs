@@ -36,17 +36,17 @@ namespace WebViewControl {
                 Uri url;
                 var resourceHandler = new ResourceHandler(request);
                 if (Uri.TryCreate(resourceHandler.Url, UriKind.Absolute, out url) && url.Scheme == EmbeddedScheme) {
-                    OwnerWebView.WithErrorHandling(() => OwnerWebView.LoadEmbeddedResource(resourceHandler, url));
+                    OwnerWebView.ExecuteWithAsyncErrorHandling(() => OwnerWebView.LoadEmbeddedResource(resourceHandler, url));
                 }
                 
                 if (OwnerWebView.BeforeResourceLoad != null) {
-                    OwnerWebView.WithErrorHandling(() => OwnerWebView.BeforeResourceLoad(resourceHandler));
+                    OwnerWebView.ExecuteWithAsyncErrorHandling(() => OwnerWebView.BeforeResourceLoad(resourceHandler));
                 }
                 
                 if (resourceHandler.Handled) {
                     return resourceHandler.Handler;
                 } else if (!OwnerWebView.IgnoreMissingResources && url != null && url.Scheme == EmbeddedScheme) {
-                    OwnerWebView.WithErrorHandling(() => { throw new InvalidOperationException("Resource not found: '" + request.Url + "'"); });
+                    OwnerWebView.ExecuteWithAsyncErrorHandling(() => throw new InvalidOperationException("Resource not found: " + request.Url));
                 }
 
                 return null;

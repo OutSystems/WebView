@@ -58,9 +58,7 @@ namespace WebViewControl {
                 bool cancel = false;
                 if (OwnerWebView.BeforeNavigate != null) {
                     var wrappedRequest = new Request(request);
-                    OwnerWebView.WithErrorHandling(() => {
-                        OwnerWebView.BeforeNavigate(wrappedRequest);
-                    });
+                    OwnerWebView.ExecuteWithAsyncErrorHandling(() => OwnerWebView.BeforeNavigate(wrappedRequest));
                     cancel = wrappedRequest.Canceled;
                 }
 
@@ -94,7 +92,7 @@ namespace WebViewControl {
                         wasKilled = true;
                         break;
                 }
-                OwnerWebView.WithErrorHandling(() => { throw new RenderProcessTerminatedException("WebView render process " + reason, wasKilled); });
+                OwnerWebView.ExecuteWithAsyncErrorHandling(() => throw new RenderProcessTerminatedException("WebView render process " + reason, wasKilled));
             }
 
             bool IRequestHandler.OnSelectClientCertificate(IWebBrowser browserControl, IBrowser browser, bool isProxy, string host, int port, X509Certificate2Collection certificates, ISelectClientCertificateCallback callback) {

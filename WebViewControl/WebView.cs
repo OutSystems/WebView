@@ -18,7 +18,9 @@ namespace WebViewControl {
     public partial class WebView : ContentControl, IDisposable {
 
         public const string LocalScheme = "local";
+
         protected const string EmbeddedScheme = "embedded";
+
         private static readonly string[] CustomSchemes = new[] {
             LocalScheme,
             EmbeddedScheme
@@ -49,10 +51,10 @@ namespace WebViewControl {
         private Action pendingInitialization;
         private string htmlToLoad;
         private JavascriptExecutor jsExecutor;
-        private BrowserObjectListener eventsListener = new BrowserObjectListener();
         private CefLifeSpanHandler lifeSpanHandler;
 
-        private CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+        private readonly BrowserObjectListener eventsListener = new BrowserObjectListener();
+        private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
         public event Action WebViewInitialized;
 
@@ -73,6 +75,7 @@ namespace WebViewControl {
         public event Action<string> DownloadCancelled;
         public event Action JavascriptContextCreated;
         public event Action TitleChanged;
+        public event Action<Exception> UnhandledAsyncException;
 
         private event Action RenderProcessCrashed;
         private event Action JavascriptContextReleased;
@@ -168,8 +171,8 @@ namespace WebViewControl {
             chromium.RequestHandler = new CefRequestHandler(this);
             chromium.ResourceHandlerFactory = new CefResourceHandlerFactory(this);
             chromium.LifeSpanHandler = lifeSpanHandler;
-            chromium.RenderProcessMessageHandler = new RenderProcessMessageHandler(this);
-            chromium.MenuHandler = new MenuHandler(this);
+            chromium.RenderProcessMessageHandler = new CefRenderProcessMessageHandler(this);
+            chromium.MenuHandler = new CefMenuHandler(this);
             chromium.DialogHandler = new CefDialogHandler(this);
             chromium.DownloadHandler = new CefDownloadHandler(this);
 
@@ -219,9 +222,7 @@ namespace WebViewControl {
 
         protected override void OnGotFocus(RoutedEventArgs e) {
             base.OnGotFocus(e);
-            ExecuteWhenInitialized(() => {
-                chromium.Dispatcher.BeginInvoke((Action) (() => chromium.Focus()));
-            });
+            ExecuteWhenInitialized(() => AsyncExecuteInUI(() => chromium.Focus()));
         }
 
         private void OnPreviewKeyDown(object sender, KeyEventArgs e) {
@@ -384,9 +385,7 @@ namespace WebViewControl {
 
         public double ZoomPercentage {
             get { return Math.Pow(PercentageToZoomFactor, chromium.ZoomLevel); }
-            set {
-                ExecuteWhenInitialized(() => chromium.ZoomLevel = Math.Log(value, PercentageToZoomFactor));
-            }
+            set { ExecuteWhenInitialized(() => chromium.ZoomLevel = Math.Log(value, PercentageToZoomFactor)); }
         }
 
         public Listener AttachListener(string name, Action handler, bool executeInUIThread = true) {
@@ -394,14 +393,14 @@ namespace WebViewControl {
                 if (!isDisposing && eventName == name) {
                     if (executeInUIThread) {
                         // invoke async otherwise if we try to execute some script  on the browser as a result of this notification, it will block forever
-                        Application.Current.Dispatcher.InvokeAsync(handler, DispatcherPriority.Normal, cancellationTokenSource.Token);
+                        AsyncExecuteInUI(handler);
                     } else {
-                        handler();
+                        ExecuteWithAsyncErrorHandling(handler);
                     }
                 }
             };
             var listener = new Listener(name, internalHandler);
-            eventsListener.NotificationReceived += internalHandler;
+            eventsListener.NotificationReceived += listener.Handler;
             return listener;
         }
 
@@ -421,10 +420,8 @@ namespace WebViewControl {
 
         private void OnWebViewFrameLoadEnd(object sender, FrameLoadEndEventArgs e) {
             htmlToLoad = null;
-            if (e.Frame.IsMain) {
-                if (Navigated != null) {
-                    ExecuteInUIThread(() => Navigated(e.Url));
-                }
+            if (e.Frame.IsMain && Navigated != null) {
+                AsyncExecuteInUI(() => Navigated?.Invoke(e.Url));
             }
         }
 
@@ -432,26 +429,12 @@ namespace WebViewControl {
             htmlToLoad = null;
             if (e.ErrorCode != CefErrorCode.Aborted && LoadFailed != null) {
                 // ignore aborts, to prevent situations where we try to load an address inside Load failed handler (and its aborted)
-                ExecuteInUIThread(() => LoadFailed(e.FailedUrl, (int) e.ErrorCode));
+                AsyncExecuteInUI(() => LoadFailed?.Invoke(e.FailedUrl, (int) e.ErrorCode));
             }
         }
 
         private void OnWebViewTitleChanged(object sender, DependencyPropertyChangedEventArgs e) {
             TitleChanged?.Invoke();
-        }
-        
-        private void ExecuteInUIThread(Action action) {
-            if (isDisposing) {
-                return;
-            }
-            // use begin invoke to avoid dead-locks, otherwise if another any browser instance tries, for instance, to evaluate js it would block
-            Dispatcher.BeginInvoke(
-                (Action) (() => {
-                    if (!isDisposing) {
-                        // not disposed
-                        action();
-                    }
-                }));
         }
 
         public static void SetCookie(string url, string domain, string name, string value, DateTime expires) {
@@ -525,12 +508,27 @@ namespace WebViewControl {
             remove { lifeSpanHandler.PopupOpening -= value; }
         }
 
+        private DispatcherOperation AsyncExecuteInUI(Action action) {
+            if (isDisposing) {
+                return null;
+            }
+            // use async call to avoid dead-locks, otherwise if the source action tries to to evaluate js it would block
+            return Dispatcher.InvokeAsync(
+                () => {
+                    if (!isDisposing) {
+                        ExecuteWithAsyncErrorHandling(action);
+                    }
+                },
+                DispatcherPriority.Normal, 
+                cancellationTokenSource.Token);
+        }
+
         [DebuggerNonUserCode]
-        private void WithErrorHandling(Action action) {
+        private void ExecuteWithAsyncErrorHandling(Action action) {
             try {
                 action();
             } catch (Exception e) {
-                ExecuteInUIThread(() => { throw e; });
+                UnhandledAsyncException?.Invoke(e);
             }
         }
     }

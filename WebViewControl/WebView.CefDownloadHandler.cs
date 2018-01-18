@@ -24,17 +24,17 @@ namespace WebViewControl {
                 if (downloadItem.IsComplete) {
                     var downloadCompleted = OwnerWebView.DownloadCompleted;
                     if (downloadCompleted != null) {
-                        OwnerWebView.ExecuteInUIThread(() => downloadCompleted(downloadItem.FullPath));
+                        OwnerWebView.AsyncExecuteInUI(() => downloadCompleted(downloadItem.FullPath));
                     }
                 } else if (downloadItem.IsCancelled) {
                     var downloadCancelled = OwnerWebView.DownloadCancelled;
                     if (downloadCancelled != null) {
-                        OwnerWebView.ExecuteInUIThread(() => downloadCancelled(downloadItem.FullPath));
+                        OwnerWebView.AsyncExecuteInUI(() => downloadCancelled(downloadItem.FullPath));
                     }
                 } else {
                     var downloadProgressChanged = OwnerWebView.DownloadProgressChanged;
                     if (downloadProgressChanged != null) {
-                        OwnerWebView.ExecuteInUIThread(() => downloadProgressChanged(downloadItem.FullPath, downloadItem.ReceivedBytes, downloadItem.TotalBytes));
+                        OwnerWebView.AsyncExecuteInUI(() => downloadProgressChanged(downloadItem.FullPath, downloadItem.ReceivedBytes, downloadItem.TotalBytes));
                     }
                 }
             }

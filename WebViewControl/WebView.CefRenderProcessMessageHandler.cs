@@ -5,19 +5,17 @@ namespace WebViewControl {
 
     partial class WebView {
 
-        private class RenderProcessMessageHandler : IRenderProcessMessageHandler {
+        private class CefRenderProcessMessageHandler : IRenderProcessMessageHandler {
 
             private readonly WebView OwnerWebView;
 
-            public RenderProcessMessageHandler(WebView webView) {
+            public CefRenderProcessMessageHandler(WebView webView) {
                 OwnerWebView = webView;
             }
 
             public void OnContextCreated(IWebBrowser browserControl, IBrowser browser, IFrame frame) {
                 if (OwnerWebView.JavascriptContextCreated != null) {
-                    OwnerWebView.WithErrorHandling(() => {
-                        OwnerWebView.JavascriptContextCreated();
-                    });
+                    OwnerWebView.ExecuteWithAsyncErrorHandling(() => OwnerWebView.JavascriptContextCreated?.Invoke());
                 };
             }
 

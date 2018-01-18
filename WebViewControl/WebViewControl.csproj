@@ -106,8 +106,8 @@
     <Compile Include="WebView.CefRequestHandler.cs" />
     <Compile Include="WebView.CefResourceHandler.cs" />
     <Compile Include="WebView.CefDialogHandler.cs" />
-    <Compile Include="WebView.MenuHandler.cs" />
-    <Compile Include="WebView.RenderProcessMessageHandler.cs" />
+    <Compile Include="WebView.CefMenuHandler.cs" />
+    <Compile Include="WebView.CefRenderProcessMessageHandler.cs" />
     <Compile Include="WebView.CefSchemeHandlerFactory.cs" />
     <Compile Include="WebView.CefResourceHandlerFactory.cs" />
     <Compile Include="WebView.cs" />
