@@ -48,7 +48,7 @@ namespace Tests {
             Assert.IsTrue(stylesheet.Contains(".baz")); // from dependency
         }
 
-        [Test(Description = "Tests stylesheets get loaded")]
+        [Test(Description = "Events are handled in the dispatcher thread")]
         public void EventsAreHandledInDispatcherThread() {
             int? threadId = null;
             TargetView.Event += (args) => {
