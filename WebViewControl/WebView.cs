@@ -75,7 +75,7 @@ namespace WebViewControl {
         public event Action<string> DownloadCancelled;
         public event Action JavascriptContextCreated;
         public event Action TitleChanged;
-        public event Action<Exception> UnhandledAsyncException;
+        public event Action<UnhandledExceptionEventArgs> UnhandledAsyncException;
 
         private event Action RenderProcessCrashed;
         private event Action JavascriptContextReleased;
@@ -204,11 +204,20 @@ namespace WebViewControl {
             chromium.RequestHandler = null;
             chromium.ResourceHandlerFactory = null;
             chromium.PreviewKeyDown -= OnPreviewKeyDown;
+
             WebViewInitialized = null;
             BeforeNavigate = null;
             BeforeResourceLoad = null;
             Navigated = null;
             LoadFailed = null;
+            DownloadProgressChanged = null;
+            DownloadCompleted = null;
+            DownloadCancelled = null;
+            JavascriptContextCreated = null;
+            TitleChanged = null;
+            UnhandledAsyncException = null;
+            RenderProcessCrashed = null;
+            JavascriptContextReleased = null;
 
             jsExecutor.Dispose();
             settings.Dispose();
@@ -549,7 +558,7 @@ namespace WebViewControl {
             } catch (OperationCanceledException) {
                 return null;
             } catch (Exception e) {
-                UnhandledAsyncException?.Invoke(e);
+                ForwardUnhandledAsyncException(e);
                 return null;
             }
         }
@@ -559,7 +568,22 @@ namespace WebViewControl {
             try {
                 action();
             } catch (Exception e) {
-                UnhandledAsyncException?.Invoke(e);
+                ForwardUnhandledAsyncException(e);
+            }
+        }
+
+        private void ForwardUnhandledAsyncException(Exception e) {
+            var handled = false;
+
+            if (UnhandledAsyncException != null) {
+                var eventArgs = new UnhandledExceptionEventArgs(e);
+                UnhandledAsyncException?.Invoke(eventArgs);
+                handled = eventArgs.Handled;
+            }
+
+            if (!handled) {
+                // don't use invoke async, as it won't forward the exception to the dispatcher unhandled exception event
+                Dispatcher.BeginInvoke((Action)(() => throw e));
             }
         }
     }

@@ -12,9 +12,9 @@ namespace Tests {
             WaitFor(() => TargetView.IsReady, TimeSpan.FromSeconds(10), "view initialized");
         }
 
-        private void OnUnhandledAsyncException(Exception e) {
+        private void OnUnhandledAsyncException(WebViewControl.UnhandledExceptionEventArgs e) {
             if (FailOnAsyncExceptions) {
-                Assert.Fail("An async exception ocurred: " + e.Message);
+                Assert.Fail("An async exception ocurred: " + e.Exception.Message);
             }
         }
 

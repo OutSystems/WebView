@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Linq;
+using System.Windows;
+using System.Windows.Threading;
 using NUnit.Framework;
 using WebViewControl;
 
@@ -101,20 +103,57 @@ namespace Tests {
         [Test(Description = "Unhandled Exception event is called when an async error occurs")]
         public void UnhandledExceptionEventIsCalled() {
             const string ExceptionMessage = "nooo";
-            Exception asyncException = null;
 
-            var failOnAsyncExceptions = FailOnAsyncExceptions;
-            FailOnAsyncExceptions = false;
-            try {
-                TargetView.UnhandledAsyncException += (e) => asyncException = e;
-                TargetView.ExecuteScript($"throw new Error('{ExceptionMessage}')");
-                var result = TargetView.EvaluateScript<int>("1+1"); // force exception to occur
-                Assert.NotNull(asyncException);
-                Assert.IsTrue(asyncException.Message.Contains(asyncException.Message));
+            Exception exception = null;
+
+            var controlUnhandled = false;
+            var dispatcherUnhandled = false;
+            var markAsHandled = true;
+
+            DispatcherUnhandledExceptionEventHandler unhandledDispatcherException = (o, e) => {
+                exception = e.Exception;
+                dispatcherUnhandled = true;
+                e.Handled = true;
+            };
+
+            Action<int> assertResult = (result) => {
+                Assert.NotNull(exception);
+                Assert.IsTrue(exception.Message.Contains(exception.Message));
                 Assert.AreEqual(2, result, "Result should not be affected");
-            } finally {
-                FailOnAsyncExceptions = failOnAsyncExceptions;
-            }
+            };
+
+            TargetView.Dispatcher.UnhandledException += unhandledDispatcherException;
+
+            WithUnhandledExceptionHandling(() => {
+                try {
+                    TargetView.ExecuteScript($"throw new Error('{ExceptionMessage}')");
+                    var result = TargetView.EvaluateScript<int>("1+1"); // force exception to occur
+
+                    assertResult(result);
+                    Assert.IsTrue(controlUnhandled);
+                    Assert.IsFalse(dispatcherUnhandled);
+
+                    controlUnhandled = false;
+                    markAsHandled = false;
+
+                    TargetView.ExecuteScript($"throw new Error('{ExceptionMessage}')");
+                    result = TargetView.EvaluateScript<int>("1+1"); // force exception to occur
+
+                    WaitFor(() => dispatcherUnhandled);
+
+                    assertResult(result);
+                    Assert.IsTrue(controlUnhandled);
+                    Assert.IsTrue(dispatcherUnhandled);
+
+                } finally {
+                    TargetView.Dispatcher.UnhandledException -= unhandledDispatcherException;
+                }
+            },
+            e => {
+                exception = e;
+                controlUnhandled = true;
+                return markAsHandled;
+            });
         }
     }
 }

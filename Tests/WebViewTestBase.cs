@@ -13,9 +13,9 @@ namespace Tests {
             LoadAndWaitReady("<html><script>;</script><body>Test page</body></html>", TimeSpan.FromSeconds(10), "webview initialization");
         }
 
-        private void OnUnhandledAsyncException(Exception e) {
+        private void OnUnhandledAsyncException(WebViewControl.UnhandledExceptionEventArgs e) {
             if (FailOnAsyncExceptions) {
-                Assert.Fail("An async exception ocurred: " + e.Message);
+                Assert.Fail("An async exception ocurred: " + e.Exception.Message);
             }
         }
 
@@ -28,6 +28,23 @@ namespace Tests {
             TargetView.Navigated += (string url) => navigated = true;
             TargetView.LoadHtml(html);
             WaitFor(() => navigated, timeout, timeoutMsg);
+        }
+
+        protected void WithUnhandledExceptionHandling(Action action, Func<Exception, bool> onException) {
+            Action<WebViewControl.UnhandledExceptionEventArgs> unhandledException = (e) => {
+                e.Handled = onException(e.Exception);
+            };
+
+            var failOnAsyncExceptions = FailOnAsyncExceptions;
+            FailOnAsyncExceptions = false;
+            TargetView.UnhandledAsyncException += unhandledException;
+
+            try {
+                action();
+            } finally {
+                TargetView.UnhandledAsyncException -= unhandledException;
+                FailOnAsyncExceptions = failOnAsyncExceptions;
+            }
         }
     }
 }

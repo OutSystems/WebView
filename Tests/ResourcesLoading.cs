@@ -11,7 +11,7 @@ namespace Tests {
             TargetView.Navigated += _ => navigated = true;
 
             TargetView.LoadHtml($"<html><script>;</script><body>{BodyContent}</body></html>");
-            WaitFor(() => navigated, DefaultTimeout);
+            WaitFor(() => navigated);
             var body = TargetView.EvaluateScript<string>("document.body.innerText");
 
             Assert.AreEqual(BodyContent, body);

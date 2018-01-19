@@ -64,6 +64,10 @@ namespace Tests {
             get { return view; }
         }
 
+        public static void WaitFor(Func<bool> predicate, string purpose = "") {
+            WaitFor(predicate, DefaultTimeout, purpose);
+        }
+
         public static void WaitFor(Func<bool> predicate, TimeSpan timeout, string purpose = "") {
             var start = DateTime.Now;
             while (!predicate() && (DateTime.Now - start) < timeout && Application.Current != null) {

@@ -46,7 +46,7 @@ namespace WebViewControl {
             }
         }
 
-        public event Action<Exception> UnhandledAsyncException {
+        public event Action<UnhandledExceptionEventArgs> UnhandledAsyncException {
             add { webView.UnhandledAsyncException += value; }
             remove { webView.UnhandledAsyncException -= value; }
         }

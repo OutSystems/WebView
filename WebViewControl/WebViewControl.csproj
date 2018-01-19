@@ -101,6 +101,7 @@
     <Compile Include="ReactView.NativeApi.cs" />
     <Compile Include="ReactView.cs" />
     <Compile Include="RenderProcessClosedException.cs" />
+    <Compile Include="UnhandledExceptionEventArgs.cs" />
     <Compile Include="WebView.CefDownloadHandler.cs" />
     <Compile Include="WebView.CefLifeSpanHandler.cs" />
     <Compile Include="WebView.CefRequestHandler.cs" />

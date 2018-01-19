@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Windows;
 using NUnit.Framework;
-using System.Windows.Threading;
 using WebViewControl;
 
 namespace Tests {
@@ -77,6 +75,30 @@ namespace Tests {
             Assert.IsTrue(functionCalled);
             Assert.AreEqual(null, obtainedArg1);
             Assert.That(new[] { "hello", null, "world" }, Is.EquivalentTo(obtainedArg2));
+        }
+
+        [Test(Description = "Unhandled Exception event is called when an async unhandled error occurs inside a object bound method")]
+        public void UnhandledExceptionEventIsCalledOnBoundObjectCallError() {
+            const string ExceptionMessage = "hey";
+            const string DotNetObject = "DotNetObject";
+
+            Exception exception = null;
+
+            Func<int> functionToCall = () => {
+                throw new Exception(ExceptionMessage);
+            };
+
+            WithUnhandledExceptionHandling(() => {
+                TargetView.RegisterJavascriptObject(DotNetObject, functionToCall, executeCallsInUI: true);
+                LoadAndWaitReady("<html><script>DotNetObject.invoke();</script><body></body></html>");
+
+                WaitFor(() => exception != null);
+                Assert.IsTrue(exception.Message.Contains(ExceptionMessage));
+            },
+            e => {
+                exception = e;
+                return true;
+            });
         }
     }
 }
