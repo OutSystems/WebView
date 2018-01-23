@@ -1,5 +1,5 @@
-﻿using System;
-using CefSharp;
+﻿using CefSharp;
+using System.Linq;
 
 namespace WebViewControl {
 
@@ -24,6 +24,20 @@ namespace WebViewControl {
             }
 
             public void OnFocusedNodeChanged(IWebBrowser browserControl, IBrowser browser, IFrame frame, IDomNode node) { }
+
+            public void OnUncaughtException(IWebBrowser browserControl, IBrowser browser, IFrame frame, CefSharp.JavascriptException exception) {
+                if (JavascriptExecutor.IsInternalException(exception.Message)) {
+                    // ignore internal exceptions, they will be handled by the EvaluateScript caller
+                    return;
+                }
+                var javascriptException = new JavascriptException(
+                    exception.Message, 
+                    exception.StackTrace.Select(l => {
+                        var location = l.SourceName + ":" + l.LineNumber + ":" + l.ColumnNumber;
+                        return JavascriptException.AtSeparator + (string.IsNullOrEmpty(l.FunctionName) ? location : l.FunctionName + " (" + location + ")");
+                    }).ToArray());
+                OwnerWebView.ForwardUnhandledAsyncException(javascriptException);
+            }
         }
     }
 }

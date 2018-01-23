@@ -10,7 +10,7 @@
     <description>Description</description>
     <copyright>Copyright ©  2017</copyright>
     <dependencies>
-      <dependency id="CefSharp.Wpf" version="62.0.2" />
+      <dependency id="CefSharp.Wpf" version="62.0.4" />
     </dependencies>
   </metadata>
   <files>

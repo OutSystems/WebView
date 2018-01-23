@@ -94,7 +94,7 @@ namespace WebViewControl {
             if (!Cef.IsInitialized) {
                 var cefSettings = new CefSettings();
                 cefSettings.LogSeverity = LogSeverity.Disable; // disable writing of debug.log
-
+                cefSettings.UncaughtExceptionStackSize = 100; // enable stack capture
                 cefSettings.CachePath = TempDir; // enable cache for external resources to speedup loading
 
                 foreach (var scheme in CustomSchemes) {
@@ -548,8 +548,9 @@ namespace WebViewControl {
                 var operation = Dispatcher.InvokeAsync(
                     () => {
                         if (!isDisposing) {
-                            func();
+                            return func();
                         }
+                        return null;
                     },
                     DispatcherPriority.Normal,
                     cancellationTokenSource.Token);

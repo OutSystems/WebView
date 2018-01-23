@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using NUnit.Framework;
 using WebViewControl;
 
@@ -79,21 +80,19 @@ namespace Tests {
 
         [Test(Description = "Unhandled Exception event is called when an async unhandled error occurs inside a object bound method")]
         public void UnhandledExceptionEventIsCalledOnBoundObjectCallError() {
-            const string ExceptionMessage = "hey";
+            const string ExceptionMessage = "hey!";
             const string DotNetObject = "DotNetObject";
 
             Exception exception = null;
 
-            Func<int> functionToCall = () => {
-                throw new Exception(ExceptionMessage);
-            };
+            var func = new Func<object>(() => throw new Exception(ExceptionMessage));
 
             WithUnhandledExceptionHandling(() => {
-                TargetView.RegisterJavascriptObject(DotNetObject, functionToCall, executeCallsInUI: true);
+                TargetView.RegisterJavascriptObject(DotNetObject, func, executeCallsInUI: true);
                 LoadAndWaitReady("<html><script>DotNetObject.invoke();</script><body></body></html>");
 
                 WaitFor(() => exception != null);
-                Assert.IsTrue(exception.Message.Contains(ExceptionMessage));
+                Assert.IsTrue(exception.ToString().Contains(ExceptionMessage));
             },
             e => {
                 exception = e;

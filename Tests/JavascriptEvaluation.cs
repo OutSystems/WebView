@@ -68,8 +68,8 @@ namespace Tests {
             Assert.AreEqual("Error: ups", exception.Message);
             var stack = exception.StackTrace.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
             Assert.Greater(stack.Length, 2);
-            Assert.True(stack.ElementAt(0).Contains("bar"));
-            Assert.True(stack.ElementAt(1).Contains("foo"));
+            Assert.True(stack.ElementAt(0).StartsWith("   at bar"));
+            Assert.True(stack.ElementAt(1).StartsWith("   at foo"));
         }
 
         [Test(Description = "Evaluation of scripts with comments, json objects, and var declarations")]
@@ -153,6 +153,30 @@ namespace Tests {
                 exception = e;
                 controlUnhandled = true;
                 return markAsHandled;
+            });
+        }
+
+        [Test(Description = "Javascript errors that occur asyncrounsly throw unhandled exception")]
+        public void JavascriptAsyncErrorsThrowUnhandledException() {
+            const string ExceptionMessage = "nooo";
+
+            Exception exception = null;
+
+            WithUnhandledExceptionHandling(() => {
+                TargetView.ShowDeveloperTools();
+                TargetView.ExecuteScript($"function foo() {{ throw new Error('{ExceptionMessage}'); }}; setTimeout(function() {{ foo(); }}, 1); ");
+
+                WaitFor(() => exception != null);
+
+                Assert.IsTrue(exception.Message.Contains(ExceptionMessage));
+                var stack = exception.StackTrace.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+                Assert.AreEqual(2, stack.Length);
+                Assert.True(stack.ElementAt(0).StartsWith("   at foo"));
+                Assert.True(stack.ElementAt(1).StartsWith("   at about:blank"));
+            },
+            e => {
+                exception = e;
+                return true;
             });
         }
     }

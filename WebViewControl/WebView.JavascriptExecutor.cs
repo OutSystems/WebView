@@ -47,6 +47,8 @@ namespace WebViewControl {
 
         internal class JavascriptExecutor : IDisposable {
 
+            private const string InternalException = "|WebViewInternalException";
+
             private readonly WebView OwnerWebView;
             private readonly BlockingCollection<ScriptTask> pendingScripts = new BlockingCollection<ScriptTask>();
             private readonly CancellationTokenSource flushTaskCancelationToken = new CancellationTokenSource();
@@ -206,7 +208,7 @@ namespace WebViewControl {
             }
 
             private static string WrapScriptWithErrorHandling(string script) {
-                return "try {" + script + Environment.NewLine + "} catch (e) { throw JSON.stringify({ stack: e.stack, message: e.message, name: e.name }) }";
+                return "try {" + script + Environment.NewLine + "} catch (e) { throw JSON.stringify({ stack: e.stack, message: e.message, name: e.name }) + '" + InternalException + "' }";
             }
 
             private static T DeserializeJSON<T>(string json) {
@@ -235,13 +237,17 @@ namespace WebViewControl {
                         jsError.Message = jsError.Message ?? "";
                         jsError.Stack = jsError.Stack ?? "";
                         var jsStack = jsError.Stack.Substring(Math.Min(jsError.Stack.Length, (jsError.Name + ": " + jsError.Message).Length)).Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                        jsStack = jsStack.Select(l => l.Substring("    at ".Length)).ToArray();
+                        jsStack = jsStack.Select(l => l.Substring(1)).ToArray(); // "    at" -> "   at"
 
                         return new JavascriptException(jsError.Name, jsError.Message, jsStack);
                     }
                 }
 
                 return new JavascriptException("Javascript Error", response.Message, new string[0]);
+            }
+
+            internal static bool IsInternalException(string exceptionMessage) {
+                return exceptionMessage.EndsWith(InternalException);
             }
         }
     }
