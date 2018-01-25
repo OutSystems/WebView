@@ -70,6 +70,10 @@ namespace WebViewControl {
             }
 
             bool IRequestHandler.OnCertificateError(IWebBrowser browserControl, IBrowser browser, CefErrorCode errorCode, string requestUrl, ISslInfo sslInfo, IRequestCallback callback) {
+                if (OwnerWebView.IgnoreCertificateErrors) {
+                    callback.Continue(true);
+                    return true;
+                }
                 return false;
             }
 

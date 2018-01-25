@@ -96,7 +96,7 @@ namespace WebViewControl {
                 cefSettings.LogSeverity = LogSeverity.Disable; // disable writing of debug.log
                 cefSettings.UncaughtExceptionStackSize = 100; // enable stack capture
                 cefSettings.CachePath = TempDir; // enable cache for external resources to speedup loading
-
+                
                 foreach (var scheme in CustomSchemes) {
                     cefSettings.RegisterScheme(new CefCustomScheme() {
                         SchemeName = scheme,
@@ -125,7 +125,7 @@ namespace WebViewControl {
             }
 
             Cef.Shutdown(); // must shutdown cef to free cache files (so that cleanup is able to delete files)
-
+            
             try {
                 var dirInfo = new DirectoryInfo(TempDir);
                 if (dirInfo.Exists) {
@@ -279,6 +279,11 @@ namespace WebViewControl {
         public bool IsSecurityDisabled {
             get { return settings.WebSecurity != CefState.Enabled; }
             set { settings.WebSecurity = (value ? CefState.Disabled : CefState.Enabled); }
+        }
+
+        public bool IgnoreCertificateErrors {
+            get;
+            set;
         }
 
         public bool IsHistoryDisabled {
