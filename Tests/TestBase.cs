@@ -30,6 +30,9 @@ namespace Tests {
 
         [OneTimeTearDown]
         protected void OneTimeTearDown() {
+            if (view != null) {
+                view.Dispose();
+            }
             window.Close();
         }
 

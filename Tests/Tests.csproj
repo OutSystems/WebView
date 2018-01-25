@@ -69,7 +69,6 @@
     <Compile Include="ReactViewTestBase.cs" />
     <Compile Include="RequestInterception.cs" />
     <Compile Include="ResourcesLoading.cs" />
-    <Compile Include="Setup.cs" />
     <Compile Include="TestBase.cs" />
     <Compile Include="TestReactView.cs" />
     <Compile Include="WebViewTestBase.cs" />
@@ -173,6 +172,9 @@
     <Error Condition="!Exists('..\packages\Microsoft.TypeScript.MSBuild.2.6.2\build\Microsoft.TypeScript.MSBuild.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.TypeScript.MSBuild.2.6.2\build\Microsoft.TypeScript.MSBuild.targets'))" />
   </Target>
   <Import Project="..\packages\Microsoft.TypeScript.MSBuild.2.6.2\build\Microsoft.TypeScript.MSBuild.targets" Condition="Exists('..\packages\Microsoft.TypeScript.MSBuild.2.6.2\build\Microsoft.TypeScript.MSBuild.targets')" />
+  <PropertyGroup>
+    <PreBuildEvent>$(SolutionDir)kill_discoveryengine.bat</PreBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
