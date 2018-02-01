@@ -6,6 +6,8 @@ namespace Tests {
 
         public event Action<string> Event;
 
+        public TestReactView() : base() { }
+
         public class Properties {
 
             private readonly TestReactView owner;

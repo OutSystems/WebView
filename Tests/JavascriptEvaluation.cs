@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Windows;
 using System.Windows.Threading;
 using NUnit.Framework;
 using WebViewControl;
@@ -163,7 +162,6 @@ namespace Tests {
             Exception exception = null;
 
             WithUnhandledExceptionHandling(() => {
-                TargetView.ShowDeveloperTools();
                 TargetView.ExecuteScript($"function foo() {{ throw new Error('{ExceptionMessage}'); }}; setTimeout(function() {{ foo(); }}, 1); ");
 
                 WaitFor(() => exception != null);

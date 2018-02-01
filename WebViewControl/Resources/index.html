@@ -6,18 +6,18 @@
     <script src="node_modules/requirejs/require.js"></script>
     <script>
         var urlParams = location.search.substring(1).split("&");
-		var resourcesPath = urlParams[0];
-		var userComponent = urlParams[1];
-		var userDefaultStylesheet = urlParams[2];
-		var libsPath = resourcesPath + "node_modules/";
-        var userNamespace = userComponent.substring(0, userComponent.lastIndexOf("/") + 1);
+		var builtinResourcesPath = urlParams[0];
+		var baseUrl = urlParams[1];
+		var userComponent = urlParams[2];
+		var userDefaultStylesheet = urlParams[3];
+		var libsPath = builtinResourcesPath + "node_modules/";
 		
         require.config({
-            baseUrl: userNamespace,
+			baseUrl: baseUrl,
             paths: {
 				"react": libsPath + "react/dist/react.min",
 				"react-dom": libsPath + "react-dom/dist/react-dom.min",
-				"index": resourcesPath + "builtin/index"
+				"index": builtinResourcesPath + "builtin/index"
 			},
 			map: {
 				'*': {
@@ -34,7 +34,7 @@
             IndexModule.initialize(userComponent);
 		});
 
-		document.write("<base href='" + userNamespace + "'/>"); // let images and other resources load from the appropriate path
+		document.write("<base href='" + baseUrl + "'/>"); // let images and other resources load from the appropriate path
     </script>
 </head>
 <body>

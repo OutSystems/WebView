@@ -3,7 +3,7 @@ using NUnit.Framework;
 
 namespace Tests {
 
-    public abstract class ReactViewTestBase : TestBase<TestReactView> {
+    public abstract class ReactViewTestBase<T> : TestBase<T> where T : TestReactView, new() {
 
         protected bool FailOnAsyncExceptions { get; set; } = true;
 
@@ -20,4 +20,6 @@ namespace Tests {
 
         protected override bool ReuseView => false;
     }
+
+    public class ReactViewTestBase : ReactViewTestBase<TestReactView> { }
 }

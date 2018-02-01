@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
@@ -12,16 +13,24 @@ namespace WebViewControl {
         private const string ReadyEventName = "Ready";
 
         private static readonly string AssemblyName = typeof(ReactView).Assembly.GetName().Name;
-        private static readonly string EmbeddedResourcesPath = AssemblyName + "/Resources/";
-        private static readonly string DefaultEmbeddedUrl = EmbeddedResourcesPath + "index.html";
+        private static readonly string BuiltinResourcesPath = AssemblyName + "/Resources/";
+        private static readonly string DefaultUrl = BuiltinResourcesPath + "index.html";
 
         private readonly WebView webView = new WebView();
-        private readonly Assembly userCallingAssembly;
+        private Assembly userCallingAssembly;
 
         private bool isSourceSet = false;
         private Listener readyEventListener;
 
         public ReactView() {
+            Initialize(CreateRootPropertiesObject());
+        }
+
+        public ReactView(object rootProperties) {
+            Initialize(rootProperties);
+        }
+
+        private void Initialize(object rootProperties) {
             userCallingAssembly = WebView.GetUserCallingAssembly();
 
             webView.AllowDeveloperTools = true;
@@ -29,11 +38,10 @@ namespace WebViewControl {
             webView.IgnoreMissingResources = false;
             webView.AttachListener(ReadyEventName, () => IsReady = true, executeInUI: false);
 
-            var rootPropertiesObject = CreateRootPropertiesObject();
-            if (rootPropertiesObject != null) {
-                webView.RegisterJavascriptObject("__RootProperties__", rootPropertiesObject, executeCallsInUI:true);
+            if (rootProperties != null) {
+                webView.RegisterJavascriptObject("__RootProperties__", rootProperties, executeCallsInUI: true);
             }
-            
+
             Content = webView;
         }
 
@@ -61,24 +69,37 @@ namespace WebViewControl {
         }
 
         private void LoadSource() {
-            var source = Source ?? "";
-            if (!source.EndsWith(".js")) {
-                source += ".js";
+            const string JsExtension = ".js";
+
+            var source = NormalizeUrl(Source ?? "");
+            if (source.EndsWith(JsExtension)) {
+                source = source.Substring(0, source.Length - JsExtension.Length);
             }
 
-            var callingAssemblyName = userCallingAssembly.GetName().Name;
+            var fileNameIdx = source.LastIndexOf("/");
+            var defaultSource = source.Substring(fileNameIdx + 1);
+            source = ToFullUrl(source.Substring(0, Math.Max(0, fileNameIdx))) + "/";
 
             var urlParams = new List<string>() {
-                "/" + EmbeddedResourcesPath,
-                source.StartsWith("/") ? source : $"/{callingAssemblyName}/{source}"
+                "/" + BuiltinResourcesPath,
+                source,
+                defaultSource
             };
 
             if (DefaultStyleSheet != null) { 
-                urlParams.Add(DefaultStyleSheet.StartsWith("/") ? DefaultStyleSheet : $"/{callingAssemblyName}/{DefaultStyleSheet}");
+                urlParams.Add(NormalizeUrl(ToFullUrl(DefaultStyleSheet)));
             }
 
-            var url = WebView.BuildEmbeddedResourceUrl(AssemblyName, DefaultEmbeddedUrl + "?" + string.Join("&", urlParams));
+            var url = WebView.BuildEmbeddedResourceUrl(AssemblyName, DefaultUrl + "?" + string.Join("&", urlParams));
             webView.Address = url;
+        }
+
+        private static string NormalizeUrl(string url) {
+            return url.Replace("\\", "/");
+        }
+
+        private string ToFullUrl(string url) {
+            return (url.StartsWith("/") || url.Contains(Uri.SchemeDelimiter)) ? url : $"/{userCallingAssembly.GetName().Name}/{url}";
         }
 
         public void Dispose() {
@@ -100,7 +121,7 @@ namespace WebViewControl {
         protected virtual string Source => null;
 
         public static readonly DependencyProperty DefaultStyleSheetProperty = DependencyProperty.Register(
-            "DefaultStyleSheet", 
+            nameof(DefaultStyleSheet), 
             typeof(string),
             typeof(ReactView));
 

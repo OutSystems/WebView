@@ -1,1 +1,0 @@
-taskkill /F /IM vstest.discoveryengine.x86.exe /FI "MEMUSAGE gt 1"

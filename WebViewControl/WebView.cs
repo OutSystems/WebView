@@ -19,7 +19,7 @@ namespace WebViewControl {
 
         public const string LocalScheme = "local";
 
-        protected const string EmbeddedScheme = "embedded";
+        internal const string EmbeddedScheme = "embedded";
 
         private static readonly string[] CustomSchemes = new[] {
             LocalScheme,

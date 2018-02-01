@@ -13,13 +13,11 @@
 		"noImplicitThis": true,
 		"noImplicitAny": true,
 		"strictNullChecks": true,
-		"suppressImplicitAnyIndexErrors": true,
-		"outFile": "builtin/index.js"
+		"suppressImplicitAnyIndexErrors": true
 	},
 	"compileOnSave": true,
 	"exclude": [
 		"node_modules",
-		"builtin",
-		"."
+		"builtin"
 	]
 }
