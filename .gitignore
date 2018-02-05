@@ -17,3 +17,4 @@ Tests/ReactViewResources/dist/
 .vs/
 WebViewControl/Resources/builtin/
 WebViewControl/Resources/node_modules/
+ViewGenerator/tools/dist/
