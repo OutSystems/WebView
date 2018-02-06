@@ -11,6 +11,8 @@
     <files>
         <file src="build\ViewGenerator.targets" target="build\ViewGenerator.targets" />
         <file src="contentFiles\**" target="content\" />
+        <file src="_tsconfig.json" target="content\View\tsconfig.json" />
+        
         <file src="tools\dist\ViewGenerator.js" target="tools\ViewGenerator.js" />
         <file src="tools\node_modules\**" target="tools\node_modules\" />
         <file src="readme.txt" target="" />

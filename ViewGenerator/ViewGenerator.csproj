@@ -51,6 +51,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="contentFiles\ts2lang.json" />
+    <None Include="contentFiles\View\dist\_.ignore" />
+    <None Include="contentFiles\View\src\_.ignore" />
+    <None Include="contentFiles\View\styles\_.ignore" />
     <None Include="packages.config" />
     <None Include="ViewGenerator.nuspec" />
     <None Include="build\ViewGenerator.targets">
@@ -62,7 +66,7 @@
     <TypeScriptCompile Include="tools\src\ViewGenerator.ts" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="contentFiles\" />
+    <Folder Include="contentFiles\View\node_modules\" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />

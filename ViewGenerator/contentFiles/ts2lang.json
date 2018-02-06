@@ -1,0 +1,14 @@
+{
+    "tasks": [
+        {
+            "input": "View/src/*.tsx",
+            "output": "Generated/",
+            "template": "",
+            "parameters": {
+                "namespace": "YourPluginName",
+                "baseComponentClass": "",
+                "javascriptDistPath": ""
+            }
+        }
+    ]
+}
