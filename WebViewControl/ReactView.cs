@@ -32,6 +32,8 @@ namespace WebViewControl {
         }
 
         private void Initialize(object rootProperties) {
+            SetResourceReference(StyleProperty, typeof(ReactView)); // force styles to be inherited
+
             userCallingAssembly = WebView.GetUserCallingAssembly();
 
             webView.AllowDeveloperTools = true;
@@ -91,7 +93,7 @@ namespace WebViewControl {
                 baseUrl,
                 defaultSource
             };
-
+            
             if (DefaultStyleSheet != null) { 
                 urlParams.Add(NormalizeUrl(ToFullUrl(DefaultStyleSheet)));
             }
