@@ -13,13 +13,24 @@ function toPascalCase(name: string) {
 
 function getFunctionReturnType(func: Units.TsFunction): string {
     if ((<Types.TsIdentifierType>func.returnType).parameters) {
-        return (<Types.TsIdentifierType>func.returnType).parameters[0].name;
+        return getTypeName((<Types.TsIdentifierType>func.returnType).parameters[0]);
     }
-    return func.returnType.name;
+    return getTypeName(func.returnType);
 }
 
 function getTypeName(tsType: Types.ITsType): string {
-    return tsType.name;
+    switch (tsType.name) {
+        case "string":
+            return "string";
+        case "number":
+            return "int";
+        case "boolean":
+            return "bool";
+        case "void":
+            return "void";
+        default:
+            return tsType.name;
+    }
 }
 
 function generateMethodSignature(func: Units.TsFunction, functionSuffix: string = "") {
@@ -45,7 +56,7 @@ function generateNativeApi(propsInterface: Units.TsInterface | null) {
     return f(
         `private class NativeApi : BaseNativeApi<ControlType> {\n` +
         `    public NativeApi(ControlType owner) : base(owner) { }\n` +
-        `    ${f(propsInterface ? propsInterface.functions.map(f => generateNativeApiMethod(f)).join("\n") : "")}\n` +
+        `    ${f(propsInterface ? (propsInterface.functions.length > 0 ? propsInterface.functions.map(f => generateNativeApiMethod(f)).join("\n") : "// the interface does not contain methods") : "")}\n` +
         `}`
     );
 }
@@ -54,7 +65,7 @@ function generateNativeApiMethod(func: Units.TsFunction): string {
     let isVoid = func.returnType.name === Types.TsVoidType.name;
     return (
         `public ${generateMethodSignature(func)} {\n` +
-        `    ${isVoid ? "" : "return "}owner.${toPascalCase(func.name)}?.Invoke(${func.parameters.map(p => p.name).join(", ")});\n` +
+        `    ${isVoid ? "" : "return "}owner.${toPascalCase(func.name)}?.Invoke(${func.parameters.map(p => p.name).join(", ")})${isVoid ? "" : ` ?? default(${getFunctionReturnType(func)})`};\n` +
         `}`
     );
 }
@@ -85,6 +96,7 @@ function normalizePath(path: string): string {
 
 export function transform(module: Units.TsModule, context: Object): string {
     let componentClass = module.classes[0];
+    
     let propsInterface = module.interfaces.find((ifc) => ifc.name.startsWith("I") && ifc.name.endsWith("Properties")) || null;
     let behaviorsInterface = module.interfaces.find((ifc) => ifc.name.startsWith("I") && ifc.name.endsWith("Behaviors")) || null;
     let objects = module.interfaces.filter(ifc => ifc !== propsInterface && ifc !== behaviorsInterface);

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
@@ -9,6 +9,7 @@ namespace WebViewControl {
 
     public partial class ReactView : ContentControl, IDisposable {
 
+        private const string PathSeparator = "/";
         private const string RootObject = "__Root__";
         private const string ReadyEventName = "Ready";
 
@@ -39,7 +40,7 @@ namespace WebViewControl {
             webView.AttachListener(ReadyEventName, () => IsReady = true, executeInUI: false);
 
             if (rootProperties != null) {
-                webView.RegisterJavascriptObject("__RootProperties__", rootProperties, executeCallsInUI: true);
+                webView.RegisterJavascriptObject("__RootProperties__", rootProperties, executeCallsInUI: false);
             }
 
             Content = webView;
@@ -76,13 +77,18 @@ namespace WebViewControl {
                 source = source.Substring(0, source.Length - JsExtension.Length);
             }
 
-            var fileNameIdx = source.LastIndexOf("/");
-            var defaultSource = source.Substring(fileNameIdx + 1);
-            source = ToFullUrl(source.Substring(0, Math.Max(0, fileNameIdx))) + "/";
+            var filenameParts = source.Split(new[] { PathSeparator }, StringSplitOptions.None);
+
+            // eg: example/dist/source.js
+            // defaultSource = ./dist/source.js
+            // baseUrl = /AssemblyName/example/
+            var sourceDepth = filenameParts.Length >= 2 ? 2 : 1; 
+            var defaultSource = "./" + string.Join(PathSeparator, filenameParts.Reverse().Take(sourceDepth).Reverse()); // take last 2 parts of the path
+            var baseUrl = ToFullUrl(string.Join(PathSeparator, filenameParts.Take(filenameParts.Length - sourceDepth))) + PathSeparator;
 
             var urlParams = new List<string>() {
-                "/" + BuiltinResourcesPath,
-                source,
+                PathSeparator + BuiltinResourcesPath,
+                baseUrl,
                 defaultSource
             };
 
@@ -95,11 +101,11 @@ namespace WebViewControl {
         }
 
         private static string NormalizeUrl(string url) {
-            return url.Replace("\\", "/");
+            return url.Replace("\\", PathSeparator);
         }
 
         private string ToFullUrl(string url) {
-            return (url.StartsWith("/") || url.Contains(Uri.SchemeDelimiter)) ? url : $"/{userCallingAssembly.GetName().Name}/{url}";
+            return (url.StartsWith(PathSeparator) || url.Contains(Uri.SchemeDelimiter)) ? url : $"/{userCallingAssembly.GetName().Name}/{url}";
         }
 
         public void Dispose() {

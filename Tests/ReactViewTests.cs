@@ -22,8 +22,10 @@ namespace Tests {
         public void DisposeDoesNotHang() {
             var disposed = false;
             TargetView.Event += (args) => {
-                TargetView.Dispose();
-                disposed = true;
+                TargetView.Dispatcher.BeginInvoke((Action)(() => {
+                    TargetView.Dispose();
+                    disposed = true;
+                }));
             };
 
             TargetView.ExecuteMethodOnRoot("callEvent");
@@ -46,8 +48,8 @@ namespace Tests {
             Assert.IsTrue(stylesheet.Contains(".baz")); // from dependency
         }
 
-        [Test(Description = "Events are handled in the Dispatcher thread")]
-        public void EventsAreHandledInDispatcherThread() {
+        [Test(Description = "Events are not handled in the Dispatcher thread")]
+        public void EventsAreNotHandledInDispatcherThread() {
             bool? canAccessDispatcher = null;
             TargetView.Event += (args) => {
                 canAccessDispatcher = TargetView.Dispatcher.CheckAccess();
@@ -56,7 +58,7 @@ namespace Tests {
             TargetView.ExecuteMethodOnRoot("callEvent");
 
             WaitFor(() => canAccessDispatcher != null, TimeSpan.FromSeconds(10), "event call");
-            Assert.IsTrue(canAccessDispatcher, "Cannot access dispatcher");
+            Assert.IsFalse(canAccessDispatcher, "Can access dispatcher");
         }
     }
 }

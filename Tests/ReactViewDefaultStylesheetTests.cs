@@ -6,7 +6,7 @@ namespace Tests {
     public class ReactViewDefaultStyleSheetTests : ReactViewTestBase {
 
         protected override void InitializeView() {
-            TargetView.DefaultStyleSheet = "ReactViewResources/css/default.css";
+            TargetView.DefaultStyleSheet = "ReactViewResources/styles/default.css";
             base.InitializeView();
         }
 

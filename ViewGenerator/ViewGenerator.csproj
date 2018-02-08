@@ -21,7 +21,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
+    <OutputPath>..\Debug\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -30,7 +30,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>..\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -51,12 +51,11 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="contentFiles\ts2lang.json" />
-    <None Include="contentFiles\View\dist\_.ignore" />
-    <None Include="contentFiles\View\src\_.ignore" />
-    <None Include="contentFiles\View\styles\_.ignore" />
+    <None Include="content\ts2lang.json" />
     <None Include="packages.config" />
-    <None Include="ViewGenerator.nuspec" />
+    <None Include="ViewGenerator.nuspec">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="build\ViewGenerator.targets">
       <SubType>Designer</SubType>
     </None>
@@ -66,7 +65,11 @@
     <TypeScriptCompile Include="tools\src\ViewGenerator.ts" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="contentFiles\View\node_modules\" />
+    <Folder Include="content\View\dist\" />
+    <Folder Include="content\View\lib\" />
+    <Folder Include="content\View\node_modules\lib\" />
+    <Folder Include="content\View\src\" />
+    <Folder Include="content\View\styles\" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />

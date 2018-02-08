@@ -1,5 +1,5 @@
 ﻿import * as React from 'react';
-import "css!../css/styles.css";
+import "css!styles/styles.css";
 
 interface IAppProperties {
     event: (args: string) => void;
@@ -16,7 +16,7 @@ class App extends React.Component<IAppProperties, {}> {
             <div className="App">
                 <div className="App-header">
                     <h2>Welcome to React</h2>
-                    <img src="../imgs/image.png" />
+                    <img src="imgs/image.png" />
                 </div>
             </div>
         );

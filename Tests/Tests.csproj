@@ -32,7 +32,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>..\Release\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -130,16 +130,16 @@
     <EmbeddedResource Include="Resources\dash-folder\EmbeddedJavascriptFile-With-Dashes.js" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="ReactViewResources\css\styles.css" />
+    <EmbeddedResource Include="ReactViewResources\styles\styles.css" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ReactViewResources\dist\TestApp.js" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="ReactViewResources\css\default.css" />
+    <EmbeddedResource Include="ReactViewResources\styles\default.css" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="ReactViewResources\css\styles-dependency.css" />
+    <EmbeddedResource Include="ReactViewResources\styles\styles-dependency.css" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
@@ -174,7 +174,7 @@
   </Target>
   <Import Project="..\packages\Microsoft.TypeScript.MSBuild.2.6.2\build\Microsoft.TypeScript.MSBuild.targets" Condition="Exists('..\packages\Microsoft.TypeScript.MSBuild.2.6.2\build\Microsoft.TypeScript.MSBuild.targets')" />
   <PropertyGroup>
-    <PreBuildEvent>$(SolutionDir)kill_testsengine.bat</PreBuildEvent>
+    <PreBuildEvent>$(ProjectDir)..\kill_testsengine.bat</PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

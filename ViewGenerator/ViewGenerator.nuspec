@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
         <id>ViewGenerator</id>
-        <version>1.0.25</version>
+        <version>1.0.32</version>
         <authors>jmn</authors>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <developmentDependency>true</developmentDependency>
@@ -10,7 +10,9 @@
     </metadata>
     <files>
         <file src="build\ViewGenerator.targets" target="build\ViewGenerator.targets" />
-        <file src="contentFiles\**" target="content\" />
+
+        <file src="content\**" target="content\" />
+      
         <file src="_tsconfig.json" target="content\View\tsconfig.json" />
         
         <file src="tools\dist\ViewGenerator.js" target="tools\ViewGenerator.js" />
