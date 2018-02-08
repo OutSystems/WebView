@@ -46,7 +46,11 @@ namespace WebViewControl {
                 if (resourceHandler.Handled) {
                     return resourceHandler.Handler;
                 } else if (!OwnerWebView.IgnoreMissingResources && url != null && url.Scheme == EmbeddedScheme) {
-                    OwnerWebView.ExecuteWithAsyncErrorHandling(() => throw new InvalidOperationException("Resource not found: " + request.Url));
+                    if (OwnerWebView.ResourceLoadFailed != null) {
+                        OwnerWebView.ResourceLoadFailed(request.Url);
+                    } else {
+                        OwnerWebView.ExecuteWithAsyncErrorHandling(() => throw new InvalidOperationException("Resource not found: " + request.Url));
+                    }
                 }
 
                 return null;

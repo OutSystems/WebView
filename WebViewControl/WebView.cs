@@ -70,6 +70,7 @@ namespace WebViewControl {
 
         public event Action<string> Navigated;
         public event Action<string, int> LoadFailed;
+        public event Action<string> ResourceLoadFailed;
         public event Action<string, long, long> DownloadProgressChanged;
         public event Action<string> DownloadCompleted;
         public event Action<string> DownloadCancelled;

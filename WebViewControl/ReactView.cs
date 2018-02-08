@@ -20,6 +20,7 @@ namespace WebViewControl {
         private readonly WebView webView = new WebView();
         private Assembly userCallingAssembly;
 
+        private bool enableDebugMode = false;
         private bool isSourceSet = false;
         private Listener readyEventListener;
 
@@ -36,7 +37,6 @@ namespace WebViewControl {
 
             userCallingAssembly = WebView.GetUserCallingAssembly();
 
-            webView.AllowDeveloperTools = true;
             webView.DisableBuiltinContextMenus = true;
             webView.IgnoreMissingResources = false;
             webView.AttachListener(ReadyEventName, () => IsReady = true, executeInUI: false);
@@ -139,5 +139,26 @@ namespace WebViewControl {
         }
 
         public bool IsReady { get; private set; }
+        
+        public bool EnableDebugMode {
+            get { return enableDebugMode; }
+            set {
+                enableDebugMode = value;
+                webView.AllowDeveloperTools = enableDebugMode;
+                if (enableDebugMode) {
+                    webView.ResourceLoadFailed += ShowResourceLoadFailedMessage;
+                } else {
+                    webView.ResourceLoadFailed -= ShowResourceLoadFailedMessage;
+                }
+            }
+        }
+
+        private void ShowResourceLoadFailedMessage(string url) {
+            ShowErrorMessage("Failed to load resource '" + url + "'. Press F12 to open developer tools and see more details.");
+        }
+
+        private void ShowErrorMessage(string msg) {
+            webView.ExecuteScriptFunction($"showErrorMessage(\"{msg.Replace("\"", "\\\"")}\")");
+        }
     }
 }
