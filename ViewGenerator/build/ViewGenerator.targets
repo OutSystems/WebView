@@ -25,7 +25,7 @@
     </ItemGroup>
   </Target>
 
-  <Target Name="IncludeGeneratedResources" DependsOnTargets="CompileTypeScriptWithTSConfig">
+  <Target Name="IncludeGeneratedResources" DependsOnTargets="FindConfigFiles;CompileTypeScriptWithTSConfig">
     <ItemGroup> 
       <EmbeddedResource Include="View\dist\*.js" />
       <EmbeddedResource Include="View\lib\*.js" />
