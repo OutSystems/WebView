@@ -9,6 +9,17 @@
       IncludeGeneratedResources;
       $(PrepareResourceNamesDependsOn)
     </PrepareResourceNamesDependsOn>
+
+    <BuildDependsOn>
+      CleanGenerated;
+      $(BuildDependsOn)
+    </BuildDependsOn>
+    
+    <CleanDependsOn>
+      $(CleanDependsOn);
+      CleanGenerated;
+    </CleanDependsOn>
+    
   </PropertyGroup>
   
   <Target Name="GenerateView" BeforeTargets="CoreCompile">
@@ -21,7 +32,7 @@
 
   <Target Name="IncludeGeneratedFiles" BeforeTargets="PrepareForBuild">
     <ItemGroup>
-      <IncludeInVisualStudio Include="Generated\*.cs" />
+      <GeneratedTs2LangFiles Include="Generated\*.cs" />
     </ItemGroup>
   </Target>
 
@@ -31,6 +42,13 @@
       <EmbeddedResource Include="View\lib\*.js" />
       <EmbeddedResource Include="View\styles\*.css" />
     </ItemGroup>
+  </Target>
+
+  <Target Name="CleanGenerated">
+    <ItemGroup>
+      <GeneratedTs2LangFiles Include="Generated\*.cs" />
+    </ItemGroup>
+    <Delete Files="@(GeneratedTs2LangFiles)"/>
   </Target>
   
 </Project>
