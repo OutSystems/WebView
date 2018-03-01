@@ -45,6 +45,9 @@ function generateProperty(func: Units.TsFunction): string {
 }
 
 function generateBehaviorMethod(func: Units.TsFunction): string {
+    if (func.returnType != Types.TsVoidType) {
+        throw new Error("Behavior method " + func.name + " return type must be void. Behavior methods cannot return values.");
+    }
     return (
         `public ${generateMethodSignature(func)} {\n` +
         `    ExecuteMethodOnRoot("${func.name}"${func.parameters.map(p => ", " + p.name).join()});\n` +
@@ -54,7 +57,11 @@ function generateBehaviorMethod(func: Units.TsFunction): string {
 
 function generateNativeApi(propsInterface: Units.TsInterface | null) {
     return f(
-        `private class NativeApi : BaseNativeApi<ControlType> {\n` +
+        `internal interface INativeApi {\n` +
+        `    ${propsInterface ? propsInterface.functions.map(f => generateMethodSignature(f) + ";\n").join("") : ""}` + 
+        `}\n` +
+        `\n` +
+        `private class NativeApi : BaseNativeApi<ControlType>, INativeApi {\n` +
         `    public NativeApi(ControlType owner) : base(owner) { }\n` +
         `    ${f(propsInterface ? (propsInterface.functions.length > 0 ? propsInterface.functions.map(f => generateNativeApiMethod(f)).join("\n") : "// the interface does not contain methods") : "")}\n` +
         `}`
@@ -70,14 +77,26 @@ function generateNativeApiMethod(func: Units.TsFunction): string {
     );
 }
 
-function generateNativeApiObjects(objsInterfaces: Units.TsInterface[]) {
-    return objsInterfaces.map(generateNativeApiObject).join("\n");
+function generateNativeApiObjects(objsInterfaces: Units.TsInterface[], enums: Units.TsEnum[]) {
+    return f(
+        objsInterfaces.map(generateNativeApiObject).join("\n") +
+        "\n\n" +
+        enums.map(generateNativeApiEnum).join("\n")
+    );
 }
 
 function generateNativeApiObject(objInterface: Units.TsInterface) {
     return f(
         `public struct ${objInterface.name} {\n` +
-        `    ${objInterface.properties.map(p => `public ${getTypeName(p.type)} ${toPascalCase(p.name)};`).join("\n")}\n` +
+        `${objInterface.properties.map(p => `public ${getTypeName(p.type)} ${p.name};`).join("\n")}\n` +
+        `}`
+    );
+}
+
+function generateNativeApiEnum(enumerate: Units.TsEnum) {
+    return f(
+        `public enum ${enumerate.name} {\n` +
+        `${enumerate.options.map(o => `${o.name}`).join(",\n")}\n` +
         `}`
     );
 }
@@ -100,6 +119,7 @@ export function transform(module: Units.TsModule, context: Object): string {
     let propsInterface = module.interfaces.find((ifc) => ifc.name.startsWith("I") && ifc.name.endsWith("Properties")) || null;
     let behaviorsInterface = module.interfaces.find((ifc) => ifc.name.startsWith("I") && ifc.name.endsWith("Behaviors")) || null;
     let objects = module.interfaces.filter(ifc => ifc !== propsInterface && ifc !== behaviorsInterface);
+    let enums = module.enums;
 
     let fullPath = normalizePath(context["$fullpath"] as string);
     let path = normalizePath(context["$path"] as string);
@@ -138,7 +158,7 @@ namespace ${context["namespace"]} {
 
     public class ${componentClass.name} : ${context["baseComponentClass"] || "WebViewControl.ReactView"} {
 
-        ${f(generateNativeApiObjects(objects))}
+        ${f(generateNativeApiObjects(objects, enums))}
 
         ${f(generateNativeApi(propsInterface))}
 
