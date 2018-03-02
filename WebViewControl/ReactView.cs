@@ -88,14 +88,20 @@ namespace WebViewControl {
             var defaultSource = "./" + string.Join(PathSeparator, filenameParts.Reverse().Take(sourceDepth).Reverse()); // take last 2 parts of the path
             var baseUrl = ToFullUrl(string.Join(PathSeparator, filenameParts.Take(filenameParts.Length - sourceDepth))) + PathSeparator;
 
-            var urlParams = new List<string>() {
+            var urlParams = new string[] {
                 PathSeparator + BuiltinResourcesPath,
                 baseUrl,
-                defaultSource
+                defaultSource,
+                "",
+                ""
             };
-            
-            if (DefaultStyleSheet != null) { 
-                urlParams.Add(NormalizeUrl(ToFullUrl(DefaultStyleSheet)));
+
+            if (AdditionalModule != null) {
+                urlParams[3] = NormalizeUrl(ToFullUrl(AdditionalModule));
+            }
+
+            if (DefaultStyleSheet != null) {
+                urlParams[4] = NormalizeUrl(ToFullUrl(DefaultStyleSheet));
             }
 
             var url = WebView.BuildEmbeddedResourceUrl(AssemblyName, DefaultUrl + "?" + string.Join("&", urlParams));
@@ -138,6 +144,16 @@ namespace WebViewControl {
             set { SetValue(DefaultStyleSheetProperty, value); }
         }
 
+        public static readonly DependencyProperty AdditionalModuleProperty = DependencyProperty.Register(
+            nameof(AdditionalModule),
+            typeof(string),
+            typeof(ReactView));
+
+        public string AdditionalModule {
+            get { return (string)GetValue(AdditionalModuleProperty); }
+            set { SetValue(AdditionalModuleProperty, value); }
+        }
+
         public bool IsReady { get; private set; }
         
         public bool EnableDebugMode {
@@ -158,7 +174,8 @@ namespace WebViewControl {
         }
 
         private void ShowErrorMessage(string msg) {
-            webView.ExecuteScriptFunction($"showErrorMessage(\"{msg.Replace("\"", "\\\"")}\")");
+            msg = msg.Replace("\"", "\\\"");
+            webView.ExecuteScript($"showErrorMessage(\"{msg}\")");
         }
     }
 }

@@ -46,6 +46,10 @@ class App extends React.Component<IAppProperties, {}> {
             }
         }, 50);
     }
+
+    checkAdditionalModuleLoaded() {
+        this.props.event("AdditionalModuleLoaded");
+    }
 }
 
 export default App; 

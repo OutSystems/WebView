@@ -64,7 +64,8 @@
     <Compile Include="IsolatedJavascriptEvaluation.cs" />
     <Compile Include="JavascriptEvaluation.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ReactViewDefaultStylesheetTests.cs" />
+    <Compile Include="ReactViewAdditionalModuleLoadTests.cs" />
+    <Compile Include="ReactViewDefaultStylesheetLoadTests.cs" />
     <Compile Include="ReactViewSourceTests.cs" />
     <Compile Include="ReactViewTests.cs" />
     <Compile Include="ReactViewTestBase.cs" />
@@ -118,6 +119,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="ReactViewResources\src\AdditionalModule.ts" />
     <TypeScriptCompile Include="ReactViewResources\src\TestApp.tsx" />
   </ItemGroup>
   <ItemGroup>
@@ -141,7 +143,9 @@
   <ItemGroup>
     <EmbeddedResource Include="ReactViewResources\styles\styles-dependency.css" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <EmbeddedResource Include="ReactViewResources\dist\AdditionalModule.js" />
+  </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ReactViewResources\imgs\image.png" />
   </ItemGroup>

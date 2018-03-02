@@ -3,38 +3,63 @@
 <head>
     <meta charset="utf-8" />
     <title></title>
+	<script>
+		window.showErrorMessage = function (msg) {
+			const ContainerId = "webview_error";
+			let msgContainer = document.getElementById(ContainerId);
+			if (!msgContainer) {
+				msgContainer = document.createElement("div");
+				msgContainer.id = ContainerId;
+				msgContainer.style.backgroundColor = "#f45642";
+				msgContainer.style.color = "white";
+				msgContainer.style.fontFamily = "Arial";
+				msgContainer.style.fontWeight = "bold";
+				msgContainer.style.fontSize = "10px"
+				msgContainer.style.padding = "3px";
+				msgContainer.style.position = "absolute";
+				msgContainer.style.top = "0";
+				msgContainer.style.left = "0";
+				msgContainer.style.right = "0";
+				document.body.appendChild(msgContainer);
+			}
+			msgContainer.innerText = msg;
+		};
+	</script>
     <script src="node_modules/requirejs/require.js"></script>
     <script>
-        var urlParams = location.search.substring(1).split("&");
-		var builtinResourcesPath = urlParams[0];
-		var baseUrl = urlParams[1];
-		var userComponent = urlParams[2];
-		var userDefaultStylesheet = urlParams[3];
-		var libsPath = builtinResourcesPath + "node_modules/";
-		
-        require.config({
-			baseUrl: baseUrl,
-            paths: {
-				"react": libsPath + "react/dist/react.min",
-				"react-dom": libsPath + "react-dom/dist/react-dom.min",
-				"index": builtinResourcesPath + "builtin/index"
-			},
-			map: {
-				'*': {
-					'css': libsPath + "require-css/css.min.js"
+		(function () {
+			let urlParams = location.search.substring(1).split("&");
+			let builtinResourcesPath = urlParams[0];
+			let baseUrl = urlParams[1];
+			let userComponent = urlParams[2];
+			let additionalModule = urlParams[3];
+			let userDefaultStylesheet = urlParams[4];
+			let libsPath = builtinResourcesPath + "node_modules/";
+
+			require.config({
+				baseUrl: baseUrl,
+				paths: {
+					"react": libsPath + "react/dist/react.min",
+					"react-dom": libsPath + "react-dom/dist/react-dom.min",
+					"index": builtinResourcesPath + "builtin/index"
+				},
+				map: {
+					'*': {
+						'css': libsPath + "require-css/css.min.js"
+					}
 				}
+			});
+
+			if (userDefaultStylesheet) {
+				userDefaultStylesheet = "css!" + userDefaultStylesheet;
 			}
-        });
 
-		if (userDefaultStylesheet) {
-			userDefaultStylesheet = "css!" + userDefaultStylesheet;
-		}
+			require(["index", additionalModule, userDefaultStylesheet], function (IndexModule) {
+				IndexModule.initialize(userComponent);
+			});
 
-		require(["index", userDefaultStylesheet], function (IndexModule) {
-            IndexModule.initialize(userComponent);
-		});
-
-		document.write("<base href='" + baseUrl + "'/>"); // let images and other resources load from the appropriate path
+			document.write("<base href='" + baseUrl + "'/>"); // let images and other resources load from the appropriate path
+		})();
     </script>
 </head>
 <body>

@@ -3,7 +3,7 @@ using NUnit.Framework;
 
 namespace Tests {
 
-    public class ReactViewDefaultStyleSheetTests : ReactViewTestBase {
+    public class ReactViewDefaultStyleSheetLoadTests : ReactViewTestBase {
 
         protected override void InitializeView() {
             TargetView.DefaultStyleSheet = "ReactViewResources/styles/default.css";
