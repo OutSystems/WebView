@@ -144,6 +144,15 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\node_modules\require-css\css.min.js" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\node_modules\preact\dist\preact.min.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\node_modules\preact-compat\dist\preact-compat.min.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\node_modules\prop-types\prop-types.min.js" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="InjectModuleInitializer" AfterTargets="AfterBuild">
     <Exec Command="..\packages\InjectModuleInitializer.1.5\tools\InjectModuleInitializer.exe &quot;$(TargetPath)&quot;" />
