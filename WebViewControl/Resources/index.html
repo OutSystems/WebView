@@ -25,7 +25,7 @@
 			msgContainer.innerText = msg;
 		};
 	</script>
-    <script src="node_modules/requirejs/require.js"></script>
+	<script src="node_modules/requirejs/require.js"></script>
     <script>
 		(function () {
 			let urlParams = location.search.substring(1).split("&");
@@ -34,18 +34,38 @@
 			let userComponent = urlParams[2];
 			let additionalModule = urlParams[3];
 			let userDefaultStylesheet = urlParams[4];
+			let useEnhancedRenderingEngine = urlParams[5] === "1";
 			let libsPath = builtinResourcesPath + "node_modules/";
+
+			let paths;
+
+			if (useEnhancedRenderingEngine) {
+				// load preact
+				paths = {
+					"prop-types": libsPath + "prop-types/prop-types.min",
+					"react": libsPath + "preact-compat/dist/preact-compat.min",
+				};
+
+				define("preact", [libsPath + "preact/dist/preact.min.js"], function () {
+					// export preact as a module
+					return window.preact;
+				});
+
+				define("react-dom", ["react"], function (react) {
+					// export react-dom as a module
+					return react;
+				});
+			} else {
+				// load react
+				paths = {
+					"react": libsPath + "react/dist/react.min",
+					"react-dom": libsPath + "react-dom/dist/react-dom.min",
+				};
+			}
 
 			require.config({
 				baseUrl: baseUrl,
-				paths: {
-					"prop-types": libsPath + "prop-types/prop-types.min",
-					"react": libsPath + "preact-compat/dist/preact-compat.min",
-
-					//"react": libsPath + "react/dist/react.min",
-					//"react-dom": libsPath + "react-dom/dist/react-dom.min",
-					"index": builtinResourcesPath + "builtin/index"
-				},
+				paths: paths,
 				map: {
 					'*': {
 						'css': libsPath + "require-css/css.min.js"
@@ -57,18 +77,14 @@
 				userDefaultStylesheet = "css!" + userDefaultStylesheet;
 			}
 			
-			define("preact", [libsPath + "preact/dist/preact.min.js"], function (preact) {
-				return window.preact;
+			require(["react", "react-dom", userComponent, additionalModule, userDefaultStylesheet], function (React, ReactDOM, WebViewComponentModule) {
+				let WebViewComponent = WebViewComponentModule.default;
+				window.__Root__ = ReactDOM.render(
+					React.createElement(WebViewComponent, __RootProperties__),
+					document.getElementById("webview_root"),
+					() => __WebviewListener__.notify("Ready")
+				);
 			});
-
-			define("react-dom", ["react"], function (react) {
-				return react;
-			});
-				
-			require(["index", additionalModule, userDefaultStylesheet], function (IndexModule) {
-				IndexModule.initialize(userComponent);
-			});
-			
 
 			document.write("<base href='" + baseUrl + "'/>"); // let images and other resources load from the appropriate path
 		})();

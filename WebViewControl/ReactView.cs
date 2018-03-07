@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Windows;
@@ -31,6 +30,8 @@ namespace WebViewControl {
         public ReactView(object rootProperties) {
             Initialize(rootProperties);
         }
+
+        public static bool UseEnhancedRenderingEngine { get; set; } = true;
 
         private void Initialize(object rootProperties) {
             SetResourceReference(StyleProperty, typeof(ReactView)); // force styles to be inherited
@@ -93,7 +94,8 @@ namespace WebViewControl {
                 baseUrl,
                 defaultSource,
                 "",
-                ""
+                "",
+                UseEnhancedRenderingEngine ? "1" : "0",
             };
 
             if (AdditionalModule != null) {

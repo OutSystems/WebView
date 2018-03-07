@@ -121,7 +121,6 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
-    <None Include="Resources\tsconfig.json" />
     <None Include="WebViewControl.nuspec">
       <SubType>Designer</SubType>
     </None>
@@ -129,12 +128,6 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\index.html" />
-  </ItemGroup>
-  <ItemGroup>
-    <TypeScriptCompile Include="Resources\src\index.tsx" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\builtin\index.js" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\node_modules\react-dom\dist\react-dom.min.js" />
