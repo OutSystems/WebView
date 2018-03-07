@@ -72,7 +72,7 @@ How to use:
 		}
 
 		render() {
-			return <button onClick={() => this.props.click()}>Click me!</button>
+			return <button onClick={() => this.props.click(null)}>Click me!</button>
 		}
 	}
 
