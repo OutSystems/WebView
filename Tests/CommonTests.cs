@@ -30,7 +30,7 @@ namespace Tests {
             Exception exception = null;
 
             WithUnhandledExceptionHandling(() => {
-                var listener = TargetView.AttachListener("event_name", () => throw new Exception(ExceptionMessage));
+                var listener = TargetView.AttachListener("event_name", () => throw new Exception(ExceptionMessage), executeInUI: false);
 
                 LoadAndWaitReady($"<html><script>{listener}</script><body></body></html>");
 
@@ -54,5 +54,19 @@ namespace Tests {
             WaitFor(() => beforeNavigatedCalled);
             Assert.IsTrue(beforeNavigatedCalled);
         }
+
+        [Test(Description = "Javascript evaluation on navigated event does not block")]
+        public void JavascriptEvaluationOnNavigatedDoesNotBlock() {
+            var navigated = false;
+            TargetView.Navigated += _ => {
+                TargetView.EvaluateScript<int>("1+1");
+                navigated = true;
+            };
+            LoadAndWaitReady("<html>><body></body></html>");
+
+            WaitFor(() => navigated);
+            Assert.IsTrue(navigated);
+        }
+
     }
 }

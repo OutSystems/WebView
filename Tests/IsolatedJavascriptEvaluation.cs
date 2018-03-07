@@ -34,7 +34,7 @@ namespace Tests {
                 return originalFunc();
             };
             TargetView.RegisterJavascriptObject(DotNetObject, functionToCall, interceptor);
-            LoadAndWaitReady("<html><script>DotNetObject.invoke();</script><body></body></html>");
+            LoadAndWaitReady($"<html><script>{DotNetObject}.invoke();</script><body></body></html>");
 
             WaitFor(() => functionCalled, TimeSpan.FromSeconds(2));
             Assert.IsTrue(functionCalled);
@@ -42,7 +42,7 @@ namespace Tests {
         }
 
         [Test(Description = "Registered object methods are called in Dispatcher thread")]
-        public void RegisteredJsObjectMethodExecutesInDispactherThread() {
+        public void RegisteredJsObjectMethodExecutesInDispatcherThread() {
             const string DotNetObject = "DotNetObject";
             bool? canAccessDispatcher = null;
 
@@ -51,10 +51,30 @@ namespace Tests {
                 return 10;
             };
             TargetView.RegisterJavascriptObject(DotNetObject, functionToCall, executeCallsInUI: true);
-            LoadAndWaitReady("<html><script>DotNetObject.invoke();</script><body></body></html>");
+            LoadAndWaitReady($"<html><script>{DotNetObject}.invoke();</script><body></body></html>");
 
             WaitFor(() => canAccessDispatcher != null, TimeSpan.FromSeconds(2));
             Assert.IsTrue(canAccessDispatcher);
+        }
+
+        [Test(Description = "Registered object methods when called in Dispatcher thread do not block")]
+        public void RegisteredJsObjectMethodExecutesInDispatcherThreadWithoutBlocking() {
+            const string DotNetObject = "DotNetObject";
+            bool functionCalled = false;
+
+            Func<int> functionToCall = () => {
+                TargetView.EvaluateScript<int>("1+1");
+                functionCalled = true;
+                return 1;
+            };
+
+            TargetView.RegisterJavascriptObject(DotNetObject, functionToCall, executeCallsInUI: true);
+            LoadAndWaitReady("<html><script>function test() { DotNetObject.invoke(); return 1; }</script><body></body></html>");
+
+            var result = TargetView.EvaluateScriptFunction<int>("test");
+
+            WaitFor(() => functionCalled, TimeSpan.FromSeconds(2));
+            Assert.AreEqual(1, result);
         }
 
         [Test(Description = ".Net Method params serialization works with nulls")]
@@ -69,34 +89,12 @@ namespace Tests {
                 obtainedArg2 = arg2;
             };
             TargetView.RegisterJavascriptObject(DotNetObject, functionToCall);
-            LoadAndWaitReady("<html><script>DotNetObject.invoke(null, ['hello', null, 'world']);</script><body></body></html>");
+            LoadAndWaitReady($"<html><script>{DotNetObject}.invoke(null, ['hello', null, 'world']);</script><body></body></html>");
 
             WaitFor(() => functionCalled, TimeSpan.FromSeconds(2));
             Assert.IsTrue(functionCalled);
             Assert.AreEqual(null, obtainedArg1);
             Assert.That(new[] { "hello", null, "world" }, Is.EquivalentTo(obtainedArg2));
-        }
-
-        [Test(Description = "Unhandled Exception event is called when an async unhandled error occurs inside a object bound method")]
-        public void UnhandledExceptionEventIsCalledOnBoundObjectCallError() {
-            const string ExceptionMessage = "hey!";
-            const string DotNetObject = "DotNetObject";
-
-            Exception exception = null;
-
-            var func = new Func<object>(() => throw new Exception(ExceptionMessage));
-
-            WithUnhandledExceptionHandling(() => {
-                TargetView.RegisterJavascriptObject(DotNetObject, func, executeCallsInUI: true);
-                LoadAndWaitReady("<html><script>DotNetObject.invoke();</script><body></body></html>");
-
-                WaitFor(() => exception != null);
-                Assert.IsTrue(exception.ToString().Contains(ExceptionMessage));
-            },
-            e => {
-                exception = e;
-                return true;
-            });
         }
     }
 }

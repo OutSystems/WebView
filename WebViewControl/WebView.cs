@@ -232,7 +232,7 @@ namespace WebViewControl {
 
         protected override void OnGotFocus(RoutedEventArgs e) {
             base.OnGotFocus(e);
-            ExecuteWhenInitialized(() => AsyncExecuteInUI(() => { chromium.Focus(); }));
+            ExecuteWhenInitialized(() => AsyncExecuteInUI(() => { chromium?.Focus(); }));
         }
 
         private void OnPreviewKeyDown(object sender, KeyEventArgs e) {
@@ -333,7 +333,7 @@ namespace WebViewControl {
 
         public void RegisterJavascriptObject(string name, object objectToBind, Func<Func<object>, object> interceptCall = null, Func<object, Type, object> bind = null, bool executeCallsInUI = false) {
             if (executeCallsInUI) {
-                Func<Func<object>, object> interceptorWrapper = target => AsyncExecuteInUI(target);
+                Func<Func<object>, object> interceptorWrapper = target => Dispatcher.Invoke(target);
                 RegisterJavascriptObject(name, objectToBind, interceptorWrapper, bind, false);
 
             } else {
@@ -414,8 +414,7 @@ namespace WebViewControl {
             Action<string> internalHandler = (eventName) => {
                 if (!isDisposing && eventName == name) {
                     if (executeInUI) {
-                        // invoke async otherwise if we try to execute some script  on the browser as a result of this notification, it will block forever
-                        AsyncExecuteInUI(handler);
+                        Dispatcher.Invoke(handler);
                     } else {
                         ExecuteWithAsyncErrorHandling(handler);
                     }
@@ -442,16 +441,18 @@ namespace WebViewControl {
 
         private void OnWebViewFrameLoadEnd(object sender, FrameLoadEndEventArgs e) {
             htmlToLoad = null;
-            if (e.Frame.IsMain && Navigated != null) {
-                AsyncExecuteInUI(() => Navigated?.Invoke(e.Url));
+            var navigated = Navigated;
+            if (e.Frame.IsMain && navigated != null) {
+                AsyncExecuteInUI(() => navigated.Invoke(e.Url));
             }
         }
 
         private void OnWebViewLoadError(object sender, LoadErrorEventArgs e) {
             htmlToLoad = null;
-            if (e.ErrorCode != CefErrorCode.Aborted && LoadFailed != null) {
+            var loadFailed = LoadFailed;
+            if (e.ErrorCode != CefErrorCode.Aborted && loadFailed != null) {
                 // ignore aborts, to prevent situations where we try to load an address inside Load failed handler (and its aborted)
-                AsyncExecuteInUI(() => LoadFailed?.Invoke(e.FailedUrl, (int) e.ErrorCode));
+                AsyncExecuteInUI(() => loadFailed.Invoke(e.FailedUrl, (int) e.ErrorCode));
             }
         }
 
@@ -543,31 +544,6 @@ namespace WebViewControl {
                 },
                 DispatcherPriority.Normal, 
                 cancellationTokenSource.Token);
-        }
-
-        private object AsyncExecuteInUI(Func<object> func) {
-            if (isDisposing) {
-                return null;
-            }
-            try {
-                // use async call to avoid dead-locks, otherwise if the source action tries to to evaluate js it would block
-                var operation = Dispatcher.InvokeAsync(
-                    () => {
-                        if (!isDisposing) {
-                            return func();
-                        }
-                        return null;
-                    },
-                    DispatcherPriority.Normal,
-                    cancellationTokenSource.Token);
-                operation.Task.Wait(cancellationTokenSource.Token);
-                return operation.Result;
-            } catch (OperationCanceledException) {
-                return null;
-            } catch (Exception e) {
-                ForwardUnhandledAsyncException(e);
-                return null;
-            }
         }
 
         [DebuggerNonUserCode]
