@@ -176,7 +176,6 @@ namespace WebViewControl {
             chromium.MenuHandler = new CefMenuHandler(this);
             chromium.DialogHandler = new CefDialogHandler(this);
             chromium.DownloadHandler = new CefDownloadHandler(this);
-
             jsExecutor = new JavascriptExecutor(this);
 
             RegisterJavascriptObject(Listener.EventListenerObjName, eventsListener);
@@ -332,6 +331,10 @@ namespace WebViewControl {
         }
 
         public void RegisterJavascriptObject(string name, object objectToBind, Func<Func<object>, object> interceptCall = null, Func<object, Type, object> bind = null, bool executeCallsInUI = false) {
+            InternalRegisterJavascriptObject(name, objectToBind, interceptCall, bind, executeCallsInUI);
+        }
+
+        internal void InternalRegisterJavascriptObject(string name, object objectToBind, Func<Func<object>, object> interceptCall = null, Func<object, Type, object> bind = null, bool executeCallsInUI = false, bool dynamicBinding = false) {
             if (executeCallsInUI) {
                 Func<Func<object>, object> interceptorWrapper = target => Dispatcher.Invoke(target);
                 RegisterJavascriptObject(name, objectToBind, interceptorWrapper, bind, false);
@@ -361,7 +364,7 @@ namespace WebViewControl {
                     };
                 }
                 bindingOptions.MethodInterceptor = new LambdaMethodInterceptor(interceptorWrapper);
-                chromium.RegisterAsyncJsObject(name, objectToBind, bindingOptions);
+                chromium.JavascriptObjectRepository.Register(name, objectToBind, true, bindingOptions);
             }
         }
 
@@ -505,7 +508,7 @@ namespace WebViewControl {
         }
 
         private static bool IsFrameworkAssemblyName(string name) {
-            return name == "PresentationFramework" || name == "PresentationCore" || name == "mscorlib" || name == "System.Xaml";
+            return name == "PresentationFramework" || name == "PresentationCore" || name == "mscorlib" || name == "System.Xaml" || name == "WindowsBase";
         }
 
         internal static Assembly GetUserCallingAssembly() {

@@ -28,25 +28,23 @@
 	<script src="node_modules/requirejs/require.js"></script>
     <script>
 		(function () {
-			let urlParams = location.search.substring(1).split("&");
-			let builtinResourcesPath = urlParams[0];
-			let baseUrl = urlParams[1];
-			let userComponent = urlParams[2];
-			let additionalModule = urlParams[3];
-			let userDefaultStylesheet = urlParams[4];
-			let useEnhancedRenderingEngine = urlParams[5] === "1";
-			let libsPath = builtinResourcesPath + "node_modules/";
+			const UrlParams = location.search.substring(1).split("&");
+			const UseEnhancedRenderingEngine = UrlParams[0] === "1";
+			const LibsPath = UrlParams[1];
+			const RootObjectName = UrlParams[2];
+			const RootPropertiesName = UrlParams[3];
+			const ReadyEventName = UrlParams[4];
 
 			let paths;
 
-			if (useEnhancedRenderingEngine) {
+			if (UseEnhancedRenderingEngine) {
 				// load preact
 				paths = {
-					"prop-types": libsPath + "prop-types/prop-types.min",
-					"react": libsPath + "preact-compat/dist/preact-compat.min",
+					"prop-types": LibsPath + "prop-types/prop-types.min",
+					"react": LibsPath + "preact-compat/dist/preact-compat.min",
 				};
 
-				define("preact", [libsPath + "preact/dist/preact.min.js"], function () {
+				define("preact", [LibsPath + "preact/dist/preact.min.js"], function () {
 					// export preact as a module
 					return window.preact;
 				});
@@ -58,35 +56,52 @@
 			} else {
 				// load react
 				paths = {
-					"react": libsPath + "react/dist/react.min",
-					"react-dom": libsPath + "react-dom/dist/react-dom.min",
+					"react": LibsPath + "react/dist/react.min",
+					"react-dom": LibsPath + "react-dom/dist/react-dom.min",
 				};
 			}
 
 			require.config({
-				baseUrl: baseUrl,
 				paths: paths,
 				map: {
 					'*': {
-						'css': libsPath + "require-css/css.min.js"
+						'css': LibsPath + "require-css/css.min.js"
 					}
 				}
 			});
 
-			if (userDefaultStylesheet) {
-				userDefaultStylesheet = "css!" + userDefaultStylesheet;
-			}
-			
-			require(["react", "react-dom", userComponent, additionalModule, userDefaultStylesheet], function (React, ReactDOM, WebViewComponentModule) {
-				let WebViewComponent = WebViewComponentModule.default;
-				window.__Root__ = ReactDOM.render(
-					React.createElement(WebViewComponent, __RootProperties__),
-					document.getElementById("webview_root"),
-					() => __WebviewListener__.notify("Ready")
-				);
-			});
+			require(["react", "react-dom"]); // preload react
 
-			document.write("<base href='" + baseUrl + "'/>"); // let images and other resources load from the appropriate path
+			window.load = function (baseUrl, userComponent, additionalModule, userDefaultStylesheet) {
+				require.config({
+					baseUrl: baseUrl
+				});
+
+				if (userDefaultStylesheet) {
+					userDefaultStylesheet = "css!" + userDefaultStylesheet;
+				}
+
+				var baseElement = document.createElement("base");
+				baseElement.href = baseUrl;
+				document.head.appendChild(baseElement); // let images and other resources load from the appropriate path
+
+				require(["react", "react-dom", userComponent, additionalModule, userDefaultStylesheet], function (React, ReactDOM, WebViewComponentModule) {
+					let WebViewComponent = WebViewComponentModule.default;
+					CefSharp.BindObjectAsync(RootPropertiesName, RootPropertiesName).then(() => {
+						window[RootObjectName] = ReactDOM.render(
+							React.createElement(WebViewComponent, window[RootPropertiesName]),
+							document.getElementById("webview_root"),
+							() => __WebviewListener__.notify(ReadyEventName)
+						);
+					});
+				});
+
+				function notifyReady() {
+					CefSharp.BindObjectAsync(RootPropertiesName, RootPropertiesName).then(() => {
+
+					});
+				}
+			}
 		})();
     </script>
 </head>

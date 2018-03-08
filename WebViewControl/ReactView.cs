@@ -1,133 +1,122 @@
 ﻿using System;
 using System.Linq;
-using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Threading;
 
 namespace WebViewControl {
 
-    public partial class ReactView : ContentControl, IDisposable {
+    public partial class ReactView : ContentControl, IReactView {
 
-        private const string PathSeparator = "/";
-        private const string RootObject = "__Root__";
-        private const string ReadyEventName = "Ready";
+        private static Window window;
+        private static ReactViewRender cachedView;
 
-        private static readonly string AssemblyName = typeof(ReactView).Assembly.GetName().Name;
-        private static readonly string BuiltinResourcesPath = AssemblyName + "/Resources/";
-        private static readonly string DefaultUrl = BuiltinResourcesPath + "index.html";
-
-        private readonly WebView webView = new WebView();
-        private Assembly userCallingAssembly;
-
-        private bool enableDebugMode = false;
-        private bool isSourceSet = false;
-        private Listener readyEventListener;
-
-        public ReactView() {
-            Initialize(CreateRootPropertiesObject());
+        static ReactView() {
+            EventManager.RegisterClassHandler(typeof(Window), Window.LoadedEvent, new RoutedEventHandler(OnWindowLoaded), true);
         }
 
-        public ReactView(object rootProperties) {
-            Initialize(rootProperties);
+        private static void OnWindowLoaded(object sender, EventArgs e) {
+            var window = (Window)sender;
+            window.Closed -= OnWindowLoaded;
+            window.Closed += OnWindowClosed;
         }
 
-        public static bool UseEnhancedRenderingEngine { get; set; } = true;
+        private static void OnWindowClosed(object sender, EventArgs e) {
+            var windows = Application.Current.Windows.Cast<Window>();
+#if DEBUG
+            windows = windows.Where(w => w.GetType().FullName != "Microsoft.VisualStudio.DesignTools.WpfTap.WpfVisualTreeService.Adorners.AdornerLayerWindow");
+#endif
+            if (windows.Count() == 1 && windows.Single() == window) {
+                // close helper window
+                window.Close();
+                window = null;
+            }
+        }
 
-        private void Initialize(object rootProperties) {
+        private static ReactViewRender CreateReactViewInstance() {
+            var result = cachedView;
+            cachedView = null;
+            Application.Current.Dispatcher.BeginInvoke((Action)(() => {
+                cachedView = new ReactViewRender();
+                if (window == null) {
+                    window = new Window() {
+                        ShowActivated = false,
+                        WindowStyle = WindowStyle.None,
+                        ShowInTaskbar = false,
+                        Visibility = Visibility.Hidden,
+                        Width = 1000,
+                        Height = 1000,
+                        Top = int.MinValue,
+                        Left = int.MinValue,
+                        IsEnabled = false
+                    };
+                    window.Show();
+                }
+                window.Content = cachedView;
+            }), DispatcherPriority.Background);
+            return result ?? new ReactViewRender();
+        }
+
+        private readonly ReactViewRender view;
+
+        public ReactView(bool usePreloadedWebView = true) {
             SetResourceReference(StyleProperty, typeof(ReactView)); // force styles to be inherited
 
-            userCallingAssembly = WebView.GetUserCallingAssembly();
-
-            webView.DisableBuiltinContextMenus = true;
-            webView.IgnoreMissingResources = false;
-            webView.AttachListener(ReadyEventName, () => IsReady = true, executeInUI: false);
-
-            if (rootProperties != null) {
-                webView.RegisterJavascriptObject("__RootProperties__", rootProperties, executeCallsInUI: false);
+            if (usePreloadedWebView) {
+                view = CreateReactViewInstance();
+            } else {
+                view = new ReactViewRender();
             }
-
-            Content = webView;
+            Content = view;
+            view.LoadComponent(Source, CreateRootPropertiesObject());
         }
 
+        public static readonly DependencyProperty DefaultStyleSheetProperty = DependencyProperty.Register(
+            nameof(DefaultStyleSheet),
+            typeof(string),
+            typeof(ReactView), 
+            new PropertyMetadata(OnDefaultStyleSheetPropertyChanged));
+
+        private static void OnDefaultStyleSheetPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+            ((ReactView)d).view.DefaultStyleSheet = (string) e.NewValue;
+        }
+
+        public string DefaultStyleSheet {
+            get { return (string)GetValue(DefaultStyleSheetProperty); }
+            set { SetValue(DefaultStyleSheetProperty, value); }
+        }
+
+        public static readonly DependencyProperty AdditionalModuleProperty = DependencyProperty.Register(
+            nameof(AdditionalModule),
+            typeof(string),
+            typeof(ReactView),
+            new PropertyMetadata(OnAdditionalModulePropertyChanged));
+
+        private static void OnAdditionalModulePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+            ((ReactView)d).view.AdditionalModule = (string) e.NewValue;
+        }
+
+        public string AdditionalModule {
+            get { return (string)GetValue(AdditionalModuleProperty); }
+            set { SetValue(AdditionalModuleProperty, value); }
+        }
+
+        public bool EnableDebugMode { get => view.EnableDebugMode; set => view.EnableDebugMode = value; }
+
+        public bool IsReady => view.IsReady;
+
         public event Action Ready {
-            add { readyEventListener = webView.AttachListener(ReadyEventName, value); }
-            remove {
-                if (readyEventListener != null) {
-                    webView.DetachListener(readyEventListener);
-                }
-            }
+            add { view.Ready += value; }
+            remove { view.Ready -= value; }
         }
 
         public event Action<UnhandledExceptionEventArgs> UnhandledAsyncException {
-            add { webView.UnhandledAsyncException += value; }
-            remove { webView.UnhandledAsyncException -= value; }
-        }
-
-        public override void OnApplyTemplate() {
-            base.OnApplyTemplate();
-            if (!isSourceSet) {
-                // wait for default stylesheet property to be set
-                LoadSource();
-                isSourceSet = true;
-            }
-        }
-
-        private void LoadSource() {
-            const string JsExtension = ".js";
-
-            var source = NormalizeUrl(Source ?? "");
-            if (source.EndsWith(JsExtension)) {
-                source = source.Substring(0, source.Length - JsExtension.Length);
-            }
-
-            var filenameParts = source.Split(new[] { PathSeparator }, StringSplitOptions.None);
-
-            // eg: example/dist/source.js
-            // defaultSource = ./dist/source.js
-            // baseUrl = /AssemblyName/example/
-            var sourceDepth = filenameParts.Length >= 2 ? 2 : 1; 
-            var defaultSource = "./" + string.Join(PathSeparator, filenameParts.Reverse().Take(sourceDepth).Reverse()); // take last 2 parts of the path
-            var baseUrl = ToFullUrl(string.Join(PathSeparator, filenameParts.Take(filenameParts.Length - sourceDepth))) + PathSeparator;
-
-            var urlParams = new string[] {
-                PathSeparator + BuiltinResourcesPath,
-                baseUrl,
-                defaultSource,
-                "",
-                "",
-                UseEnhancedRenderingEngine ? "1" : "0",
-            };
-
-            if (AdditionalModule != null) {
-                urlParams[3] = NormalizeUrl(ToFullUrl(AdditionalModule));
-            }
-
-            if (DefaultStyleSheet != null) {
-                urlParams[4] = NormalizeUrl(ToFullUrl(DefaultStyleSheet));
-            }
-
-            var url = WebView.BuildEmbeddedResourceUrl(AssemblyName, DefaultUrl + "?" + string.Join("&", urlParams));
-            webView.Address = url;
-        }
-
-        private static string NormalizeUrl(string url) {
-            return url.Replace("\\", PathSeparator);
-        }
-
-        private string ToFullUrl(string url) {
-            return (url.StartsWith(PathSeparator) || url.Contains(Uri.SchemeDelimiter)) ? url : $"/{userCallingAssembly.GetName().Name}/{url}";
+            add { view.UnhandledAsyncException += value; }
+            remove { view.UnhandledAsyncException -= value; }
         }
 
         public void Dispose() {
-            webView.Dispose();
-        }
-
-        protected void ExecuteMethodOnRoot(string methodCall, params string[] args) {
-            webView.ExecuteScriptFunction(RootObject + "." + methodCall, args);
-        }
-
-        protected T EvaluateMethodOnRoot<T>(string methodCall, params string[] args) {
-            return webView.EvaluateScriptFunction<T>(RootObject + "." + methodCall, args);
+            view.Dispose();
         }
 
         protected virtual object CreateRootPropertiesObject() {
@@ -136,48 +125,12 @@ namespace WebViewControl {
 
         protected virtual string Source => null;
 
-        public static readonly DependencyProperty DefaultStyleSheetProperty = DependencyProperty.Register(
-            nameof(DefaultStyleSheet), 
-            typeof(string),
-            typeof(ReactView));
-
-        public string DefaultStyleSheet {
-            get { return (string) GetValue(DefaultStyleSheetProperty); }
-            set { SetValue(DefaultStyleSheetProperty, value); }
+        protected void ExecuteMethodOnRoot(string methodCall, params string[] args) {
+            view.ExecuteMethodOnRoot(methodCall, args);
         }
 
-        public static readonly DependencyProperty AdditionalModuleProperty = DependencyProperty.Register(
-            nameof(AdditionalModule),
-            typeof(string),
-            typeof(ReactView));
-
-        public string AdditionalModule {
-            get { return (string)GetValue(AdditionalModuleProperty); }
-            set { SetValue(AdditionalModuleProperty, value); }
-        }
-
-        public bool IsReady { get; private set; }
-        
-        public bool EnableDebugMode {
-            get { return enableDebugMode; }
-            set {
-                enableDebugMode = value;
-                webView.AllowDeveloperTools = enableDebugMode;
-                if (enableDebugMode) {
-                    webView.ResourceLoadFailed += ShowResourceLoadFailedMessage;
-                } else {
-                    webView.ResourceLoadFailed -= ShowResourceLoadFailedMessage;
-                }
-            }
-        }
-
-        private void ShowResourceLoadFailedMessage(string url) {
-            ShowErrorMessage("Failed to load resource '" + url + "'. Press F12 to open developer tools and see more details.");
-        }
-
-        private void ShowErrorMessage(string msg) {
-            msg = msg.Replace("\"", "\\\"");
-            webView.ExecuteScript($"showErrorMessage(\"{msg}\")");
+        protected T EvaluateMethodOnRoot<T>(string methodCall, params string[] args) {
+            return view.EvaluateMethodOnRoot<T>(methodCall, args);
         }
     }
 }

@@ -1,14 +1,21 @@
-﻿namespace WebViewControl {
+﻿using System;
+
+namespace WebViewControl {
 
     partial class ReactView {
 
-        protected class BaseNativeApi<ConcreteType> {
+        public class BaseNativeApi<ConcreteType> {
 
             protected readonly ConcreteType owner;
 
             public BaseNativeApi(ConcreteType owner) {
                 this.owner = owner;
             }
+
+            public void Ready() {
+            }
+
+            public event Action Ready;
         }
     }
 }
