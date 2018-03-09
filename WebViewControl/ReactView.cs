@@ -60,14 +60,17 @@ namespace WebViewControl {
         private readonly ReactViewRender view;
 
         public ReactView(bool usePreloadedWebView = true) {
-            SetResourceReference(StyleProperty, typeof(ReactView)); // force styles to be inherited
-            
             if (usePreloadedWebView) {
                 view = CreateReactViewInstance();
             } else {
                 view = new ReactViewRender();
             }
+            SetResourceReference(StyleProperty, typeof(ReactView)); // force styles to be inherited, must be called after view is created otherwise view might be null
             Content = view;
+            Initialize();
+        }
+
+        protected virtual void Initialize() {
             view.LoadComponent(Source, CreateRootPropertiesObject());
         }
 

@@ -97,7 +97,8 @@ namespace WebViewControl {
                 cefSettings.LogSeverity = LogSeverity.Disable; // disable writing of debug.log
                 cefSettings.UncaughtExceptionStackSize = 100; // enable stack capture
                 cefSettings.CachePath = TempDir; // enable cache for external resources to speedup loading
-                
+                CefSharpSettings.LegacyJavascriptBindingEnabled = true;
+
                 foreach (var scheme in CustomSchemes) {
                     cefSettings.RegisterScheme(new CefCustomScheme() {
                         SchemeName = scheme,
@@ -176,6 +177,7 @@ namespace WebViewControl {
             chromium.MenuHandler = new CefMenuHandler(this);
             chromium.DialogHandler = new CefDialogHandler(this);
             chromium.DownloadHandler = new CefDownloadHandler(this);
+            
             jsExecutor = new JavascriptExecutor(this);
 
             RegisterJavascriptObject(Listener.EventListenerObjName, eventsListener);

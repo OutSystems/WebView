@@ -37,7 +37,17 @@ namespace WebViewControl {
             webView.Navigated += OnWebViewNavigated;
 
             Content = webView;
-            LoadFramework();
+
+            var urlParams = new string[] {
+                UseEnhancedRenderingEngine ? "1" : "0",
+                LibrariesPath,
+                RootObject,
+                RootPropertiesName,
+                Listener.EventListenerObjName,
+                ReadyEventName
+            };
+
+            webView.Address = WebView.BuildEmbeddedResourceUrl(AssemblyName, DefaultUrl + "?" + string.Join("&", urlParams));
         }
 
         public event Action Ready {
@@ -52,19 +62,6 @@ namespace WebViewControl {
         public event Action<UnhandledExceptionEventArgs> UnhandledAsyncException {
             add { webView.UnhandledAsyncException += value; }
             remove { webView.UnhandledAsyncException -= value; }
-        }
-
-        private void LoadFramework() {
-            var urlParams = new string[] {
-                UseEnhancedRenderingEngine ? "1" : "0",
-                LibrariesPath,
-                RootObject,
-                RootPropertiesName,
-                Listener.EventListenerObjName,
-                ReadyEventName
-            };
-
-            webView.Address = WebView.BuildEmbeddedResourceUrl(AssemblyName, DefaultUrl + "?" + string.Join("&", urlParams));
         }
 
         public void LoadComponent(string source, object rootProperties) {
@@ -103,7 +100,6 @@ namespace WebViewControl {
             }
 
             webView.RegisterJavascriptObject(RootPropertiesName, rootProperties ?? new object(), executeCallsInUI: false);
-
             webView.ExecuteScriptFunction("load", Quote(baseUrl), Quote(defaultSource), Quote(additionalModule), Quote(defaultStyleSheet));
         }
 
@@ -165,6 +161,5 @@ namespace WebViewControl {
         private static string NormalizeUrl(string url) {
             return url.Replace("\\", PathSeparator);
         }
-
     }
 }

@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace WebViewControl {
+﻿namespace WebViewControl {
 
     partial class ReactView {
 
