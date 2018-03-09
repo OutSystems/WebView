@@ -28,14 +28,14 @@
 	<script src="node_modules/requirejs/require.js"></script>
     <script>
 		(function () {
-			const UrlParams = location.search.substring(1).split("&");
+			const UrlParams = Array.from(new URLSearchParams(location.search).keys());
 			const UseEnhancedRenderingEngine = UrlParams[0] === "1";
 			const LibsPath = UrlParams[1];
 			const RootObjectName = UrlParams[2];
 			const RootPropertiesName = UrlParams[3];
-			const EventlistenerObjectName = UrlParams[4];
+			const EventListenerObjectName = UrlParams[4];
 			const ReadyEventName = UrlParams[5];
-
+			
 			let paths;
 
 			if (UseEnhancedRenderingEngine) {
@@ -98,8 +98,8 @@
 				});
 
 				function notifyReady() {
-					CefSharp.BindObjectAsync(EventlistenerObjectName, EventlistenerObjectName).then(() => {
-						window[EventlistenerObjectName].notify(ReadyEventName);
+					CefSharp.BindObjectAsync(EventListenerObjectName, EventListenerObjectName).then(() => {
+						window[EventListenerObjectName].notify(ReadyEventName);
 					});
 				}
 			}

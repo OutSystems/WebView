@@ -22,6 +22,9 @@ namespace WebViewControl {
 
         private bool enableDebugMode = false;
         private Listener readyEventListener;
+        private string source;
+        private object rootProperties;
+        private bool pageLoaded = false;
 
         public static bool UseEnhancedRenderingEngine { get; set; } = true;
 
@@ -31,7 +34,8 @@ namespace WebViewControl {
             webView.DisableBuiltinContextMenus = true;
             webView.IgnoreMissingResources = false;
             webView.AttachListener(ReadyEventName, () => IsReady = true, executeInUI: false);
-            
+            webView.Navigated += OnWebViewNavigated;
+
             Content = webView;
             LoadFramework();
         }
@@ -64,6 +68,14 @@ namespace WebViewControl {
         }
 
         public void LoadComponent(string source, object rootProperties) {
+            this.source = source;
+            this.rootProperties = rootProperties;
+            if (pageLoaded) {
+                InternalLoadComponent();
+            }
+        }
+
+        private void InternalLoadComponent() {
             const string JsExtension = ".js";
 
             source = NormalizeUrl(source ?? "");
@@ -93,6 +105,13 @@ namespace WebViewControl {
             webView.RegisterJavascriptObject(RootPropertiesName, rootProperties ?? new object(), executeCallsInUI: false);
 
             webView.ExecuteScriptFunction("load", Quote(baseUrl), Quote(defaultSource), Quote(additionalModule), Quote(defaultStyleSheet));
+        }
+
+        private void OnWebViewNavigated(string obj) {
+            pageLoaded = true;
+            if (source != null && rootProperties != null) {
+                InternalLoadComponent();
+            }
         }
 
         public void Dispose() {

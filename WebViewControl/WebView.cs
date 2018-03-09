@@ -330,14 +330,23 @@ namespace WebViewControl {
             Address = DefaultLocalUrl;
         }
 
-        public void RegisterJavascriptObject(string name, object objectToBind, Func<Func<object>, object> interceptCall = null, Func<object, Type, object> bind = null, bool executeCallsInUI = false) {
-            InternalRegisterJavascriptObject(name, objectToBind, interceptCall, bind, executeCallsInUI);
-        }
+        /// <summary>
+        /// Registers an object with the specified name in the window context of the browser
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="objectToBind"></param>
+        /// <param name="interceptCall"></param>
+        /// <param name="bind"></param>
+        /// <param name="executeCallsInUI"></param>
+        /// <returns>True if the object was registered or false if the object was already registered before</returns>
+        public bool RegisterJavascriptObject(string name, object objectToBind, Func<Func<object>, object> interceptCall = null, Func<object, Type, object> bind = null, bool executeCallsInUI = false) {
+            if (chromium.JavascriptObjectRepository.IsBound(name)) {
+                return false;
+            }
 
-        internal void InternalRegisterJavascriptObject(string name, object objectToBind, Func<Func<object>, object> interceptCall = null, Func<object, Type, object> bind = null, bool executeCallsInUI = false, bool dynamicBinding = false) {
             if (executeCallsInUI) {
                 Func<Func<object>, object> interceptorWrapper = target => Dispatcher.Invoke(target);
-                RegisterJavascriptObject(name, objectToBind, interceptorWrapper, bind, false);
+                return RegisterJavascriptObject(name, objectToBind, interceptorWrapper, bind, false);
 
             } else {
                 var bindingOptions = new BindingOptions();
@@ -366,6 +375,8 @@ namespace WebViewControl {
                 bindingOptions.MethodInterceptor = new LambdaMethodInterceptor(interceptorWrapper);
                 chromium.JavascriptObjectRepository.Register(name, objectToBind, true, bindingOptions);
             }
+
+            return true;
         }
 
         public T EvaluateScript<T>(string script) {
@@ -478,7 +489,7 @@ namespace WebViewControl {
         }
 
         private static bool FilterRequest(IRequest request) {
-            return request.Url.ToLower().StartsWith(ChromeInternalProtocol) ||
+            return request.Url.StartsWith(ChromeInternalProtocol, StringComparison.InvariantCultureIgnoreCase) ||
                    request.Url.Equals(DefaultLocalUrl, StringComparison.InvariantCultureIgnoreCase);
         }
 
