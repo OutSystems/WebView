@@ -2,6 +2,7 @@
 import * as Units from "@outsystems/ts2lang/ts-units";
 
 const DelegateSuffix = "Delegate";
+const PropertiesClassName = "Properties";
 
 function f(input: string) {
     return (input || "").replace(/\n/g, "\n    ");
@@ -55,14 +56,14 @@ function generateBehaviorMethod(func: Units.TsFunction): string {
     );
 }
 
-function generateNativeApi(propsInterface: Units.TsInterface | null) {
+function generateNativeApi(propsInterface: Units.TsInterface | null, context: Object) {
     return f(
-        `internal interface INativeApi {\n` +
+        `internal interface I${PropertiesClassName} {\n` +
         `    ${propsInterface ? propsInterface.functions.map(f => generateMethodSignature(f) + ";\n").join("") : ""}` + 
         `}\n` +
         `\n` +
-        `private class NativeApi : BaseNativeApi<ControlType>, INativeApi {\n` +
-        `    public NativeApi(ControlType owner) : base(owner) { }\n` +
+        `private class ${PropertiesClassName} : ${getBaseComponentClass(context)}.Properties<ControlType>, I${PropertiesClassName} {\n` +
+        `    public ${PropertiesClassName}(ControlType owner) : base(owner) { }\n` +
         `    ${f(propsInterface ? (propsInterface.functions.length > 0 ? propsInterface.functions.map(f => generateNativeApiMethod(f)).join("\n") : "// the interface does not contain methods") : "")}\n` +
         `}`
     );
@@ -113,6 +114,10 @@ function normalizePath(path: string): string {
     return path.replace(/\\/g, "/")
 }
 
+function getBaseComponentClass(context: Object) {
+    return context["baseComponentClass"] || "WebViewControl.ReactView";
+}
+
 export function transform(module: Units.TsModule, context: Object): string {
     let componentClass = module.classes[0];
     
@@ -156,18 +161,18 @@ namespace ${context["namespace"]} {
 
     using ControlType = ${componentClass.name};
 
-    public class ${componentClass.name} : ${context["baseComponentClass"] || "WebViewControl.ReactView"} {
+    public class ${componentClass.name} : ${getBaseComponentClass(context)} {
 
         ${f(generateNativeApiObjects(objects, enums))}
 
-        ${f(generateNativeApi(propsInterface))}
+        ${f(generateNativeApi(propsInterface, context))}
 
         ${f(generateControlBody(propsInterface, behaviorsInterface))} 
 
         protected override string Source => "${path}";
 
         protected override object CreateRootPropertiesObject() {
-            return new NativeApi(this);
+            return new ${PropertiesClassName}(this);
         }
     }
 }`);

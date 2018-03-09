@@ -56,7 +56,7 @@ namespace WebViewControl {
                 LibrariesPath,
                 RootObject,
                 RootPropertiesName,
-                Webvi
+                Listener.EventListenerObjName,
                 ReadyEventName
             };
 

@@ -33,7 +33,8 @@
 			const LibsPath = UrlParams[1];
 			const RootObjectName = UrlParams[2];
 			const RootPropertiesName = UrlParams[3];
-			const ReadyEventName = UrlParams[4];
+			const EventlistenerObjectName = UrlParams[4];
+			const ReadyEventName = UrlParams[5];
 
 			let paths;
 
@@ -91,14 +92,14 @@
 						window[RootObjectName] = ReactDOM.render(
 							React.createElement(WebViewComponent, window[RootPropertiesName]),
 							document.getElementById("webview_root"),
-							() => __WebviewListener__.notify(ReadyEventName)
+							() => notifyReady()
 						);
 					});
 				});
 
 				function notifyReady() {
-					CefSharp.BindObjectAsync(RootPropertiesName, RootPropertiesName).then(() => {
-
+					CefSharp.BindObjectAsync(EventlistenerObjectName, EventlistenerObjectName).then(() => {
+						window[EventlistenerObjectName].notify(ReadyEventName);
 					});
 				}
 			}
