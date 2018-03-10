@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -23,9 +24,9 @@ namespace WebViewControl {
 
         private static void OnWindowClosed(object sender, EventArgs e) {
             var windows = Application.Current.Windows.Cast<Window>();
-#if DEBUG
-            windows = windows.Where(w => w.GetType().FullName != "Microsoft.VisualStudio.DesignTools.WpfTap.WpfVisualTreeService.Adorners.AdornerLayerWindow");
-#endif
+            if (Debugger.IsAttached) {
+                windows = windows.Where(w => w.GetType().FullName != "Microsoft.VisualStudio.DesignTools.WpfTap.WpfVisualTreeService.Adorners.AdornerLayerWindow");
+            }
             if (windows.Count() == 1 && windows.Single() == window) {
                 // close helper window
                 window.Close();
@@ -44,8 +45,8 @@ namespace WebViewControl {
                         WindowStyle = WindowStyle.None,
                         ShowInTaskbar = false,
                         Visibility = Visibility.Hidden,
-                        Width = 1000,
-                        Height = 1000,
+                        Width = 50,
+                        Height = 50,
                         Top = int.MinValue,
                         Left = int.MinValue,
                         IsEnabled = false
