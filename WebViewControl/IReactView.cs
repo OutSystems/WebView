@@ -9,7 +9,5 @@ namespace WebViewControl {
 
         event Action Ready;
         event Action<UnhandledExceptionEventArgs> UnhandledAsyncException;
-
-        void Dispose();
     }
 }

@@ -22,7 +22,7 @@ namespace Tests {
         public void DisposeDoesNotHang() {
             var disposed = false;
             TargetView.Event += (args) => {
-                TargetView.Dispatcher.BeginInvoke((Action)(() => {
+                TargetView.Dispatcher.Invoke((() => {
                     TargetView.Dispose();
                     disposed = true;
                 }));

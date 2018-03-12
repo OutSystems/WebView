@@ -52,6 +52,7 @@ namespace WebViewControl {
         private string htmlToLoad;
         private JavascriptExecutor jsExecutor;
         private CefLifeSpanHandler lifeSpanHandler;
+        private volatile int javascriptPendingCalls;
 
         private readonly BrowserObjectListener eventsListener = new BrowserObjectListener();
         private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
@@ -202,6 +203,15 @@ namespace WebViewControl {
 
             isDisposing = true;
 
+            if (javascriptPendingCalls == 0) {
+                InternalDispose();
+            } else {
+                // avoid dead-lock
+                Dispatcher.BeginInvoke((Action)InternalDispose);
+            }
+        }
+
+        private void InternalDispose() {
             cancellationTokenSource.Cancel();
             chromium.RequestHandler = null;
             chromium.ResourceHandlerFactory = null;
@@ -364,14 +374,24 @@ namespace WebViewControl {
                         if (isDisposing) {
                             return null;
                         }
-                        return interceptCall(target);
+                        try {
+                            javascriptPendingCalls++;
+                            return interceptCall(target);
+                        } finally {
+                            javascriptPendingCalls--;
+                        }
                     };
                 } else {
                     interceptorWrapper = target => {
                         if (isDisposing) {
                             return null;
                         }
-                        return target();
+                        try {
+                            javascriptPendingCalls++;
+                            return target();
+                        } finally {
+                            javascriptPendingCalls--;
+                        }
                     };
                 }
                 bindingOptions.MethodInterceptor = new LambdaMethodInterceptor(interceptorWrapper);
