@@ -2,6 +2,9 @@
 import * as Units from "@outsystems/ts2lang/ts-units";
 
 const DelegateSuffix = "Delegate";
+const ComponentAliasName = "Component";
+const BaseComponentAliasName = "Base" + ComponentAliasName;
+const ViewModuleClassName = "ViewModule";
 const PropertiesClassName = "Properties";
 
 function f(input: string) {
@@ -56,14 +59,17 @@ function generateBehaviorMethod(func: Units.TsFunction): string {
     );
 }
 
-function generateNativeApi(propsInterface: Units.TsInterface | null, context: Object) {
+function generateNativeApi(propsInterface: Units.TsInterface | null) {
     return f(
         `internal interface I${PropertiesClassName} {\n` +
         `    ${propsInterface ? propsInterface.functions.map(f => generateMethodSignature(f) + ";\n").join("") : ""}` + 
         `}\n` +
         `\n` +
-        `private class ${PropertiesClassName} : ${getBaseComponentClass(context)}.Properties<ControlType>, I${PropertiesClassName} {\n` +
-        `    public ${PropertiesClassName}(ControlType owner) : base(owner) { }\n` +
+        `private class ${PropertiesClassName} : I${PropertiesClassName} {\n` +
+        `    protected readonly ${ComponentAliasName} owner;\n` +
+        `    public ${PropertiesClassName}(${ComponentAliasName} owner) {\n` +
+        `        this.owner = owner;\n` +
+        `    }\n` +
         `    ${f(propsInterface ? (propsInterface.functions.length > 0 ? propsInterface.functions.map(f => generateNativeApiMethod(f)).join("\n") : "// the interface does not contain methods") : "")}\n` +
         `}`
     );
@@ -102,7 +108,7 @@ function generateNativeApiEnum(enumerate: Units.TsEnum) {
     );
 }
 
-function generateControlBody(propsInterface: Units.TsInterface | null, behaviorsInterface: Units.TsInterface | null) {
+function generateComponentBody(propsInterface: Units.TsInterface | null, behaviorsInterface: Units.TsInterface | null) {
     return f(
         (propsInterface ? propsInterface.functions.map(f => generateProperty(f)).join("\n") : "") +
         "\n" +
@@ -112,10 +118,6 @@ function generateControlBody(propsInterface: Units.TsInterface | null, behaviors
 
 function normalizePath(path: string): string {
     return path.replace(/\\/g, "/")
-}
-
-function getBaseComponentClass(context: Object) {
-    return context["baseComponentClass"] || "WebViewControl.ReactView";
 }
 
 export function transform(module: Units.TsModule, context: Object): string {
@@ -129,6 +131,8 @@ export function transform(module: Units.TsModule, context: Object): string {
     let fullPath = normalizePath(context["$fullpath"] as string);
     let path = normalizePath(context["$path"] as string);
 
+    let namespace = context["namespace"];
+
     let pathDepth = path.split("/").length;
     let fullPathParts = fullPath.split("/");
 
@@ -141,7 +145,7 @@ export function transform(module: Units.TsModule, context: Object): string {
     // replace file extension with .js
     let fileExtensionIdx = path.lastIndexOf(".");
     let fileExtensionLen = path.length - fileExtensionIdx;
-    path = path.substr(0, fileExtensionIdx) + ".js";
+    path = "/" + namespace + "/" + path.substr(0, fileExtensionIdx) + ".js";
 
     // set the output
     let filename = fullPathParts[fullPathParts.length - 1].slice(0, -fileExtensionLen);
@@ -157,21 +161,23 @@ export function transform(module: Units.TsModule, context: Object): string {
     return (
         `/*** Auto-generated ***/
 
-namespace ${context["namespace"]} {
+namespace ${namespace} {
 
-    using ControlType = ${componentClass.name};
+    using ${ComponentAliasName} = ${componentClass.name};
+    using ${BaseComponentAliasName} = ${context["baseComponentClass"] || "WebViewControl.ReactView"};
 
-    public class ${componentClass.name} : ${getBaseComponentClass(context)} {
+    public class ${componentClass.name} : ${BaseComponentAliasName} {
 
         ${f(generateNativeApiObjects(objects, enums))}
 
-        ${f(generateNativeApi(propsInterface, context))}
+        ${f(generateNativeApi(propsInterface))}
 
-        ${f(generateControlBody(propsInterface, behaviorsInterface))} 
+        ${f(generateComponentBody(propsInterface, behaviorsInterface))} 
 
-        protected override string Source => "${path}";
+        protected override string JavascriptSource => \"${path}\";
+        protected override string JavascriptName => \"${componentClass.name}\";
 
-        protected override object CreateRootPropertiesObject() {
+        protected override object CreateNativeObject() {
             return new ${PropertiesClassName}(this);
         }
     }

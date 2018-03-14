@@ -2,7 +2,7 @@
 
 namespace WebViewControl {
     public interface IReactView : IDisposable {
-        string AdditionalModule { get; set; }
+        IViewModule[] Modules { get; set; }
         string DefaultStyleSheet { get; set; }
         bool EnableDebugMode { get; set; }
         bool IsReady { get; }

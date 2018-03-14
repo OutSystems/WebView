@@ -27,7 +27,7 @@ namespace WebViewControl {
         };
 
         private static readonly string TempDir = 
-            Path.Combine(Path.GetTempPath(), "WebView" + Guid.NewGuid().ToString().Replace("-", null) + DateTime.Now.Ticks);
+            Path.Combine(Path.GetTempPath(), "WebView" + Guid.NewGuid().ToString().Replace("-", null) + DateTime.UtcNow.Ticks);
 
         private const string ChromeInternalProtocol = "chrome-devtools:";
         

@@ -4,31 +4,22 @@ namespace Tests {
 
     public class TestReactCustomInitializationView : TestReactView {
 
-        private readonly string source;
-        private readonly object rootProperties;
+        private readonly object component;
 
         public TestReactCustomInitializationView() : base() {
-            source = base.Source;
-            rootProperties = base.CreateRootPropertiesObject();
+            component = base.CreateNativeObject();
             Initialize();
         }
 
         protected override void Initialize() {
-            if (source != null && rootProperties != null) {
+            if (component != null) {
                 base.Initialize();
             }
         }
 
-        protected override string Source {
-            get {
-                Assert.NotNull(source);
-                return source;
-            }
-        }
-
-        protected override object CreateRootPropertiesObject() {
-            Assert.NotNull(rootProperties);
-            return rootProperties;
+        protected override object CreateNativeObject() {
+            Assert.IsNotNull(component);
+            return base.CreateNativeObject();
         }
     }
 

@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Controls;
+using CefSharp;
 
 namespace WebViewControl {
 
@@ -9,7 +11,6 @@ namespace WebViewControl {
 
         private const string PathSeparator = "/";
         private const string RootObject = "__Root__";
-        private const string RootPropertiesName = "__RootProperties__";
         private const string ReadyEventName = "Ready";
 
         private static readonly string AssemblyName = typeof(ReactViewRender).Assembly.GetName().Name;
@@ -17,14 +18,15 @@ namespace WebViewControl {
         private static readonly string DefaultUrl = $"{BuiltinResourcesPath}index.html";
         private static readonly string LibrariesPath = $"/{BuiltinResourcesPath}node_modules/";
 
-        private readonly WebView webView = new WebView();
+        private readonly WebView webView = new InternalWebView();
         private Assembly userCallingAssembly;
 
         private bool enableDebugMode = false;
         private Listener readyEventListener;
-        private string source;
-        private object rootProperties;
         private bool pageLoaded = false;
+        private string componentSource;
+        private string componentJavascriptName;
+        private object component;
 
         public static bool UseEnhancedRenderingEngine { get; set; } = true;
 
@@ -42,7 +44,6 @@ namespace WebViewControl {
                 UseEnhancedRenderingEngine ? "1" : "0",
                 LibrariesPath,
                 RootObject,
-                RootPropertiesName,
                 Listener.EventListenerObjName,
                 ReadyEventName
             };
@@ -64,48 +65,50 @@ namespace WebViewControl {
             remove { webView.UnhandledAsyncException -= value; }
         }
 
-        public void LoadComponent(string source, object rootProperties) {
-            this.source = source;
-            this.rootProperties = rootProperties;
+        public void LoadComponent(string componentSource, string componentJavascriptName, object component) {
+            this.componentSource = componentSource;
+            this.componentJavascriptName = componentJavascriptName;
+            this.component = component;
             if (pageLoaded) {
                 InternalLoadComponent();
             }
         }
 
         private void InternalLoadComponent() {
-            const string JsExtension = ".js";
-
-            source = NormalizeUrl(source ?? "");
-            if (source.EndsWith(JsExtension)) {
-                source = source.Substring(0, source.Length - JsExtension.Length);
-            }
-
+            var source = NormalizeUrl(componentSource);
             var filenameParts = source.Split(new[] { PathSeparator }, StringSplitOptions.None);
 
             // eg: example/dist/source.js
-            // defaultSource = ./dist/source.js
             // baseUrl = /AssemblyName/example/
             var sourceDepth = filenameParts.Length >= 2 ? 2 : 1;
-            var defaultSource = "./" + string.Join(PathSeparator, filenameParts.Reverse().Take(sourceDepth).Reverse()); // take last 2 parts of the path
             var baseUrl = ToFullUrl(string.Join(PathSeparator, filenameParts.Take(filenameParts.Length - sourceDepth))) + PathSeparator;
-            var additionalModule = "";
-            var defaultStyleSheet = "";
 
-            if (AdditionalModule != null) {
-                additionalModule = NormalizeUrl(ToFullUrl(AdditionalModule));
-            }
+            var loadArgs = new List<string>() {
+                Quote(baseUrl),
+                Array(Quote(componentJavascriptName), Quote(source))
+            };
 
             if (DefaultStyleSheet != null) {
-                defaultStyleSheet = NormalizeUrl(ToFullUrl(DefaultStyleSheet));
+                loadArgs.Add(Quote(NormalizeUrl(ToFullUrl(DefaultStyleSheet))));
+            } else {
+                loadArgs.Add("null");
             }
 
-            webView.RegisterJavascriptObject(RootPropertiesName, rootProperties ?? new object(), executeCallsInUI: false);
-            webView.ExecuteScriptFunction("load", Quote(baseUrl), Quote(defaultSource), Quote(additionalModule), Quote(defaultStyleSheet));
+            webView.RegisterJavascriptObject(componentJavascriptName, component, executeCallsInUI: false);
+
+            if (Modules != null && Modules.Length > 0) {
+                loadArgs.Add(Array(Modules.Select(m => Array(Quote(m.JavascriptName), Quote(NormalizeUrl(ToFullUrl(m.JavascriptSource)))))));
+                foreach (var module in Modules) {
+                    webView.RegisterJavascriptObject(module.JavascriptName, module, executeCallsInUI: false);
+                }
+            }
+
+            webView.ExecuteScriptFunction("load", loadArgs.ToArray());
         }
 
         private void OnWebViewNavigated(string obj) {
             pageLoaded = true;
-            if (source != null && rootProperties != null) {
+            if (component != null) {
                 InternalLoadComponent();
             }
         }
@@ -124,10 +127,10 @@ namespace WebViewControl {
 
         public string DefaultStyleSheet { get; set; }
 
-        public string AdditionalModule { get; set; }
+        public IViewModule[] Modules { get; set; }
 
         public bool IsReady { get; private set; }
-        
+
         public bool EnableDebugMode {
             get { return enableDebugMode; }
             set {
@@ -158,7 +161,21 @@ namespace WebViewControl {
             return "\"" + str + "\"";
         }
 
+        private static string Array(params string[] elements) {
+            return "[" + string.Join(",", elements) + "]";
+        }
+
+        private static string Array(IEnumerable<string> elements) {
+            return Array(elements.ToArray());
+        }
+
         private static string NormalizeUrl(string url) {
+            const string JsExtension = ".js";
+
+            if (url.EndsWith(JsExtension)) {
+                url = url.Substring(0, url.Length - JsExtension.Length); // prevents modules from being loaded twice (once with extension and other without)
+            }
+
             return url.Replace("\\", PathSeparator);
         }
     }

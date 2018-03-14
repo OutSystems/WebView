@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <title></title>
 	<script>
-		window.showErrorMessage = function (msg) {
+		window.showErrorMessage = (msg) => {
 			const ContainerId = "webview_error";
 			let msgContainer = document.getElementById(ContainerId);
 			if (!msgContainer) {
@@ -28,14 +28,13 @@
 	</script>
 	<script src="node_modules/requirejs/require.js"></script>
     <script>
-		(function () {
+		(() => {
 			const UrlParams = Array.from(new URLSearchParams(location.search).keys());
 			const UseEnhancedRenderingEngine = UrlParams[0] === "1";
 			const LibsPath = UrlParams[1];
 			const RootObjectName = UrlParams[2];
-			const RootPropertiesName = UrlParams[3];
-			const EventListenerObjectName = UrlParams[4];
-			const ReadyEventName = UrlParams[5];
+			const EventListenerObjectName = UrlParams[3];
+			const ReadyEventName = UrlParams[4];
 			
 			let paths;
 
@@ -46,12 +45,12 @@
 					"react": LibsPath + "preact-compat/dist/preact-compat.min",
 				};
 
-				define("preact", [LibsPath + "preact/dist/preact.min.js"], function () {
+				define("preact", [LibsPath + "preact/dist/preact.min.js"], () => {
 					// export preact as a module
 					return window.preact;
 				});
 
-				define("react-dom", ["react"], function (react) {
+				define("react-dom", ["react"], (react) => {
 					// export react-dom as a module
 					return react;
 				});
@@ -74,7 +73,13 @@
 
 			require(["react", "react-dom"]); // preload react
 
-			window.load = function (baseUrl, userComponent, additionalModule, userDefaultStylesheet) {
+			function notifyReady() {
+				CefSharp.BindObjectAsync(EventListenerObjectName, EventListenerObjectName).then(() => {
+					window[EventListenerObjectName].notify(ReadyEventName);
+				});
+			}
+
+			window.load = (baseUrl, userComponent, userDefaultStylesheet, modules) => {
 				require.config({
 					baseUrl: baseUrl
 				});
@@ -83,26 +88,45 @@
 					userDefaultStylesheet = "css!" + userDefaultStylesheet;
 				}
 
-				var baseElement = document.createElement("base");
+				let baseElement = document.createElement("base");
 				baseElement.href = baseUrl;
 				document.head.appendChild(baseElement); // let images and other resources load from the appropriate path
 
-				require(["react", "react-dom", userComponent, additionalModule, userDefaultStylesheet], function (React, ReactDOM, WebViewComponentModule) {
-					let WebViewComponent = WebViewComponentModule.default;
-					CefSharp.BindObjectAsync(RootPropertiesName, RootPropertiesName).then(() => {
-						window[RootObjectName] = ReactDOM.render(
-							React.createElement(WebViewComponent, window[RootPropertiesName]),
-							document.getElementById("webview_root"),
-							() => notifyReady()
-						);
-					});
-				});
+				const UserComponentJavascriptName = userComponent[0];
+				const UserComponentSource = userComponent[1];
 
-				function notifyReady() {
-					CefSharp.BindObjectAsync(EventListenerObjectName, EventListenerObjectName).then(() => {
-						window[EventListenerObjectName].notify(ReadyEventName);
-					});
-				}
+				Promise.all([
+					new Promise((resolve) => {
+						require(["react", "react-dom", UserComponentSource, userDefaultStylesheet], (React, ReactDOM, UserComponentModule) => {
+							resolve([React, ReactDOM, UserComponentModule.default]);
+						});
+					}),
+					new Promise((resolve) => {
+						CefSharp.BindObjectAsync(UserComponentJavascriptName, UserComponentJavascriptName).then(() => {
+							resolve(window[UserComponentJavascriptName]);
+						});
+					})
+				]).then((values) => {
+					const React = values[0][0];
+					const ReactDOM = values[0][1];
+					const Component = values[0][2];
+					const Properties = values[1];
+
+					window[RootObjectName] = ReactDOM.render(
+						React.createElement(Component, Properties),
+						document.getElementById("webview_root"),
+						() => notifyReady()
+					);
+
+					if (modules) {
+						// load additional modules
+						const ModulesName = modules.map(m => m[0]);
+						const ModulesPath = modules.map(m => m[1]);
+						require(ModulesPath, () => {
+							ModulesName.forEach(m => CefSharp.BindObjectAsync(m, m));
+						});
+					}
+				});
 			}
 		})();
     </script>

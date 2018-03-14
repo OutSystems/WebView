@@ -72,7 +72,7 @@ namespace WebViewControl {
         }
 
         protected virtual void Initialize() {
-            view.LoadComponent(Source, CreateRootPropertiesObject());
+            view.LoadComponent(JavascriptSource, JavascriptName, CreateNativeObject());
         }
 
         public static readonly DependencyProperty DefaultStyleSheetProperty = DependencyProperty.Register(
@@ -90,19 +90,19 @@ namespace WebViewControl {
             set { SetValue(DefaultStyleSheetProperty, value); }
         }
 
-        public static readonly DependencyProperty AdditionalModuleProperty = DependencyProperty.Register(
-            nameof(AdditionalModule),
-            typeof(string),
+        public static readonly DependencyProperty ModulesProperty = DependencyProperty.Register(
+            nameof(Modules),
+            typeof(IViewModule[]),
             typeof(ReactView),
-            new PropertyMetadata(OnAdditionalModulePropertyChanged));
+            new PropertyMetadata(OnModulesPropertyChanged));
 
-        private static void OnAdditionalModulePropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
-            ((ReactView)d).view.AdditionalModule = (string) e.NewValue;
+        private static void OnModulesPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
+            ((ReactView)d).view.Modules = (IViewModule[])e.NewValue;
         }
 
-        public string AdditionalModule {
-            get { return (string)GetValue(AdditionalModuleProperty); }
-            set { SetValue(AdditionalModuleProperty, value); }
+        public IViewModule[] Modules {
+            get { return (IViewModule[])GetValue(ModulesProperty); }
+            set { SetValue(ModulesProperty, value); }
         }
 
         public bool EnableDebugMode { get => view.EnableDebugMode; set => view.EnableDebugMode = value; }
@@ -123,11 +123,13 @@ namespace WebViewControl {
             view.Dispose();
         }
 
-        protected virtual object CreateRootPropertiesObject() {
+        protected virtual string JavascriptSource => null;
+
+        protected virtual string JavascriptName => null;
+
+        protected virtual object CreateNativeObject() {
             return null;
         }
-
-        protected virtual string Source => null;
 
         protected void ExecuteMethodOnRoot(string methodCall, params string[] args) {
             view.ExecuteMethodOnRoot(methodCall, args);

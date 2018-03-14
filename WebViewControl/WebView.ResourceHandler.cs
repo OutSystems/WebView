@@ -7,8 +7,8 @@ namespace WebViewControl {
 
         public sealed class ResourceHandler : Request {
 
-            internal ResourceHandler(IRequest request)
-                : base(request) {
+            internal ResourceHandler(IRequest request, string urlOverride)
+                : base(request, urlOverride) {
             }
 
             public void RespondWith(string filename) {
