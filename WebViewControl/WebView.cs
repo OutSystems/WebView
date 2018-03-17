@@ -212,6 +212,7 @@ namespace WebViewControl {
         }
 
         private void InternalDispose() {
+            AppDomain.CurrentDomain.AssemblyLoad -= OnAssemblyLoaded;
             cancellationTokenSource.Cancel();
             chromium.RequestHandler = null;
             chromium.ResourceHandlerFactory = null;

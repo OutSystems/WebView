@@ -121,9 +121,11 @@ function normalizePath(path: string): string {
 }
 
 export function transform(module: Units.TsModule, context: Object): string {
+    const PropertiesInterfaceSuffix = "Properties";
+
     let componentClass = module.classes[0];
     
-    let propsInterface = module.interfaces.find((ifc) => ifc.name.startsWith("I") && ifc.name.endsWith("Properties")) || null;
+    let propsInterface = module.interfaces.find((ifc) => ifc.name.startsWith("I") && ifc.name.endsWith(PropertiesInterfaceSuffix)) || null;
     let behaviorsInterface = module.interfaces.find((ifc) => ifc.name.startsWith("I") && ifc.name.endsWith("Behaviors")) || null;
     let objects = module.interfaces.filter(ifc => ifc !== propsInterface && ifc !== behaviorsInterface);
     let enums = module.enums;
@@ -158,6 +160,8 @@ export function transform(module: Units.TsModule, context: Object): string {
         return "";
     }
 
+    let propsInterfaceCoreName = propsInterface ? propsInterface.name.substring(1, propsInterface.name.length - PropertiesInterfaceSuffix.length) : "";
+
     return (
         `/*** Auto-generated ***/
 
@@ -175,7 +179,7 @@ namespace ${namespace} {
         ${f(generateComponentBody(propsInterface, behaviorsInterface))} 
 
         protected override string JavascriptSource => \"${path}\";
-        protected override string JavascriptName => \"${componentClass.name}\";
+        protected override string JavascriptName => \"${propsInterfaceCoreName}\";
 
         protected override object CreateNativeObject() {
             return new ${PropertiesClassName}(this);
