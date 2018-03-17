@@ -38,22 +38,24 @@ namespace WebViewControl {
             var result = cachedView;
             cachedView = null;
             Application.Current.Dispatcher.BeginInvoke((Action)(() => {
-                cachedView = new ReactViewRender();
-                if (window == null) {
-                    window = new Window() {
-                        ShowActivated = false,
-                        WindowStyle = WindowStyle.None,
-                        ShowInTaskbar = false,
-                        Visibility = Visibility.Hidden,
-                        Width = 50,
-                        Height = 50,
-                        Top = int.MinValue,
-                        Left = int.MinValue,
-                        IsEnabled = false
-                    };
-                    window.Show();
+                if (cachedView == null && !Application.Current.Dispatcher.HasShutdownStarted) {
+                    cachedView = new ReactViewRender();
+                    if (window == null) {
+                        window = new Window() {
+                            ShowActivated = false,
+                            WindowStyle = WindowStyle.None,
+                            ShowInTaskbar = false,
+                            Visibility = Visibility.Hidden,
+                            Width = 50,
+                            Height = 50,
+                            Top = int.MinValue,
+                            Left = int.MinValue,
+                            IsEnabled = false,
+                        };
+                        window.Show();
+                    }
+                    window.Content = cachedView;
                 }
-                window.Content = cachedView;
             }), DispatcherPriority.Background);
             return result ?? new ReactViewRender();
         }

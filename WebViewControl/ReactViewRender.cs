@@ -94,12 +94,14 @@ namespace WebViewControl {
                 loadArgs.Add("null");
             }
 
+            loadArgs.Add(enableDebugMode ? "true" : "false");
+
             webView.RegisterJavascriptObject(componentJavascriptName, component, executeCallsInUI: false);
 
             if (Modules != null && Modules.Length > 0) {
                 loadArgs.Add(Array(Modules.Select(m => Array(Quote(m.JavascriptName), Quote(NormalizeUrl(ToFullUrl(m.JavascriptSource)))))));
                 foreach (var module in Modules) {
-                    webView.RegisterJavascriptObject(module.JavascriptName, module, executeCallsInUI: false);
+                    webView.RegisterJavascriptObject(module.JavascriptName, module.CreateNativeObject(), executeCallsInUI: false);
                 }
             }
 

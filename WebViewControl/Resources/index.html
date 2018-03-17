@@ -79,7 +79,7 @@
 				});
 			}
 
-			window.load = (baseUrl, userComponent, userDefaultStylesheet, modules) => {
+			window.load = (baseUrl, userComponent, userDefaultStylesheet, enableDebugMode, modules) => {
 				require.config({
 					baseUrl: baseUrl
 				});
@@ -96,9 +96,13 @@
 				const UserComponentSource = userComponent[1];
 
 				Promise.all([
-					new Promise((resolve) => {
+					new Promise((resolve, reject) => {
 						require(["react", "react-dom", UserComponentSource, userDefaultStylesheet], (React, ReactDOM, UserComponentModule) => {
-							resolve([React, ReactDOM, UserComponentModule.default]);
+							if (UserComponentModule.default) {
+								resolve([React, ReactDOM, UserComponentModule.default]);
+							} else {
+								reject("Component module ('" + UserComponentSource + "') does not have a default export.");
+							}
 						});
 					}),
 					new Promise((resolve) => {
@@ -120,11 +124,17 @@
 
 					if (modules) {
 						// load additional modules
-						const ModulesName = modules.map(m => m[0]);
-						const ModulesPath = modules.map(m => m[1]);
-						require(ModulesPath, () => {
-							ModulesName.forEach(m => CefSharp.BindObjectAsync(m, m));
+						modules.forEach(m => {
+							const ModuleName = m[0];
+							const ModulePath = m[1];
+							CefSharp.BindObjectAsync(ModuleName, ModuleName).then(() => {
+								require([ModulePath]);
+							});
 						});
+					}
+				}).catch((error) => {
+					if (enableDebugMode) {
+						showErrorMessage(error);
 					}
 				});
 			}
