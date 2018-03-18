@@ -1,7 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
+using System.Security.Policy;
 using System.Windows.Controls;
 
 namespace WebViewControl {
@@ -29,7 +32,8 @@ namespace WebViewControl {
         private object component;
         private string defaultStyleSheet;
         private IViewModule[] modules;
-        
+        private FileSystemWatcher fileSystemWatcher;
+
         public static bool UseEnhancedRenderingEngine { get; set; } = true;
 
         public ReactViewRender() {
@@ -112,6 +116,7 @@ namespace WebViewControl {
         }
 
         private void OnWebViewNavigated(string obj) {
+            IsReady = false;
             pageLoaded = true;
             if (component != null) {
                 InternalLoadComponent();
@@ -119,6 +124,7 @@ namespace WebViewControl {
         }
 
         public void Dispose() {
+            fileSystemWatcher?.Dispose();
             webView.Dispose();
         }
 
@@ -185,6 +191,44 @@ namespace WebViewControl {
         
         private string ToFullUrl(string url) {
             return (url.StartsWith(PathSeparator) || url.Contains(Uri.SchemeDelimiter)) ? url : $"/{userCallingAssembly.GetName().Name}/{url}";
+        }
+
+        public void EnableHotReload(string baseLocation) {
+            if (fileSystemWatcher != null) {
+                fileSystemWatcher.Path = baseLocation;
+                return;
+            }
+
+            fileSystemWatcher = new FileSystemWatcher(baseLocation);
+            fileSystemWatcher.IncludeSubdirectories = true;
+            fileSystemWatcher.NotifyFilter = NotifyFilters.LastWrite;
+            fileSystemWatcher.EnableRaisingEvents = true;
+
+            var filesChanged = false;
+            var fileExtensionsToWatch = new[] { ".js", ".css" };
+
+            fileSystemWatcher.Changed += (sender, eventArgs) => {
+                if (IsReady) {
+                    if (fileExtensionsToWatch.Any(e => eventArgs.Name.EndsWith(e))) {
+                        filesChanged = true;
+                        IsReady = false;
+                        webView.Reload(true);
+                    }
+                }
+            };
+            webView.BeforeResourceLoad += (WebView.ResourceHandler resourceHandler) => {
+                if (filesChanged) {
+                    var url = new Uri(resourceHandler.Url);
+                    var path = Path.Combine(WebView.ResolveResourcePath(url).Skip(1).ToArray()); // skip first part (namespace)
+                    if (fileExtensionsToWatch.Any(e => path.EndsWith(e))) {
+                        path = Path.Combine(baseLocation, path);
+                        var file = new FileInfo(path);
+                        if (file.Exists) {
+                            resourceHandler.RespondWith(path);
+                        }
+                    }
+                }
+            };
         }
 
         private static string Quote(string str) {

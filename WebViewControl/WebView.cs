@@ -438,6 +438,10 @@ namespace WebViewControl {
             chromium.Forward();
         }
 
+        public void Reload(bool ignoreCache = false) {
+            chromium.Reload(ignoreCache);
+        }
+
         public string Title {
             get { return chromium.Title; }
         }
@@ -516,6 +520,7 @@ namespace WebViewControl {
                    request.Url.Equals(DefaultLocalUrl, StringComparison.InvariantCultureIgnoreCase);
         }
 
+        // TODO create a URL object to store this information and replace these methods
         public static string BuildEmbeddedResourceUrl(Assembly assembly, params string[] path) {
             return BuildEmbeddedResourceUrl(assembly.GetName().Name, path);
         }
@@ -531,14 +536,6 @@ namespace WebViewControl {
                 return resourcePath.Substring(0, indexOfPath);
             }
             return url.Segments.Length > 1 ? url.Segments[1].TrimEnd('/') : string.Empty; // default assembly name to the first path
-        }
-
-        private static string GetEmbeddedResourcePath(Uri url) {
-            if (url.AbsoluteUri.StartsWith(AssemblyPrefix)) {
-                var indexOfPath = url.AbsolutePath.IndexOf(AssemblyPathSeparator);
-                return url.AbsolutePath.Substring(indexOfPath + 1);
-            }
-            return string.Empty;
         }
 
         private static bool IsFrameworkAssemblyName(string name) {

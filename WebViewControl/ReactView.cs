@@ -151,5 +151,9 @@ namespace WebViewControl {
         public void CloseDeveloperTools() {
             view.CloseDeveloperTools();
         }
+
+        public void EnableHotReload(string baseLocation) {
+            view.EnableHotReload(baseLocation);
+        }
     }
 }

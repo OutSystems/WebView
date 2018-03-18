@@ -64,7 +64,7 @@ namespace WebViewControl {
 
         protected void LoadEmbeddedResource(ResourceHandler resourceHandler, Uri url) {
             var resourceAssembly = ResolveResourceAssembly(url);
-            var resourcePath = ResolveResourcePath(url, resourceAssembly.GetName().Name);
+            var resourcePath = ResolveResourcePath(url);
 
             var extension = Path.GetExtension(resourcePath.Last()).ToLower();
 
@@ -125,9 +125,10 @@ namespace WebViewControl {
         /// embedded://webview/assembly:AssemblyName;Path/To/Resource
         /// embedded://webview/AssemblyName/Path/To/Resource (AssemblyName is also assumed as default namespace)
         /// </summary>
-        protected string[] ResolveResourcePath(Uri resourceUrl, string assemblyName) {
+        internal static string[] ResolveResourcePath(Uri resourceUrl) {
             if (resourceUrl.AbsoluteUri.StartsWith(AssemblyPrefix)) {
-                return GetEmbeddedResourcePath(resourceUrl).Split('/');
+                var indexOfPath = resourceUrl.AbsolutePath.IndexOf(AssemblyPathSeparator);
+                return resourceUrl.AbsolutePath.Substring(indexOfPath + 1).Split('/');
             }
             var uriParts = resourceUrl.Segments;
             return uriParts.Skip(1).Select(p => p.Replace("/", "")).ToArray();
