@@ -51,6 +51,7 @@ namespace WebViewControl {
                             Top = int.MinValue,
                             Left = int.MinValue,
                             IsEnabled = false,
+                            Title = "ReactViewRender Background Window"
                         };
                         window.Show();
                     }
@@ -62,7 +63,7 @@ namespace WebViewControl {
 
         private readonly ReactViewRender view;
 
-        public ReactView(bool usePreloadedWebView = true) {
+        public ReactView(bool explicitInitialization = false, bool usePreloadedWebView = true) {
             if (usePreloadedWebView) {
                 view = CreateReactViewInstance();
             } else {
@@ -70,10 +71,12 @@ namespace WebViewControl {
             }
             SetResourceReference(StyleProperty, typeof(ReactView)); // force styles to be inherited, must be called after view is created otherwise view might be null
             Content = view;
-            Initialize();
+            if (!explicitInitialization) {
+                Initialize();
+            }
         }
 
-        protected virtual void Initialize() {
+        protected void Initialize() {
             view.LoadComponent(JavascriptSource, JavascriptName, CreateNativeObject());
         }
 
@@ -139,6 +142,14 @@ namespace WebViewControl {
 
         protected T EvaluateMethodOnRoot<T>(string methodCall, params string[] args) {
             return view.EvaluateMethodOnRoot<T>(methodCall, args);
+        }
+
+        public void ShowDeveloperTools() {
+            view.ShowDeveloperTools();
+        }
+
+        public void CloseDeveloperTools() {
+            view.CloseDeveloperTools();
         }
     }
 }

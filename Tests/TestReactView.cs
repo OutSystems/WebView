@@ -7,7 +7,11 @@ namespace Tests {
 
         public event Action<string> Event;
 
-        public TestReactView() : base(false) { }
+        public TestReactView() : this(explicitInitialization: false) { }
+
+        public TestReactView(bool explicitInitialization) : base(explicitInitialization: explicitInitialization, usePreloadedWebView: false) { }
+
+        protected virtual bool ExplicitInitialization => false;
 
         public class Properties {
 

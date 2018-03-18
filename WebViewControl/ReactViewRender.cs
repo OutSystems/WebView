@@ -133,6 +133,14 @@ namespace WebViewControl {
 
         public bool IsReady { get; private set; }
 
+        public void ShowDeveloperTools() {
+            webView.ShowDeveloperTools();
+        }
+
+        public void CloseDeveloperTools() {
+            webView.CloseDeveloperTools();
+        }
+
         public bool EnableDebugMode {
             get { return enableDebugMode; }
             set {
