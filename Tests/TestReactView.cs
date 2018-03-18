@@ -2,11 +2,16 @@
 using WebViewControl;
 
 namespace Tests {
+
     public class TestReactView : ReactView {
 
         public event Action<string> Event;
 
-        public TestReactView() : base() { }
+        public TestReactView() : this(explicitInitialization: false) { }
+
+        public TestReactView(bool explicitInitialization) : base(explicitInitialization: explicitInitialization, usePreloadedWebView: false) { }
+
+        protected virtual bool ExplicitInitialization => false;
 
         public class Properties {
 
@@ -21,11 +26,13 @@ namespace Tests {
             }
         }
 
-        protected override object CreateRootPropertiesObject() {
+        protected override string JavascriptSource => "/Tests/ReactViewResources/dist/TestApp";
+
+        protected override string JavascriptName => nameof(TestReactView);
+
+        protected override object CreateNativeObject() {
             return new Properties(this);
         }
-
-        protected override string Source => "ReactViewResources/dist/TestApp";
 
         public new T EvaluateMethodOnRoot<T>(string methodCall, params string[] args) {
             return base.EvaluateMethodOnRoot<T>(methodCall, args);

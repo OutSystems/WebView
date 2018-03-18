@@ -48,7 +48,9 @@ class App extends React.Component<IAppProperties, {}> {
     }
 
     checkAdditionalModuleLoaded() {
-        this.props.event("AdditionalModuleLoaded");
+        if ((window as any).AdditionalModuleLoaded) {
+            this.props.event("AdditionalModuleLoaded");
+        }
     }
 }
 

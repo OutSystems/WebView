@@ -2,6 +2,10 @@
 import * as Units from "@outsystems/ts2lang/ts-units";
 
 const DelegateSuffix = "Delegate";
+const ComponentAliasName = "Component";
+const BaseComponentAliasName = "Base" + ComponentAliasName;
+const ViewModuleClassName = "ViewModule";
+const PropertiesClassName = "Properties";
 
 function f(input: string) {
     return (input || "").replace(/\n/g, "\n    ");
@@ -57,12 +61,15 @@ function generateBehaviorMethod(func: Units.TsFunction): string {
 
 function generateNativeApi(propsInterface: Units.TsInterface | null) {
     return f(
-        `internal interface INativeApi {\n` +
+        `internal interface I${PropertiesClassName} {\n` +
         `    ${propsInterface ? propsInterface.functions.map(f => generateMethodSignature(f) + ";\n").join("") : ""}` + 
         `}\n` +
         `\n` +
-        `private class NativeApi : BaseNativeApi<ControlType>, INativeApi {\n` +
-        `    public NativeApi(ControlType owner) : base(owner) { }\n` +
+        `private class ${PropertiesClassName} : I${PropertiesClassName} {\n` +
+        `    protected readonly ${ComponentAliasName} owner;\n` +
+        `    public ${PropertiesClassName}(${ComponentAliasName} owner) {\n` +
+        `        this.owner = owner;\n` +
+        `    }\n` +
         `    ${f(propsInterface ? (propsInterface.functions.length > 0 ? propsInterface.functions.map(f => generateNativeApiMethod(f)).join("\n") : "// the interface does not contain methods") : "")}\n` +
         `}`
     );
@@ -101,7 +108,7 @@ function generateNativeApiEnum(enumerate: Units.TsEnum) {
     );
 }
 
-function generateControlBody(propsInterface: Units.TsInterface | null, behaviorsInterface: Units.TsInterface | null) {
+function generateComponentBody(propsInterface: Units.TsInterface | null, behaviorsInterface: Units.TsInterface | null) {
     return f(
         (propsInterface ? propsInterface.functions.map(f => generateProperty(f)).join("\n") : "") +
         "\n" +
@@ -114,15 +121,19 @@ function normalizePath(path: string): string {
 }
 
 export function transform(module: Units.TsModule, context: Object): string {
+    const PropertiesInterfaceSuffix = "Properties";
+
     let componentClass = module.classes[0];
     
-    let propsInterface = module.interfaces.find((ifc) => ifc.name.startsWith("I") && ifc.name.endsWith("Properties")) || null;
+    let propsInterface = module.interfaces.find((ifc) => ifc.name.startsWith("I") && ifc.name.endsWith(PropertiesInterfaceSuffix)) || null;
     let behaviorsInterface = module.interfaces.find((ifc) => ifc.name.startsWith("I") && ifc.name.endsWith("Behaviors")) || null;
     let objects = module.interfaces.filter(ifc => ifc !== propsInterface && ifc !== behaviorsInterface);
     let enums = module.enums;
 
     let fullPath = normalizePath(context["$fullpath"] as string);
     let path = normalizePath(context["$path"] as string);
+
+    let namespace = context["namespace"];
 
     let pathDepth = path.split("/").length;
     let fullPathParts = fullPath.split("/");
@@ -136,7 +147,7 @@ export function transform(module: Units.TsModule, context: Object): string {
     // replace file extension with .js
     let fileExtensionIdx = path.lastIndexOf(".");
     let fileExtensionLen = path.length - fileExtensionIdx;
-    path = path.substr(0, fileExtensionIdx) + ".js";
+    path = "/" + namespace + "/" + path.substr(0, fileExtensionIdx) + ".js";
 
     // set the output
     let filename = fullPathParts[fullPathParts.length - 1].slice(0, -fileExtensionLen);
@@ -149,25 +160,29 @@ export function transform(module: Units.TsModule, context: Object): string {
         return "";
     }
 
+    let propsInterfaceCoreName = propsInterface ? propsInterface.name.substring(1, propsInterface.name.length - PropertiesInterfaceSuffix.length) : "";
+
     return (
         `/*** Auto-generated ***/
 
-namespace ${context["namespace"]} {
+namespace ${namespace} {
 
-    using ControlType = ${componentClass.name};
+    using ${ComponentAliasName} = ${componentClass.name};
+    using ${BaseComponentAliasName} = ${context["baseComponentClass"] || "WebViewControl.ReactView"};
 
-    public class ${componentClass.name} : ${context["baseComponentClass"] || "WebViewControl.ReactView"} {
+    public class ${componentClass.name} : ${BaseComponentAliasName} {
 
         ${f(generateNativeApiObjects(objects, enums))}
 
         ${f(generateNativeApi(propsInterface))}
 
-        ${f(generateControlBody(propsInterface, behaviorsInterface))} 
+        ${f(generateComponentBody(propsInterface, behaviorsInterface))} 
 
-        protected override string Source => "${path}";
+        protected override string JavascriptSource => \"${path}\";
+        protected override string JavascriptName => \"${propsInterfaceCoreName}\";
 
-        protected override object CreateRootPropertiesObject() {
-            return new NativeApi(this);
+        protected override object CreateNativeObject() {
+            return new ${PropertiesClassName}(this);
         }
     }
 }`);

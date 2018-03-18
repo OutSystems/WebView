@@ -27,7 +27,7 @@ namespace WebViewControl {
         };
 
         private static readonly string TempDir = 
-            Path.Combine(Path.GetTempPath(), "WebView" + Guid.NewGuid().ToString().Replace("-", null) + DateTime.Now.Ticks);
+            Path.Combine(Path.GetTempPath(), "WebView" + Guid.NewGuid().ToString().Replace("-", null) + DateTime.UtcNow.Ticks);
 
         private const string ChromeInternalProtocol = "chrome-devtools:";
         
@@ -52,6 +52,7 @@ namespace WebViewControl {
         private string htmlToLoad;
         private JavascriptExecutor jsExecutor;
         private CefLifeSpanHandler lifeSpanHandler;
+        private volatile int javascriptPendingCalls;
 
         private readonly BrowserObjectListener eventsListener = new BrowserObjectListener();
         private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
@@ -97,7 +98,8 @@ namespace WebViewControl {
                 cefSettings.LogSeverity = LogSeverity.Disable; // disable writing of debug.log
                 cefSettings.UncaughtExceptionStackSize = 100; // enable stack capture
                 cefSettings.CachePath = TempDir; // enable cache for external resources to speedup loading
-                
+                CefSharpSettings.LegacyJavascriptBindingEnabled = true;
+
                 foreach (var scheme in CustomSchemes) {
                     cefSettings.RegisterScheme(new CefCustomScheme() {
                         SchemeName = scheme,
@@ -176,7 +178,7 @@ namespace WebViewControl {
             chromium.MenuHandler = new CefMenuHandler(this);
             chromium.DialogHandler = new CefDialogHandler(this);
             chromium.DownloadHandler = new CefDownloadHandler(this);
-
+            
             jsExecutor = new JavascriptExecutor(this);
 
             RegisterJavascriptObject(Listener.EventListenerObjName, eventsListener);
@@ -201,6 +203,16 @@ namespace WebViewControl {
 
             isDisposing = true;
 
+            if (javascriptPendingCalls == 0) {
+                InternalDispose();
+            } else {
+                // avoid dead-lock
+                Dispatcher.BeginInvoke((Action)InternalDispose);
+            }
+        }
+
+        private void InternalDispose() {
+            AppDomain.CurrentDomain.AssemblyLoad -= OnAssemblyLoaded;
             cancellationTokenSource.Cancel();
             chromium.RequestHandler = null;
             chromium.ResourceHandlerFactory = null;
@@ -331,10 +343,23 @@ namespace WebViewControl {
             Address = DefaultLocalUrl;
         }
 
-        public void RegisterJavascriptObject(string name, object objectToBind, Func<Func<object>, object> interceptCall = null, Func<object, Type, object> bind = null, bool executeCallsInUI = false) {
+        /// <summary>
+        /// Registers an object with the specified name in the window context of the browser
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="objectToBind"></param>
+        /// <param name="interceptCall"></param>
+        /// <param name="bind"></param>
+        /// <param name="executeCallsInUI"></param>
+        /// <returns>True if the object was registered or false if the object was already registered before</returns>
+        public bool RegisterJavascriptObject(string name, object objectToBind, Func<Func<object>, object> interceptCall = null, Func<object, Type, object> bind = null, bool executeCallsInUI = false) {
+            if (chromium.JavascriptObjectRepository.IsBound(name)) {
+                return false;
+            }
+
             if (executeCallsInUI) {
                 Func<Func<object>, object> interceptorWrapper = target => Dispatcher.Invoke(target);
-                RegisterJavascriptObject(name, objectToBind, interceptorWrapper, bind, false);
+                return RegisterJavascriptObject(name, objectToBind, interceptorWrapper, bind, false);
 
             } else {
                 var bindingOptions = new BindingOptions();
@@ -350,19 +375,31 @@ namespace WebViewControl {
                         if (isDisposing) {
                             return null;
                         }
-                        return interceptCall(target);
+                        try {
+                            javascriptPendingCalls++;
+                            return interceptCall(target);
+                        } finally {
+                            javascriptPendingCalls--;
+                        }
                     };
                 } else {
                     interceptorWrapper = target => {
                         if (isDisposing) {
                             return null;
                         }
-                        return target();
+                        try {
+                            javascriptPendingCalls++;
+                            return target();
+                        } finally {
+                            javascriptPendingCalls--;
+                        }
                     };
                 }
                 bindingOptions.MethodInterceptor = new LambdaMethodInterceptor(interceptorWrapper);
-                chromium.RegisterAsyncJsObject(name, objectToBind, bindingOptions);
+                chromium.JavascriptObjectRepository.Register(name, objectToBind, true, bindingOptions);
             }
+
+            return true;
         }
 
         public T EvaluateScript<T>(string script) {
@@ -475,7 +512,7 @@ namespace WebViewControl {
         }
 
         private static bool FilterRequest(IRequest request) {
-            return request.Url.ToLower().StartsWith(ChromeInternalProtocol) ||
+            return request.Url.StartsWith(ChromeInternalProtocol, StringComparison.InvariantCultureIgnoreCase) ||
                    request.Url.Equals(DefaultLocalUrl, StringComparison.InvariantCultureIgnoreCase);
         }
 
@@ -505,7 +542,7 @@ namespace WebViewControl {
         }
 
         private static bool IsFrameworkAssemblyName(string name) {
-            return name == "PresentationFramework" || name == "PresentationCore" || name == "mscorlib" || name == "System.Xaml";
+            return name == "PresentationFramework" || name == "PresentationCore" || name == "mscorlib" || name == "System.Xaml" || name == "WindowsBase";
         }
 
         internal static Assembly GetUserCallingAssembly() {

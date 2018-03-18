@@ -40,7 +40,7 @@
     <ItemGroup> 
       <EmbeddedResource Include="View\dist\**\*.js" />
       <EmbeddedResource Include="View\lib\*.js" />
-      <EmbeddedResource Include="View\styles\*.css" />
+      <EmbeddedResource Include="View\styles\*.css" Exclude="View\styles\*.min.css" />
     </ItemGroup>
   </Target>
 

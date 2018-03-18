@@ -7,9 +7,11 @@ namespace WebViewControl {
         public class Request {
 
             private readonly IRequest CefRequest;
+            private readonly string UrlOverride;
 
-            internal Request(IRequest request) {
+            internal Request(IRequest request, string urlOverride) {
                 CefRequest = request;
+                UrlOverride = urlOverride;
             }
 
             public string Method {
@@ -17,7 +19,7 @@ namespace WebViewControl {
             }
 
             public string Url {
-                get { return CefRequest.Url; }
+                get { return UrlOverride ?? CefRequest.Url; }
             }
 
             public virtual void Cancel() {

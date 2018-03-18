@@ -6,6 +6,7 @@ using JavascriptObject = System.Collections.Generic.Dictionary<string, object>;
 
 namespace WebViewControl {
 
+    // TODO remove this class
     public interface IJavascriptObject {
         JavascriptObject ToJavascriptObject();
     }

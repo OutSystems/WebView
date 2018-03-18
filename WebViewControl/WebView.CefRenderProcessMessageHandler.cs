@@ -1,5 +1,6 @@
 ﻿using CefSharp;
 using System.Linq;
+using System;
 
 namespace WebViewControl {
 
@@ -13,14 +14,26 @@ namespace WebViewControl {
                 OwnerWebView = webView;
             }
 
+            private static bool IgnoreEvent(IFrame frame) {
+                return frame.Url.StartsWith(ChromeInternalProtocol, StringComparison.InvariantCultureIgnoreCase);
+            }
+
             public void OnContextCreated(IWebBrowser browserControl, IBrowser browser, IFrame frame) {
-                if (OwnerWebView.JavascriptContextCreated != null) {
-                    OwnerWebView.ExecuteWithAsyncErrorHandling(() => OwnerWebView.JavascriptContextCreated?.Invoke());
-                };
+                if (!IgnoreEvent(frame)) {
+                    var javascriptContextCreated = OwnerWebView.JavascriptContextCreated;
+                    if (javascriptContextCreated != null) {
+                        OwnerWebView.ExecuteWithAsyncErrorHandling(() => javascriptContextCreated.Invoke());
+                    }
+                }
             }
 
             public void OnContextReleased(IWebBrowser browserControl, IBrowser browser, IFrame frame) {
-                OwnerWebView.JavascriptContextReleased?.Invoke();
+                if (!IgnoreEvent(frame)) {
+                    var javascriptContextReleased = OwnerWebView.JavascriptContextReleased;
+                    if (javascriptContextReleased != null) {
+                        OwnerWebView.ExecuteWithAsyncErrorHandling(() => javascriptContextReleased.Invoke());
+                    }
+                }
             }
 
             public void OnFocusedNodeChanged(IWebBrowser browserControl, IBrowser browser, IFrame frame, IDomNode node) { }
