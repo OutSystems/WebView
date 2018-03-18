@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Controls;
-using CefSharp;
 
 namespace WebViewControl {
 
@@ -24,15 +23,18 @@ namespace WebViewControl {
         private bool enableDebugMode = false;
         private Listener readyEventListener;
         private bool pageLoaded = false;
+        private bool componentLoaded = false;
         private string componentSource;
         private string componentJavascriptName;
         private object component;
-
+        private string defaultStyleSheet;
+        private IViewModule[] modules;
+        
         public static bool UseEnhancedRenderingEngine { get; set; } = true;
 
         public ReactViewRender() {
-            userCallingAssembly = WebView.GetUserCallingAssembly();
-
+            userCallingAssembly = WebView.GetUserCallingMethod().ReflectedType.Assembly;
+            
             webView.DisableBuiltinContextMenus = true;
             webView.IgnoreMissingResources = false;
             webView.AttachListener(ReadyEventName, () => IsReady = true, executeInUI: false);
@@ -106,6 +108,7 @@ namespace WebViewControl {
             }
 
             webView.ExecuteScriptFunction("load", loadArgs.ToArray());
+            componentLoaded = true;
         }
 
         private void OnWebViewNavigated(string obj) {
@@ -127,9 +130,26 @@ namespace WebViewControl {
             return webView.EvaluateScriptFunction<T>(RootObject + "." + methodCall, args);
         }
 
-        public string DefaultStyleSheet { get; set; }
+        
+        public string DefaultStyleSheet {
+            get { return defaultStyleSheet; }
+            set {
+                if (componentLoaded) {
+                    throw new InvalidOperationException($"Cannot set {nameof(DefaultStyleSheet)} after component has been loaded");
+                }
+                defaultStyleSheet = value;
+            }
+        }
 
-        public IViewModule[] Modules { get; set; }
+        public IViewModule[] Modules {
+            get { return modules; }
+            set {
+                if (componentLoaded) {
+                    throw new InvalidOperationException($"Cannot set {nameof(Modules)} after component has been loaded");
+                }
+                modules = value;
+            }
+        }
 
         public bool IsReady { get; private set; }
 
@@ -162,7 +182,7 @@ namespace WebViewControl {
             msg = msg.Replace("\"", "\\\"");
             webView.ExecuteScript($"showErrorMessage(\"{msg}\")");
         }
-
+        
         private string ToFullUrl(string url) {
             return (url.StartsWith(PathSeparator) || url.Contains(Uri.SchemeDelimiter)) ? url : $"/{userCallingAssembly.GetName().Name}/{url}";
         }

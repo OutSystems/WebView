@@ -6,9 +6,8 @@ namespace Tests {
 
         private readonly object component;
 
-        public TestReactCustomInitializationView() : base(explicitInitialization: true) {
+        public TestReactCustomInitializationView() : base() {
             component = base.CreateNativeObject();
-            Initialize();
         }
 
         protected override object CreateNativeObject() {

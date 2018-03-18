@@ -63,7 +63,7 @@ namespace WebViewControl {
 
         private readonly ReactViewRender view;
 
-        public ReactView(bool explicitInitialization = false, bool usePreloadedWebView = true) {
+        public ReactView(bool usePreloadedWebView = true) {
             if (usePreloadedWebView) {
                 view = CreateReactViewInstance();
             } else {
@@ -71,12 +71,12 @@ namespace WebViewControl {
             }
             SetResourceReference(StyleProperty, typeof(ReactView)); // force styles to be inherited, must be called after view is created otherwise view might be null
             Content = view;
-            if (!explicitInitialization) {
+            Dispatcher.BeginInvoke(DispatcherPriority.Send, (Action)(() => {
                 Initialize();
-            }
+            }));
         }
 
-        protected void Initialize() {
+        private void Initialize() {
             view.LoadComponent(JavascriptSource, JavascriptName, CreateNativeObject());
         }
 

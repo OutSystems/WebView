@@ -332,7 +332,7 @@ namespace WebViewControl {
         public bool IgnoreMissingResources { get; set; }
 
         protected void LoadFrom(string source) {
-            var userAssembly = GetUserCallingAssembly();
+            var userAssembly = GetUserCallingMethod().ReflectedType.Assembly;
 
             IsSecurityDisabled = true;
             Address = BuildEmbeddedResourceUrl(userAssembly, userAssembly.GetName().Name, source);
@@ -545,14 +545,14 @@ namespace WebViewControl {
             return name == "PresentationFramework" || name == "PresentationCore" || name == "mscorlib" || name == "System.Xaml" || name == "WindowsBase";
         }
 
-        internal static Assembly GetUserCallingAssembly() {
+        internal static MethodBase GetUserCallingMethod(bool captureFilenames = false) {
             var currentAssembly = typeof(WebView).Assembly;
-            var callingAssemblies = new StackTrace().GetFrames().Select(f => f.GetMethod().ReflectedType.Assembly).Where(a => a != currentAssembly);
-            var userAssembly = callingAssemblies.First(a => !IsFrameworkAssemblyName(a.GetName().Name));
-            if (userAssembly == null) {
-                throw new InvalidOperationException("Unable to find calling assembly");
+            var callstack = new StackTrace(captureFilenames).GetFrames().Select(f => f.GetMethod()).Where(m => m.ReflectedType.Assembly != currentAssembly);
+            var userMethod = callstack.First(m => !IsFrameworkAssemblyName(m.ReflectedType.Assembly.GetName().Name));
+            if (userMethod == null) {
+                throw new InvalidOperationException("Unable to find calling method");
             }
-            return userAssembly;
+            return userMethod;
         }
 
         private void ExecuteWhenInitialized(Action action) {
