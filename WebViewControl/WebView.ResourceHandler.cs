@@ -12,7 +12,9 @@ namespace WebViewControl {
             }
 
             public void RespondWith(string filename) {
-                Handler = CefSharp.ResourceHandler.FromFilePath(filename, CefSharp.ResourceHandler.GetMimeType(Path.GetExtension(filename)));
+                var resourceHandler = (CefSharp.ResourceHandler) CefSharp.ResourceHandler.FromFilePath(filename, CefSharp.ResourceHandler.GetMimeType(Path.GetExtension(filename)));
+                resourceHandler.AutoDisposeStream = true;
+                Handler = resourceHandler;
             }
 
             public void RespondWith(Stream stream, string extension) {
