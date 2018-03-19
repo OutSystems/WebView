@@ -1,4 +1,5 @@
-﻿using CefSharp;
+﻿using System;
+using CefSharp;
 
 namespace WebViewControl {
 
@@ -7,10 +8,14 @@ namespace WebViewControl {
         private class InternalWebView : WebView {
             protected override string GetRequestUrl(IRequest request) {
                 const string JavascriptExtension = ".js";
-
-                if (request.ResourceType == ResourceType.Script && !request.Url.EndsWith(JavascriptExtension)) {
-                    // dependency modules fetched by requirejs do not come with the js extension :(
-                    return request.Url + JavascriptExtension;
+                
+                if (request.ResourceType == ResourceType.Script) {
+                    var url = new UriBuilder(request.Url);
+                    if (!url.Path.EndsWith(JavascriptExtension)) {
+                        // dependency modules fetched by requirejs do not come with the js extension :(
+                        url.Path += JavascriptExtension;
+                        return url.ToString();
+                    }
                 }
 
                 return base.GetRequestUrl(request);

@@ -37,7 +37,11 @@ namespace WebViewControl {
                 Uri url;
                 var resourceHandler = new ResourceHandler(request, OwnerWebView.GetRequestUrl(request));
                 if (Uri.TryCreate(resourceHandler.Url, UriKind.Absolute, out url) && url.Scheme == EmbeddedScheme) {
-                    OwnerWebView.ExecuteWithAsyncErrorHandling(() => OwnerWebView.LoadEmbeddedResource(resourceHandler, url));
+                    var urlWithoutQuery = new UriBuilder(url);
+                    if (url.Query != "") {
+                        urlWithoutQuery.Query = "";
+                    }
+                    OwnerWebView.ExecuteWithAsyncErrorHandling(() => OwnerWebView.LoadEmbeddedResource(resourceHandler, urlWithoutQuery.Uri));
                 }
 
                 if (OwnerWebView.BeforeResourceLoad != null) {

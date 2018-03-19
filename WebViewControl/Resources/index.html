@@ -79,9 +79,15 @@
 				});
 			}
 
-			window.load = (baseUrl, userComponent, userDefaultStylesheet, enableDebugMode, modules) => {
+			window.load = (baseUrl, userComponent, userDefaultStylesheet, enableDebugMode, enableHotReload, modules) => {
+				let noCacheSuffix;
+				if (enableHotReload) {
+					noCacheSuffix = "t=" + (new Date()).getTime();
+				}
+
 				require.config({
-					baseUrl: baseUrl
+					baseUrl: baseUrl,
+					urlArgs: noCacheSuffix,
 				});
 
 				if (userDefaultStylesheet) {

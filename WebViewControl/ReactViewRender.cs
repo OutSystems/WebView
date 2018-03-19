@@ -100,7 +100,8 @@ namespace WebViewControl {
                 loadArgs.Add("null");
             }
 
-            loadArgs.Add(enableDebugMode ? "true" : "false");
+            loadArgs.Add(AsBoolean(enableDebugMode));
+            loadArgs.Add(AsBoolean(fileSystemWatcher != null));
 
             webView.RegisterJavascriptObject(componentJavascriptName, component, executeCallsInUI: false);
 
@@ -233,6 +234,10 @@ namespace WebViewControl {
 
         private static string Quote(string str) {
             return "\"" + str + "\"";
+        }
+
+        private static string AsBoolean(bool value) {
+            return value ? "true" : "false";
         }
 
         private static string Array(params string[] elements) {
