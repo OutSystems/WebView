@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>ViewGenerator</id>
-    <version>1.0.43</version>
+    <version>1.0.46</version>
     <authors>jmn</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <developmentDependency>true</developmentDependency>
@@ -14,6 +14,7 @@
   </metadata>
   <files>
     <file src="build\ViewGenerator.targets" target="build\ViewGenerator.targets" />
+    <file src="build\ViewGenerator.props" target="build\ViewGenerator.props" />
 
     <file src="content\**" target="content\" />
 
