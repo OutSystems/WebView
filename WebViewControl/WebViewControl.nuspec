@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
     <id>WebViewControl</id>
-    <version>1.64.20-beta</version>
+    <version>1.64.23-beta</version>
     <title>WebViewControl</title>
     <authors>jmn</authors>
     <owners>jmn</owners>

@@ -6,6 +6,8 @@
 
         string JavascriptName { get; }
 
+        string Source { get; }
+
         object CreateNativeObject();
     }
 }

@@ -184,6 +184,10 @@ namespace ${namespace} {
         protected override object CreateNativeObject() {
             return new ${PropertiesClassName}(this);
         }
+
+#if DEBUG
+        protected override string Source => \"${fullPath}\";
+#endif
     }
 }`);
 }

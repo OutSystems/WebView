@@ -72,12 +72,11 @@ namespace WebViewControl {
             SetResourceReference(StyleProperty, typeof(ReactView)); // force styles to be inherited, must be called after view is created otherwise view might be null
             Content = view;
             Dispatcher.BeginInvoke(DispatcherPriority.Send, (Action)(() => {
-                Initialize();
+                if (EnableHotReload) {
+                    view.EnableHotReload(Source);
+                }
+                view.LoadComponent(JavascriptSource, JavascriptName, CreateNativeObject());
             }));
-        }
-
-        private void Initialize() {
-            view.LoadComponent(JavascriptSource, JavascriptName, CreateNativeObject());
         }
 
         public static readonly DependencyProperty DefaultStyleSheetProperty = DependencyProperty.Register(
@@ -112,6 +111,8 @@ namespace WebViewControl {
 
         public bool EnableDebugMode { get => view.EnableDebugMode; set => view.EnableDebugMode = value; }
 
+        public bool EnableHotReload { get; set; }
+
         public bool IsReady => view.IsReady;
 
         public event Action Ready {
@@ -132,6 +133,8 @@ namespace WebViewControl {
 
         protected virtual string JavascriptName => null;
 
+        protected virtual string Source => null; // used for hot reload
+
         protected virtual object CreateNativeObject() {
             return null;
         }
@@ -150,10 +153,6 @@ namespace WebViewControl {
 
         public void CloseDeveloperTools() {
             view.CloseDeveloperTools();
-        }
-
-        public void EnableHotReload(string baseLocation) {
-            view.EnableHotReload(baseLocation);
         }
     }
 }

@@ -195,6 +195,9 @@ namespace WebViewControl {
         }
 
         public void EnableHotReload(string baseLocation) {
+            baseLocation = Path.GetDirectoryName(baseLocation);
+            baseLocation = Path.GetFullPath(baseLocation + "\\..\\.."); // get up 2 levels (.../View/src -> .../)
+
             if (fileSystemWatcher != null) {
                 fileSystemWatcher.Path = baseLocation;
                 return;
@@ -222,7 +225,7 @@ namespace WebViewControl {
                     var url = new Uri(resourceHandler.Url);
                     var path = Path.Combine(WebView.ResolveResourcePath(url).Skip(1).ToArray()); // skip first part (namespace)
                     if (fileExtensionsToWatch.Any(e => path.EndsWith(e))) {
-                        path = Path.Combine(baseLocation, path);
+                        path = Path.Combine(fileSystemWatcher.Path, path);
                         var file = new FileInfo(path);
                         if (file.Exists) {
                             resourceHandler.RespondWith(path);
