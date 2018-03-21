@@ -439,7 +439,9 @@ namespace WebViewControl {
         }
 
         public void Reload(bool ignoreCache = false) {
-            chromium.Reload(ignoreCache);
+            if (chromium.IsBrowserInitialized && !chromium.IsLoading) {
+                chromium.Reload(ignoreCache);
+            }
         }
 
         public string Title {
