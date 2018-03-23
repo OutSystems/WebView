@@ -3,24 +3,23 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.CompilerServices;
-using System.Security.Policy;
 using System.Windows.Controls;
 
 namespace WebViewControl {
 
     internal partial class ReactViewRender : ContentControl, IReactView {
 
-        private const string PathSeparator = "/";
+        private const string JavascriptNullConstant = "null";
+        
         private const string RootObject = "__Root__";
         private const string ReadyEventName = "Ready";
 
-        private static readonly string AssemblyName = typeof(ReactViewRender).Assembly.GetName().Name;
-        private static readonly string BuiltinResourcesPath = $"{AssemblyName}/Resources/";
+        private static readonly Assembly Assembly = typeof(ReactViewRender).Assembly;
+        private static readonly string BuiltinResourcesPath = "Resources/";
         private static readonly string DefaultUrl = $"{BuiltinResourcesPath}index.html";
-        private static readonly string LibrariesPath = $"/{BuiltinResourcesPath}node_modules/";
+        private static readonly string LibrariesPath = new ResourceUrl(Assembly, $"{BuiltinResourcesPath}node_modules/").ToString();
 
-        private readonly WebView webView = new InternalWebView();
+        private readonly WebView webView;
         private Assembly userCallingAssembly;
 
         private bool enableDebugMode = false;
@@ -30,17 +29,20 @@ namespace WebViewControl {
         private string componentSource;
         private string componentJavascriptName;
         private object component;
-        private string defaultStyleSheet;
-        private IViewModule[] modules;
+        private ResourceUrl defaultStyleSheet;
+        private IViewModule[] plugins;
+        private Dictionary<string, ResourceUrl> mappings;
         private FileSystemWatcher fileSystemWatcher;
 
         public static bool UseEnhancedRenderingEngine { get; set; } = true;
 
         public ReactViewRender() {
             userCallingAssembly = WebView.GetUserCallingMethod().ReflectedType.Assembly;
-            
-            webView.DisableBuiltinContextMenus = true;
-            webView.IgnoreMissingResources = false;
+
+            webView = new InternalWebView(this) {
+                DisableBuiltinContextMenus = true,
+                IgnoreMissingResources = false
+            };
             webView.AttachListener(ReadyEventName, () => IsReady = true, executeInUI: false);
             webView.Navigated += OnWebViewNavigated;
 
@@ -54,7 +56,7 @@ namespace WebViewControl {
                 ReadyEventName
             };
 
-            webView.Address = WebView.BuildEmbeddedResourceUrl(AssemblyName, DefaultUrl + "?" + string.Join("&", urlParams));
+            webView.Address = new ResourceUrl(typeof(ReactViewRender).Assembly, DefaultUrl + "?" + string.Join("&", urlParams)).ToString();
         }
 
         public event Action Ready {
@@ -82,12 +84,12 @@ namespace WebViewControl {
 
         private void InternalLoadComponent() {
             var source = NormalizeUrl(componentSource);
-            var filenameParts = source.Split(new[] { PathSeparator }, StringSplitOptions.None);
+            var filenameParts = source.Split(new[] { ResourceUrl.PathSeparator }, StringSplitOptions.None);
 
             // eg: example/dist/source.js
             // baseUrl = /AssemblyName/example/
             var sourceDepth = filenameParts.Length >= 2 ? 2 : 1;
-            var baseUrl = ToFullUrl(string.Join(PathSeparator, filenameParts.Take(filenameParts.Length - sourceDepth))) + PathSeparator;
+            var baseUrl = ToFullUrl(string.Join(ResourceUrl.PathSeparator, filenameParts.Take(filenameParts.Length - sourceDepth))) + ResourceUrl.PathSeparator;
 
             var loadArgs = new List<string>() {
                 Quote(baseUrl),
@@ -95,9 +97,9 @@ namespace WebViewControl {
             };
 
             if (DefaultStyleSheet != null) {
-                loadArgs.Add(Quote(NormalizeUrl(ToFullUrl(DefaultStyleSheet))));
+                loadArgs.Add(Quote(NormalizeUrl(ToFullUrl(DefaultStyleSheet.ToString()))));
             } else {
-                loadArgs.Add("null");
+                loadArgs.Add(JavascriptNullConstant);
             }
 
             loadArgs.Add(AsBoolean(enableDebugMode));
@@ -105,9 +107,9 @@ namespace WebViewControl {
 
             webView.RegisterJavascriptObject(componentJavascriptName, component, executeCallsInUI: false);
 
-            if (Modules != null && Modules.Length > 0) {
-                loadArgs.Add(Array(Modules.Select(m => Array(Quote(m.JavascriptName), Quote(NormalizeUrl(ToFullUrl(m.JavascriptSource)))))));
-                foreach (var module in Modules) {
+            if (Plugins != null && Plugins.Length > 0) {
+                loadArgs.Add(Array(Plugins.Select(m => Array(Quote(m.JavascriptName), Quote(NormalizeUrl(ToFullUrl(m.JavascriptSource)))))));
+                foreach (var module in Plugins) {
                     webView.RegisterJavascriptObject(module.JavascriptName, module.CreateNativeObject(), executeCallsInUI: false);
                 }
             }
@@ -138,7 +140,7 @@ namespace WebViewControl {
         }
 
         
-        public string DefaultStyleSheet {
+        public ResourceUrl DefaultStyleSheet {
             get { return defaultStyleSheet; }
             set {
                 if (componentLoaded) {
@@ -148,13 +150,23 @@ namespace WebViewControl {
             }
         }
 
-        public IViewModule[] Modules {
-            get { return modules; }
+        public IViewModule[] Plugins {
+            get { return plugins; }
             set {
                 if (componentLoaded) {
-                    throw new InvalidOperationException($"Cannot set {nameof(Modules)} after component has been loaded");
+                    throw new InvalidOperationException($"Cannot set {nameof(Plugins)} after component has been loaded");
                 }
-                modules = value;
+                plugins = value;
+            }
+        }
+
+        public Dictionary<string, ResourceUrl> Mappings {
+            get { return mappings; }
+            set {
+                if (componentLoaded) {
+                    throw new InvalidOperationException($"Cannot set {nameof(Mappings)} after component has been loaded");
+                }
+                mappings = value;
             }
         }
 
@@ -191,7 +203,11 @@ namespace WebViewControl {
         }
         
         private string ToFullUrl(string url) {
-            return (url.StartsWith(PathSeparator) || url.Contains(Uri.SchemeDelimiter)) ? url : $"/{userCallingAssembly.GetName().Name}/{url}";
+            if (url.Contains(Uri.SchemeDelimiter)) {
+                return url;
+            } else {
+                return new ResourceUrl(userCallingAssembly, url).ToString();
+            }
         }
 
         public void EnableHotReload(string baseLocation) {
@@ -215,15 +231,19 @@ namespace WebViewControl {
                 if (IsReady) {
                     if (fileExtensionsToWatch.Any(e => eventArgs.Name.EndsWith(e))) {
                         filesChanged = true;
-                        IsReady = false;
-                        webView.Reload(true);
+                        webView.Dispatcher.BeginInvoke((Action) (() => {
+                            if (IsReady) {
+                                IsReady = false;
+                                webView.Reload(true);
+                            }
+                        }));
                     }
                 }
             };
             webView.BeforeResourceLoad += (WebView.ResourceHandler resourceHandler) => {
                 if (filesChanged) {
                     var url = new Uri(resourceHandler.Url);
-                    var path = Path.Combine(WebView.ResolveResourcePath(url).Skip(1).ToArray()); // skip first part (namespace)
+                    var path = Path.Combine(ResourceUrl.GetEmbeddedResourcePath(url).Skip(1).ToArray()); // skip first part (namespace)
                     if (fileExtensionsToWatch.Any(e => path.EndsWith(e))) {
                         path = Path.Combine(fileSystemWatcher.Path, path);
                         var file = new FileInfo(path);
@@ -258,7 +278,7 @@ namespace WebViewControl {
                 url = url.Substring(0, url.Length - JsExtension.Length); // prevents modules from being loaded twice (once with extension and other without)
             }
 
-            return url.Replace("\\", PathSeparator);
+            return url.Replace("\\", ResourceUrl.PathSeparator);
         }
     }
 }

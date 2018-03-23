@@ -36,7 +36,7 @@ namespace WebViewControl {
 
                 Uri url;
                 var resourceHandler = new ResourceHandler(request, OwnerWebView.GetRequestUrl(request));
-                if (Uri.TryCreate(resourceHandler.Url, UriKind.Absolute, out url) && url.Scheme == EmbeddedScheme) {
+                if (Uri.TryCreate(resourceHandler.Url, UriKind.Absolute, out url) && url.Scheme == ResourceUrl.EmbeddedScheme) {
                     var urlWithoutQuery = new UriBuilder(url);
                     if (url.Query != "") {
                         urlWithoutQuery.Query = "";
@@ -50,7 +50,7 @@ namespace WebViewControl {
 
                 if (resourceHandler.Handled) {
                     return resourceHandler.Handler;
-                } else if (!OwnerWebView.IgnoreMissingResources && url != null && url.Scheme == EmbeddedScheme) {
+                } else if (!OwnerWebView.IgnoreMissingResources && url != null && url.Scheme == ResourceUrl.EmbeddedScheme) {
                     if (OwnerWebView.ResourceLoadFailed != null) {
                         OwnerWebView.ResourceLoadFailed(request.Url);
                     } else {
@@ -66,13 +66,13 @@ namespace WebViewControl {
             return request.Url;
         }
 
-        protected void LoadEmbeddedResource(ResourceHandler resourceHandler, Uri url) {
+        protected virtual void LoadEmbeddedResource(ResourceHandler resourceHandler, Uri url) {
             var resourceAssembly = ResolveResourceAssembly(url);
-            var resourcePath = ResolveResourcePath(url);
+            var resourcePath = ResourceUrl.GetEmbeddedResourcePath(url);
 
             var extension = Path.GetExtension(resourcePath.Last()).ToLower();
 
-            var resourceStream = ResourcesManager.TryGetResourceWithFullPath(resourceAssembly, resourcePath);
+            var resourceStream = TryGetResourceWithFullPath(resourceAssembly, resourcePath);
             if (resourceStream != null) {
                 resourceHandler.RespondWith(resourceStream, extension);
             }
@@ -84,7 +84,7 @@ namespace WebViewControl {
                 AppDomain.CurrentDomain.AssemblyLoad += OnAssemblyLoaded;
             }
 
-            var assemblyName = GetEmbeddedResourceAssemblyName(resourceUrl);
+            var assemblyName = ResourceUrl.GetEmbeddedResourceAssemblyName(resourceUrl);
             var assembly = GetAssemblyByName(assemblyName);
 
             if (assembly == null) {
@@ -120,22 +120,12 @@ namespace WebViewControl {
             return assembly;
         }
 
-        private void OnAssemblyLoaded(object sender, AssemblyLoadEventArgs args) {
-            newAssembliesLoaded = true;
+        protected virtual Stream TryGetResourceWithFullPath(Assembly assembly, IEnumerable<string> resourcePath) {
+            return ResourcesManager.TryGetResourceWithFullPath(assembly, resourcePath);
         }
 
-        /// <summary>
-        /// Supported sintax:
-        /// embedded://webview/assembly:AssemblyName;Path/To/Resource
-        /// embedded://webview/AssemblyName/Path/To/Resource (AssemblyName is also assumed as default namespace)
-        /// </summary>
-        internal static string[] ResolveResourcePath(Uri resourceUrl) {
-            if (resourceUrl.AbsoluteUri.StartsWith(AssemblyPrefix)) {
-                var indexOfPath = resourceUrl.AbsolutePath.IndexOf(AssemblyPathSeparator);
-                return resourceUrl.AbsolutePath.Substring(indexOfPath + 1).Split('/');
-            }
-            var uriParts = resourceUrl.Segments;
-            return uriParts.Skip(1).Select(p => p.Replace("/", "")).ToArray();
+        private void OnAssemblyLoaded(object sender, AssemblyLoadEventArgs args) {
+            newAssembliesLoaded = true;
         }
     }
 }

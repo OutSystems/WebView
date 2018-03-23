@@ -47,11 +47,11 @@ class App extends React.Component<IAppProperties, {}> {
         }, 50);
     }
 
-    checkAdditionalModuleLoaded() {
+    checkPluginModuleLoaded() {
         var intervalHandle = 0;
         intervalHandle = setInterval(() => {
-            if ((window as any).AdditionalModuleLoaded) {
-                this.props.event("AdditionalModuleLoaded");
+            if ((window as any).PluginModuleLoaded) {
+                this.props.event("PluginModuleLoaded");
             }
             clearInterval(intervalHandle);
         }, 50);

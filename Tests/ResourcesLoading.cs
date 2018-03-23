@@ -1,4 +1,5 @@
 ﻿using NUnit.Framework;
+using WebViewControl;
 
 namespace Tests {
 
@@ -19,7 +20,7 @@ namespace Tests {
 
         [Test(Description = "Embedded files are correctly loaded")]
         public void EmbeddedFilesLoad() {
-            var embeddedResourceUrl = WebViewControl.WebView.BuildEmbeddedResourceUrl(GetType().Assembly, "Tests", "Resources", "EmbeddedJavascriptFile.js");
+            var embeddedResourceUrl = new ResourceUrl(GetType().Assembly, "Resources", "EmbeddedJavascriptFile.js");
             LoadAndWaitReady($"<html><script src='{embeddedResourceUrl}'></script></html>");
             var embeddedFileLoaded = TargetView.EvaluateScript<bool>("embeddedFileLoaded");
             Assert.IsTrue(embeddedFileLoaded);
@@ -27,7 +28,7 @@ namespace Tests {
 
         [Test(Description = "Embedded files with dashes in the filename are correctly loaded")]
         public void EmbeddedFilesWithDashesInFilenameLoad() {
-            var embeddedResourceUrl = WebViewControl.WebView.BuildEmbeddedResourceUrl(GetType().Assembly, "Tests", "Resources", "dash-folder", "EmbeddedJavascriptFile-With-Dashes.js");
+            var embeddedResourceUrl = new ResourceUrl(GetType().Assembly, "Resources", "dash-folder", "EmbeddedJavascriptFile-With-Dashes.js");
             LoadAndWaitReady($"<html><script src='{embeddedResourceUrl}'></script></html>");
             var embeddedFileLoaded = TargetView.EvaluateScript<bool>("embeddedFileLoaded");
             Assert.IsTrue(embeddedFileLoaded);

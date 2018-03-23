@@ -105,6 +105,7 @@
     <Compile Include="ReactViewRender.cs" />
     <Compile Include="ReactView.cs" />
     <Compile Include="RenderProcessClosedException.cs" />
+    <Compile Include="ResourceUrl.cs" />
     <Compile Include="UnhandledExceptionEventArgs.cs" />
     <Compile Include="IViewModule.cs" />
     <Compile Include="ViewModuleContainer.cs" />

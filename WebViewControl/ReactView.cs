@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows;
@@ -79,35 +80,11 @@ namespace WebViewControl {
             }));
         }
 
-        public static readonly DependencyProperty DefaultStyleSheetProperty = DependencyProperty.Register(
-            nameof(DefaultStyleSheet),
-            typeof(string),
-            typeof(ReactView), 
-            new PropertyMetadata(OnDefaultStyleSheetPropertyChanged));
+        public ResourceUrl DefaultStyleSheet { get => view.DefaultStyleSheet; set => view.DefaultStyleSheet = value; }
 
-        private static void OnDefaultStyleSheetPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
-            ((ReactView)d).view.DefaultStyleSheet = (string) e.NewValue;
-        }
+        public IViewModule[] Plugins { get => view.Plugins; set => view.Plugins = value; }
 
-        public string DefaultStyleSheet {
-            get { return (string)GetValue(DefaultStyleSheetProperty); }
-            set { SetValue(DefaultStyleSheetProperty, value); }
-        }
-
-        public static readonly DependencyProperty ModulesProperty = DependencyProperty.Register(
-            nameof(Modules),
-            typeof(IViewModule[]),
-            typeof(ReactView),
-            new PropertyMetadata(OnModulesPropertyChanged));
-
-        private static void OnModulesPropertyChanged(DependencyObject d, DependencyPropertyChangedEventArgs e) {
-            ((ReactView)d).view.Modules = (IViewModule[])e.NewValue;
-        }
-
-        public IViewModule[] Modules {
-            get { return (IViewModule[])GetValue(ModulesProperty); }
-            set { SetValue(ModulesProperty, value); }
-        }
+        public Dictionary<string, ResourceUrl> Mappings { get => view.Mappings; set => view.Mappings = value; }
 
         public bool EnableDebugMode { get => view.EnableDebugMode; set => view.EnableDebugMode = value; }
 

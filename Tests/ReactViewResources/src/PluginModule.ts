@@ -1,0 +1,1 @@
+﻿(window as any).PluginModuleLoaded = true;

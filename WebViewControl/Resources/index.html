@@ -79,7 +79,7 @@
 				});
 			}
 
-			window.load = (baseUrl, userComponent, userDefaultStylesheet, enableDebugMode, enableHotReload, modules) => {
+			window.load = (baseUrl, userComponent, userDefaultStylesheet, enableDebugMode, enableHotReload, plugins) => {
 				let noCacheSuffix;
 				if (enableHotReload) {
 					noCacheSuffix = "t=" + (new Date()).getTime();
@@ -87,7 +87,7 @@
 
 				require.config({
 					baseUrl: baseUrl,
-					urlArgs: noCacheSuffix,
+					urlArgs: noCacheSuffix
 				});
 
 				if (userDefaultStylesheet) {
@@ -128,9 +128,9 @@
 						() => notifyReady()
 					);
 
-					if (modules) {
-						// load additional modules
-						modules.forEach(m => {
+					if (plugins) {
+						// load plugin modules
+						plugins.forEach(m => {
 							const ModuleName = m[0];
 							const ModulePath = m[1];
 							CefSharp.BindObjectAsync(ModuleName, ModuleName).then(() => {

@@ -17,13 +17,9 @@ namespace WebViewControl {
 
     public partial class WebView : ContentControl, IDisposable {
 
-        public const string LocalScheme = "local";
-
-        internal const string EmbeddedScheme = "embedded";
-
         private static readonly string[] CustomSchemes = new[] {
-            LocalScheme,
-            EmbeddedScheme
+            ResourceUrl.LocalScheme,
+            ResourceUrl.EmbeddedScheme
         };
 
         private static readonly string TempDir = 
@@ -31,10 +27,7 @@ namespace WebViewControl {
 
         private const string ChromeInternalProtocol = "chrome-devtools:";
         
-        protected const string DefaultPath = "://webview/";
-        private const string DefaultLocalUrl = LocalScheme + DefaultPath + "index.html";
-        private const string AssemblyPrefix = EmbeddedScheme + DefaultPath + "assembly:";
-        private const string AssemblyPathSeparator = ";";
+        private static readonly string DefaultLocalUrl = new ResourceUrl(ResourceUrl.LocalScheme, "index.html").ToString();
 
         // converts cef zoom percentage to css zoom (between 0 and 1)
         // from https://code.google.com/p/chromium/issues/detail?id=71484
@@ -335,7 +328,7 @@ namespace WebViewControl {
             var userAssembly = GetUserCallingMethod().ReflectedType.Assembly;
 
             IsSecurityDisabled = true;
-            Address = BuildEmbeddedResourceUrl(userAssembly, userAssembly.GetName().Name, source);
+            Address = new ResourceUrl(userAssembly, source).ToString();
         }
 
         public void LoadHtml(string html) {
@@ -522,24 +515,6 @@ namespace WebViewControl {
                    request.Url.Equals(DefaultLocalUrl, StringComparison.InvariantCultureIgnoreCase);
         }
 
-        // TODO create a URL object to store this information and replace these methods
-        public static string BuildEmbeddedResourceUrl(Assembly assembly, params string[] path) {
-            return BuildEmbeddedResourceUrl(assembly.GetName().Name, path);
-        }
-
-        public static string BuildEmbeddedResourceUrl(string assemblyName, params string[] path) {
-            return AssemblyPrefix + assemblyName + AssemblyPathSeparator + string.Join("/", path);
-        }
-
-        private static string GetEmbeddedResourceAssemblyName(Uri url) {
-            if (url.AbsoluteUri.StartsWith(AssemblyPrefix)) {
-                var resourcePath = url.AbsoluteUri.Substring(AssemblyPrefix.Length);
-                var indexOfPath = Math.Max(0, resourcePath.IndexOf(AssemblyPathSeparator));
-                return resourcePath.Substring(0, indexOfPath);
-            }
-            return url.Segments.Length > 1 ? url.Segments[1].TrimEnd('/') : string.Empty; // default assembly name to the first path
-        }
-
         private static bool IsFrameworkAssemblyName(string name) {
             return name == "PresentationFramework" || name == "PresentationCore" || name == "mscorlib" || name == "System.Xaml" || name == "WindowsBase";
         }
@@ -594,9 +569,10 @@ namespace WebViewControl {
         private void ForwardUnhandledAsyncException(Exception e) {
             var handled = false;
 
-            if (UnhandledAsyncException != null) {
+            var unhandledAsyncException = UnhandledAsyncException;
+            if (unhandledAsyncException != null) {
                 var eventArgs = new UnhandledExceptionEventArgs(e);
-                UnhandledAsyncException?.Invoke(eventArgs);
+                unhandledAsyncException(eventArgs);
                 handled = eventArgs.Handled;
             }
 
