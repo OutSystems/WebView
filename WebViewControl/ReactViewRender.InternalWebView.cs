@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Reflection;
 using CefSharp;
 
 namespace WebViewControl {
@@ -29,17 +26,6 @@ namespace WebViewControl {
                 }
 
                 return base.GetRequestUrl(request);
-            }
-
-            protected override void LoadEmbeddedResource(ResourceHandler resourceHandler, Uri url) {
-                if (owner.Mappings != null && owner.Mappings.TryGetValue(url.AbsolutePath, out ResourceUrl mapping)) {
-                    url = new Uri(owner.ToFullUrl(mapping.ToString()), UriKind.Absolute);
-                }
-                base.LoadEmbeddedResource(resourceHandler, url);
-            }
-
-            protected override Stream TryGetResourceWithFullPath(Assembly assembly, IEnumerable<string> resourcePath) {
-                return base.TryGetResourceWithFullPath(assembly, resourcePath);
             }
         }
     }

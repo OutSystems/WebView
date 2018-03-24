@@ -79,15 +79,20 @@
 				});
 			}
 
-			window.load = (baseUrl, userComponent, userDefaultStylesheet, enableDebugMode, enableHotReload, plugins) => {
+			window.load = (baseUrl, userComponent, userDefaultStylesheet, enableDebugMode, enableHotReload, plugins, mappings) => {
 				let noCacheSuffix;
 				if (enableHotReload) {
 					noCacheSuffix = "t=" + (new Date()).getTime();
 				}
 
+				if (mappings) {
+					paths = Object.assign(paths, mappings);
+				}
+
 				require.config({
 					baseUrl: baseUrl,
-					urlArgs: noCacheSuffix
+					urlArgs: noCacheSuffix,
+					paths: paths
 				});
 
 				if (userDefaultStylesheet) {

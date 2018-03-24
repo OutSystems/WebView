@@ -112,6 +112,12 @@ namespace WebViewControl {
                 foreach (var module in Plugins) {
                     webView.RegisterJavascriptObject(module.JavascriptName, module.CreateNativeObject(), executeCallsInUI: false);
                 }
+            } else {
+                loadArgs.Add(JavascriptNullConstant);
+            }
+
+            if (Mappings != null && Mappings.Count > 0) {
+                loadArgs.Add(Object(Mappings.Select(m => new KeyValuePair<string, string>(Quote(m.Key), Quote(m.Value.ToString())))));
             }
 
             webView.ExecuteScriptFunction("load", loadArgs.ToArray());
@@ -269,6 +275,10 @@ namespace WebViewControl {
 
         private static string Array(IEnumerable<string> elements) {
             return Array(elements.ToArray());
+        }
+
+        private static string Object(IEnumerable<KeyValuePair<string, string>> properties) {
+            return "{" + string.Join(",", properties.Select(p => p.Key + ":" + p.Value)) + "}";
         }
 
         private static string NormalizeUrl(string url) {
