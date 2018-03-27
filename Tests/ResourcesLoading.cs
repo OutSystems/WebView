@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using System.IO;
+using NUnit.Framework;
 using WebViewControl;
 
 namespace Tests {
@@ -32,6 +33,18 @@ namespace Tests {
             LoadAndWaitReady($"<html><script src='{embeddedResourceUrl}'></script></html>");
             var embeddedFileLoaded = TargetView.EvaluateScript<bool>("embeddedFileLoaded");
             Assert.IsTrue(embeddedFileLoaded);
+        }
+
+        [Test(Description = "WPF resource files are loaded")]
+        public void ResourceFile() {
+            var embeddedResourceUrl = new ResourceUrl(GetType().Assembly, "Resources", "ResourceJavascriptFile.js");
+            LoadAndWaitReady($"<html><script src='{embeddedResourceUrl}'></script></html>");
+            var embeddedFileLoaded = TargetView.EvaluateScript<bool>("resourceFileLoaded");
+            Assert.IsTrue(embeddedFileLoaded);
+
+            Stream missingResource = null;
+            Assert.DoesNotThrow(() => missingResource = ResourcesManager.TryGetResourceWithFullPath(GetType().Assembly, new[] { "Resources", "Missing.txt" }));
+            Assert.IsNull(missingResource);
         }
     }
 }

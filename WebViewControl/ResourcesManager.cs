@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Windows;
 
 namespace WebViewControl {
 
@@ -19,7 +20,7 @@ namespace WebViewControl {
             return InternalTryGetResource(assembly, defaultNamespace, resourcePath, failOnMissingResource);
         }
 
-        private static string ComputeResourceName(string defaultNamespace, IEnumerable<string> resourcePath) {
+        private static string ComputeEmbeddedResourceName(string defaultNamespace, IEnumerable<string> resourcePath) {
             var resourceParts = (new[] { defaultNamespace }).Concat(resourcePath).ToArray();
             for (int i = 0; i < resourceParts.Length - 1; i++) {
                 resourceParts[i] = resourceParts[i].Replace('-', '_');
@@ -28,8 +29,17 @@ namespace WebViewControl {
         }
 
         private static Stream InternalTryGetResource(Assembly assembly, string defaultNamespace, IEnumerable<string> resourcePath, bool failOnMissingResource) {
-            var resourceName = ComputeResourceName(defaultNamespace, resourcePath);
+            var resourceName = ComputeEmbeddedResourceName(defaultNamespace, resourcePath);
             var stream = assembly.GetManifestResourceStream(resourceName);
+            if (stream == null) {
+                var assemblyName = assembly.GetName().Name;
+                var alternativeResourceName = string.Join("/", resourcePath);
+                try {
+                    stream = Application.GetResourceStream(new Uri($"/{assemblyName};component/{alternativeResourceName}", UriKind.Relative))?.Stream;
+                } catch (IOException) {
+                    // ignore
+                }
+            }
             if (failOnMissingResource && stream == null) {
                 throw new InvalidOperationException("Resource not found: " + resourceName);
             }

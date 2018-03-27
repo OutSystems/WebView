@@ -158,6 +158,12 @@
   <ItemGroup>
     <EmbeddedResource Include="ReactViewResources\imgs\image.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\ResourceFile.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="Resources\ResourceJavascriptFile.js" />
+  </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
       <ItemGroup>

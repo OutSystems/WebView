@@ -117,7 +117,7 @@ namespace WebViewControl {
             }
 
             if (Mappings != null && Mappings.Count > 0) {
-                loadArgs.Add(Object(Mappings.Select(m => new KeyValuePair<string, string>(Quote(m.Key), Quote(m.Value.ToString())))));
+                loadArgs.Add(Object(Mappings.Select(m => new KeyValuePair<string, string>(Quote(m.Key), Quote(NormalizeUrl(m.Value.ToString()))))));
             }
 
             webView.ExecuteScriptFunction("load", loadArgs.ToArray());
@@ -209,7 +209,7 @@ namespace WebViewControl {
         }
         
         private string ToFullUrl(string url) {
-            if (url.Contains(Uri.SchemeDelimiter)) {
+            if (url.StartsWith(ResourceUrl.PathSeparator) || url.Contains(Uri.SchemeDelimiter)) {
                 return url;
             } else {
                 return new ResourceUrl(userCallingAssembly, url).ToString();
