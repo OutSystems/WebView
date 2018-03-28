@@ -131,7 +131,7 @@ namespace WebViewControl {
                 loadArgs.Add(Object(Mappings.Select(m => new KeyValuePair<string, string>(Quote(m.Key), Quote(NormalizeUrl(m.Value.ToString()))))));
             }
 
-            webView.ExecuteScriptFunction("load", loadArgs.ToArray()); // TODO load might not be there
+            ExecuteDeferredScriptFunction("load", loadArgs.ToArray());
             componentLoaded = true;
         }
 
@@ -211,7 +211,7 @@ namespace WebViewControl {
 
         private void ShowErrorMessage(string msg) {
             msg = msg.Replace("\"", "\\\"");
-            webView.ExecuteScript($"showErrorMessage(\"{msg}\")");
+            ExecuteDeferredScriptFunction("showErrorMessage", Quote(msg));
         }
         
         private string ToFullUrl(string url) {
@@ -265,6 +265,11 @@ namespace WebViewControl {
                     }
                 }
             };
+        }
+
+        private void ExecuteDeferredScriptFunction(string functionName, params string[] args) {
+            // using setimeout we make sure the function is already defined
+            webView.ExecuteScript($"setTimeout(() => {functionName}({string.Join(",", args)}), 0)");
         }
 
         private static string Quote(string str) {
