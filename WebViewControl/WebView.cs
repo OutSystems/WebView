@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -36,6 +37,8 @@ namespace WebViewControl {
         private readonly DefaultBinder binder = new DefaultBinder(new DefaultFieldNameConverter());
 
         private static bool subscribedApplicationExit = false;
+        private static List<WebView> disposableWebViews = new List<WebView>();
+        private static readonly FrameworkElement DummyElement = new FrameworkElement();
 
         protected InternalChromiumBrowser chromium;
         private bool isDeveloperToolsOpened = false;
@@ -71,6 +74,7 @@ namespace WebViewControl {
         public event Action JavascriptContextCreated;
         public event Action TitleChanged;
         public event Action<UnhandledExceptionEventArgs> UnhandledAsyncException;
+        internal event Action Disposed;
 
         private event Action RenderProcessCrashed;
         private event Action JavascriptContextReleased;
@@ -82,8 +86,15 @@ namespace WebViewControl {
 
         static WebView() {
             InitializeCef();
+            WindowsEventsListener.WindowUnloaded += OnWindowUnloaded;
         }
 
+        private static void OnWindowUnloaded(Window window) {
+            foreach (var webview in disposableWebViews.Where(w => !w.IsLoaded && Window.GetWindow(w) == window).ToArray()) {
+                webview.Dispose();
+            }
+        }
+        
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void InitializeCef() {
             if (!Cef.IsInitialized) {
@@ -171,7 +182,8 @@ namespace WebViewControl {
             chromium.MenuHandler = new CefMenuHandler(this);
             chromium.DialogHandler = new CefDialogHandler(this);
             chromium.DownloadHandler = new CefDownloadHandler(this);
-            
+            chromium.CleanupElement = DummyElement; // prevent chromium to listen to default cleanup element unload events, this will be controlled manually
+
             jsExecutor = new JavascriptExecutor(this);
 
             RegisterJavascriptObject(Listener.EventListenerObjName, eventsListener);
@@ -179,6 +191,8 @@ namespace WebViewControl {
             Content = chromium;
             
             GlobalWebViewInitialized?.Invoke(this);
+
+            disposableWebViews.Add(this);
         }
 
         private static void OnApplicationExit(object sender, ExitEventArgs e) {
@@ -206,6 +220,8 @@ namespace WebViewControl {
 
         private void InternalDispose() {
             AppDomain.CurrentDomain.AssemblyLoad -= OnAssemblyLoaded;
+            disposableWebViews.Remove(this);
+
             cancellationTokenSource.Cancel();
             chromium.RequestHandler = null;
             chromium.ResourceHandlerFactory = null;
@@ -233,6 +249,8 @@ namespace WebViewControl {
             chromium = null;
 
             GC.SuppressFinalize(this);
+
+            Disposed?.Invoke();
         }
 
         protected override void OnGotFocus(RoutedEventArgs e) {
@@ -275,7 +293,7 @@ namespace WebViewControl {
                 }
                 if (value.Contains("://") || value == "about:blank" || value.StartsWith("data:")) {
                     // must wait for the browser to be initialized otherwise navigation will be aborted
-                    ExecuteWhenInitialized(() => chromium.Load(value));
+                    chromium.Address = value;
                 } else {
                     LoadFrom(value);
                 }
@@ -472,6 +490,8 @@ namespace WebViewControl {
                     pendingInitialization = null;
                 }
                 WebViewInitialized?.Invoke();
+            } else {
+                Dispose();
             }
         }
 

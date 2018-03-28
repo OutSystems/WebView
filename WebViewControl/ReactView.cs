@@ -14,18 +14,13 @@ namespace WebViewControl {
         private static ReactViewRender cachedView;
 
         static ReactView() {
-            EventManager.RegisterClassHandler(typeof(Window), Window.LoadedEvent, new RoutedEventHandler(OnWindowLoaded), true);
+            WindowsEventsListener.WindowUnloaded += OnWindowUnloaded;
         }
 
-        private static void OnWindowLoaded(object sender, EventArgs e) {
-            var window = (Window)sender;
-            window.Closed -= OnWindowLoaded;
-            window.Closed += OnWindowClosed;
-        }
-
-        private static void OnWindowClosed(object sender, EventArgs e) {
+        private static void OnWindowUnloaded(Window unloadedWindow) {
             var windows = Application.Current.Windows.Cast<Window>();
             if (Debugger.IsAttached) {
+                // exclude visual studio adorner windows
                 windows = windows.Where(w => w.GetType().FullName != "Microsoft.VisualStudio.DesignTools.WpfTap.WpfVisualTreeService.Adorners.AdornerLayerWindow");
             }
             if (windows.Count() == 1 && windows.Single() == window) {
@@ -54,6 +49,10 @@ namespace WebViewControl {
                             IsEnabled = false,
                             Title = "ReactViewRender Background Window"
                         };
+                        window.Closed += (o, e) => {
+                            cachedView?.Dispose();
+                            cachedView = null;
+                        };
                         window.Show();
                     }
                     window.Content = cachedView;
@@ -80,6 +79,15 @@ namespace WebViewControl {
             }));
         }
 
+        ~ReactView() {
+            Dispose();
+        }
+
+        public void Dispose() {
+            view.Dispose();
+            GC.SuppressFinalize(this);
+        }
+
         public ResourceUrl DefaultStyleSheet { get => view.DefaultStyleSheet; set => view.DefaultStyleSheet = value; }
 
         public IViewModule[] Plugins { get => view.Plugins; set => view.Plugins = value; }
@@ -100,10 +108,6 @@ namespace WebViewControl {
         public event Action<UnhandledExceptionEventArgs> UnhandledAsyncException {
             add { view.UnhandledAsyncException += value; }
             remove { view.UnhandledAsyncException -= value; }
-        }
-
-        public void Dispose() {
-            view.Dispose();
         }
 
         protected virtual string JavascriptSource => null;

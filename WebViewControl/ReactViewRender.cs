@@ -45,6 +45,7 @@ namespace WebViewControl {
             };
             webView.AttachListener(ReadyEventName, () => IsReady = true, executeInUI: false);
             webView.Navigated += OnWebViewNavigated;
+            webView.Disposed += OnWebViewDisposed;
 
             Content = webView;
 
@@ -57,6 +58,16 @@ namespace WebViewControl {
             };
 
             webView.Address = new ResourceUrl(typeof(ReactViewRender).Assembly, DefaultUrl + "?" + string.Join("&", urlParams)).ToString();
+        }
+
+        private void OnWebViewDisposed() {
+            Dispose();
+        }
+
+        public void Dispose() {
+            fileSystemWatcher?.Dispose();
+            fileSystemWatcher = null;
+            webView.Dispose();
         }
 
         public event Action Ready {
@@ -120,7 +131,7 @@ namespace WebViewControl {
                 loadArgs.Add(Object(Mappings.Select(m => new KeyValuePair<string, string>(Quote(m.Key), Quote(NormalizeUrl(m.Value.ToString()))))));
             }
 
-            webView.ExecuteScriptFunction("load", loadArgs.ToArray());
+            webView.ExecuteScriptFunction("load", loadArgs.ToArray()); // TODO load might not be there
             componentLoaded = true;
         }
 
@@ -130,11 +141,6 @@ namespace WebViewControl {
             if (component != null) {
                 InternalLoadComponent();
             }
-        }
-
-        public void Dispose() {
-            fileSystemWatcher?.Dispose();
-            webView.Dispose();
         }
 
         public void ExecuteMethodOnRoot(string methodCall, params string[] args) {
