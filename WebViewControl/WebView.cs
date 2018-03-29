@@ -33,16 +33,14 @@ namespace WebViewControl {
         // converts cef zoom percentage to css zoom (between 0 and 1)
         // from https://code.google.com/p/chromium/issues/detail?id=71484
         private const float PercentageToZoomFactor = 1.2f;
-
-        private readonly DefaultBinder binder = new DefaultBinder(new DefaultFieldNameConverter());
-
-        private static bool subscribedApplicationExit = false;
-        private static List<WebView> disposableWebViews = new List<WebView>();
+        
+        private static readonly List<WebView> DisposableWebViews = new List<WebView>();
         private static readonly FrameworkElement DummyElement = new FrameworkElement();
+        private static bool subscribedApplicationExit = false;
 
-        protected InternalChromiumBrowser chromium;
-        private bool isDeveloperToolsOpened = false;
+        private InternalChromiumBrowser chromium;
         private BrowserSettings settings;
+        private bool isDeveloperToolsOpened = false;
         private bool isDisposing;
         private Action pendingInitialization;
         private string htmlToLoad;
@@ -50,6 +48,7 @@ namespace WebViewControl {
         private CefLifeSpanHandler lifeSpanHandler;
         private volatile int javascriptPendingCalls;
 
+        private readonly DefaultBinder binder = new DefaultBinder(new DefaultFieldNameConverter());
         private readonly BrowserObjectListener eventsListener = new BrowserObjectListener();
         private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
@@ -90,7 +89,7 @@ namespace WebViewControl {
         }
 
         private static void OnWindowUnloaded(Window window) {
-            foreach (var webview in disposableWebViews.Where(w => !w.IsLoaded && Window.GetWindow(w) == window).ToArray()) {
+            foreach (var webview in DisposableWebViews.Where(w => !w.IsLoaded && Window.GetWindow(w) == window).ToArray()) {
                 webview.Dispose();
             }
         }
@@ -192,7 +191,7 @@ namespace WebViewControl {
             
             GlobalWebViewInitialized?.Invoke(this);
 
-            disposableWebViews.Add(this);
+            DisposableWebViews.Add(this);
         }
 
         private static void OnApplicationExit(object sender, ExitEventArgs e) {
@@ -216,16 +215,14 @@ namespace WebViewControl {
                 // avoid dead-lock
                 Dispatcher.BeginInvoke((Action)InternalDispose);
             }
+            GC.SuppressFinalize(this);
         }
 
         private void InternalDispose() {
             AppDomain.CurrentDomain.AssemblyLoad -= OnAssemblyLoaded;
-            disposableWebViews.Remove(this);
+            DisposableWebViews.Remove(this);
 
             cancellationTokenSource.Cancel();
-            chromium.RequestHandler = null;
-            chromium.ResourceHandlerFactory = null;
-            chromium.PreviewKeyDown -= OnPreviewKeyDown;
 
             WebViewInitialized = null;
             BeforeNavigate = null;
@@ -245,10 +242,6 @@ namespace WebViewControl {
             settings.Dispose();
             chromium.Dispose();
             cancellationTokenSource.Dispose();
-            settings = null;
-            chromium = null;
-
-            GC.SuppressFinalize(this);
 
             Disposed?.Invoke();
         }

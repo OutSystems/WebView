@@ -66,7 +66,6 @@ namespace WebViewControl {
 
         public void Dispose() {
             fileSystemWatcher?.Dispose();
-            fileSystemWatcher = null;
             webView.Dispose();
         }
 
