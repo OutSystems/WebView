@@ -63,7 +63,7 @@ namespace WebViewControl {
 
             private void OnJavascriptContextCreated() {
                 OwnerWebView.JavascriptContextCreated -= OnJavascriptContextCreated;
-                Task.Factory.StartNew(FlushScripts, flushTaskCancelationToken.Token);
+                Task.Factory.StartNew(FlushScripts, flushTaskCancelationToken.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
             }
 
             private void StopFlush() {

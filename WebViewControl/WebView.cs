@@ -35,7 +35,6 @@ namespace WebViewControl {
         private const float PercentageToZoomFactor = 1.2f;
         
         private static readonly List<WebView> DisposableWebViews = new List<WebView>();
-        private static readonly FrameworkElement DummyElement = new FrameworkElement();
         private static bool subscribedApplicationExit = false;
 
         private InternalChromiumBrowser chromium;
@@ -181,7 +180,7 @@ namespace WebViewControl {
             chromium.MenuHandler = new CefMenuHandler(this);
             chromium.DialogHandler = new CefDialogHandler(this);
             chromium.DownloadHandler = new CefDownloadHandler(this);
-            chromium.CleanupElement = DummyElement; // prevent chromium to listen to default cleanup element unload events, this will be controlled manually
+            chromium.CleanupElement = new FrameworkElement(); // prevent chromium to listen to default cleanup element unload events, this will be controlled manually
 
             jsExecutor = new JavascriptExecutor(this);
 
@@ -284,9 +283,9 @@ namespace WebViewControl {
                 if (value != DefaultLocalUrl) {
                     htmlToLoad = null;
                 }
-                if (value.Contains("://") || value == "about:blank" || value.StartsWith("data:")) {
+                if (value.Contains(Uri.SchemeDelimiter) || value == "about:blank" || value.StartsWith("data:")) {
                     // must wait for the browser to be initialized otherwise navigation will be aborted
-                    chromium.Address = value;
+                    ExecuteWhenInitialized(() => chromium.Load(value));
                 } else {
                     LoadFrom(value);
                 }
