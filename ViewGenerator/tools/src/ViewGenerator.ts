@@ -1,11 +1,15 @@
 ﻿import * as Types from "@outsystems/ts2lang/ts-types";
 import * as Units from "@outsystems/ts2lang/ts-units";
 
+const GeneratedFilesHeader = "/*** Auto-generated ***/";
+
 const DelegateSuffix = "Delegate";
 const ComponentAliasName = "Component";
 const BaseComponentAliasName = "Base" + ComponentAliasName;
 const ViewModuleClassName = "ViewModule";
 const PropertiesClassName = "Properties";
+const PropertiesInterfaceSuffix = "Properties";
+const BehaviorsInterfaceSuffix = "Behaviors";
 
 function f(input: string) {
     return (input || "").replace(/\n/g, "\n    ");
@@ -13,6 +17,10 @@ function f(input: string) {
 
 function toPascalCase(name: string) {
     return name[0].toUpperCase() + name.substr(1);
+}
+
+function normalizePath(path: string): string {
+    return path.replace(/\\/g, "/")
 }
 
 function getFunctionReturnType(func: Units.TsFunction): string {
@@ -116,19 +124,59 @@ function generateComponentBody(propsInterface: Units.TsInterface | null, behavio
     );
 }
 
-function normalizePath(path: string): string {
-    return path.replace(/\\/g, "/")
+function generateComponent(component: Units.TsClass, propsInterface: Units.TsInterface | null, behaviorsInterface: Units.TsInterface | null, objects: Units.TsInterface[], enums: Units.TsEnum[], namespace: string, path: string, fullPath: string, preamble: string, context: Object) {
+    if (!component) {
+        return "";
+    }
+
+    let propsInterfaceCoreName = propsInterface ? propsInterface.name.substring(1, propsInterface.name.length - PropertiesInterfaceSuffix.length) : "";
+
+    return (
+`${GeneratedFilesHeader}
+${preamble}
+namespace ${namespace} {
+
+    using ${ComponentAliasName} = ${component.name};
+    using ${BaseComponentAliasName} = ${context["baseComponentClass"] || "WebViewControl.ReactView"};
+
+    ${generateNativeApiObjects(objects, enums)}
+
+    public class ${component.name} : ${BaseComponentAliasName} {
+
+        ${f(generateNativeApi(propsInterface))}
+
+        ${f(generateComponentBody(propsInterface, behaviorsInterface))} 
+
+        protected override string JavascriptSource => \"${path}\";
+        protected override string JavascriptName => \"${propsInterfaceCoreName}\";
+
+        protected override object CreateNativeObject() {
+            return new ${PropertiesClassName}(this);
+        }
+
+#if DEBUG
+        protected override string Source => \"${fullPath}\";
+#endif
+    }
+}`);
+}
+
+function generateObjects(objects: Units.TsInterface[], enums: Units.TsEnum[], namespace: string, preamble: string) {
+    return (
+`${GeneratedFilesHeader}
+${preamble}
+namespace ${namespace} {
+
+    ${generateNativeApiObjects(objects, enums)}
+
+}`);
 }
 
 export function transform(module: Units.TsModule, context: Object): string {
-    const PropertiesInterfaceSuffix = "Properties";
-
-    let componentClass = module.classes[0];
-    
-    let propsInterface = module.interfaces.find((ifc) => ifc.isPublic && ifc.name.startsWith("I") && ifc.name.endsWith(PropertiesInterfaceSuffix)) || null;
-    let behaviorsInterface = module.interfaces.find((ifc) => ifc.isPublic &&ifc.name.startsWith("I") && ifc.name.endsWith("Behaviors")) || null;
+    let interfaces = module.interfaces.filter((ifc) => ifc.isPublic && ifc.name.startsWith("I"));
+    let propsInterface = interfaces.find((ifc) => ifc.name.endsWith(PropertiesInterfaceSuffix)) || null;
+    let behaviorsInterface = interfaces.find((ifc) => ifc.name.endsWith(BehaviorsInterfaceSuffix)) || null;
     let objects = module.interfaces.filter(ifc => ifc.isPublic && ifc !== propsInterface && ifc !== behaviorsInterface);
-    let enums = module.enums;
 
     let fullPath = normalizePath(context["$fullpath"] as string);
     let path = normalizePath(context["$path"] as string);
@@ -156,38 +204,21 @@ export function transform(module: Units.TsModule, context: Object): string {
     output += (output.charAt(output.length - 1) === "/" ? "" : "/") + filename + ".Generated.cs";
     context["$output"] = output;
 
-    if (!componentClass) {
-        return "";
+    let enums = module.enums;
+    let preamble = context["preamble"] || "";
+
+    switch (context["emitViewObjects"]) {
+        case "only": // emit only view objects
+            return generateObjects(objects, enums, namespace, preamble);
+        case "none": // do not emit view objects
+            objects = [];
+            enums = [];
+            break;
+        default: // emit view objects in component class file
+            break;
     }
 
-    let propsInterfaceCoreName = propsInterface ? propsInterface.name.substring(1, propsInterface.name.length - PropertiesInterfaceSuffix.length) : "";
+    let component = module.classes.filter(c => c.isPublic)[0];
 
-    return (
-        `/*** Auto-generated ***/
-
-namespace ${namespace} {
-
-    using ${ComponentAliasName} = ${componentClass.name};
-    using ${BaseComponentAliasName} = ${context["baseComponentClass"] || "WebViewControl.ReactView"};
-
-    public class ${componentClass.name} : ${BaseComponentAliasName} {
-
-        ${f(generateNativeApiObjects(objects, enums))}
-
-        ${f(generateNativeApi(propsInterface))}
-
-        ${f(generateComponentBody(propsInterface, behaviorsInterface))} 
-
-        protected override string JavascriptSource => \"${path}\";
-        protected override string JavascriptName => \"${propsInterfaceCoreName}\";
-
-        protected override object CreateNativeObject() {
-            return new ${PropertiesClassName}(this);
-        }
-
-#if DEBUG
-        protected override string Source => \"${fullPath}\";
-#endif
-    }
-}`);
+    return generateComponent(component, propsInterface, behaviorsInterface, objects, enums, namespace, path, fullPath, preamble, context);
 }
