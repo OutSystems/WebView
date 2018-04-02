@@ -45,6 +45,7 @@ How to use:
 	Don't forget to export default your component.
 	Any types present in the IProperties or IBehaviors inetrfaces must be defined on the entry module.
 	Behavior methods cannot return any values ie. their return type must be void.
+	All types must be exported in order for its C# binding be generated.
 
 	Eg:
 
@@ -53,19 +54,19 @@ How to use:
 	import "./LocalModule";
 	import "css!styles/styles.css";
 
-	interface ISomeType {
+	export interface ISomeType {
 		name: string;
 	}
 
-	interface IExampleProperties {
+	export interface IExampleProperties {
 		click(arg?: ISomeType): void;
 	}
 
-	interface IExampleBehaviors {
+	export interface IExampleBehaviors {
 		callMe(): void;
 	}
 
-	class Example extends React.Component<IExampleProperties, {}> implements IExampleBehaviors {
+	export default class Example extends React.Component<IExampleProperties, {}> implements IExampleBehaviors {
 
 	    callMe(): void {
 			alert("hey");
@@ -75,8 +76,6 @@ How to use:
 			return <button onClick={() => this.props.click(null)}>Click me!</button>
 		}
 	}
-
-	export default Example;
 
 
 3) Build the project and run.
