@@ -62,7 +62,7 @@ function generateBehaviorMethod(func: Units.TsFunction): string {
 function generateNativeApi(propsInterface: Units.TsInterface | null) {
     return f(
         `internal interface I${PropertiesClassName} {\n` +
-        `    ${propsInterface ? propsInterface.functions.map(f => generateMethodSignature(f) + ";\n").join("") : ""}` + 
+        `    ${f(propsInterface ? propsInterface.functions.map(f => generateMethodSignature(f) + ";").join("\n") : "")}\n` + 
         `}\n` +
         `\n` +
         `private class ${PropertiesClassName} : I${PropertiesClassName} {\n` +
@@ -93,17 +93,17 @@ function generateNativeApiObjects(objsInterfaces: Units.TsInterface[], enums: Un
 }
 
 function generateNativeApiObject(objInterface: Units.TsInterface) {
-    return f(
+    return (
         `public struct ${objInterface.name} {\n` +
-        `${objInterface.properties.map(p => `public ${getTypeName(p.type)} ${p.name};`).join("\n")}\n` +
+        `    ${f(objInterface.properties.map(p => `public ${getTypeName(p.type)} ${p.name};`).join("\n"))}\n` +
         `}`
     );
 }
 
 function generateNativeApiEnum(enumerate: Units.TsEnum) {
-    return f(
+    return (
         `public enum ${enumerate.name} {\n` +
-        `${enumerate.options.map(o => `${o.name}`).join(",\n")}\n` +
+        `    ${f(enumerate.options.map(o => `${o.name}`).join(",\n"))}\n` +
         `}`
     );
 }
@@ -125,9 +125,9 @@ export function transform(module: Units.TsModule, context: Object): string {
 
     let componentClass = module.classes[0];
     
-    let propsInterface = module.interfaces.find((ifc) => ifc.name.startsWith("I") && ifc.name.endsWith(PropertiesInterfaceSuffix)) || null;
-    let behaviorsInterface = module.interfaces.find((ifc) => ifc.name.startsWith("I") && ifc.name.endsWith("Behaviors")) || null;
-    let objects = module.interfaces.filter(ifc => ifc !== propsInterface && ifc !== behaviorsInterface);
+    let propsInterface = module.interfaces.find((ifc) => ifc.isPublic && ifc.name.startsWith("I") && ifc.name.endsWith(PropertiesInterfaceSuffix)) || null;
+    let behaviorsInterface = module.interfaces.find((ifc) => ifc.isPublic &&ifc.name.startsWith("I") && ifc.name.endsWith("Behaviors")) || null;
+    let objects = module.interfaces.filter(ifc => ifc.isPublic && ifc !== propsInterface && ifc !== behaviorsInterface);
     let enums = module.enums;
 
     let fullPath = normalizePath(context["$fullpath"] as string);
