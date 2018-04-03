@@ -23,153 +23,178 @@ function normalizePath(path: string): string {
     return path.replace(/\\/g, "/")
 }
 
-function getFunctionReturnType(func: Units.TsFunction): string {
-    if ((<Types.TsIdentifierType>func.returnType).parameters) {
-        return getTypeName((<Types.TsIdentifierType>func.returnType).parameters[0]);
-    }
-    return getTypeName(func.returnType);
-}
+class Generator {
 
-function getTypeName(tsType: Types.ITsType): string {
-    switch (tsType.name) {
-        case "string":
-            return "string";
-        case "number":
-            return "int";
-        case "boolean":
-            return "bool";
-        case "void":
-            return "void";
-        default:
-            return tsType.name;
-    }
-}
+    private aliases: { [name: string]: string } = {};
 
-function generateMethodSignature(func: Units.TsFunction, functionSuffix: string = "") {
-    return `${getFunctionReturnType(func)} ${toPascalCase(func.name)}${functionSuffix}(${func.parameters.map(p => getTypeName(p.type) + " " + p.name).join(", ")})`;
-}
+    constructor(
+        private component: Units.TsClass,
+        private propsInterface: Units.TsInterface | null,
+        private behaviorsInterface: Units.TsInterface | null,
+        private objects: Units.TsInterface[],
+        private enums: Units.TsEnum[],
+        private namespace: string,
+        private path: string,
+        private fullPath: string,
+        private preamble: string,
+        private context: Object) {
 
-function generateProperty(func: Units.TsFunction): string {
-    return (
-        `public delegate ${generateMethodSignature(func, DelegateSuffix)};\n` +
-        `public event ${toPascalCase(func.name)}${DelegateSuffix} ${toPascalCase(func.name)};`
-    );
-}
-
-function generateBehaviorMethod(func: Units.TsFunction): string {
-    if (func.returnType != Types.TsVoidType) {
-        throw new Error("Behavior method " + func.name + " return type must be void. Behavior methods cannot return values.");
-    }
-    return (
-        `public ${generateMethodSignature(func)} {\n` +
-        `    ExecuteMethodOnRoot("${func.name}"${func.parameters.map(p => ", " + p.name).join()});\n` +
-        `}`
-    );
-}
-
-function generateNativeApi(propsInterface: Units.TsInterface | null) {
-    return f(
-        `internal interface I${PropertiesClassName} {\n` +
-        `    ${f(propsInterface ? propsInterface.functions.map(f => generateMethodSignature(f) + ";").join("\n") : "")}\n` + 
-        `}\n` +
-        `\n` +
-        `private class ${PropertiesClassName} : I${PropertiesClassName} {\n` +
-        `    protected readonly ${ComponentAliasName} owner;\n` +
-        `    public ${PropertiesClassName}(${ComponentAliasName} owner) {\n` +
-        `        this.owner = owner;\n` +
-        `    }\n` +
-        `    ${f(propsInterface ? (propsInterface.functions.length > 0 ? propsInterface.functions.map(f => generateNativeApiMethod(f)).join("\n") : "// the interface does not contain methods") : "")}\n` +
-        `}`
-    );
-}
-
-function generateNativeApiMethod(func: Units.TsFunction): string {
-    let isVoid = func.returnType.name === Types.TsVoidType.name;
-    return (
-        `public ${generateMethodSignature(func)} {\n` +
-        `    ${isVoid ? "" : "return "}owner.${toPascalCase(func.name)}?.Invoke(${func.parameters.map(p => p.name).join(", ")})${isVoid ? "" : ` ?? default(${getFunctionReturnType(func)})`};\n` +
-        `}`
-    );
-}
-
-function generateNativeApiObjects(objsInterfaces: Units.TsInterface[], enums: Units.TsEnum[]) {
-    return f(
-        objsInterfaces.map(generateNativeApiObject).join("\n") +
-        "\n\n" +
-        enums.map(generateNativeApiEnum).join("\n")
-    );
-}
-
-function generateNativeApiObject(objInterface: Units.TsInterface) {
-    return (
-        `public struct ${objInterface.name} {\n` +
-        `    ${f(objInterface.properties.map(p => `public ${getTypeName(p.type)} ${p.name};`).join("\n"))}\n` +
-        `}`
-    );
-}
-
-function generateNativeApiEnum(enumerate: Units.TsEnum) {
-    return (
-        `public enum ${enumerate.name} {\n` +
-        `    ${f(enumerate.options.map(o => `${o.name}`).join(",\n"))}\n` +
-        `}`
-    );
-}
-
-function generateComponentBody(propsInterface: Units.TsInterface | null, behaviorsInterface: Units.TsInterface | null) {
-    return f(
-        (propsInterface ? propsInterface.functions.map(f => generateProperty(f)).join("\n") : "") +
-        "\n" +
-        (behaviorsInterface ? behaviorsInterface.functions.map(f => generateBehaviorMethod(f)).join("\n") : "")
-    );
-}
-
-function generateComponent(component: Units.TsClass, propsInterface: Units.TsInterface | null, behaviorsInterface: Units.TsInterface | null, objects: Units.TsInterface[], enums: Units.TsEnum[], namespace: string, path: string, fullPath: string, preamble: string, context: Object) {
-    if (!component) {
-        return "";
+        objects.filter(o => o.name.startsWith("I")).forEach(o => this.aliases[o.name] = o.name.substr(1));
     }
 
-    let propsInterfaceCoreName = propsInterface ? propsInterface.name.substring(1, propsInterface.name.length - PropertiesInterfaceSuffix.length) : "";
+    private getFunctionReturnType(func: Units.TsFunction): string {
+        if ((<Types.TsIdentifierType>func.returnType).parameters) {
+            return this.getTypeName((<Types.TsIdentifierType>func.returnType).parameters[0]);
+        }
+        return this.getTypeName(func.returnType);
+    }
 
-    return (
-`${GeneratedFilesHeader}
-${preamble}
-namespace ${namespace} {
+    private getTypeName(tsType: Types.ITsType): string {
+        switch (tsType.name) {
+            case "string":
+                return "string";
+            case "number":
+                return "int";
+            case "boolean":
+                return "bool";
+            case "void":
+                return "void";
+            default:
+                if (tsType instanceof Types.TsArrayType) {
+                    return this.getTypeName(tsType.getInner()) + "[]";
+                }
+                return this.aliases[tsType.name] || tsType.name;
+        }
+    }
 
-    using ${ComponentAliasName} = ${component.name};
-    using ${BaseComponentAliasName} = ${context["baseComponentClass"] || "WebViewControl.ReactView"};
+    private generateMethodSignature(func: Units.TsFunction, functionSuffix: string = "") {
+        return `${this.getFunctionReturnType(func)} ${toPascalCase(func.name)}${functionSuffix}(${func.parameters.map(p => this.getTypeName(p.type) + " " + p.name).join(", ")})`;
+    }
 
-    ${generateNativeApiObjects(objects, enums)}
+    private generateProperty(func: Units.TsFunction): string {
+        return (
+            `public delegate ${this.generateMethodSignature(func, DelegateSuffix)};\n` +
+            `public event ${toPascalCase(func.name)}${DelegateSuffix} ${toPascalCase(func.name)};`
+        );
+    }
 
-    public class ${component.name} : ${BaseComponentAliasName} {
+    private generateBehaviorMethod(func: Units.TsFunction): string {
+        if (func.returnType != Types.TsVoidType) {
+            throw new Error("Behavior method " + func.name + " return type must be void. Behavior methods cannot return values.");
+        }
+        return (
+            `public ${this.generateMethodSignature(func)} {\n` +
+            `    ExecuteMethodOnRoot("${func.name}"${func.parameters.map(p => ", " + p.name).join()});\n` +
+            `}`
+        );
+    }
 
-        ${f(generateNativeApi(propsInterface))}
+    private generateNativeApi() {
+        return f(
+            `internal interface I${PropertiesClassName} {\n` +
+            `    ${f(this.propsInterface ? this.propsInterface.functions.map(f => this.generateMethodSignature(f) + ";").join("\n") : "")}\n` + 
+            `}\n` +
+            `\n` +
+            `private class ${PropertiesClassName} : I${PropertiesClassName} {\n` +
+            `    protected readonly ${ComponentAliasName} owner;\n` +
+            `    public ${PropertiesClassName}(${ComponentAliasName} owner) {\n` +
+            `        this.owner = owner;\n` +
+            `    }\n` +
+            `    ${f(this.propsInterface ? (this.propsInterface.functions.length > 0 ? this.propsInterface.functions.map(f => this.generateNativeApiMethod(f)).join("\n") : "// the interface does not contain methods") : "")}\n` +
+            `}`
+        );
+    }
 
-        ${f(generateComponentBody(propsInterface, behaviorsInterface))} 
+    private generateNativeApiMethod(func: Units.TsFunction): string {
+        let isVoid = func.returnType.name === Types.TsVoidType.name;
+        return (
+            `public ${this.generateMethodSignature(func)} {\n` +
+            `    ${isVoid ? "" : "return "}owner.${toPascalCase(func.name)}?.Invoke(${func.parameters.map(p => p.name).join(", ")})${isVoid ? "" : ` ?? default(${this.getFunctionReturnType(func)})`};\n` +
+            `}`
+        );
+    }
 
-        protected override string JavascriptSource => \"${path}\";
-        protected override string JavascriptName => \"${propsInterfaceCoreName}\";
+    private generateNativeApiObjects() {
+        return f(
+            this.objects.map(o => this.generateNativeApiObject(o)).join("\n") +
+            "\n\n" +
+            this.enums.map(e => this.generateNativeApiEnum(e)).join("\n")
+        );
+    }
 
-        protected override object CreateNativeObject() {
-            return new ${PropertiesClassName}(this);
+    private generateNativeApiObject(objInterface: Units.TsInterface) {
+        return (
+            `public struct ${this.aliases[objInterface.name] || objInterface.name} {\n` +
+            `    ${f(objInterface.properties.map(p => `public ${this.getTypeName(p.type)} ${p.name};`).join("\n"))}\n` +
+            `}`
+        );
+    }
+
+    private generateNativeApiEnum(enumerate: Units.TsEnum) {
+        return (
+            `public enum ${enumerate.name} {\n` +
+            `    ${f(enumerate.options.map(o => `${o.name}`).join(",\n"))}\n` +
+            `}`
+        );
+    }
+
+    private generateComponentBody() {
+        return f(
+            (this.propsInterface ? this.propsInterface.functions.map(f => this.generateProperty(f)).join("\n") : "") +
+            "\n" +
+            (this.behaviorsInterface ? this.behaviorsInterface.functions.map(f => this.generateBehaviorMethod(f)).join("\n") : "")
+        );
+    }
+
+    public generateComponent(emitObjects: boolean) {
+        if (!this.component) {
+            return "";
         }
 
-#if DEBUG
-        protected override string Source => \"${fullPath}\";
-#endif
+        let propsInterfaceCoreName = this.propsInterface ? this.propsInterface.name.substring(1, this.propsInterface.name.length - PropertiesInterfaceSuffix.length) : "";
+
+        return (
+            `${GeneratedFilesHeader}\n` +
+            `${this.preamble}\n` +
+            `namespace ${this.namespace} {\n` +
+            `\n` +
+            `    using ${ComponentAliasName} = ${this.component.name};\n` +
+            `    using ${BaseComponentAliasName} = ${this.context["baseComponentClass"] || "WebViewControl.ReactView"};\n` +
+            `\n` +
+            `    ${emitObjects ? (this.generateNativeApiObjects() + "\n") : ""}` +
+            `\n` +
+            `    public class ${this.component.name} : ${BaseComponentAliasName} {\n` +
+            `\n` +
+            `        ${f(this.generateNativeApi())}\n` +
+            `\n` +
+            `        ${f(this.generateComponentBody())}\n` +
+            `\n` +
+            `        protected override string JavascriptSource => \"${this.path}\";\n` +
+            `        protected override string JavascriptName => \"${propsInterfaceCoreName}\";\n` +
+            `\n` +
+            `        protected override object CreateNativeObject() {\n` +
+            `            return new ${PropertiesClassName}(this);\n` +
+            `        }\n` +
+            `\n` +
+            `#if DEBUG\n` +
+            `        protected override string Source => \"${this.fullPath}\";\n` +
+            `#endif\n` +
+            `    }\n` +
+            `}`
+        );
     }
-}`);
-}
 
-function generateObjects(objects: Units.TsInterface[], enums: Units.TsEnum[], namespace: string, preamble: string) {
-    return (
-`${GeneratedFilesHeader}
-${preamble}
-namespace ${namespace} {
-
-    ${generateNativeApiObjects(objects, enums)}
-
-}`);
+    public generateObjects() {
+        return (
+            `${GeneratedFilesHeader}\n` +
+            `${this.preamble}\n` +
+            `namespace ${this.namespace} {\n` +
+            `\n` +
+            `    ${this.generateNativeApiObjects()}\n` +
+            `\n` +
+            `}`
+        );
+    }
 }
 
 export function transform(module: Units.TsModule, context: Object): string {
@@ -178,6 +203,7 @@ export function transform(module: Units.TsModule, context: Object): string {
     let behaviorsInterface = interfaces.find((ifc) => ifc.name.endsWith(BehaviorsInterfaceSuffix)) || null;
     let objects = module.interfaces.filter(ifc => ifc.isPublic && ifc !== propsInterface && ifc !== behaviorsInterface);
 
+    
     let fullPath = normalizePath(context["$fullpath"] as string);
     let path = normalizePath(context["$path"] as string);
 
@@ -206,19 +232,17 @@ export function transform(module: Units.TsModule, context: Object): string {
 
     let enums = module.enums;
     let preamble = context["preamble"] || "";
+    let objectsOnly = false;
+
+    let component = module.classes.filter(c => c.isPublic)[0];
+    let generator = new Generator(component, propsInterface, behaviorsInterface, objects, enums, namespace, path, fullPath, preamble, context);
 
     switch (context["emitViewObjects"]) {
         case "only": // emit only view objects
-            return generateObjects(objects, enums, namespace, preamble);
+            return generator.generateObjects();
         case "none": // do not emit view objects
-            objects = [];
-            enums = [];
-            break;
+            return generator.generateComponent(false);
         default: // emit view objects in component class file
-            break;
+            return generator.generateComponent(true);
     }
-
-    let component = module.classes.filter(c => c.isPublic)[0];
-
-    return generateComponent(component, propsInterface, behaviorsInterface, objects, enums, namespace, path, fullPath, preamble, context);
 }

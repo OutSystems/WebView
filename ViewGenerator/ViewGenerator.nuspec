@@ -2,26 +2,21 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>ViewGenerator</id>
-    <version>1.0.49</version>
+    <version>1.0.55</version>
     <authors>jmn</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <developmentDependency>true</developmentDependency>
     <description>Generates .NET Types from typescript</description>
     <dependencies>
+      <dependency id="ViewGeneratorCore" version="1.0.*" />
       <dependency id="Microsoft.TypeScript.MSBuild" version="2.6.2" />
       <dependency id="Delegate.SassBuilder" version="1.4.0" />
     </dependencies>
   </metadata>
   <files>
     <file src="build\ViewGenerator.targets" target="build\ViewGenerator.targets" />
-    <file src="build\ViewGenerator.props" target="build\ViewGenerator.props" />
-
     <file src="content\**" target="content\" />
-
     <file src="_tsconfig.json" target="content\View\tsconfig.json" />
-
-    <file src="tools\dist\ViewGenerator.js" target="tools\ViewGenerator.js" />
-    <file src="tools\node_modules\**" target="tools\node_modules\" />
     <file src="readme.txt" target="" />
   </files>
 </package>

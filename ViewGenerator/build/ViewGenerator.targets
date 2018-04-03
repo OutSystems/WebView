@@ -1,39 +1,20 @@
 ﻿<Project>
   <PropertyGroup>
-    <Ts2LangExe>"$(MSBuildThisFileDirectory)..\tools\node_modules\@outsystems\ts2lang\ts2lang-main.js"</Ts2LangExe>
-    <Ts2LangConfig>"$(MSBuildProjectDirectory)\ts2lang.json"</Ts2LangConfig>
-    <Ts2LangTemplate>"$(MSBuildThisFileDirectory)..\tools\ViewGenerator.js"</Ts2LangTemplate>
-
     <PrepareResourceNamesDependsOn>
       IncludeGeneratedResources;
       $(PrepareResourceNamesDependsOn)
     </PrepareResourceNamesDependsOn>
 
-    <BuildDependsOn>
-      CleanGenerated;
-      $(BuildDependsOn)
-    </BuildDependsOn>
+    <!-- If don't exist, create so that the targets won't fail -->
+    <FindConfigFiles>
+      $(FindConfigFiles)
+    </FindConfigFiles>
     
-    <CleanDependsOn>
-      $(CleanDependsOn);
-      CleanGenerated;
-    </CleanDependsOn>
+    <CompileTypeScriptWithTSConfig>
+      $(CompileTypeScriptWithTSConfig)
+    </CompileTypeScriptWithTSConfig>
     
   </PropertyGroup>
-  
-  <Target Name="GenerateView" BeforeTargets="CoreCompile">
-    <Message Importance="Normal" Text="Generating View files" />
-    <Exec Command="&quot;$(NodeJsExe)&quot; $(Ts2LangExe) -f $(Ts2LangConfig) -t $(Ts2LangTemplate)" />
-    <ItemGroup>
-      <Compile Include="Generated\*.cs" />
-    </ItemGroup>
-  </Target>
-
-  <Target Name="IncludeGeneratedFiles" BeforeTargets="PrepareForBuild">
-    <ItemGroup>
-      <GeneratedTs2LangFiles Include="Generated\*.cs" />
-    </ItemGroup>
-  </Target>
 
   <Target Name="IncludeGeneratedResources" DependsOnTargets="FindConfigFiles;CompileTypeScriptWithTSConfig">
     <ItemGroup> 
@@ -41,13 +22,6 @@
       <EmbeddedResource Include="View\lib\*.js" />
       <EmbeddedResource Include="View\styles\*.css" Exclude="View\styles\*.min.css" />
     </ItemGroup>
-  </Target>
-
-  <Target Name="CleanGenerated">
-    <ItemGroup>
-      <GeneratedTs2LangFiles Include="Generated\*.cs" />
-    </ItemGroup>
-    <Delete Files="@(GeneratedTs2LangFiles)"/>
   </Target>
   
 </Project>
