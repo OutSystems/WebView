@@ -20,7 +20,8 @@ namespace WebViewControl {
 
         private static readonly string[] CustomSchemes = new[] {
             ResourceUrl.LocalScheme,
-            ResourceUrl.EmbeddedScheme
+            ResourceUrl.EmbeddedScheme,
+            ResourceUrl.CustomScheme
         };
 
         private static readonly string TempDir = 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -110,6 +111,11 @@ namespace WebViewControl {
             remove { view.UnhandledAsyncException -= value; }
         }
 
+        public event Func<string, Stream> CustomResourceRequested {
+            add { view.CustomResourceRequested += value; }
+            remove { view.CustomResourceRequested -= value; }
+        }
+
         protected virtual string JavascriptSource => null;
 
         protected virtual string JavascriptName => null;
@@ -134,6 +140,6 @@ namespace WebViewControl {
 
         public void CloseDeveloperTools() {
             view.CloseDeveloperTools();
-        }
+        }        
     }
 }

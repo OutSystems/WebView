@@ -46,6 +46,7 @@ namespace WebViewControl {
             webView.AttachListener(ReadyEventName, () => IsReady = true, executeInUI: false);
             webView.Navigated += OnWebViewNavigated;
             webView.Disposed += OnWebViewDisposed;
+            webView.BeforeResourceLoad += OnWebViewBeforeResourceLoad;
 
             Content = webView;
 
@@ -82,6 +83,8 @@ namespace WebViewControl {
             add { webView.UnhandledAsyncException += value; }
             remove { webView.UnhandledAsyncException -= value; }
         }
+
+        public event Func<string, Stream> CustomResourceRequested;
 
         public void LoadComponent(string componentSource, string componentJavascriptName, object component) {
             this.componentSource = componentSource;
@@ -240,7 +243,8 @@ namespace WebViewControl {
 
             fileSystemWatcher.Changed += (sender, eventArgs) => {
                 if (IsReady) {
-                    if (fileExtensionsToWatch.Any(e => eventArgs.Name.EndsWith(e))) {
+                    // TODO visual studio reports a change in a file with a (strange) temporary name
+                    //if (fileExtensionsToWatch.Any(e => eventArgs.Name.EndsWith(e))) {
                         filesChanged = true;
                         webView.Dispatcher.BeginInvoke((Action) (() => {
                             if (IsReady) {
@@ -248,7 +252,7 @@ namespace WebViewControl {
                                 webView.Reload(true);
                             }
                         }));
-                    }
+                    //}
                 }
             };
             webView.BeforeResourceLoad += (WebView.ResourceHandler resourceHandler) => {
@@ -299,6 +303,15 @@ namespace WebViewControl {
             }
 
             return url.Replace("\\", ResourceUrl.PathSeparator);
+        }
+
+        private void OnWebViewBeforeResourceLoad(WebView.ResourceHandler resourceHandler) {
+            var customResourceRequested = CustomResourceRequested;
+            if (customResourceRequested != null) {
+                if (resourceHandler.Url.StartsWith(ResourceUrl.CustomScheme + Uri.SchemeDelimiter)) {
+                    resourceHandler.RespondWith(customResourceRequested(resourceHandler.Url), "");
+                }
+            }
         }
     }
 }
