@@ -26,20 +26,28 @@ function normalizePath(path: string): string {
 class Generator {
 
     private aliases: { [name: string]: string } = {};
+    private propsInterface: Units.TsInterface | null;
+    private behaviorsInterface: Units.TsInterface | null;
+    private component: Units.TsClass;
+    private objects: Units.TsInterface[];
+    private enums: Units.TsEnum[];
 
     constructor(
-        private component: Units.TsClass,
-        private propsInterface: Units.TsInterface | null,
-        private behaviorsInterface: Units.TsInterface | null,
-        private objects: Units.TsInterface[],
-        private enums: Units.TsEnum[],
+        module: Units.TsModule,
         private namespace: string,
-        private path: string,
+        private relativePath: string,
         private fullPath: string,
         private preamble: string,
-        private context: Object) {
+        private baseComponentClass: string) {
 
-        objects.filter(o => o.name.startsWith("I")).forEach(o => this.aliases[o.name] = o.name.substr(1));
+        this.component = module.classes.filter(c => c.isPublic)[0];
+        let interfaces = module.interfaces.filter((ifc) => ifc.isPublic && ifc.name.startsWith("I"));
+        this.propsInterface = interfaces.find((ifc) => ifc.name.endsWith(PropertiesInterfaceSuffix)) || null;
+        this.behaviorsInterface = interfaces.find((ifc) => ifc.name.endsWith(BehaviorsInterfaceSuffix)) || null;
+        this.objects = module.interfaces.filter(ifc => ifc.isPublic && ifc !== this.propsInterface && ifc !== this.behaviorsInterface);
+        this.enums = module.enums.filter(e => e.isPublic);
+
+        this.objects.filter(o => o.name.startsWith("I")).forEach(o => this.aliases[o.name] = o.name.substr(1));
     }
 
     private getFunctionReturnType(func: Units.TsFunction): string {
@@ -159,7 +167,7 @@ class Generator {
             `namespace ${this.namespace} {\n` +
             `\n` +
             `    using ${ComponentAliasName} = ${this.component.name};\n` +
-            `    using ${BaseComponentAliasName} = ${this.context["baseComponentClass"] || "WebViewControl.ReactView"};\n` +
+            `    using ${BaseComponentAliasName} = ${this.baseComponentClass || "WebViewControl.ReactView"};\n` +
             `\n` +
             `    ${emitObjects ? (this.generateNativeApiObjects() + "\n") : ""}` +
             `\n` +
@@ -169,7 +177,7 @@ class Generator {
             `\n` +
             `        ${f(this.generateComponentBody())}\n` +
             `\n` +
-            `        protected override string JavascriptSource => \"${this.path}\";\n` +
+            `        protected override string JavascriptSource => \"${this.relativePath}\";\n` +
             `        protected override string JavascriptName => \"${propsInterfaceCoreName}\";\n` +
             `\n` +
             `        protected override object CreateNativeObject() {\n` +
@@ -197,45 +205,33 @@ class Generator {
     }
 }
 
+function combinePath(path: string, rest: string) {
+    return path + (path.endsWith("/") ? "" : "/") + (rest.startsWith("/") ? rest.substr(1) : rest);
+}
+
 export function transform(module: Units.TsModule, context: Object): string {
-    let interfaces = module.interfaces.filter((ifc) => ifc.isPublic && ifc.name.startsWith("I"));
-    let propsInterface = interfaces.find((ifc) => ifc.name.endsWith(PropertiesInterfaceSuffix)) || null;
-    let behaviorsInterface = interfaces.find((ifc) => ifc.name.endsWith(BehaviorsInterfaceSuffix)) || null;
-    let objects = module.interfaces.filter(ifc => ifc.isPublic && ifc !== propsInterface && ifc !== behaviorsInterface);
-
-    
-    let fullPath = normalizePath(context["$fullpath"] as string);
-    let path = normalizePath(context["$path"] as string);
-
     let namespace = context["namespace"];
+    let baseDir = normalizePath(context["$baseDir"]);
+    let fullPath = normalizePath(context["$fullpath"]);
+    let javascriptDistPath = normalizePath(context["javascriptDistPath"] || "") || "View/dist";
+    let javascriptDistPathDepth = javascriptDistPath.split("/").filter(p => p !== "").length;
 
-    let pathDepth = path.split("/").length;
-    let fullPathParts = fullPath.split("/");
+    let fileExtensionLen = fullPath.length - fullPath.lastIndexOf(".");
+    let filenameWithoutExtension = fullPath.slice(fullPath.lastIndexOf("/") + 1, -fileExtensionLen);
+    
+    let javascriptFullPath = fullPath.slice(0, -fileExtensionLen) + ".js"; // replace the tsx/ts extension with js extension
 
-    if (pathDepth > 0) {
-        fullPathParts[fullPathParts.length - 2] = context["javascriptDistPath"] || "dist"; // replace
-        // take out the common part of fullpath and path
-        path = fullPathParts.slice(-pathDepth).join("/");
-    }
-
-    // replace file extension with .js
-    let fileExtensionIdx = path.lastIndexOf(".");
-    let fileExtensionLen = path.length - fileExtensionIdx;
-    path = "/" + namespace + "/" + path.substr(0, fileExtensionIdx) + ".js";
-
-    // set the output
-    let filename = fullPathParts[fullPathParts.length - 1].slice(0, -fileExtensionLen);
+    let javascriptRelativePath = javascriptFullPath.substr(baseDir.length + 1); // remove the base dir
+    javascriptRelativePath = combinePath(javascriptDistPath, javascriptRelativePath.split("/").filter(p => p !== "").slice(javascriptDistPathDepth).join("/")); // replace the src dir with dist dir
+    
+    javascriptFullPath = combinePath(baseDir, javascriptRelativePath); // add the base dir
+    javascriptRelativePath = "/" + combinePath(namespace, javascriptRelativePath); // add the namespace
 
     let output = normalizePath(context["$output"]);
-    output += (output.charAt(output.length - 1) === "/" ? "" : "/") + filename + ".Generated.cs";
+    output = combinePath(output, filenameWithoutExtension + ".Generated.cs");
     context["$output"] = output;
-
-    let enums = module.enums;
-    let preamble = context["preamble"] || "";
-    let objectsOnly = false;
-
-    let component = module.classes.filter(c => c.isPublic)[0];
-    let generator = new Generator(component, propsInterface, behaviorsInterface, objects, enums, namespace, path, fullPath, preamble, context);
+    
+    let generator = new Generator(module, namespace, javascriptRelativePath, javascriptFullPath, context["preamble"] || "", context["baseComponentClass"]);
 
     switch (context["emitViewObjects"]) {
         case "only": // emit only view objects
