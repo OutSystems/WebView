@@ -5,11 +5,12 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Threading;
 
 namespace WebViewControl {
 
-    public partial class ReactView : ContentControl, IReactView {
+    public partial class ReactView : UserControl, IReactView {
 
         private static Window window;
         private static ReactViewRender cachedView;
@@ -78,6 +79,9 @@ namespace WebViewControl {
                 }
                 view.LoadComponent(JavascriptSource, JavascriptName, CreateNativeObject());
             }));
+
+            FocusManager.SetIsFocusScope(this, true);
+            FocusManager.SetFocusedElement(this, view.FocusableElement);
         }
 
         ~ReactView() {

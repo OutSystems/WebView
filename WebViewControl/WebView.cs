@@ -16,7 +16,7 @@ using CefSharp.ModelBinding;
 
 namespace WebViewControl {
 
-    public partial class WebView : ContentControl, IDisposable {
+    public partial class WebView : UserControl, IDisposable {
 
         private static readonly string[] CustomSchemes = new[] {
             ResourceUrl.LocalScheme,
@@ -182,7 +182,7 @@ namespace WebViewControl {
             chromium.DialogHandler = new CefDialogHandler(this);
             chromium.DownloadHandler = new CefDownloadHandler(this);
             chromium.CleanupElement = new FrameworkElement(); // prevent chromium to listen to default cleanup element unload events, this will be controlled manually
-
+            
             jsExecutor = new JavascriptExecutor(this);
 
             RegisterJavascriptObject(Listener.EventListenerObjName, eventsListener);
@@ -244,11 +244,6 @@ namespace WebViewControl {
             cancellationTokenSource.Dispose();
 
             Disposed?.Invoke();
-        }
-
-        protected override void OnGotFocus(RoutedEventArgs e) {
-            base.OnGotFocus(e);
-            ExecuteWhenInitialized(() => AsyncExecuteInUI(() => { chromium?.Focus(); }));
         }
 
         private void OnPreviewKeyDown(object sender, KeyEventArgs e) {
@@ -593,6 +588,10 @@ namespace WebViewControl {
                 // don't use invoke async, as it won't forward the exception to the dispatcher unhandled exception event
                 Dispatcher.BeginInvoke((Action)(() => throw e));
             }
+        }
+
+        internal IInputElement FocusableElement {
+            get { return chromium; }
         }
     }
 }

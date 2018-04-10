@@ -8,7 +8,7 @@
     <developmentDependency>true</developmentDependency>
     <description>Generates .NET Types from typescript</description>
     <dependencies>
-      <dependency id="ViewGeneratorCore" version="1.0.56" />
+      <dependency id="ViewGeneratorCore" version="1.0.57" />
       <dependency id="Microsoft.TypeScript.MSBuild" version="2.6.2" />
       <dependency id="Delegate.SassBuilder" version="1.4.0" />
     </dependencies>
