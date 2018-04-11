@@ -226,6 +226,10 @@ namespace WebViewControl {
         }
 
         public void EnableHotReload(string baseLocation) {
+            if (string.IsNullOrEmpty(baseLocation)) {
+                throw new InvalidOperationException("Hot reload does not work in release mode");
+            }
+
             baseLocation = Path.GetDirectoryName(baseLocation);
             baseLocation = Path.GetFullPath(baseLocation + "\\..\\.."); // get up 2 levels (.../View/src -> .../)
 
@@ -246,13 +250,13 @@ namespace WebViewControl {
                 if (IsReady) {
                     // TODO visual studio reports a change in a file with a (strange) temporary name
                     //if (fileExtensionsToWatch.Any(e => eventArgs.Name.EndsWith(e))) {
-                        filesChanged = true;
-                        webView.Dispatcher.BeginInvoke((Action) (() => {
-                            if (IsReady) {
-                                IsReady = false;
-                                webView.Reload(true);
-                            }
-                        }));
+                    filesChanged = true;
+                    webView.Dispatcher.BeginInvoke((Action) (() => {
+                        if (IsReady) {
+                            IsReady = false;
+                            webView.Reload(true);
+                        }
+                    }));
                     //}
                 }
             };

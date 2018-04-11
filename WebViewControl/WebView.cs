@@ -192,6 +192,9 @@ namespace WebViewControl {
             GlobalWebViewInitialized?.Invoke(this);
 
             DisposableWebViews.Add(this);
+
+            FocusManager.SetIsFocusScope(this, true);
+            FocusManager.SetFocusedElement(this, FocusableElement);
         }
 
         private static void OnApplicationExit(object sender, ExitEventArgs e) {
