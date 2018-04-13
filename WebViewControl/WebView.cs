@@ -28,8 +28,6 @@ namespace WebViewControl {
             Path.Combine(Path.GetTempPath(), "WebView" + Guid.NewGuid().ToString().Replace("-", null) + DateTime.UtcNow.Ticks);
 
         private const string ChromeInternalProtocol = "chrome-devtools:";
-        
-        private static readonly string DefaultLocalUrl = new ResourceUrl(ResourceUrl.LocalScheme, "index.html").ToString();
 
         // converts cef zoom percentage to css zoom (between 0 and 1)
         // from https://code.google.com/p/chromium/issues/detail?id=71484
@@ -77,6 +75,14 @@ namespace WebViewControl {
 
         private event Action RenderProcessCrashed;
         private event Action JavascriptContextReleased;
+
+        private static int domainId;
+
+        // cef maints same zoom level for all browser instances under the same domain
+        // having different domains will prevent synced zoom
+        internal readonly string CurrentDomainId; 
+
+        private readonly string DefaultLocalUrl;
 
         /// <summary>
         /// Executed when a web view is initialized. Can be used to attach or configure the webview before it's ready.
@@ -153,6 +159,11 @@ namespace WebViewControl {
             }
 #endif
 
+            CurrentDomainId = domainId.ToString();
+            domainId++;
+
+            DefaultLocalUrl = new ResourceUrl(ResourceUrl.LocalScheme, "index.html").WithDomain(CurrentDomainId);
+
             Initialize();
         }
 
@@ -163,7 +174,7 @@ namespace WebViewControl {
                 Application.Current.Exit += OnApplicationExit;
                 subscribedApplicationExit = true;
             }
-
+            
             settings = new BrowserSettings();
             lifeSpanHandler = new CefLifeSpanHandler(this);
 
@@ -278,17 +289,23 @@ namespace WebViewControl {
 
         public string Address {
             get { return chromium.Address; }
-            set {
-                if (value != DefaultLocalUrl) {
-                    htmlToLoad = null;
-                }
-                if (value.Contains(Uri.SchemeDelimiter) || value == "about:blank" || value.StartsWith("data:")) {
-                    // must wait for the browser to be initialized otherwise navigation will be aborted
-                    ExecuteWhenInitialized(() => chromium.Load(value));
-                } else {
-                    LoadFrom(value);
-                }
+            set { Load(value); }
+        }
+
+        private void Load(string address) {
+            if (address != DefaultLocalUrl) {
+                htmlToLoad = null;
             }
+            if (address.Contains(Uri.SchemeDelimiter) || address == "about:blank" || address.StartsWith("data:")) {
+                // must wait for the browser to be initialized otherwise navigation will be aborted
+                ExecuteWhenInitialized(() => chromium.Load(address));
+            } else {
+                LoadFrom(address);
+            }
+        }
+
+        public void LoadResource(ResourceUrl resourceUrl) {
+            Address = resourceUrl.WithDomain(CurrentDomainId);
         }
 
         public bool IsSecurityDisabled {
@@ -337,12 +354,12 @@ namespace WebViewControl {
             var userAssembly = GetUserCallingMethod().ReflectedType.Assembly;
 
             IsSecurityDisabled = true;
-            Address = new ResourceUrl(userAssembly, source).ToString();
+            Load(new ResourceUrl(userAssembly, source).WithDomain(CurrentDomainId));
         }
 
         public void LoadHtml(string html) {
             htmlToLoad = html;
-            Address = DefaultLocalUrl;
+            Load(DefaultLocalUrl);
         }
 
         /// <summary>
@@ -521,7 +538,7 @@ namespace WebViewControl {
             set { Cef.GetGlobalCookieManager().SetStoragePath(value, true); }
         }
 
-        private static bool FilterRequest(IRequest request) {
+        private bool FilterRequest(IRequest request) {
             return request.Url.StartsWith(ChromeInternalProtocol, StringComparison.InvariantCultureIgnoreCase) ||
                    request.Url.Equals(DefaultLocalUrl, StringComparison.InvariantCultureIgnoreCase);
         }

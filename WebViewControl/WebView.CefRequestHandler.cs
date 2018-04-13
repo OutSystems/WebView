@@ -47,7 +47,7 @@ namespace WebViewControl {
             }
 
             bool IRequestHandler.OnBeforeBrowse(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, bool isRedirect) {
-                if (FilterRequest(request)) {
+                if (OwnerWebView.FilterRequest(request)) {
                     return false;
                 }
                 

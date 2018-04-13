@@ -25,130 +25,151 @@
 			}
 			msgContainer.innerText = msg;
 		};
-	</script>
-	<script src="node_modules/requirejs/require.js"></script>
-    <script>
-		(() => {
+
+        (async () => {
 			const UrlParams = Array.from(new URLSearchParams(location.search).keys());
 			const UseEnhancedRenderingEngine = UrlParams[0] === "1";
 			const LibsPath = UrlParams[1];
 			const RootObjectName = UrlParams[2];
 			const EventListenerObjectName = UrlParams[3];
 			const ReadyEventName = UrlParams[4];
-			
-			let paths;
 
-			if (UseEnhancedRenderingEngine) {
-				// load preact
-				paths = {
-					"prop-types": LibsPath + "prop-types/prop-types.min",
-					"react": LibsPath + "preact-compat/dist/preact-compat.min",
-				};
+            async function notifyReady() {
+                await CefSharp.BindObjectAsync(EventListenerObjectName, EventListenerObjectName);
+                window[EventListenerObjectName].notify(ReadyEventName);
+            }
 
-				define("preact", [LibsPath + "preact/dist/preact.min.js"], () => {
-					// export preact as a module
-					return window.preact;
-				});
+            async function loadComponent(paths, baseUrl, userComponent, userDefaultStylesheet, enableDebugMode, enableHotReload, plugins, mappings) {
+                let noCacheSuffix;
+                if (enableHotReload) {
+                    noCacheSuffix = "t=" + (new Date()).getTime();
+                }
 
-				define("react-dom", ["react"], (react) => {
-					// export react-dom as a module
-					return react;
-				});
-			} else {
-				// load react
-				paths = {
-					"react": LibsPath + "react/dist/react.min",
-					"react-dom": LibsPath + "react-dom/dist/react-dom.min",
-				};
-			}
+                if (mappings) {
+                    paths = Object.assign(paths, mappings);
+                }
 
-			require.config({
-				paths: paths,
-				map: {
-					'*': {
-						'css': LibsPath + "require-css/css.min.js"
-					}
-				}
-			});
+                require.config({
+                    baseUrl: baseUrl,
+                    urlArgs: noCacheSuffix,
+                    paths: paths
+                });
 
-			require(["react", "react-dom"]); // preload react
+                if (userDefaultStylesheet) {
+                    userDefaultStylesheet = "css!" + userDefaultStylesheet;
+                }
 
-			function notifyReady() {
-				CefSharp.BindObjectAsync(EventListenerObjectName, EventListenerObjectName).then(() => {
-					window[EventListenerObjectName].notify(ReadyEventName);
-				});
-			}
+                let baseElement = document.createElement("base");
+                baseElement.href = baseUrl;
+                document.head.appendChild(baseElement); // let images and other resources load from the appropriate path
 
-			window.load = (baseUrl, userComponent, userDefaultStylesheet, enableDebugMode, enableHotReload, plugins, mappings) => {
-				let noCacheSuffix;
-				if (enableHotReload) {
-					noCacheSuffix = "t=" + (new Date()).getTime();
-				}
+                const UserComponentJavascriptName = userComponent[0];
+                const UserComponentSource = userComponent[1];
 
-				if (mappings) {
-					paths = Object.assign(paths, mappings);
-				}
+                let [[React, ReactDOM, Component], Properties] = await Promise.all([
+                    new Promise((resolve, reject) => {
+                        require(["react", "react-dom", UserComponentSource, userDefaultStylesheet], (React, ReactDOM, UserComponentModule) => {
+                            if (UserComponentModule.default) {
+                                resolve([React, ReactDOM, UserComponentModule.default]);
+                            } else {
+                                reject("Component module ('" + UserComponentSource + "') does not have a default export.");
+                            }
+                        });
+                    }),
+                    new Promise(async (resolve) => {
+                        await CefSharp.BindObjectAsync(UserComponentJavascriptName, UserComponentJavascriptName);
+                        resolve(window[UserComponentJavascriptName]);
+                    })
+                ]);
 
-				require.config({
-					baseUrl: baseUrl,
-					urlArgs: noCacheSuffix,
-					paths: paths
-				});
+                window[RootObjectName] = ReactDOM.render(
+                    React.createElement(Component, Properties),
+                    document.getElementById("webview_root"),
+                    () => notifyReady()
+                );
 
-				if (userDefaultStylesheet) {
-					userDefaultStylesheet = "css!" + userDefaultStylesheet;
-				}
+                if (plugins) {
+                    // load plugin modules
+                    plugins.forEach(m => {
+                        const ModuleName = m[0];
+                        const ModulePath = m[1];
+                        CefSharp.BindObjectAsync(ModuleName, ModuleName).then(() => {
+                            require([ModulePath]);
+                        });
+                    });
+                }
 
-				let baseElement = document.createElement("base");
-				baseElement.href = baseUrl;
-				document.head.appendChild(baseElement); // let images and other resources load from the appropriate path
+            }
 
-				const UserComponentJavascriptName = userComponent[0];
-				const UserComponentSource = userComponent[1];
+            async function loadRequire() {
+                return new Promise((resolve) => {
+                    let requireScript = document.createElement("script");
+                    requireScript.src = LibsPath + "requirejs/require.js";
+                    requireScript.onload = resolve;
+                    document.head.appendChild(requireScript);
+                });
+            }
 
-				Promise.all([
-					new Promise((resolve, reject) => {
-						require(["react", "react-dom", UserComponentSource, userDefaultStylesheet], (React, ReactDOM, UserComponentModule) => {
-							if (UserComponentModule.default) {
-								resolve([React, ReactDOM, UserComponentModule.default]);
-							} else {
-								reject("Component module ('" + UserComponentSource + "') does not have a default export.");
-							}
-						});
-					}),
-					new Promise((resolve) => {
-						CefSharp.BindObjectAsync(UserComponentJavascriptName, UserComponentJavascriptName).then(() => {
-							resolve(window[UserComponentJavascriptName]);
-						});
-					})
-				]).then((values) => {
-					const React = values[0][0];
-					const ReactDOM = values[0][1];
-					const Component = values[0][2];
-					const Properties = values[1];
+            async function loadFramework() {
+                return new Promise((resolve) => {
+                    let paths;
 
-					window[RootObjectName] = ReactDOM.render(
-						React.createElement(Component, Properties),
-						document.getElementById("webview_root"),
-						() => notifyReady()
-					);
+                    if (UseEnhancedRenderingEngine) {
+                        // load preact
+                        paths = {
+                            "prop-types": LibsPath + "prop-types/prop-types.min",
+                            "react": LibsPath + "preact-compat/dist/preact-compat.min",
+                        };
 
-					if (plugins) {
-						// load plugin modules
-						plugins.forEach(m => {
-							const ModuleName = m[0];
-							const ModulePath = m[1];
-							CefSharp.BindObjectAsync(ModuleName, ModuleName).then(() => {
-								require([ModulePath]);
-							});
-						});
-					}
-				}).catch((error) => {
-					if (enableDebugMode) {
-						showErrorMessage(error);
-					}
-				});
-			}
+                        define("preact", [LibsPath + "preact/dist/preact.min.js"], () => {
+                            // export preact as a module
+                            return window.preact;
+                        });
+
+                        define("react-dom", ["react"], (react) => {
+                            // export react-dom as a module
+                            return react;
+                        });
+                    } else {
+                        // load react
+                        paths = {
+                            "react": LibsPath + "react/dist/react.min",
+                            "react-dom": LibsPath + "react-dom/dist/react-dom.min",
+                        };
+                    }
+
+                    require.config({
+                        paths: paths,
+                        map: {
+                            '*': {
+                                'css': LibsPath + "require-css/css.min.js"
+                            }
+                        }
+                    });
+
+                    require(["react", "react-dom"]); // preload react
+
+                    resolve(paths);
+                });
+            }
+
+            let defineLoad = new Promise((resolve) => {
+                window.load = function () {
+                    resolve(Array.from(arguments));
+                };
+            });
+
+            try {
+                await loadRequire();
+                let paths = await loadFramework();
+                let loadArgs = await defineLoad;
+                loadComponent.apply(this, [paths].concat(loadArgs));
+            } catch (error) {
+                if (enableDebugMode) {
+                    showErrorMessage(error);
+                }
+                throw error;
+            }
 		})();
     </script>
 </head>

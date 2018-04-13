@@ -7,7 +7,8 @@ namespace Tests {
 
     public class RequestInterception : WebViewTestBase {
 
-        private const string HtmlWithResource = "<html><script src='resource.js' onerror='scriptFailed = true'></script><body>Test Page</body></html>";
+        private const string ResourceJs = "resource.js";
+        private static readonly string HtmlWithResource = $"<html><script src='{ResourceJs}' onerror='scriptFailed = true'></script><body>Test Page</body></html>";
 
         protected override bool ReuseView {
             get { return false; }
@@ -28,7 +29,7 @@ namespace Tests {
             TargetView.BeforeResourceLoad += (WebView.ResourceHandler resourceHandler) => resourceRequested = resourceHandler.Url;
             LoadAndWaitReady(HtmlWithResource);
 
-            Assert.AreEqual("local://webview/resource.js", resourceRequested);
+            Assert.AreEqual("/" + ResourceJs, new Uri(resourceRequested).AbsolutePath);
         }
 
         [Test(Description = "Resource response with a stream is loaded properly")]
@@ -52,12 +53,13 @@ namespace Tests {
         [Test(Description = "Resource request is redirected")]
         public void ResourceRedirect() {
             var redirected = false;
-            const string RedirectUrl = "local://webview/anotherResource.js";
+            const string RedirectUrl = "anotherResource.js";
 
             TargetView.BeforeResourceLoad += (WebView.ResourceHandler resourceHandler) => {
-                switch (resourceHandler.Url) {
-                    case "local://webview/resource.js":
-                        resourceHandler.Redirect(RedirectUrl);
+                var url = new Uri(resourceHandler.Url);
+                switch (url.AbsolutePath.TrimStart('/')) {
+                    case ResourceJs:
+                        resourceHandler.Redirect(url.GetLeftPart(UriPartial.Authority) + "/" + RedirectUrl);
                         break;
                     case RedirectUrl:
                         redirected = true;

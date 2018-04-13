@@ -58,8 +58,8 @@ namespace WebViewControl {
                 Listener.EventListenerObjName,
                 ReadyEventName
             };
-
-            webView.Address = new ResourceUrl(typeof(ReactViewRender).Assembly, DefaultUrl + "?" + string.Join("&", urlParams)).ToString();
+            
+            webView.LoadResource(new ResourceUrl(typeof(ReactViewRender).Assembly, DefaultUrl + "?" + string.Join("&", urlParams)));
         }
 
         private void OnWebViewDisposed() {
@@ -111,7 +111,7 @@ namespace WebViewControl {
             };
 
             if (DefaultStyleSheet != null) {
-                loadArgs.Add(Quote(NormalizeUrl(ToFullUrl(DefaultStyleSheet.ToString()))));
+                loadArgs.Add(Quote(NormalizeUrl(ToFullUrl(DefaultStyleSheet.WithDomain(webView.CurrentDomainId)))));
             } else {
                 loadArgs.Add(JavascriptNullConstant);
             }
@@ -131,7 +131,7 @@ namespace WebViewControl {
             }
 
             if (Mappings != null && Mappings.Count > 0) {
-                loadArgs.Add(Object(Mappings.Select(m => new KeyValuePair<string, string>(Quote(m.Key), Quote(NormalizeUrl(m.Value.ToString()))))));
+                loadArgs.Add(Object(Mappings.Select(m => new KeyValuePair<string, string>(Quote(m.Key), Quote(NormalizeUrl(m.Value.WithDomain(webView.CurrentDomainId)))))));
             }
 
             ExecuteDeferredScriptFunction("load", loadArgs.ToArray());
@@ -153,7 +153,6 @@ namespace WebViewControl {
         public T EvaluateMethodOnRoot<T>(string methodCall, params string[] args) {
             return webView.EvaluateScriptFunction<T>(RootObject + "." + methodCall, args);
         }
-
         
         public ResourceUrl DefaultStyleSheet {
             get { return defaultStyleSheet; }
@@ -221,7 +220,7 @@ namespace WebViewControl {
             if (url.StartsWith(ResourceUrl.PathSeparator) || url.Contains(Uri.SchemeDelimiter)) {
                 return url;
             } else {
-                return new ResourceUrl(userCallingAssembly, url).ToString();
+                return new ResourceUrl(userCallingAssembly, url).WithDomain(webView.CurrentDomainId);
             }
         }
 

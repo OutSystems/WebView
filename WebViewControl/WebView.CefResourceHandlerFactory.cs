@@ -26,11 +26,11 @@ namespace WebViewControl {
             }
 
             IResourceHandler IResourceHandlerFactory.GetResourceHandler(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request) {
-                if (request.Url == DefaultLocalUrl) {
+                if (request.Url == OwnerWebView.DefaultLocalUrl) {
                     return OwnerWebView.htmlToLoad != null ? CefSharp.ResourceHandler.FromString(OwnerWebView.htmlToLoad, Encoding.UTF8) : null;
                 }
 
-                if (FilterRequest(request)) {
+                if (OwnerWebView.FilterRequest(request)) {
                     return null;
                 }
 
