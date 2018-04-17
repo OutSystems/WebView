@@ -111,7 +111,7 @@ namespace WebViewControl {
             };
 
             if (DefaultStyleSheet != null) {
-                loadArgs.Add(Quote(NormalizeUrl(ToFullUrl(DefaultStyleSheet.WithDomain(webView.CurrentDomainId)))));
+                loadArgs.Add(Quote(NormalizeUrl(ToFullUrl(DefaultStyleSheet.ToString()))));
             } else {
                 loadArgs.Add(JavascriptNullConstant);
             }
@@ -131,7 +131,7 @@ namespace WebViewControl {
             }
 
             if (Mappings != null && Mappings.Count > 0) {
-                loadArgs.Add(Object(Mappings.Select(m => new KeyValuePair<string, string>(Quote(m.Key), Quote(NormalizeUrl(m.Value.WithDomain(webView.CurrentDomainId)))))));
+                loadArgs.Add(Object(Mappings.Select(m => new KeyValuePair<string, string>(Quote(m.Key), Quote(NormalizeUrl(m.Value.ToString()))))));
             }
 
             ExecuteDeferredScriptFunction("load", loadArgs.ToArray());
@@ -217,10 +217,12 @@ namespace WebViewControl {
         }
         
         private string ToFullUrl(string url) {
-            if (url.StartsWith(ResourceUrl.PathSeparator) || url.Contains(Uri.SchemeDelimiter)) {
+            if (url.Contains(Uri.SchemeDelimiter)) {
                 return url;
+            } else if (url.StartsWith(ResourceUrl.PathSeparator)) {
+                return new ResourceUrl(ResourceUrl.EmbeddedScheme, url).ToString();
             } else {
-                return new ResourceUrl(userCallingAssembly, url).WithDomain(webView.CurrentDomainId);
+                return new ResourceUrl(userCallingAssembly, url).ToString();
             }
         }
 

@@ -33,7 +33,11 @@ namespace WebViewControl {
         }
 
         private static string BuildUrl(string scheme, string path) {
-            return scheme + Uri.SchemeDelimiter + DefaultDomain + PathSeparator + path;
+            return scheme + Uri.SchemeDelimiter + CombinePath(DefaultDomain, path);
+        }
+
+        private static string CombinePath(string path1, string path2) {
+            return path1 + (path1.EndsWith(PathSeparator) ? "" : PathSeparator)  + (path2.StartsWith(PathSeparator) ? path2.Substring(1) : path2);
         }
 
         public override string ToString() {

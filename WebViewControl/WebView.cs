@@ -297,15 +297,27 @@ namespace WebViewControl {
                 htmlToLoad = null;
             }
             if (address.Contains(Uri.SchemeDelimiter) || address == "about:blank" || address.StartsWith("data:")) {
+                if (CustomSchemes.Any(s => address.StartsWith(s + Uri.SchemeDelimiter))) {
+                    // custom schemes -> turn off security ... to enable full access without problems to local resources
+                    IsSecurityDisabled = true;
+                } else {
+                    IsSecurityDisabled = false;
+                }
                 // must wait for the browser to be initialized otherwise navigation will be aborted
                 ExecuteWhenInitialized(() => chromium.Load(address));
             } else {
-                LoadFrom(address);
+                var userAssembly = GetUserCallingMethod().ReflectedType.Assembly;
+                Load(new ResourceUrl(userAssembly, address).WithDomain(CurrentDomainId));
             }
         }
 
         public void LoadResource(ResourceUrl resourceUrl) {
             Address = resourceUrl.WithDomain(CurrentDomainId);
+        }
+
+        public void LoadHtml(string html) {
+            htmlToLoad = html;
+            Load(DefaultLocalUrl);
         }
 
         public bool IsSecurityDisabled {
@@ -349,18 +361,6 @@ namespace WebViewControl {
         public ProxyAuthentication ProxyAuthentication { get; set; }
 
         public bool IgnoreMissingResources { get; set; }
-
-        protected void LoadFrom(string source) {
-            var userAssembly = GetUserCallingMethod().ReflectedType.Assembly;
-
-            IsSecurityDisabled = true;
-            Load(new ResourceUrl(userAssembly, source).WithDomain(CurrentDomainId));
-        }
-
-        public void LoadHtml(string html) {
-            htmlToLoad = html;
-            Load(DefaultLocalUrl);
-        }
 
         /// <summary>
         /// Registers an object with the specified name in the window context of the browser
