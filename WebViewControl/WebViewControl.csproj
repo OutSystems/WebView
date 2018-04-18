@@ -91,6 +91,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CefLoader.cs" />
+    <Compile Include="CefSubProcessWatchDog.cs" />
     <Compile Include="InternalChromiumBrowser.cs" />
     <Compile Include="IReactView.cs" />
     <Compile Include="JavascriptSerializationHelper.cs" />

@@ -80,7 +80,7 @@ namespace WebViewControl {
 
         // cef maints same zoom level for all browser instances under the same domain
         // having different domains will prevent synced zoom
-        internal readonly string CurrentDomainId; 
+        private readonly string CurrentDomainId; 
 
         private readonly string DefaultLocalUrl;
 
@@ -107,6 +107,7 @@ namespace WebViewControl {
                 cefSettings.LogSeverity = LogSeverity.Disable; // disable writing of debug.log
                 cefSettings.UncaughtExceptionStackSize = 100; // enable stack capture
                 cefSettings.CachePath = TempDir; // enable cache for external resources to speedup loading
+                
                 CefSharpSettings.LegacyJavascriptBindingEnabled = true;
 
                 foreach (var scheme in CustomSchemes) {
@@ -120,6 +121,8 @@ namespace WebViewControl {
 
                 Cef.Initialize(cefSettings, performDependencyCheck: false, browserProcessHandler: null);
                 
+                CefSubProcessWatchDog.StartWatching(cefSettings.BrowserSubprocessPath, true);
+
                 if (Application.Current != null) {
                     Application.Current.Exit += OnApplicationExit;
                     subscribedApplicationExit = true;
