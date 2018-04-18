@@ -155,6 +155,12 @@
   <ItemGroup>
     <EmbeddedResource Include="Resources\node_modules\prop-types\prop-types.min.js" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\WebViewWatcher\WebViewWatcher.csproj">
+      <Project>{0832c3a6-e284-4269-a5b1-615aef099d20}</Project>
+      <Name>WebViewWatcher</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="InjectModuleInitializer" AfterTargets="AfterBuild">
     <Exec Command="..\packages\InjectModuleInitializer.1.5\tools\InjectModuleInitializer.exe &quot;$(TargetPath)&quot;" />
