@@ -19,6 +19,23 @@ namespace Tests {
         }
 
         protected override bool ReuseView => false;
+
+        protected void WithUnhandledExceptionHandling(Action action, Func<Exception, bool> onException) {
+            Action<WebViewControl.UnhandledExceptionEventArgs> unhandledException = (e) => {
+                e.Handled = onException(e.Exception);
+            };
+
+            var failOnAsyncExceptions = FailOnAsyncExceptions;
+            FailOnAsyncExceptions = false;
+            TargetView.UnhandledAsyncException += unhandledException;
+
+            try {
+                action();
+            } finally {
+                TargetView.UnhandledAsyncException -= unhandledException;
+                FailOnAsyncExceptions = failOnAsyncExceptions;
+            }
+        }
     }
 
     public class ReactViewTestBase : ReactViewTestBase<TestReactView> { }

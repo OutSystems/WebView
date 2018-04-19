@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Threading;
 using NUnit.Framework;
+using WebViewControl;
 
 namespace Tests {
 
@@ -59,6 +61,36 @@ namespace Tests {
 
             WaitFor(() => canAccessDispatcher != null, TimeSpan.FromSeconds(10), "event call");
             Assert.IsFalse(canAccessDispatcher, "Can access dispatcher");
+        }
+
+        [Test(Description = "Custom requests handler throws timeout exception after sometime")]
+        public void CustomRequestsInterceptionTimeouts() {
+            var requestHandlerCalled = false;
+            TargetView.CustomResourceRequested += (req) => {
+                requestHandlerCalled = true;
+                Thread.Sleep(1000000);
+                return null;
+            };
+
+            var originalTimeout = ReactViewRender.CustomRequestTimeout;
+            try {
+                ReactViewRender.CustomRequestTimeout = TimeSpan.FromMilliseconds(500);
+
+                var exceptionThrown = false;
+                WithUnhandledExceptionHandling(() => {
+                    TargetView.ExecuteMethodOnRoot("loadCustomResource", "\"custom://webview/test.png\"");
+                    WaitFor(() => requestHandlerCalled && exceptionThrown, TimeSpan.FromSeconds(10), "exception thrown");
+                }, (e) => {
+                    exceptionThrown = true;
+                    return true;
+                });
+
+                Assert.IsTrue(requestHandlerCalled, "Request handler was called");
+                Assert.IsTrue(exceptionThrown, "Exception was thrown");
+            } finally {
+                ReactViewRender.CustomRequestTimeout = originalTimeout;
+            }
+
         }
     }
 }

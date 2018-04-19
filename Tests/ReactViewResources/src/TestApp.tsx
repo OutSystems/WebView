@@ -56,6 +56,13 @@ class App extends React.Component<IAppProperties, {}> {
             clearInterval(intervalHandle);
         }, 50);
     }
+
+    loadCustomResource(url: string) {
+        console.log(url);
+        var img = document.createElement("img");
+        img.src = url;
+        document.body.appendChild(img);
+    }
 }
 
 export default App; 

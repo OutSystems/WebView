@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -14,6 +15,8 @@ namespace WebViewControl {
         
         private const string RootObject = "__Root__";
         private const string ReadyEventName = "Ready";
+
+        internal static TimeSpan CustomRequestTimeout = TimeSpan.FromSeconds(5);
 
         private static readonly Assembly Assembly = typeof(ReactViewRender).Assembly;
         private static readonly string BuiltinResourcesPath = "Resources/";
@@ -315,7 +318,12 @@ namespace WebViewControl {
             var customResourceRequested = CustomResourceRequested;
             if (customResourceRequested != null) {
                 if (resourceHandler.Url.StartsWith(ResourceUrl.CustomScheme + Uri.SchemeDelimiter)) {
-                    resourceHandler.RespondWith(customResourceRequested(resourceHandler.Url), "");
+                    var customResourceFetchTask = Task.Run(() => customResourceRequested(resourceHandler.Url));
+                    customResourceFetchTask.Wait(CustomRequestTimeout);
+                    if (!customResourceFetchTask.IsCompleted) {
+                        throw new Exception($"Failed to fetch ({resourceHandler.Url}) within the alotted timeout");
+                    }
+                    resourceHandler.RespondWith(customResourceFetchTask.Result, "");
                 }
             }
         }
