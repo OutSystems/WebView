@@ -160,6 +160,10 @@
                 };
             });
 
+            // prevent browser from loading the dropped file
+            window.addEventListener("dragover", (e) => e.preventDefault());
+            window.addEventListener("drop", (e) => e.preventDefault());
+
             try {
                 await loadRequire();
                 let paths = await loadFramework();
