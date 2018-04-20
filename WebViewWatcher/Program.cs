@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Management;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace WebViewWatcher {
 
@@ -23,23 +25,27 @@ namespace WebViewWatcher {
                 var parentProcess = Process.GetProcessById(parentProcessId.Value);
                 parentProcess.WaitForExit();
 
+                Thread.Sleep(1000); // wait a bit before scanning cef processes ... they might close at their own will
+
                 var killedProcesses = 0;
                 var cefSubProcesses = Process.GetProcessesByName(cefSubProcessName);
-                foreach(var cefSubProcess in cefSubProcesses) {
+                Parallel.ForEach(cefSubProcesses, (cefSubProcess) => {
                     var parentId = cefSubProcess.GetParentId();
                     if (parentId == null || parentId == parentProcessId) {
-                        // kill orphan process
-                        cefSubProcess.Kill();
-                        killedProcesses++;
+                        if (!cefSubProcess.HasExited) {
+                            // kill orphan process
+                            cefSubProcess.Kill();
+                            killedProcesses++;
+                        }
                     }
-                }
+                });
 
                 if (showLog && killedProcesses > 0) {
                     Process.Start("cmd.exe", $"/K echo CefSharpWatcher: Killed {killedProcesses} zombie cefsharp processes!");
                 }
             } catch (Exception e) {
                 if (showLog) {
-                    Process.Start("cmd.exe", "/K echo CefSharpWatcher: " + e.Message.Replace("\r\n", " "));
+                    Process.Start("cmd.exe", "/K echo CefSharpWatcher: " + e.ToString().Replace("\r\n", " "));
                 }
             }
         }
