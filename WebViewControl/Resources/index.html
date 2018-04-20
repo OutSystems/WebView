@@ -39,10 +39,11 @@
                 window[EventListenerObjectName].notify(ReadyEventName);
             }
 
-            async function loadComponent(paths, baseUrl, userComponent, userDefaultStylesheet, enableDebugMode, enableHotReload, plugins, mappings) {
-                let noCacheSuffix;
-                if (enableHotReload) {
-                    noCacheSuffix = "t=" + (new Date()).getTime();
+            async function loadComponent(paths, baseUrl, userComponent, userDefaultStylesheet, enableDebugMode, cacheInvalidationSuffix, plugins, mappings) {
+                if (cacheInvalidationSuffix) {
+                    cacheInvalidationSuffix = "t=" + cacheInvalidationSuffix;
+                } else {
+                    cacheInvalidationSuffix = null;
                 }
 
                 if (mappings) {
@@ -51,7 +52,7 @@
 
                 require.config({
                     baseUrl: baseUrl,
-                    urlArgs: noCacheSuffix,
+                    urlArgs: cacheInvalidationSuffix,
                     paths: paths
                 });
 

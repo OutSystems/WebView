@@ -37,6 +37,7 @@ namespace WebViewControl {
         private IViewModule[] plugins;
         private Dictionary<string, ResourceUrl> mappings;
         private FileSystemWatcher fileSystemWatcher;
+        private string cacheInvalidationTimestamp;
 
         public static bool UseEnhancedRenderingEngine { get; set; } = true;
 
@@ -120,7 +121,7 @@ namespace WebViewControl {
             }
 
             loadArgs.Add(AsBoolean(enableDebugMode));
-            loadArgs.Add(AsBoolean(fileSystemWatcher != null));
+            loadArgs.Add(Quote(cacheInvalidationTimestamp));
 
             webView.RegisterJavascriptObject(componentJavascriptName, component, executeCallsInUI: false);
 
@@ -258,6 +259,7 @@ namespace WebViewControl {
                     webView.Dispatcher.BeginInvoke((Action) (() => {
                         if (IsReady) {
                             IsReady = false;
+                            cacheInvalidationTimestamp = DateTime.UtcNow.Ticks.ToString();
                             webView.Reload(true);
                         }
                     }));
