@@ -31,7 +31,8 @@ namespace CefSharp {
         /// </summary>
         /// <returns></returns>
         public static string GetBrowserSubProcessPath() {
-            var path = Path.Combine(GetBasePath(), "CefSharp.BrowserSubprocess.exe");
+            const string SubProcessName = "WebView.BrowserSubprocess.exe";//"CefSharp.BrowserSubprocess.exe";
+            var path = Path.Combine(GetBasePath(), SubProcessName);
 
             if (!File.Exists(path)) {
                 throw new FileNotFoundException("Unable to locate", path);
@@ -43,7 +44,7 @@ namespace CefSharp {
         private static Assembly Resolver(object sender, ResolveEventArgs args) {
             if (args.Name.StartsWith("CefSharp")) {
                 var assemblyName = args.Name.Split(new[] { ',' }, 2)[0] + ".dll";
-                var archSpecificPath = Path.Combine(GetBasePath(), assemblyName);
+                var archSpecificPath = Path.Combine(GetBaseArchitectureSpecificPath(), assemblyName);
 
                 if (!File.Exists(archSpecificPath)) {
                     throw new FileNotFoundException("Unable to locate", archSpecificPath);
@@ -56,7 +57,11 @@ namespace CefSharp {
         }
 
         private static string GetBasePath() {
-            return Path.Combine(Path.GetDirectoryName(typeof(CefLoader).Assembly.Location), Environment.Is64BitProcess ? "x64" : "x86");
+            return Path.GetDirectoryName(typeof(CefLoader).Assembly.Location);
+        }
+
+        private static string GetBaseArchitectureSpecificPath() {
+            return Path.Combine(GetBasePath(), Environment.Is64BitProcess ? "x64" : "x86");
         }
     }
 }

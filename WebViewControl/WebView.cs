@@ -120,8 +120,6 @@ namespace WebViewControl {
                 cefSettings.BrowserSubprocessPath = CefLoader.GetBrowserSubProcessPath();
 
                 Cef.Initialize(cefSettings, performDependencyCheck: false, browserProcessHandler: null);
-                
-                CefSubProcessWatchDog.StartWatching(cefSettings.BrowserSubprocessPath, true);
 
                 if (Application.Current != null) {
                     Application.Current.Exit += OnApplicationExit;
