@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Management;
 using System.Threading.Tasks;
 
@@ -8,12 +9,12 @@ namespace WebViewSubProcess {
     static class Program {
 
         static void Main(string[] args) {
-            Task.Factory.StartNew(() => AwaitParentProcessExit(args), TaskCreationOptions.LongRunning);
-            var basePath = Environment.Is64BitProcess ? "x64" : "x86";
+            Task.Factory.StartNew(() => AwaitParentProcessExit(), TaskCreationOptions.LongRunning);
+            var basePath = Path.Combine(Path.GetDirectoryName(typeof(Program).Assembly.Location), Environment.Is64BitProcess ? "x64" : "x86");
             AppDomain.CurrentDomain.ExecuteAssembly(basePath + "\\CefSharp.BrowserSubprocess.exe", args);
         }
 
-        private static void AwaitParentProcessExit(string[] args) {
+        private static void AwaitParentProcessExit() {
             var parentProcessId = Process.GetCurrentProcess().GetParentId();
             if (parentProcessId.HasValue) {
                 try {
