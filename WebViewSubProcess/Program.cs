@@ -19,7 +19,7 @@ namespace WebViewSubProcess {
                 try {
                     var parentProcess = Process.GetProcessById(parentProcessId.Value);
                     parentProcess.WaitForExit();
-                } catch (Exception e) {
+                } catch (Exception) {
                     //main process probably died already
                 }
 

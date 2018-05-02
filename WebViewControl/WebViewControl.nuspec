@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
     <id>WebViewControl</id>
-    <version>1.64.42-beta</version>
+    <version>1.65.1-beta</version>
     <title>WebViewControl</title>
     <authors>jmn</authors>
     <owners>jmn</owners>
@@ -15,6 +15,6 @@
   </metadata>
   <files>
      <file src="WebViewControl.props" target="build" />
-     <file src="..\$configuration$\WebViewWatcher.exe" target="lib\net461" />
+     <file src="..\$configuration$\WebView.BrowserSubprocess.exe" target="lib\net461" />
   </files>
 </package>
