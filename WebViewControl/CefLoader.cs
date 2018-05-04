@@ -31,8 +31,8 @@ namespace CefSharp {
         /// </summary>
         /// <returns></returns>
         public static string GetBrowserSubProcessPath() {
-            const string SubProcessName = "WebView.BrowserSubprocess.exe";//"CefSharp.BrowserSubprocess.exe";
-            var path = Path.Combine(GetBasePath(), SubProcessName);
+            const string SubProcessName = "CefSharp.BrowserSubprocess.exe";
+            var path = Path.Combine(GetBaseArchitectureSpecificPath(), SubProcessName);
 
             if (!File.Exists(path)) {
                 throw new FileNotFoundException("Unable to locate", path);

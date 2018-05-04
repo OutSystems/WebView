@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
     <id>WebViewControl</id>
-    <version>1.65.2-beta</version>
+    <version>1.65.5-beta</version>
     <title>WebViewControl</title>
     <authors>jmn</authors>
     <owners>jmn</owners>
@@ -10,11 +10,10 @@
     <description>Description</description>
     <copyright>Copyright ©  2017</copyright>
     <dependencies>
-      <dependency id="CefSharp.Wpf" version="65.0.0-CI2557" />
+      <dependency id="CefSharp.Wpf" version="65.0.0-CI2557a" />
     </dependencies>
   </metadata>
   <files>
     <file src="WebViewControl.props" target="build" />
-    <file src="..\$configuration$\WebView.BrowserSubprocess.exe" target="lib\net461" />
   </files>
 </package>
