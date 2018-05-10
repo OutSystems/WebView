@@ -88,11 +88,16 @@ class Generator {
 
     private generateBehaviorMethod(func: Units.TsFunction): string {
         if (func.returnType != Types.TsVoidType) {
-            throw new Error("Behavior method " + func.name + " return type must be void. Behavior methods cannot return values.");
+            let returnType = this.getFunctionReturnType(func);
+            return (
+                `public ${this.generateMethodSignature(func)} {\n` +
+                `    return ExecutionEngine.EvaluateMethod<${returnType}>(this, "${func.name}"${func.parameters.map(p => ", " + p.name).join()});\n` +
+                `}`
+            );
         }
         return (
             `public ${this.generateMethodSignature(func)} {\n` +
-            `    ExecuteMethodOnRoot("${func.name}"${func.parameters.map(p => ", " + p.name).join()});\n` +
+            `    ExecutionEngine.ExecuteMethod(this, "${func.name}"${func.parameters.map(p => ", " + p.name).join()});\n` +
             `}`
         );
     }
@@ -178,7 +183,7 @@ class Generator {
             `        ${f(this.generateComponentBody())}\n` +
             `\n` +
             `        protected override string JavascriptSource => \"${this.relativePath}\";\n` +
-            `        protected override string JavascriptName => \"${propsInterfaceCoreName}\";\n` +
+            `        protected override string NativeObjectName => \"${propsInterfaceCoreName}\";\n` +
             `\n` +
             `        protected override object CreateNativeObject() {\n` +
             `            return new ${PropertiesClassName}(this);\n` +

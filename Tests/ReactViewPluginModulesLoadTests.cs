@@ -18,7 +18,7 @@ namespace Tests {
             }
 
             protected override string JavascriptSource => "/Tests/ReactViewResources/dist/PluginModule.js";
-            protected override string JavascriptName => "Common";
+            protected override string NativeObjectName => "Common";
 
             protected override object CreateNativeObject() {
                 return new Properties(this);

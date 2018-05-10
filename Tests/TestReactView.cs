@@ -24,18 +24,18 @@ namespace Tests {
 
         protected override string JavascriptSource => "/Tests/ReactViewResources/dist/TestApp";
 
-        protected override string JavascriptName => nameof(TestReactView);
+        protected override string NativeObjectName => nameof(TestReactView);
 
         protected override object CreateNativeObject() {
             return new Properties(this);
         }
 
-        public new T EvaluateMethodOnRoot<T>(string methodCall, params string[] args) {
-            return base.EvaluateMethodOnRoot<T>(methodCall, args);
+        public T EvaluateMethodOnRoot<T>(string methodCall, params string[] args) {
+            return ((IExecutionEngine) this).EvaluateMethod<T>(this, methodCall, args);
         }
 
-        public new void ExecuteMethodOnRoot(string methodCall, params string[] args) {
-            base.ExecuteMethodOnRoot(methodCall, args);
+        public void ExecuteMethodOnRoot(string methodCall, params string[] args) {
+            ((IExecutionEngine) this).ExecuteMethod(this, methodCall, args);
         }
     }
 }

@@ -9,5 +9,7 @@ namespace WebViewControl {
 
         event Action Ready;
         event Action<UnhandledExceptionEventArgs> UnhandledAsyncException;
+
+        T WithPlugin<T>();
     }
 }

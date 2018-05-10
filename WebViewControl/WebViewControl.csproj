@@ -91,8 +91,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CefLoader.cs" />
+    <Compile Include="ReactView\IExecutionEngine.cs" />
     <Compile Include="InternalChromiumBrowser.cs" />
-    <Compile Include="IReactView.cs" />
+    <Compile Include="ReactView\IReactView.cs" />
     <Compile Include="JavascriptSerializationHelper.cs" />
     <Compile Include="BrowserObjectListener.cs" />
     <Compile Include="LambdaMethodBinder.cs" />
@@ -101,14 +102,14 @@
     <Compile Include="ModuleInitializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ProxyAuthentication.cs" />
-    <Compile Include="ReactViewRender.InternalWebView.cs" />
-    <Compile Include="ReactViewRender.cs" />
-    <Compile Include="ReactView.cs" />
+    <Compile Include="ReactView\ReactViewRender.InternalWebView.cs" />
+    <Compile Include="ReactView\ReactViewRender.cs" />
+    <Compile Include="ReactView\ReactView.cs" />
     <Compile Include="RenderProcessClosedException.cs" />
     <Compile Include="ResourceUrl.cs" />
     <Compile Include="UnhandledExceptionEventArgs.cs" />
-    <Compile Include="IViewModule.cs" />
-    <Compile Include="ViewModuleContainer.cs" />
+    <Compile Include="ReactView\IViewModule.cs" />
+    <Compile Include="ReactView\ViewModuleContainer.cs" />
     <Compile Include="WebView.CefDownloadHandler.cs" />
     <Compile Include="WebView.CefLifeSpanHandler.cs" />
     <Compile Include="WebView.CefRequestHandler.cs" />
@@ -124,7 +125,7 @@
     <Compile Include="WebView.Request.cs" />
     <Compile Include="WebView.ResourceHandler.cs" />
     <Compile Include="ResourcesManager.cs" />
-    <Compile Include="WindowsEventsListener.cs" />
+    <Compile Include="ReactView\WindowsEventsListener.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

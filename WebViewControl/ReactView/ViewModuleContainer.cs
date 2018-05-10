@@ -2,8 +2,10 @@
 
     public abstract class ViewModuleContainer : IViewModule {
 
+        private IExecutionEngine engine;
+
         protected virtual string JavascriptSource => null;
-        protected virtual string JavascriptName => null;
+        protected virtual string NativeObjectName => null;
         protected virtual string Source => null;
 
         protected virtual object CreateNativeObject() {
@@ -12,12 +14,22 @@
 
         string IViewModule.JavascriptSource => JavascriptSource;
 
-        string IViewModule.JavascriptName => JavascriptName;
+        string IViewModule.NativeObjectName => NativeObjectName;
+
+        string IViewModule.Name => GetType().Name;
 
         string IViewModule.Source => Source;
 
         object IViewModule.CreateNativeObject() {
             return CreateNativeObject();
         }
+
+        void IViewModule.Bind(IExecutionEngine engine) {
+            this.engine = engine;
+        }
+
+        protected IExecutionEngine ExecutionEngine => engine; // ease access in generated code
+
+        IExecutionEngine IViewModule.ExecutionEngine => ExecutionEngine;
     }
 }

@@ -4,10 +4,16 @@
 
         string JavascriptSource { get; }
 
-        string JavascriptName { get; }
+        string NativeObjectName { get; }
+
+        string Name { get; }
 
         string Source { get; }
 
         object CreateNativeObject();
+
+        void Bind(IExecutionEngine engine);
+
+        IExecutionEngine ExecutionEngine { get; }
     }
 }

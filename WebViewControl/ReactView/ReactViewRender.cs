@@ -9,11 +9,11 @@ using System.Windows.Controls;
 
 namespace WebViewControl {
 
-    internal partial class ReactViewRender : UserControl, IReactView {
+    internal partial class ReactViewRender : UserControl, IReactView, IExecutionEngine {
 
         private const string JavascriptNullConstant = "null";
-        
-        private const string RootObject = "__Root__";
+
+        private const string ModulesObjectName = "__Modules__";
         private const string ReadyEventName = "Ready";
 
         internal static TimeSpan CustomRequestTimeout = TimeSpan.FromSeconds(5);
@@ -30,9 +30,7 @@ namespace WebViewControl {
         private Listener readyEventListener;
         private bool pageLoaded = false;
         private bool componentLoaded = false;
-        private string componentSource;
-        private string componentJavascriptName;
-        private object component;
+        private IViewModule component;
         private ResourceUrl defaultStyleSheet;
         private IViewModule[] plugins;
         private Dictionary<string, ResourceUrl> mappings;
@@ -58,7 +56,7 @@ namespace WebViewControl {
             var urlParams = new string[] {
                 UseEnhancedRenderingEngine ? "1" : "0",
                 LibrariesPath,
-                RootObject,
+                ModulesObjectName,
                 Listener.EventListenerObjName,
                 ReadyEventName
             };
@@ -91,9 +89,7 @@ namespace WebViewControl {
 
         public event Func<string, Stream> CustomResourceRequested;
 
-        public void LoadComponent(string componentSource, string componentJavascriptName, object component) {
-            this.componentSource = componentSource;
-            this.componentJavascriptName = componentJavascriptName;
+        public void LoadComponent(IViewModule component) {
             this.component = component;
             if (pageLoaded) {
                 InternalLoadComponent();
@@ -101,7 +97,7 @@ namespace WebViewControl {
         }
 
         private void InternalLoadComponent() {
-            var source = NormalizeUrl(componentSource);
+            var source = NormalizeUrl(component.JavascriptSource);
             var filenameParts = source.Split(new[] { ResourceUrl.PathSeparator }, StringSplitOptions.None);
 
             // eg: example/dist/source.js
@@ -111,7 +107,7 @@ namespace WebViewControl {
 
             var loadArgs = new List<string>() {
                 Quote(baseUrl),
-                Array(Quote(componentJavascriptName), Quote(source))
+                Array(Quote(component.NativeObjectName), Quote(component.Name), Quote(source))
             };
 
             if (DefaultStyleSheet != null) {
@@ -123,12 +119,12 @@ namespace WebViewControl {
             loadArgs.Add(AsBoolean(enableDebugMode));
             loadArgs.Add(Quote(cacheInvalidationTimestamp));
 
-            webView.RegisterJavascriptObject(componentJavascriptName, component, executeCallsInUI: false);
+            webView.RegisterJavascriptObject(component.NativeObjectName, component.CreateNativeObject(), executeCallsInUI: false);
 
             if (Plugins != null && Plugins.Length > 0) {
-                loadArgs.Add(Array(Plugins.Select(m => Array(Quote(m.JavascriptName), Quote(NormalizeUrl(ToFullUrl(m.JavascriptSource)))))));
+                loadArgs.Add(Array(Plugins.Select(m => Array(Quote(m.NativeObjectName), Quote(m.Name), Quote(NormalizeUrl(ToFullUrl(m.JavascriptSource)))))));
                 foreach (var module in Plugins) {
-                    webView.RegisterJavascriptObject(module.JavascriptName, module.CreateNativeObject(), executeCallsInUI: false);
+                    webView.RegisterJavascriptObject(module.NativeObjectName, module.CreateNativeObject(), executeCallsInUI: false);
                 }
             } else {
                 loadArgs.Add(JavascriptNullConstant);
@@ -150,12 +146,12 @@ namespace WebViewControl {
             }
         }
 
-        public void ExecuteMethodOnRoot(string methodCall, params string[] args) {
-            webView.ExecuteScriptFunction(RootObject + "." + methodCall, args);
+        public void ExecuteMethod(IViewModule module, string methodCall, params string[] args) {
+            webView.ExecuteScriptFunction(ModulesObjectName + "." + module.Name + "." + methodCall, args);
         }
 
-        public T EvaluateMethodOnRoot<T>(string methodCall, params string[] args) {
-            return webView.EvaluateScriptFunction<T>(RootObject + "." + methodCall, args);
+        public T EvaluateMethod<T>(IViewModule module, string methodCall, params string[] args) {
+            return webView.EvaluateScriptFunction<T>(ModulesObjectName + "." + module.Name + "." + methodCall, args);
         }
         
         public ResourceUrl DefaultStyleSheet {
@@ -175,7 +171,14 @@ namespace WebViewControl {
                     throw new InvalidOperationException($"Cannot set {nameof(Plugins)} after component has been loaded");
                 }
                 plugins = value;
+                foreach(var plugin in plugins) {
+                    plugin.Bind(this);
+                }
             }
+        }
+
+        public T WithPlugin<T>() {
+            return Plugins.OfType<T>().First();
         }
 
         public Dictionary<string, ResourceUrl> Mappings {
