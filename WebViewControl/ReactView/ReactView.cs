@@ -156,6 +156,8 @@ namespace WebViewControl {
             throw new Exception("Cannot bind ReactView");
         }
 
-        IExecutionEngine IViewModule.ExecutionEngine => view;
+        IExecutionEngine IViewModule.ExecutionEngine => ExecutionEngine;
+
+        protected IExecutionEngine ExecutionEngine => view; // ease access in generated code
     }
 }
