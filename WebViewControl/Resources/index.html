@@ -87,11 +87,14 @@
                 let modules = {};
                 window[ModulesObjectName] = modules;
 
-                modules[UserComponentName] = ReactDOM.render(
-                    React.createElement(Component, Properties),
-                    document.getElementById("webview_root"),
-                    () => notifyReady()
-                );
+                let renderAndPluginsPromises = [];
+                renderAndPluginsPromises.push(new Promise((resolve, reject) => {
+                    modules[UserComponentName] = ReactDOM.render(
+                        React.createElement(Component, Properties),
+                        document.getElementById("webview_root"),
+                        () => resolve()
+                    );
+                }));
 
                 if (plugins) {
                     // load plugin modules
@@ -99,12 +102,19 @@
                         const NativeObjectName = m[0];
                         const ModuleName = m[1];
                         const ModulePath = m[2];
-                        CefSharp.BindObjectAsync(NativeObjectName, NativeObjectName).then(() => {
-                            require([ModulePath], (Module) => modules[ModuleName] = Module.default);
-                        });
+                        renderAndPluginsPromises.push(new Promise((resolve, reject) => {
+                            CefSharp.BindObjectAsync(NativeObjectName, NativeObjectName).then(() => {
+                                require([ModulePath], (Module) => {
+                                    modules[ModuleName] = Module.default;
+                                    resolve();
+                                });
+                            });
+                        }));
                     });
                 }
 
+                await Promise.all(renderAndPluginsPromises);
+                notifyReady();
             }
 
             async function loadRequire() {
