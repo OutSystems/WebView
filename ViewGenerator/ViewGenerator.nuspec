@@ -2,13 +2,13 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>ViewGenerator</id>
-    <version>1.0.66</version>
+    <version>1.0.67</version>
     <authors>jmn</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <developmentDependency>true</developmentDependency>
     <description>Generates .NET Types from typescript</description>
     <dependencies>
-      <dependency id="ViewGeneratorCore" version="1.0.66" />
+      <dependency id="ViewGeneratorCore" version="1.0.67" />
       <dependency id="Microsoft.TypeScript.MSBuild" version="2.8.3" />
       <dependency id="Delegate.SassBuilder" version="1.4.0" />
     </dependencies>

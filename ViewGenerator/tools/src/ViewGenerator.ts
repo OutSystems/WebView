@@ -51,10 +51,11 @@ class Generator {
     }
 
     private getFunctionReturnType(func: Units.TsFunction): string {
-        if ((<Types.TsIdentifierType>func.returnType).parameters) {
-            return this.getTypeName((<Types.TsIdentifierType>func.returnType).parameters[0]);
+        let returnType = <Types.TsIdentifierType>func.returnType;
+        if (returnType.parameters && returnType.parameters.length > 0) {
+            return this.getTypeName(returnType.parameters[0]);
         }
-        return this.getTypeName(func.returnType);
+        return this.getTypeName(returnType);
     }
 
     private getTypeName(tsType: Types.ITsType): string {
