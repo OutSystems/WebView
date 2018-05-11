@@ -146,12 +146,12 @@ namespace WebViewControl {
             }
         }
 
-        public void ExecuteMethod(IViewModule module, string methodCall, params string[] args) {
-            webView.ExecuteScriptFunction(ModulesObjectName + "." + module.Name + "." + methodCall, args);
+        public void ExecuteMethod(IViewModule module, string methodCall, params object[] args) {
+            webView.ExecuteScriptFunctionWithSerializedParams(ModulesObjectName + "." + module.Name + "." + methodCall, args);
         }
 
-        public T EvaluateMethod<T>(IViewModule module, string methodCall, params string[] args) {
-            return webView.EvaluateScriptFunction<T>(ModulesObjectName + "." + module.Name + "." + methodCall, args);
+        public T EvaluateMethod<T>(IViewModule module, string methodCall, params object[] args) {
+            return webView.EvaluateScriptFunctionWithSerializedParams<T>(ModulesObjectName + "." + module.Name + "." + methodCall, args);
         }
         
         public ResourceUrl DefaultStyleSheet {

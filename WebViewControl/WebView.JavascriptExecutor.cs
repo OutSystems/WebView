@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -8,6 +9,7 @@ using System.Runtime.Serialization.Json;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 using CefSharp;
 
 namespace WebViewControl {
@@ -167,12 +169,12 @@ namespace WebViewControl {
                 throw ParseResponseException(scriptTask.Result);
             }
 
-            public T EvaluateScriptFunction<T>(string functionName, params string[] args) {
-                return EvaluateScript<T>(MakeScript(functionName, args));
+            public T EvaluateScriptFunction<T>(string functionName, bool serializeParams, params object[] args) {
+                return EvaluateScript<T>(MakeScript(functionName, serializeParams, args));
             }
 
-            public void ExecuteScriptFunction(string functionName, params string[] args) {
-                QueueScript(MakeScript(functionName, args));
+            public void ExecuteScriptFunction(string functionName, bool serializeParams, params object[] args) {
+                QueueScript(MakeScript(functionName, serializeParams, args));
             }
 
             public void ExecuteScript(string script) {
@@ -202,9 +204,25 @@ namespace WebViewControl {
                 return type.IsPrimitive || type.IsEnum || type == typeof(string);
             }
 
-            private static string MakeScript(string functionName, string[] args) {
-                var argsSerialized = args.Select(a => a == null ? "null" : a);
+            private static string MakeScript(string functionName, bool serializeParams, object[] args) {
+                var argsSerialized = args.Select(a => Serialize(a, serializeParams));
                 return functionName + "(" + string.Join(",", argsSerialized) + ")";
+            }
+
+            private static string Serialize(object value, bool serializeValue) {
+                if (value == null) {
+                    return "null";
+                }
+                if (serializeValue) {
+                    if (value is string valueText) {
+                        return HttpUtility.JavaScriptStringEncode(valueText, true);
+                    }
+                    if (value is IEnumerable innerValues) {
+                        return "[" + string.Join(",", innerValues.Cast<object>().Select(v => Serialize(v, serializeValue))) + "]";
+                    }
+                }
+                // TODO complex types
+                return value.ToString();
             }
 
             private static string WrapScriptWithErrorHandling(string script) {

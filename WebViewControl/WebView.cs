@@ -435,11 +435,19 @@ namespace WebViewControl {
         }
 
         public void ExecuteScriptFunction(string functionName, params string[] args) {
-            jsExecutor.ExecuteScriptFunction(functionName, args);
+            jsExecutor.ExecuteScriptFunction(functionName, false, args);
         }
 
         public T EvaluateScriptFunction<T>(string functionName, params string[] args) {
-            return jsExecutor.EvaluateScriptFunction<T>(functionName, args);
+            return jsExecutor.EvaluateScriptFunction<T>(functionName, false, args);
+        }
+
+        internal void ExecuteScriptFunctionWithSerializedParams(string functionName, params object[] args) {
+            jsExecutor.ExecuteScriptFunction(functionName, true, args);
+        }
+
+        internal T EvaluateScriptFunctionWithSerializedParams<T>(string functionName, params object[] args) {
+            return jsExecutor.EvaluateScriptFunction<T>(functionName, true, args);
         }
 
         public bool CanGoBack {
