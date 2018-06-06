@@ -25,7 +25,7 @@
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\Debug\</OutputPath>
+    <OutputPath>bin\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -42,11 +42,11 @@
     <StartupObject />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Tests|AnyCPU'">
-    <OutputPath>bin\Tests\</OutputPath>
+    <OutputPath>bin\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
+    <PlatformTarget>x86</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
@@ -87,10 +87,57 @@
     <Compile Include="WebViewTestBase.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\packages\NUnit.ConsoleRunner.3.8.0\tools\nunit-agent-x86.exe.config">
+      <Link>Nunit\nunit-agent-x86.exe.config</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\packages\NUnit.ConsoleRunner.3.8.0\tools\nunit-agent.exe.config">
+      <Link>Nunit\nunit-agent.exe.config</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\packages\NUnit.ConsoleRunner.3.8.0\tools\nunit.nuget.addins">
+      <Link>Nunit\nunit.nuget.addins</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="..\packages\NUnit.ConsoleRunner.3.8.0\tools\nunit3-console.exe.config">
+      <Link>Nunit\nunit3-console.exe.config</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config">
       <SubType>Designer</SubType>
     </None>
-    <None Include="ReactViewResources\tsconfig.json" />
+    <Content Include="..\packages\NUnit.3.10.1\lib\net45\nunit.framework.dll">
+      <Link>Nunit\nunit.framework.dll</Link>
+    </Content>
+    <Content Include="..\packages\NUnit.ConsoleRunner.3.8.0\tools\Mono.Cecil.dll">
+      <Link>Nunit\Mono.Cecil.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\packages\NUnit.ConsoleRunner.3.8.0\tools\nunit-agent-x86.exe">
+      <Link>Nunit\nunit-agent-x86.exe</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\packages\NUnit.ConsoleRunner.3.8.0\tools\nunit-agent.exe">
+      <Link>Nunit\nunit-agent.exe</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\packages\NUnit.ConsoleRunner.3.8.0\tools\nunit.engine.api.dll">
+      <Link>Nunit\nunit.engine.api.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\packages\NUnit.ConsoleRunner.3.8.0\tools\nunit.engine.api.xml">
+      <Link>Nunit\nunit.engine.api.xml</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\packages\NUnit.ConsoleRunner.3.8.0\tools\nunit.engine.dll">
+      <Link>Nunit\nunit.engine.dll</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="..\packages\NUnit.ConsoleRunner.3.8.0\tools\nunit3-console.exe">
+      <Link>Nunit\nunit3-console.exe</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="ReactViewResources\tsconfig.json" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\EmbeddedJavascriptFile.js" />
@@ -99,6 +146,7 @@
     <ProjectReference Include="..\WebViewControl\WebViewControl.csproj">
       <Project>{a1c2a0c7-df81-4a8f-aeb5-b5375d5d1b47}</Project>
       <Name>WebViewControl</Name>
+      <Private>True</Private>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -161,6 +209,9 @@
     <PreBuildEvent>$(ProjectDir)..\kill_testsengine.bat</PreBuildEvent>
   </PropertyGroup>
   <Import Project="..\packages\Microsoft.TypeScript.MSBuild.2.8.3\build\Microsoft.TypeScript.MSBuild.targets" Condition="Exists('..\packages\Microsoft.TypeScript.MSBuild.2.8.3\build\Microsoft.TypeScript.MSBuild.targets')" />
+  <PropertyGroup>
+    <PostBuildEvent>del CefSharp*</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

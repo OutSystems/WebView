@@ -17,4 +17,10 @@
   <PropertyGroup>
     <ProjectView>ShowAllFiles</ProjectView>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Tests|AnyCPU'">
+    <StartWorkingDirectory>C:\git\WebView\Tests\bin\</StartWorkingDirectory>
+    <StartArguments>Tests.dll --domain=None --wait</StartArguments>
+    <StartAction>Program</StartAction>
+    <StartProgram>C:\git\WebView\Tests\bin\Nunit\nunit3-console.exe</StartProgram>
+  </PropertyGroup>
 </Project>
