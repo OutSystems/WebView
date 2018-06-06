@@ -31,11 +31,11 @@ namespace Tests {
         }
 
         public T EvaluateMethodOnRoot<T>(string methodCall, params string[] args) {
-            return ((IExecutionEngine) this).EvaluateMethod<T>(this, methodCall, args);
+            return ExecutionEngine.EvaluateMethod<T>(this, methodCall, args);
         }
 
         public void ExecuteMethodOnRoot(string methodCall, params string[] args) {
-            ((IExecutionEngine) this).ExecuteMethod(this, methodCall, args);
+            ExecutionEngine.ExecuteMethod(this, methodCall, args);
         }
     }
 }

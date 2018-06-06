@@ -78,7 +78,7 @@ namespace Tests {
 
                 var exceptionThrown = false;
                 WithUnhandledExceptionHandling(() => {
-                    TargetView.ExecuteMethodOnRoot("loadCustomResource", "\"custom://webview/test.png\"");
+                    TargetView.ExecuteMethodOnRoot("loadCustomResource", "custom://webview/test.png");
                     WaitFor(() => requestHandlerCalled && exceptionThrown, TimeSpan.FromSeconds(10), "exception thrown");
                 }, (e) => {
                     exceptionThrown = true;

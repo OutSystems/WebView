@@ -89,5 +89,13 @@ namespace Tests {
             Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Background, new DispatcherOperationCallback(_ => frame.Continue = false), frame);
             Dispatcher.PushFrame(frame);
         }
+
+        protected bool FailOnAsyncExceptions { get; set; } = true;
+
+        protected void OnUnhandledAsyncException(WebViewControl.UnhandledExceptionEventArgs e) {
+            if (FailOnAsyncExceptions) {
+                Application.Current.Dispatcher.BeginInvoke(new Action(() => Assert.Fail("An async exception ocurred: " + e.Exception.Message)));
+            }
+        }
     }
 }
