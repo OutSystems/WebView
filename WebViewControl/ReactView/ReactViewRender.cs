@@ -121,17 +121,25 @@ namespace WebViewControl {
 
             webView.RegisterJavascriptObject(component.NativeObjectName, component.CreateNativeObject(), executeCallsInUI: false);
 
-            if (Plugins != null && Plugins.Length > 0) {
-                loadArgs.Add(Array(Plugins.Select(m => Array(Quote(m.NativeObjectName), Quote(m.Name), Quote(NormalizeUrl(ToFullUrl(m.JavascriptSource)))))));
+            var allMappings = new List<KeyValuePair<string, string>>();
+
+            if (Mappings?.Count > 0) {
+                allMappings.AddRange(Mappings.Select(m => new KeyValuePair<string, string>(m.Key, m.Value.ToString())));
+            }
+
+            if (Plugins?.Length > 0) {
+                loadArgs.Add(Array(Plugins.Select(m => Array(Quote(m.NativeObjectName), Quote(m.Name)))));
                 foreach (var module in Plugins) {
                     webView.RegisterJavascriptObject(module.NativeObjectName, module.CreateNativeObject(), executeCallsInUI: false);
                 }
+                // plugins should be loaded by name (to prevent loading more than one instance)
+                allMappings.AddRange(Plugins.Select(p => new KeyValuePair<string, string>(p.Name, ToFullUrl(p.JavascriptSource))));
             } else {
                 loadArgs.Add(JavascriptNullConstant);
             }
 
-            if (Mappings != null && Mappings.Count > 0) {
-                loadArgs.Add(Object(Mappings.Select(m => new KeyValuePair<string, string>(Quote(m.Key), Quote(NormalizeUrl(m.Value.ToString()))))));
+            if (allMappings.Any()) {
+                loadArgs.Add(Object(allMappings.Select(m => new KeyValuePair<string, string>(Quote(m.Key), Quote(NormalizeUrl(m.Value))))));
             }
 
             ExecuteDeferredScriptFunction("load", loadArgs.ToArray());
@@ -170,6 +178,10 @@ namespace WebViewControl {
                 if (componentLoaded) {
                     throw new InvalidOperationException($"Cannot set {nameof(Plugins)} after component has been loaded");
                 }
+                var invalidPlugins = value.Where(p => string.IsNullOrEmpty(p.JavascriptSource) || string.IsNullOrEmpty(p.Name));
+                if (invalidPlugins.Any()) {
+                    throw new ArgumentException($"Plugin {invalidPlugins.First().Name} is invalid");
+                }
                 plugins = value;
                 foreach(var plugin in plugins) {
                     plugin.Bind(this);
@@ -186,6 +198,10 @@ namespace WebViewControl {
             set {
                 if (componentLoaded) {
                     throw new InvalidOperationException($"Cannot set {nameof(Mappings)} after component has been loaded");
+                }
+                var invalidMappings = value.Where(m => string.IsNullOrEmpty(m.Key));
+                if (invalidMappings.Any()) {
+                    throw new ArgumentException("Cannot set mapping with empty key");
                 }
                 mappings = value;
             }

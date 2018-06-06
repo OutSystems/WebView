@@ -24,8 +24,13 @@ namespace WebViewControl {
 
         public ResourceUrl(Assembly assembly, params string[] path) : this(path) {
             var assemblyName = assembly.GetName().Name;
-            url = url.StartsWith(PathSeparator) ? url.Substring(1) : (assemblyName + PathSeparator + url);
-            url = BuildUrl(EmbeddedScheme, AssemblyPrefix + assemblyName + AssemblyPathSeparator + url);
+            if (url.StartsWith(PathSeparator)) {
+                // only prefix with assembly if necessary, to avoid having the same resource loaded from multiple locations
+                url = AssemblyPrefix + assemblyName + AssemblyPathSeparator + url.Substring(1);
+            } else {
+                url = assemblyName + PathSeparator + url;
+            }
+            url = BuildUrl(EmbeddedScheme, url);
         }
 
         internal ResourceUrl(string scheme, string path) {

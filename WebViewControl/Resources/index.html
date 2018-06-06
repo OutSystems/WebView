@@ -101,12 +101,15 @@
                     plugins.forEach(m => {
                         const NativeObjectName = m[0];
                         const ModuleName = m[1];
-                        const ModulePath = m[2];
                         renderAndPluginsPromises.push(new Promise((resolve, reject) => {
                             CefSharp.BindObjectAsync(NativeObjectName, NativeObjectName).then(() => {
-                                require([ModulePath], (Module) => {
-                                    modules[ModuleName] = Module.default;
-                                    resolve();
+                                require([ModuleName], (Module) => {
+                                    if (Module) {
+                                        modules[ModuleName] = Module.default;
+                                        resolve();
+                                    } else {
+                                        reject("Failed to load '" + ModuleName + "' (might not be a module)");
+                                    }
                                 });
                             });
                         }));
