@@ -216,6 +216,7 @@ function combinePath(path: string, rest: string) {
 }
 
 export function transform(module: Units.TsModule, context: Object): string {
+    const JsExtension = ".js";
     let namespace = context["namespace"];
     let baseDir = normalizePath(context["$baseDir"]);
     let fullPath = normalizePath(context["$fullpath"]);
@@ -224,12 +225,19 @@ export function transform(module: Units.TsModule, context: Object): string {
 
     let fileExtensionLen = fullPath.length - fullPath.lastIndexOf(".");
     let filenameWithoutExtension = fullPath.slice(fullPath.lastIndexOf("/") + 1, -fileExtensionLen);
-    
-    let javascriptFullPath = fullPath.slice(0, -fileExtensionLen) + ".js"; // replace the tsx/ts extension with js extension
+
+    let javascriptFullPath = fullPath.slice(0, -fileExtensionLen) + JsExtension; // replace the tsx/ts extension with js extension
 
     let javascriptRelativePath = javascriptFullPath.substr(baseDir.length + 1); // remove the base dir
-    javascriptRelativePath = combinePath(javascriptDistPath, javascriptRelativePath.split("/").filter(p => p !== "").slice(javascriptDistPathDepth).join("/")); // replace the src dir with dist dir
-    
+
+    if (javascriptDistPath.endsWith(JsExtension)) {
+        // dist path has extension... then its a complete filename, use as the output
+        javascriptRelativePath = javascriptDistPath;
+    } else {
+        // else combine dist path with input filename
+        javascriptRelativePath = combinePath(javascriptDistPath, javascriptRelativePath.split("/").filter(p => p !== "").slice(javascriptDistPathDepth).join("/")); // replace the src dir with dist dir    
+    }
+
     javascriptFullPath = combinePath(baseDir, javascriptRelativePath); // add the base dir
     javascriptRelativePath = "/" + combinePath(namespace, javascriptRelativePath); // add the namespace
 
