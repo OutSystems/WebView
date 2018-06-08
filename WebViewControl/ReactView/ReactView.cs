@@ -140,7 +140,9 @@ namespace WebViewControl {
 
         protected virtual string NativeObjectName => null;
 
-        string IViewModule.Name => GetType().Name;
+        protected virtual string ModuleName => null;
+
+        string IViewModule.Name => ModuleName;
 
         string IViewModule.Source => Source;
 

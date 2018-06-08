@@ -193,6 +193,7 @@ namespace WebViewControl {
             return Plugins.OfType<T>().First();
         }
 
+        // TODO drop the mappings ... use plugins for that purpose and add an autoload flag to load a plugin or just register the mapping
         public Dictionary<string, ResourceUrl> Mappings {
             get { return mappings; }
             set {

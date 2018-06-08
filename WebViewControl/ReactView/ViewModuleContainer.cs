@@ -6,6 +6,7 @@
 
         protected virtual string JavascriptSource => null;
         protected virtual string NativeObjectName => null;
+        protected virtual string ModuleName => null;
         protected virtual string Source => null;
 
         protected virtual object CreateNativeObject() {
@@ -16,7 +17,7 @@
 
         string IViewModule.NativeObjectName => NativeObjectName;
 
-        string IViewModule.Name => GetType().Name;
+        string IViewModule.Name => ModuleName;
 
         string IViewModule.Source => Source;
 
