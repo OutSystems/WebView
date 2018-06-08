@@ -37,6 +37,7 @@ class Generator {
         private namespace: string,
         private relativePath: string,
         private fullPath: string,
+        private filename: string,
         private preamble: string,
         private baseComponentClass: string) {
 
@@ -161,23 +162,24 @@ class Generator {
     }
 
     public generateComponent(emitObjects: boolean) {
-        if (!this.component) {
-            return "";
+        if (!((this.component && this.behaviorsInterface && this.behaviorsInterface.functions.length > 0) || (this.propsInterface && this.propsInterface.functions.length > 0))) {
+            return;
         }
 
         let propsInterfaceCoreName = this.propsInterface ? this.propsInterface.name.substring(1, this.propsInterface.name.length - PropertiesInterfaceSuffix.length) : "";
+        let componentName = this.component ? this.component.name : propsInterfaceCoreName;
 
         return (
             `${GeneratedFilesHeader}\n` +
             `${this.preamble}\n` +
             `namespace ${this.namespace} {\n` +
             `\n` +
-            `    using ${ComponentAliasName} = ${this.component.name};\n` +
+            `    using ${ComponentAliasName} = ${componentName};\n` +
             `    using ${BaseComponentAliasName} = ${this.baseComponentClass || "WebViewControl.ReactView"};\n` +
             `\n` +
             `    ${emitObjects ? (this.generateNativeApiObjects() + "\n") : ""}` +
             `\n` +
-            `    public class ${this.component.name} : ${BaseComponentAliasName} {\n` +
+            `    public class ${componentName} : ${BaseComponentAliasName} {\n` +
             `\n` +
             `        ${f(this.generateNativeApi())}\n` +
             `\n` +
@@ -185,6 +187,7 @@ class Generator {
             `\n` +
             `        protected override string JavascriptSource => \"${this.relativePath}\";\n` +
             `        protected override string NativeObjectName => \"${propsInterfaceCoreName}\";\n` +
+            `        protected override string ModuleName => \"${this.filename}\";\n` +
             `\n` +
             `        protected override object CreateNativeObject() {\n` +
             `            return new ${PropertiesClassName}(this);\n` +
@@ -245,7 +248,7 @@ export function transform(module: Units.TsModule, context: Object): string {
     output = combinePath(output, filenameWithoutExtension + ".Generated.cs");
     context["$output"] = output;
     
-    let generator = new Generator(module, namespace, javascriptRelativePath, javascriptFullPath, context["preamble"] || "", context["baseComponentClass"]);
+    let generator = new Generator(module, namespace, javascriptRelativePath, javascriptFullPath, filenameWithoutExtension, context["preamble"] || "", context["baseComponentClass"]);
 
     switch (context["emitViewObjects"]) {
         case "only": // emit only view objects
