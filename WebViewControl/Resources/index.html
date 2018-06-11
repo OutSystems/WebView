@@ -98,11 +98,11 @@
                     );
                 }));
 
-                if (plugins) {
+                if (plugins && plugins.length > 0) {
                     // load plugin modules
                     plugins.forEach(m => {
-                        const NativeObjectName = m[0];
-                        const ModuleName = m[1];
+                        const ModuleName = m[0];
+                        const NativeObjectName = m[1];
                         renderAndPluginsPromises.push(new Promise((resolve, reject) => {
                             CefSharp.BindObjectAsync(NativeObjectName, NativeObjectName).then(() => {
                                 require([ModuleName], (Module) => {

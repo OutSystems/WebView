@@ -121,25 +121,17 @@ namespace WebViewControl {
 
             webView.RegisterJavascriptObject(component.NativeObjectName, component.CreateNativeObject(), executeCallsInUI: false);
 
-            var allMappings = new List<KeyValuePair<string, string>>();
-
-            if (Mappings?.Count > 0) {
-                allMappings.AddRange(Mappings.Select(m => new KeyValuePair<string, string>(m.Key, m.Value.ToString())));
-            }
-
             if (Plugins?.Length > 0) {
-                loadArgs.Add(Array(Plugins.Select(m => Array(Quote(m.NativeObjectName), Quote(m.Name)))));
-                foreach (var module in Plugins) {
+                // plugins
+                var pluginsWithNativeObject = Plugins.Where(p => !string.IsNullOrEmpty(p.NativeObjectName)).ToArray();
+                loadArgs.Add(Array(pluginsWithNativeObject.Select(m => Array(Quote(m.Name), Quote(m.NativeObjectName)))));
+
+                foreach (var module in pluginsWithNativeObject) {
                     webView.RegisterJavascriptObject(module.NativeObjectName, module.CreateNativeObject(), executeCallsInUI: false);
                 }
-                // plugins should be loaded by name (to prevent loading more than one instance)
-                allMappings.AddRange(Plugins.Select(p => new KeyValuePair<string, string>(p.Name, ToFullUrl(p.JavascriptSource))));
-            } else {
-                loadArgs.Add(JavascriptNullConstant);
-            }
 
-            if (allMappings.Any()) {
-                loadArgs.Add(Object(allMappings.Select(m => new KeyValuePair<string, string>(Quote(m.Key), Quote(NormalizeUrl(m.Value))))));
+                // mappings
+                loadArgs.Add(Object(Plugins.Select(m => new KeyValuePair<string, string>(Quote(m.Name), Quote(NormalizeUrl(ToFullUrl(m.JavascriptSource)))))));
             }
 
             ExecuteDeferredScriptFunction("load", loadArgs.ToArray());
@@ -191,21 +183,6 @@ namespace WebViewControl {
 
         public T WithPlugin<T>() {
             return Plugins.OfType<T>().First();
-        }
-
-        // TODO drop the mappings ... use plugins for that purpose and add an autoload flag to load a plugin or just register the mapping
-        public Dictionary<string, ResourceUrl> Mappings {
-            get { return mappings; }
-            set {
-                if (componentLoaded) {
-                    throw new InvalidOperationException($"Cannot set {nameof(Mappings)} after component has been loaded");
-                }
-                var invalidMappings = value.Where(m => string.IsNullOrEmpty(m.Key));
-                if (invalidMappings.Any()) {
-                    throw new ArgumentException("Cannot set mapping with empty key");
-                }
-                mappings = value;
-            }
         }
 
         public bool IsReady { get; private set; }

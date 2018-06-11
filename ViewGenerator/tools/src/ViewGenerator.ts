@@ -163,7 +163,7 @@ class Generator {
 
     public generateComponent(emitObjects: boolean) {
         if (!((this.component && this.behaviorsInterface && this.behaviorsInterface.functions.length > 0) || (this.propsInterface && this.propsInterface.functions.length > 0))) {
-            return;
+            return "";
         }
 
         let propsInterfaceCoreName = this.propsInterface ? this.propsInterface.name.substring(1, this.propsInterface.name.length - PropertiesInterfaceSuffix.length) : "";

@@ -106,6 +106,7 @@
     <Compile Include="ReactView\ReactViewRender.InternalWebView.cs" />
     <Compile Include="ReactView\ReactViewRender.cs" />
     <Compile Include="ReactView\ReactView.cs" />
+    <Compile Include="ReactView\SimpleViewModule.cs" />
     <Compile Include="RenderProcessClosedException.cs" />
     <Compile Include="ResourceUrl.cs" />
     <Compile Include="UnhandledExceptionEventArgs.cs" />

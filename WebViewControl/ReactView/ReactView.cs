@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -100,8 +99,6 @@ namespace WebViewControl {
         public T WithPlugin<T>() {
             return view.WithPlugin<T>();
         }
-
-        public Dictionary<string, ResourceUrl> Mappings { get => view.Mappings; set => view.Mappings = value; }
 
         public bool EnableDebugMode { get => view.EnableDebugMode; set => view.EnableDebugMode = value; }
 
