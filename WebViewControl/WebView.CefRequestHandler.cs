@@ -46,7 +46,7 @@ namespace WebViewControl {
                 return null;
             }
 
-            bool IRequestHandler.OnBeforeBrowse(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, bool isRedirect) {
+            bool IRequestHandler.OnBeforeBrowse(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, bool userGesture, bool isRedirect) {
                 if (OwnerWebView.FilterRequest(request)) {
                     return false;
                 }
@@ -104,6 +104,14 @@ namespace WebViewControl {
             }
 
             void IRequestHandler.OnResourceRedirect(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, IResponse response, ref string newUrl) {
+            }
+
+            bool IRequestHandler.CanGetCookies(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request) {
+                return true;
+            }
+
+            bool IRequestHandler.CanSetCookie(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, Cookie cookie) {
+                return true;
             }
         }
     }

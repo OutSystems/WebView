@@ -2,15 +2,15 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
     <id>WebViewControl</id>
-    <version>1.65.18-beta</version>
+    <version>1.65.21-beta</version>
     <title>WebViewControl</title>
-    <authors>jmn</authors>
-    <owners>jmn</owners>
+    <authors>OutSystems</authors>
+    <owners>OutSystems</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Description</description>
-    <copyright>Copyright ©  2017</copyright>
+    <copyright>Copyright ©  2018</copyright>
     <dependencies>
-      <dependency id="CefSharp.Wpf" version="65.0.0-CI2557a" />
+      <dependency id="CefSharp.Wpf" version="67.0.0-CI2685" />
     </dependencies>
   </metadata>
   <files>

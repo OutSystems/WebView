@@ -107,8 +107,10 @@ namespace WebViewControl {
                 cefSettings.LogSeverity = LogSeverity.Disable; // disable writing of debug.log
                 cefSettings.UncaughtExceptionStackSize = 100; // enable stack capture
                 cefSettings.CachePath = TempDir; // enable cache for external resources to speedup loading
-                
+                cefSettings.WindowlessRenderingEnabled = true;
+
                 CefSharpSettings.LegacyJavascriptBindingEnabled = true;
+                CefSharpSettings.SubprocessExitIfParentProcessClosed = true;
 
                 foreach (var scheme in CustomSchemes) {
                     cefSettings.RegisterScheme(new CefCustomScheme() {
