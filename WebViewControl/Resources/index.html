@@ -1,40 +1,40 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta charset="utf-8" />
     <title></title>
-	<script>
-		window.showErrorMessage = (msg) => {
-			const ContainerId = "webview_error";
-			let msgContainer = document.getElementById(ContainerId);
-			if (!msgContainer) {
-				msgContainer = document.createElement("div");
-				msgContainer.id = ContainerId;
-				msgContainer.style.backgroundColor = "#f45642";
-				msgContainer.style.color = "white";
-				msgContainer.style.fontFamily = "Arial";
-				msgContainer.style.fontWeight = "bold";
-				msgContainer.style.fontSize = "10px"
-				msgContainer.style.padding = "3px";
-				msgContainer.style.position = "absolute";
-				msgContainer.style.top = "0";
-				msgContainer.style.left = "0";
+    <script>
+        window.showErrorMessage = (msg) => {
+            const ContainerId = "webview_error";
+            let msgContainer = document.getElementById(ContainerId);
+            if (!msgContainer) {
+                msgContainer = document.createElement("div");
+                msgContainer.id = ContainerId;
+                msgContainer.style.backgroundColor = "#f45642";
+                msgContainer.style.color = "white";
+                msgContainer.style.fontFamily = "Arial";
+                msgContainer.style.fontWeight = "bold";
+                msgContainer.style.fontSize = "10px"
+                msgContainer.style.padding = "3px";
+                msgContainer.style.position = "absolute";
+                msgContainer.style.top = "0";
+                msgContainer.style.left = "0";
                 msgContainer.style.right = "0";
                 msgContainer.style.zIndex = "10000";
                 msgContainer.style.height = "auto";
-				msgContainer.style.wordWrap = "break-word";
-				document.body.appendChild(msgContainer);
-			}
-			msgContainer.innerText = msg;
-		};
+                msgContainer.style.wordWrap = "break-word";
+                document.body.appendChild(msgContainer);
+            }
+            msgContainer.innerText = msg;
+        };
 
         (async () => {
-			const UrlParams = Array.from(new URLSearchParams(location.search).keys());
-			const UseEnhancedRenderingEngine = UrlParams[0] === "1";
+            const UrlParams = Array.from(new URLSearchParams(location.search).keys());
+            const UseEnhancedRenderingEngine = UrlParams[0] === "1";
             const LibsPath = UrlParams[1];
             const ModulesObjectName = UrlParams[2];
-			const EventListenerObjectName = UrlParams[3];
-			const ReadyEventName = UrlParams[4];
+            const EventListenerObjectName = UrlParams[3];
+            const ReadyEventName = UrlParams[4];
 
             async function notifyReady() {
                 await CefSharp.BindObjectAsync(EventListenerObjectName, EventListenerObjectName);
@@ -195,7 +195,7 @@
                 }
                 throw error;
             }
-		})();
+        })();
     </script>
 </head>
 <body>
