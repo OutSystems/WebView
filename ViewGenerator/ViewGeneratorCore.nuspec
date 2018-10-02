@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>ViewGeneratorCore</id>
+    <version>1.0.73</version>
+    <authors>jmn</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <developmentDependency>true</developmentDependency>
+    <description>Generates .NET Types from typescript</description>
+  </metadata>
+  <files>
+    <file src="build\ViewGeneratorCore.targets" target="build\ViewGeneratorCore.targets" />
+    <file src="build\ViewGeneratorCore.props" target="build\ViewGeneratorCore.props" />
+
+    <file src="tools\dist\ViewGenerator.js" target="tools\ViewGenerator.js" />
+    <file src="tools\node_modules\**" target="tools\node_modules\" />
+  </files>
+</package>
