@@ -12,7 +12,7 @@ namespace WebViewControl {
                 OwnerWebView = owner;
             }
 
-            void IDownloadHandler.OnBeforeDownload(IBrowser browser, DownloadItem downloadItem, IBeforeDownloadCallback callback) {
+            void IDownloadHandler.OnBeforeDownload(IWebBrowser chromiumWebBrowser, IBrowser browser, DownloadItem downloadItem, IBeforeDownloadCallback callback) {
                 if (!callback.IsDisposed) {
                     using (callback) {
                         callback.Continue(downloadItem.SuggestedFileName, showDialog: true);
@@ -20,7 +20,7 @@ namespace WebViewControl {
                 }
             }
 
-            void IDownloadHandler.OnDownloadUpdated(IBrowser browser, DownloadItem downloadItem, IDownloadItemCallback callback) {
+            void IDownloadHandler.OnDownloadUpdated(IWebBrowser chromiumWebBrowser, IBrowser browser, DownloadItem downloadItem, IDownloadItemCallback callback) {
                 if (downloadItem.IsComplete) {
                     var downloadCompleted = OwnerWebView.DownloadCompleted;
                     if (downloadCompleted != null) {

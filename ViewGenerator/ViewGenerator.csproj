@@ -51,6 +51,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="build\ViewGenerator.props" />
     <None Include="build\ViewGeneratorCore.targets">
       <SubType>Designer</SubType>
     </None>

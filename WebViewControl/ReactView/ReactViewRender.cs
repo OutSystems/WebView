@@ -33,7 +33,6 @@ namespace WebViewControl {
         private IViewModule component;
         private ResourceUrl defaultStyleSheet;
         private IViewModule[] plugins;
-        private Dictionary<string, ResourceUrl> mappings;
         private FileSystemWatcher fileSystemWatcher;
         private string cacheInvalidationTimestamp;
 

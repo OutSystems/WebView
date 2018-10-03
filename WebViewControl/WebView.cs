@@ -13,6 +13,7 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using CefSharp;
 using CefSharp.ModelBinding;
+using CefSharp.Wpf;
 
 namespace WebViewControl {
 
