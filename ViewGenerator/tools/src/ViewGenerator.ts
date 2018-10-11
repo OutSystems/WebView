@@ -25,7 +25,6 @@ function normalizePath(path: string): string {
 
 class Generator {
 
-    private aliases: { [name: string]: string } = {};
     private propsInterface: Units.TsInterface | null;
     private behaviorsInterface: Units.TsInterface | null;
     private component: Units.TsClass;
@@ -47,8 +46,6 @@ class Generator {
         this.behaviorsInterface = interfaces.find((ifc) => ifc.name.endsWith(BehaviorsInterfaceSuffix)) || null;
         this.objects = module.interfaces.filter(ifc => ifc.isPublic && ifc !== this.propsInterface && ifc !== this.behaviorsInterface);
         this.enums = module.enums.filter(e => e.isPublic);
-
-        this.objects.filter(o => o.name.startsWith("I")).forEach(o => this.aliases[o.name] = o.name.substr(1));
     }
 
     private getFunctionReturnType(func: Units.TsFunction): string {
@@ -73,7 +70,7 @@ class Generator {
                 if (tsType instanceof Types.TsArrayType) {
                     return this.getTypeName(tsType.getInner()) + "[]";
                 }
-                return this.aliases[tsType.name] || tsType.name;
+                return tsType.name;
         }
     }
 
@@ -138,9 +135,14 @@ class Generator {
     }
 
     private generateNativeApiObject(objInterface: Units.TsInterface) {
+        let interfaceName = (objInterface.name.startsWith("I") ? "" : "I") + objInterface.name;
         return (
-            `public struct ${this.aliases[objInterface.name] || objInterface.name} {\n` +
-            `    ${f(objInterface.properties.map(p => `public ${this.getTypeName(p.type)} ${p.name};`).join("\n"))}\n` +
+            `public interface ${interfaceName} {\n` +
+            `    ${f(objInterface.properties.map(p => `${this.getTypeName(p.type)} ${p.name}  { get; set; }`).join("\n"))}\n` +
+            `}\n` +
+            `\n` +
+            `public struct ${objInterface.name.startsWith("I") ? objInterface.name.substr(1) : objInterface.name} : ${interfaceName} {\n` +
+            `    ${f(objInterface.properties.map(p => `public ${this.getTypeName(p.type)} ${p.name} { get; set; }`).join("\n"))}\n` +
             `}`
         );
     }
