@@ -70,8 +70,20 @@ class Generator {
                 if (tsType instanceof Types.TsArrayType) {
                     return this.getTypeName(tsType.getInner()) + "[]";
                 }
-                return tsType.name;
+
+                if (tsType.isBasic) {
+                    return tsType.name;
+                }
+
+                return this.getTypeNameAlias(tsType.name);
         }
+    }
+
+    private getTypeNameAlias(name: string): string {
+        if (name.startsWith("I") && name.charAt(1) === name.charAt(1).toUpperCase()) {
+            return name.substr(1);
+        }
+        return name;
     }
 
     private generateMethodSignature(func: Units.TsFunction, functionSuffix: string = "") {
@@ -135,15 +147,10 @@ class Generator {
     }
 
     private generateNativeApiObject(objInterface: Units.TsInterface) {
-        let interfaceName = (objInterface.name.startsWith("I") ? "" : "I") + objInterface.name;
         return (
-            `public interface ${interfaceName} {\n` +
-            `    ${f(objInterface.properties.map(p => `${this.getTypeName(p.type)} ${p.name}  { get; set; }`).join("\n"))}\n` +
-            `}\n` +
-            `\n` +
-            `public struct ${objInterface.name.startsWith("I") ? objInterface.name.substr(1) : objInterface.name} : ${interfaceName} {\n` +
+            `public struct ${this.getTypeNameAlias(objInterface.name)} {\n` +
             `    ${f(objInterface.properties.map(p => `public ${this.getTypeName(p.type)} ${p.name} { get; set; }`).join("\n"))}\n` +
-            `}`
+            `}\n`
         );
     }
 

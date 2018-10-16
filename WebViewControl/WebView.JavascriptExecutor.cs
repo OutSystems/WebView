@@ -222,7 +222,7 @@ namespace WebViewControl {
                     }
                 }
                 // TODO complex types
-                return value.ToString();
+                throw new ArgumentException("Complex types are not supported");
             }
 
             private static string WrapScriptWithErrorHandling(string script) {
