@@ -171,7 +171,8 @@ namespace WebViewControl {
                 }
                 var invalidPlugins = value.Where(p => string.IsNullOrEmpty(p.JavascriptSource) || string.IsNullOrEmpty(p.Name));
                 if (invalidPlugins.Any()) {
-                    throw new ArgumentException($"Plugin {invalidPlugins.First().Name} is invalid");
+                    var pluginName = invalidPlugins.First().Name + "|" + invalidPlugins.First().GetType().Name;
+                    throw new ArgumentException($"Plugin '{pluginName}' is invalid");
                 }
                 plugins = value;
                 foreach(var plugin in plugins) {
