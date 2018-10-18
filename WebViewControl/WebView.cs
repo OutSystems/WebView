@@ -152,7 +152,10 @@ namespace WebViewControl {
             }
         }
 
-        public WebView() {
+        public WebView() : this(false) {
+        }
+
+        internal WebView(bool preloadBrowser) {
             if (DesignerProperties.GetIsInDesignMode(this)) {
                 return;
             }
@@ -168,11 +171,11 @@ namespace WebViewControl {
 
             DefaultLocalUrl = new ResourceUrl(ResourceUrl.LocalScheme, "index.html").WithDomain(CurrentDomainId);
 
-            Initialize();
+            Initialize(preloadBrowser);
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private void Initialize() {
+        private void Initialize(bool preloadBrowser) {
             if (!subscribedApplicationExit) {
                 // subscribe exit again, first time might have failed if Application.Current was null
                 Application.Current.Exit += OnApplicationExit;
@@ -181,8 +184,8 @@ namespace WebViewControl {
             
             settings = new BrowserSettings();
             lifeSpanHandler = new CefLifeSpanHandler(this);
-
-            chromium = new InternalChromiumBrowser();
+            
+            chromium = new InternalChromiumBrowser(preloadBrowser);
             chromium.BrowserSettings = settings;
             chromium.IsBrowserInitializedChanged += OnWebViewIsBrowserInitializedChanged;
             chromium.FrameLoadEnd += OnWebViewFrameLoadEnd;

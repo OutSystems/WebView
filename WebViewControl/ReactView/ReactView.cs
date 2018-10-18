@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -11,55 +9,17 @@ namespace WebViewControl {
 
     public partial class ReactView : UserControl, IReactView, IViewModule {
 
-        private static Window window;
         private static ReactViewRender cachedView;
-
-        static ReactView() {
-            WindowsEventsListener.WindowUnloaded += OnWindowUnloaded;
-        }
-
-        private static void OnWindowUnloaded(Window unloadedWindow) {
-            var windows = Application.Current.Windows.Cast<Window>();
-            if (Debugger.IsAttached) {
-                // exclude visual studio adorner windows
-                windows = windows.Where(w => w.GetType().FullName != "Microsoft.VisualStudio.DesignTools.WpfTap.WpfVisualTreeService.Adorners.AdornerLayerWindow");
-            }
-            if (windows.Count() == 1 && windows.Single() == window) {
-                // close helper window
-                window.Close();
-                window = null;
-            }
-        }
 
         private static ReactViewRender CreateReactViewInstance() {
             var result = cachedView;
             cachedView = null;
             Application.Current.Dispatcher.BeginInvoke((Action)(() => {
                 if (cachedView == null && !Application.Current.Dispatcher.HasShutdownStarted) {
-                    cachedView = new ReactViewRender();
-                    if (window == null) {
-                        window = new Window() {
-                            ShowActivated = false,
-                            WindowStyle = WindowStyle.None,
-                            ShowInTaskbar = false,
-                            Visibility = Visibility.Hidden,
-                            Width = 50,
-                            Height = 50,
-                            Top = int.MinValue,
-                            Left = int.MinValue,
-                            IsEnabled = false,
-                            Title = "ReactViewRender Background Window"
-                        };
-                        window.Closed += (o, e) => {
-                            cachedView?.Dispose();
-                            cachedView = null;
-                        };
-                        window.Show();
-                    }
-                    window.Content = cachedView;
+                    cachedView = new ReactViewRender(true);
                 }
             }), DispatcherPriority.Background);
-            return result ?? new ReactViewRender();
+            return result ?? new ReactViewRender(true);
         }
 
         private readonly ReactViewRender view;
@@ -68,7 +28,7 @@ namespace WebViewControl {
             if (usePreloadedWebView) {
                 view = CreateReactViewInstance();
             } else {
-                view = new ReactViewRender();
+                view = new ReactViewRender(false);
             }
             SetResourceReference(StyleProperty, typeof(ReactView)); // force styles to be inherited, must be called after view is created otherwise view might be null
             Content = view;

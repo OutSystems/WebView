@@ -10,7 +10,7 @@ namespace CefSharp {
     /// <summary>
     /// Used for AnyCPU Support to resolve Assemblies and Dependencies
     /// </summary>
-    public static class CefLoader {
+    internal static class CefLoader {
         /// <summary>
         /// RegisterCefSharpAssemblyResolver
         /// </summary>

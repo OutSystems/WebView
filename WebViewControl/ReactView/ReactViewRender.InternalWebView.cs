@@ -11,7 +11,7 @@ namespace WebViewControl {
 
             private readonly ReactViewRender owner;
 
-            public InternalWebView(ReactViewRender owner) {
+            public InternalWebView(ReactViewRender owner, bool preloadBrowser) : base(preloadBrowser) {
                 this.owner = owner;
             }
 

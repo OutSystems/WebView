@@ -38,10 +38,10 @@ namespace WebViewControl {
 
         public static bool UseEnhancedRenderingEngine { get; set; } = true;
 
-        public ReactViewRender() {
+        public ReactViewRender(bool preloadWebView) {
             userCallingAssembly = WebView.GetUserCallingMethod().ReflectedType.Assembly;
 
-            webView = new InternalWebView(this) {
+            webView = new InternalWebView(this, preloadWebView) {
                 DisableBuiltinContextMenus = true,
                 IgnoreMissingResources = false
             };
