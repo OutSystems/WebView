@@ -11,8 +11,12 @@ namespace WebViewControl {
 
             private readonly ReactViewRender owner;
 
-            public InternalWebView(ReactViewRender owner, bool preloadBrowser) : base(preloadBrowser) {
+            public InternalWebView(ReactViewRender owner, bool preloadBrowser) {
                 this.owner = owner;
+                IsSecurityDisabled = true; // must be set before InitializeBrowser
+                if (preloadBrowser) {
+                    InitializeBrowser();
+                }
             }
 
             protected override string GetRequestUrl(IRequest request) {

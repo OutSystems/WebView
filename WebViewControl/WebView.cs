@@ -25,7 +25,7 @@ namespace WebViewControl {
             ResourceUrl.CustomScheme
         };
 
-        private static readonly string TempDir = 
+        private static readonly string TempDir =
             Path.Combine(Path.GetTempPath(), "WebView" + Guid.NewGuid().ToString().Replace("-", null) + DateTime.UtcNow.Ticks);
 
         private const string ChromeInternalProtocol = "chrome-devtools:";
@@ -33,7 +33,7 @@ namespace WebViewControl {
         // converts cef zoom percentage to css zoom (between 0 and 1)
         // from https://code.google.com/p/chromium/issues/detail?id=71484
         private const float PercentageToZoomFactor = 1.2f;
-        
+
         private static readonly List<WebView> DisposableWebViews = new List<WebView>();
         private static bool subscribedApplicationExit = false;
 
@@ -81,7 +81,7 @@ namespace WebViewControl {
 
         // cef maints same zoom level for all browser instances under the same domain
         // having different domains will prevent synced zoom
-        private readonly string CurrentDomainId; 
+        private readonly string CurrentDomainId;
 
         private readonly string DefaultLocalUrl;
 
@@ -100,7 +100,7 @@ namespace WebViewControl {
                 webview.Dispose();
             }
         }
-        
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void InitializeCef() {
             if (!Cef.IsInitialized) {
@@ -141,7 +141,7 @@ namespace WebViewControl {
             }
 
             Cef.Shutdown(); // must shutdown cef to free cache files (so that cleanup is able to delete files)
-            
+
             try {
                 var dirInfo = new DirectoryInfo(TempDir);
                 if (dirInfo.Exists) {
@@ -152,10 +152,7 @@ namespace WebViewControl {
             }
         }
 
-        public WebView() : this(false) {
-        }
-
-        internal WebView(bool preloadBrowser) {
+        public WebView() {
             if (DesignerProperties.GetIsInDesignMode(this)) {
                 return;
             }
@@ -171,21 +168,21 @@ namespace WebViewControl {
 
             DefaultLocalUrl = new ResourceUrl(ResourceUrl.LocalScheme, "index.html").WithDomain(CurrentDomainId);
 
-            Initialize(preloadBrowser);
+            Initialize();
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private void Initialize(bool preloadBrowser) {
+        private void Initialize() {
             if (!subscribedApplicationExit) {
                 // subscribe exit again, first time might have failed if Application.Current was null
                 Application.Current.Exit += OnApplicationExit;
                 subscribedApplicationExit = true;
             }
-            
+
             settings = new BrowserSettings();
             lifeSpanHandler = new CefLifeSpanHandler(this);
-            
-            chromium = new InternalChromiumBrowser(preloadBrowser);
+
+            chromium = new InternalChromiumBrowser();
             chromium.BrowserSettings = settings;
             chromium.IsBrowserInitializedChanged += OnWebViewIsBrowserInitializedChanged;
             chromium.FrameLoadEnd += OnWebViewFrameLoadEnd;
@@ -200,13 +197,13 @@ namespace WebViewControl {
             chromium.DialogHandler = new CefDialogHandler(this);
             chromium.DownloadHandler = new CefDownloadHandler(this);
             chromium.CleanupElement = new FrameworkElement(); // prevent chromium to listen to default cleanup element unload events, this will be controlled manually
-            
+
             jsExecutor = new JavascriptExecutor(this);
 
             RegisterJavascriptObject(Listener.EventListenerObjName, eventsListener);
 
             Content = chromium;
-            
+
             GlobalWebViewInitialized?.Invoke(this);
 
             DisposableWebViews.Add(this);
@@ -234,7 +231,7 @@ namespace WebViewControl {
                 InternalDispose();
             } else {
                 // avoid dead-lock
-                Dispatcher.BeginInvoke((Action)InternalDispose);
+                Dispatcher.BeginInvoke((Action) InternalDispose);
             }
             GC.SuppressFinalize(this);
         }
@@ -596,7 +593,7 @@ namespace WebViewControl {
                         ExecuteWithAsyncErrorHandling(action);
                     }
                 },
-                DispatcherPriority.Normal, 
+                DispatcherPriority.Normal,
                 cancellationTokenSource.Token);
         }
 
@@ -621,12 +618,16 @@ namespace WebViewControl {
 
             if (!handled) {
                 // don't use invoke async, as it won't forward the exception to the dispatcher unhandled exception event
-                Dispatcher.BeginInvoke((Action)(() => throw e));
+                Dispatcher.BeginInvoke((Action) (() => throw e));
             }
         }
 
         internal IInputElement FocusableElement {
             get { return chromium; }
+        }
+
+        protected void InitializeBrowser() {
+            chromium.CreateBrowser();
         }
     }
 }
