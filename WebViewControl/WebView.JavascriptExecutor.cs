@@ -76,7 +76,14 @@ namespace WebViewControl {
                 flushTaskCancelationToken.Dispose();
             }
 
+            private void EnsureWebViewNotDisposing() {
+                if (OwnerWebView.isDisposing) {
+                    throw new InvalidOperationException("Webview is disposing");
+                }
+            }
+
             private ScriptTask QueueScript(string script, TimeSpan? timeout = default(TimeSpan?), bool awaitable = false) {
+                EnsureWebViewNotDisposing();
                 var scriptTask = new ScriptTask(script, timeout, awaitable);
                 pendingScripts.Add(scriptTask);
                 return scriptTask;
@@ -142,24 +149,25 @@ namespace WebViewControl {
             }
 
             public T EvaluateScript<T>(string script, TimeSpan? timeout = default(TimeSpan?)) {
+                EnsureWebViewNotDisposing();
+
                 var scriptWithErrorHandling = WrapScriptWithErrorHandling(script);
 
                 var scriptTask = QueueScript(scriptWithErrorHandling, timeout, true);
                 if (!flushRunning) {
-                    scriptTask.WaitHandle.WaitOne((timeout ?? TimeSpan.FromSeconds(5))); // wait with timeout if flush is not running yet to avoid hanging forever
+                    var succeeded = scriptTask.WaitHandle.WaitOne((timeout ?? TimeSpan.FromSeconds(15))); // wait with timeout if flush is not running yet to avoid hanging forever
+                    if (!succeeded || scriptTask.Result == null) {
+                        throw new JavascriptException("Timeout", "Javascript engine is not initialized", new string[0]);
+                    }
                 } else {
-                    scriptTask.WaitHandle.WaitOne();
+                    var succeeded = scriptTask.WaitHandle.WaitOne();
+                    if (!succeeded || scriptTask.Result == null) {
+                        throw new JavascriptException("Timeout", (timeout.HasValue ? $"More than {timeout.Value.TotalMilliseconds}ms elapsed" : "Timeout ocurred") + $" evaluating the script: '{script}'", new string[0]);
+                    }
                 }
 
                 if (scriptTask.Exception != null) {
                     throw scriptTask.Exception;
-                }
-
-                if (scriptTask.Result == null) {
-                    if (!flushRunning) {
-                        throw new JavascriptException("Timeout", "Javascript engine is not initialized", new string[0]);
-                    }
-                    throw new JavascriptException("Timeout", (timeout.HasValue ? $"More than {timeout.Value.TotalMilliseconds}ms elapsed" : "Timeout ocurred") + $" evaluating the script: '{script}'", new string[0]);
                 }
 
                 if (scriptTask.Result.Success) {
