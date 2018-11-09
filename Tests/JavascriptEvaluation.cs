@@ -166,11 +166,11 @@ namespace Tests {
 
                 WaitFor(() => exception != null);
 
-                Assert.IsTrue(exception.Message.Contains(ExceptionMessage));
+                Assert.IsTrue(exception.Message.Contains(ExceptionMessage), "Found " + exception.Message);
                 var stack = exception.StackTrace.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
                 Assert.AreEqual(2, stack.Length);
-                Assert.True(stack.ElementAt(0).StartsWith("   at foo"));
-                Assert.True(stack.ElementAt(1).StartsWith("   at about:blank"));
+                Assert.True(stack.ElementAt(0).StartsWith("   at foo in about:blank:line 1"), "Found " + stack.ElementAt(0));
+                Assert.True(stack.ElementAt(1).StartsWith("   at <anonymous> in about:blank:line 1"), "Found " + stack.ElementAt(1));
             },
             e => {
                 exception = e;

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
@@ -49,6 +50,7 @@ namespace WebViewControl {
 
         internal class JavascriptExecutor : IDisposable {
 
+            private static readonly Regex StackFrameRegex = new Regex(@"at\s*(?<method>.*?)\s(?<location>[^\s]+):(?<line>\d+):(?<column>\d+)", RegexOptions.Compiled);
             private const string InternalException = "|WebViewInternalException";
 
             private readonly WebView OwnerWebView;
@@ -157,12 +159,12 @@ namespace WebViewControl {
                 if (!flushRunning) {
                     var succeeded = scriptTask.WaitHandle.WaitOne((timeout ?? TimeSpan.FromSeconds(15))); // wait with timeout if flush is not running yet to avoid hanging forever
                     if (!succeeded || scriptTask.Result == null) {
-                        throw new JavascriptException("Timeout", "Javascript engine is not initialized", new string[0]);
+                        throw new JavascriptException("Timeout", "Javascript engine is not initialized");
                     }
                 } else {
                     var succeeded = scriptTask.WaitHandle.WaitOne();
                     if (!succeeded || scriptTask.Result == null) {
-                        throw new JavascriptException("Timeout", (timeout.HasValue ? $"More than {timeout.Value.TotalMilliseconds}ms elapsed" : "Timeout ocurred") + $" evaluating the script: '{script}'", new string[0]);
+                        throw new JavascriptException("Timeout", (timeout.HasValue ? $"More than {timeout.Value.TotalMilliseconds}ms elapsed" : "Timeout ocurred") + $" evaluating the script: '{script}'");
                     }
                 }
 
@@ -262,14 +264,28 @@ namespace WebViewControl {
                         jsError.Name = jsError.Name ?? "";
                         jsError.Message = jsError.Message ?? "";
                         jsError.Stack = jsError.Stack ?? "";
-                        var jsStack = jsError.Stack.Substring(Math.Min(jsError.Stack.Length, (jsError.Name + ": " + jsError.Message).Length)).Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
-                        jsStack = jsStack.Select(l => l.Substring(1)).ToArray(); // "    at" -> "   at"
+                        var jsStack = jsError.Stack.Substring(Math.Min(jsError.Stack.Length, (jsError.Name + ": " + jsError.Message).Length))
+                                                   .Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
-                        return new JavascriptException(jsError.Name, jsError.Message, jsStack);
+                        var parsedStack = new List<JavascriptStackFrame>();
+
+                        foreach(var stackFrame in jsStack) {
+                            var frameParts = StackFrameRegex.Match(stackFrame);
+                            if (frameParts.Success) {
+                                parsedStack.Add(new JavascriptStackFrame() {
+                                    FunctionName = frameParts.Groups["method"].Value,
+                                    SourceName = frameParts.Groups["location"].Value,
+                                    LineNumber = int.Parse(frameParts.Groups["line"].Value),
+                                    ColumnNumber = int.Parse(frameParts.Groups["column"].Value)
+                                });
+                            }
+                        }
+                        
+                        return new JavascriptException(jsError.Name, jsError.Message, parsedStack.ToArray());
                     }
                 }
 
-                return new JavascriptException("Javascript Error", response.Message, new string[0]);
+                return new JavascriptException("Javascript Error", response.Message);
             }
 
             internal static bool IsInternalException(string exceptionMessage) {

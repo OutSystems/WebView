@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using CefSharp;
 
 namespace WebViewControl {
     
@@ -7,22 +8,26 @@ namespace WebViewControl {
 
         public class JavascriptException : Exception {
 
-            internal const string AtSeparator = "   at ";
+            private readonly JavascriptStackFrame[] jsStack;
 
-            private readonly string[] jsStack;
-
-            public JavascriptException(string message, string[] stack)
+            internal JavascriptException(string message, JavascriptStackFrame[] stack = null)
             : base(message, null) {
-                jsStack = stack;
+                jsStack = stack ?? new JavascriptStackFrame[0];
             }
 
-            public JavascriptException(string name, string message, string[] stack)
+            internal JavascriptException(string name, string message, JavascriptStackFrame[] stack = null)
             : base((string.IsNullOrEmpty(name) ? "" : name + ": ") + message, null) {
-                jsStack = stack;
+                jsStack = stack ?? new JavascriptStackFrame[0];
             }
 
             public override string StackTrace {
-                get { return string.Join(Environment.NewLine, jsStack.Select(l => l).Concat(new[] { base.StackTrace })); }
+                get { return string.Join(Environment.NewLine, jsStack.Select(FormatStackFrame).Concat(new[] { base.StackTrace })); }
+            }
+
+            private static string FormatStackFrame(JavascriptStackFrame frame) {
+                var functionName = string.IsNullOrEmpty(frame.FunctionName) ? "<anonymous>" : frame.FunctionName;
+                var location = string.IsNullOrEmpty(frame.SourceName) ? "" : ($" in {frame.SourceName}:line {frame.LineNumber} {frame.ColumnNumber}");
+                return $"   at {functionName}{location}";
             }
 
             public override string ToString() {

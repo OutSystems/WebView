@@ -43,12 +43,7 @@ namespace WebViewControl {
                     // ignore internal exceptions, they will be handled by the EvaluateScript caller
                     return;
                 }
-                var javascriptException = new JavascriptException(
-                    exception.Message, 
-                    exception.StackTrace.Select(l => {
-                        var location = l.SourceName + ":" + l.LineNumber + ":" + l.ColumnNumber;
-                        return JavascriptException.AtSeparator + (string.IsNullOrEmpty(l.FunctionName) ? location : l.FunctionName + " (" + location + ")");
-                    }).ToArray());
+                var javascriptException = new JavascriptException(exception.Message, exception.StackTrace);
                 OwnerWebView.ForwardUnhandledAsyncException(javascriptException);
             }
         }
