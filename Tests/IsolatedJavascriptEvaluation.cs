@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using NUnit.Framework;
 using WebViewControl;
 
@@ -95,6 +96,32 @@ namespace Tests {
             Assert.IsTrue(functionCalled);
             Assert.AreEqual(null, obtainedArg1);
             Assert.That(new[] { "hello", null, "world" }, Is.EquivalentTo(obtainedArg2));
+        }
+
+        [Test(Description = "Dispose is scheduled when there are js pending calls")]
+        public void WebViewDisposeDoesNotBlockWhenHasPendingJSCalls() {
+            const string DotNetObject = "DotNetObject";
+
+            var functionCalled = false;
+            var disposeCalled = false;
+
+            Func<int> functionToCall = () => {
+                functionCalled = true;
+                TargetView.Dispose();
+                Assert.IsFalse(disposeCalled); // dispose should have been scheduled
+                return 1;
+            };
+
+            TargetView.RegisterJavascriptObject(DotNetObject, functionToCall, executeCallsInUI: true);
+            LoadAndWaitReady("<html><script>function test() { DotNetObject.invoke(); return 1; }</script><body></body></html>");
+            TargetView.Disposed += () => disposeCalled = true;
+
+            var result = TargetView.EvaluateScriptFunction<int>("test");
+            WaitFor(() => functionCalled, TimeSpan.FromSeconds(2));
+
+            WaitFor(() => disposeCalled, TimeSpan.FromSeconds(2));
+
+            Assert.IsTrue(disposeCalled);
         }
     }
 }

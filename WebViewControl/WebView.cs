@@ -40,11 +40,11 @@ namespace WebViewControl {
         private InternalChromiumBrowser chromium;
         private BrowserSettings settings;
         private bool isDeveloperToolsOpened = false;
-        private bool isDisposing;
         private Action pendingInitialization;
         private string htmlToLoad;
         private JavascriptExecutor jsExecutor;
         private CefLifeSpanHandler lifeSpanHandler;
+        private volatile bool isDisposing;
         private volatile int javascriptPendingCalls;
 
         private readonly DefaultBinder binder = new DefaultBinder(new DefaultFieldNameConverter());
@@ -76,6 +76,7 @@ namespace WebViewControl {
 
         private event Action RenderProcessCrashed;
         private event Action JavascriptContextReleased;
+        private event Action JavascriptCallFinished;
 
         private static int domainId;
 
@@ -227,41 +228,58 @@ namespace WebViewControl {
 
             isDisposing = true;
 
-            if (javascriptPendingCalls == 0) {
-                InternalDispose();
-            } else {
-                // avoid dead-lock
-                Dispatcher.BeginInvoke((Action) InternalDispose);
-            }
             GC.SuppressFinalize(this);
-        }
 
-        private void InternalDispose() {
-            AppDomain.CurrentDomain.AssemblyLoad -= OnAssemblyLoaded;
-            DisposableWebViews.Remove(this);
+            var disposed = false;
 
-            cancellationTokenSource.Cancel();
+            void InternalDispose() {
+                if (disposed) {
+                    return; // bail-out
+                }
 
-            WebViewInitialized = null;
-            BeforeNavigate = null;
-            BeforeResourceLoad = null;
-            Navigated = null;
-            LoadFailed = null;
-            DownloadProgressChanged = null;
-            DownloadCompleted = null;
-            DownloadCancelled = null;
-            JavascriptContextCreated = null;
-            TitleChanged = null;
-            UnhandledAsyncException = null;
-            RenderProcessCrashed = null;
-            JavascriptContextReleased = null;
+                disposed = true;
 
-            jsExecutor.Dispose();
-            settings.Dispose();
-            chromium.Dispose();
-            cancellationTokenSource.Dispose();
+                AppDomain.CurrentDomain.AssemblyLoad -= OnAssemblyLoaded;
+                DisposableWebViews.Remove(this);
 
-            Disposed?.Invoke();
+                cancellationTokenSource.Cancel();
+
+                WebViewInitialized = null;
+                BeforeNavigate = null;
+                BeforeResourceLoad = null;
+                Navigated = null;
+                LoadFailed = null;
+                DownloadProgressChanged = null;
+                DownloadCompleted = null;
+                DownloadCancelled = null;
+                JavascriptContextCreated = null;
+                TitleChanged = null;
+                UnhandledAsyncException = null;
+                RenderProcessCrashed = null;
+                JavascriptContextReleased = null;
+
+                jsExecutor.Dispose();
+                settings.Dispose();
+                chromium.Dispose();
+                cancellationTokenSource.Dispose();
+
+                Disposed?.Invoke();
+            }
+
+            // avoid dead-lock, wait for all pending calls to finish
+            JavascriptCallFinished += () => {
+                if (javascriptPendingCalls == 0) {
+                    Dispatcher.BeginInvoke((Action) InternalDispose);
+                }
+            };
+
+            if (javascriptPendingCalls > 0) {
+                // JavascriptCallFinished event will trigger InternalDispose, 
+                // this check must come after registering event to avoid losing the event call
+                return;
+            }
+
+            InternalDispose();
         }
 
         private void OnPreviewKeyDown(object sender, KeyEventArgs e) {
@@ -381,8 +399,7 @@ namespace WebViewControl {
             }
 
             if (executeCallsInUI) {
-                Func<Func<object>, object> interceptorWrapper = target => Dispatcher.Invoke(target);
-                return RegisterJavascriptObject(name, objectToBind, interceptorWrapper, bind, false);
+                return RegisterJavascriptObject(name, objectToBind, target => Dispatcher.Invoke(target), bind, false);
 
             } else {
                 var bindingOptions = new BindingOptions();
@@ -392,33 +409,28 @@ namespace WebViewControl {
                     bindingOptions.Binder = binder;
                 }
 
-                Func<Func<object>, object> interceptorWrapper;
-                if (interceptCall != null) {
-                    interceptorWrapper = target => {
-                        if (isDisposing) {
-                            return null;
-                        }
-                        try {
-                            javascriptPendingCalls++;
-                            return interceptCall(target);
-                        } finally {
-                            javascriptPendingCalls--;
-                        }
-                    };
-                } else {
-                    interceptorWrapper = target => {
-                        if (isDisposing) {
-                            return null;
-                        }
-                        try {
-                            javascriptPendingCalls++;
-                            return target();
-                        } finally {
-                            javascriptPendingCalls--;
-                        }
-                    };
+                if (interceptCall == null) {
+                    interceptCall = target => target();
                 }
-                bindingOptions.MethodInterceptor = new LambdaMethodInterceptor(interceptorWrapper);
+
+                object WrapCall(Func<object> target) {
+                    if (isDisposing) {
+                        return null;
+                    }
+                    try {
+                        javascriptPendingCalls++;
+                        if (isDisposing) {
+                            // check again, to avoid concurrency problems with dispose
+                            return null;
+                        }
+                        return interceptCall(target);
+                    } finally {
+                        javascriptPendingCalls--;
+                        JavascriptCallFinished?.Invoke();
+                    }
+                }
+                
+                bindingOptions.MethodInterceptor = new LambdaMethodInterceptor(WrapCall);
                 chromium.JavascriptObjectRepository.Register(name, objectToBind, true, bindingOptions);
             }
 
