@@ -123,5 +123,20 @@ namespace Tests {
 
             Assert.IsTrue(disposeCalled);
         }
+
+        [Test(Description = "")]
+        public void JsEvaluationReturnsDefaultValuesAfterWebViewwDispose() {
+            var disposeCalled = false;
+            LoadAndWaitReady("<html><script>function test() { return 1; }</script><body></body></html>");
+            TargetView.Disposed += () => disposeCalled = true;
+            TargetView.Dispose();
+
+            WaitFor(() => disposeCalled, TimeSpan.FromSeconds(2));
+
+            var result = TargetView.EvaluateScriptFunction<int>("test");
+
+            Assert.IsTrue(disposeCalled);
+            Assert.AreEqual(result, 0);
+        }
     }
 }

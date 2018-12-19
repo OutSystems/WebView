@@ -76,16 +76,19 @@ namespace WebViewControl {
                     stoppedFlushHandle.WaitOne();
                 }
                 flushTaskCancelationToken.Dispose();
-            }
 
-            private void EnsureWebViewNotDisposing() {
-                if (OwnerWebView.isDisposing) {
-                    throw new InvalidOperationException("Webview is disposing");
+                // signal any pending js evaluations
+                foreach (var pendingScript in pendingScripts.ToArray()) {
+                    pendingScript.WaitHandle.Set();
                 }
+
+                pendingScripts.Dispose();
             }
 
             private ScriptTask QueueScript(string script, TimeSpan? timeout = default(TimeSpan?), bool awaitable = false) {
-                EnsureWebViewNotDisposing();
+                if (OwnerWebView.isDisposing) {
+                    return null;
+                }
                 var scriptTask = new ScriptTask(script, timeout, awaitable);
                 pendingScripts.Add(scriptTask);
                 return scriptTask;
@@ -151,25 +154,32 @@ namespace WebViewControl {
             }
 
             public T EvaluateScript<T>(string script, TimeSpan? timeout = default(TimeSpan?)) {
-                EnsureWebViewNotDisposing();
-
+                System.Diagnostics.Debugger.Launch();
                 var scriptWithErrorHandling = WrapScriptWithErrorHandling(script);
 
                 var scriptTask = QueueScript(scriptWithErrorHandling, timeout, true);
+                if (scriptTask == null) {
+                    return GetResult<T>(null); // webview is disposing
+                }
+
                 if (!flushRunning) {
-                    var succeeded = scriptTask.WaitHandle.WaitOne((timeout ?? TimeSpan.FromSeconds(15))); // wait with timeout if flush is not running yet to avoid hanging forever
-                    if (!succeeded || scriptTask.Result == null) {
+                    var succeeded = scriptTask.WaitHandle.WaitOne(timeout ?? TimeSpan.FromSeconds(15)); // wait with timeout if flush is not running yet to avoid hanging forever
+                    if (!succeeded) {
                         throw new JavascriptException("Timeout", "Javascript engine is not initialized");
                     }
                 } else {
                     var succeeded = scriptTask.WaitHandle.WaitOne();
-                    if (!succeeded || scriptTask.Result == null) {
+                    if (!succeeded) {
                         throw new JavascriptException("Timeout", (timeout.HasValue ? $"More than {timeout.Value.TotalMilliseconds}ms elapsed" : "Timeout ocurred") + $" evaluating the script: '{script}'");
                     }
                 }
 
                 if (scriptTask.Exception != null) {
                     throw scriptTask.Exception;
+                }
+
+                if (scriptTask.Result == null) {
+                    return GetResult<T>(null); // webview is disposing
                 }
 
                 if (scriptTask.Result.Success) {
