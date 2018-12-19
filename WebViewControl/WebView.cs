@@ -92,7 +92,6 @@ namespace WebViewControl {
         public static event Action<WebView> GlobalWebViewInitialized;
 
         static WebView() {
-            InitializeCef();
             WindowsEventsListener.WindowUnloaded += OnWindowUnloaded;
         }
 
@@ -106,7 +105,8 @@ namespace WebViewControl {
         private static void InitializeCef() {
             if (!Cef.IsInitialized) {
                 var cefSettings = new CefSettings();
-                cefSettings.LogSeverity = LogSeverity.Disable; // disable writing of debug.log
+                cefSettings.LogSeverity = string.IsNullOrWhiteSpace(LogFile) ? LogSeverity.Disable : LogSeverity.Verbose;
+                cefSettings.LogFile = LogFile;
                 cefSettings.UncaughtExceptionStackSize = 100; // enable stack capture
                 cefSettings.CachePath = TempDir; // enable cache for external resources to speedup loading
                 cefSettings.WindowlessRenderingEnabled = true;
@@ -174,6 +174,8 @@ namespace WebViewControl {
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void Initialize() {
+            InitializeCef();
+
             if (!subscribedApplicationExit) {
                 // subscribe exit again, first time might have failed if Application.Current was null
                 Application.Current.Exit += OnApplicationExit;
@@ -429,7 +431,7 @@ namespace WebViewControl {
                         JavascriptCallFinished?.Invoke();
                     }
                 }
-                
+
                 bindingOptions.MethodInterceptor = new LambdaMethodInterceptor(WrapCall);
                 chromium.JavascriptObjectRepository.Register(name, objectToBind, true, bindingOptions);
             }
@@ -641,5 +643,7 @@ namespace WebViewControl {
         protected void InitializeBrowser() {
             chromium.CreateBrowser();
         }
+
+        public static string LogFile { get; set; }
     }
 }
