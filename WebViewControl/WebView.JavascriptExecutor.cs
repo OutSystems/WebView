@@ -138,13 +138,17 @@ namespace WebViewControl {
                 if (scriptToEvaluate != null) {
                     // evaluate and signal waiting thread
                     Task<JavascriptResponse> task = null;
+                    var script = scriptToEvaluate.Script;
+                    var timeout = scriptToEvaluate.Timeout ?? OwnerWebView.DefaultScriptsExecutionTimeout;
                     try {
-                        task = OwnerWebView.chromium.EvaluateScriptAsync(scriptToEvaluate.Script, scriptToEvaluate.Timeout ?? OwnerWebView.DefaultScriptsExecutionTimeout);
+                        task = OwnerWebView.chromium.EvaluateScriptAsync(script, timeout);
                         task.Wait(flushTaskCancelationToken.Token);
                         scriptToEvaluate.Result = task.Result;
                     } catch(Exception e) {
-                        if (task == null || !task.IsCanceled) {
-                            // not cancelled (if cancelled -> timeout)
+                        if (task?.IsCanceled == true) {
+                            // timeout
+                            scriptToEvaluate.Exception = new JavascriptException("Timeout", (timeout.HasValue ? $"More than {timeout.Value.TotalMilliseconds}ms elapsed" : "Timeout ocurred") + $" evaluating the script: '{script}'");
+                        } else {
                             scriptToEvaluate.Exception = e;
                         }
                     } finally {
@@ -154,7 +158,6 @@ namespace WebViewControl {
             }
 
             public T EvaluateScript<T>(string script, TimeSpan? timeout = default(TimeSpan?)) {
-                System.Diagnostics.Debugger.Launch();
                 var scriptWithErrorHandling = WrapScriptWithErrorHandling(script);
 
                 var scriptTask = QueueScript(scriptWithErrorHandling, timeout, true);
@@ -168,10 +171,7 @@ namespace WebViewControl {
                         throw new JavascriptException("Timeout", "Javascript engine is not initialized");
                     }
                 } else {
-                    var succeeded = scriptTask.WaitHandle.WaitOne();
-                    if (!succeeded) {
-                        throw new JavascriptException("Timeout", (timeout.HasValue ? $"More than {timeout.Value.TotalMilliseconds}ms elapsed" : "Timeout ocurred") + $" evaluating the script: '{script}'");
-                    }
+                    scriptTask.WaitHandle.WaitOne();
                 }
 
                 if (scriptTask.Exception != null) {
