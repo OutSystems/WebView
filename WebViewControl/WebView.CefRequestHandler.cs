@@ -1,4 +1,5 @@
-﻿using System.Security.Cryptography.X509Certificates;
+﻿using System;
+using System.Security.Cryptography.X509Certificates;
 using CefSharp;
 
 namespace WebViewControl {
@@ -82,21 +83,24 @@ namespace WebViewControl {
 
             void IRequestHandler.OnRenderProcessTerminated(IWebBrowser browserControl, IBrowser browser, CefTerminationStatus status) {
                 OwnerWebView.RenderProcessCrashed?.Invoke();
-                string reason = "";
-                bool wasKilled = false;
+
+                const string ExceptionPrefix = "WebView render process ";
+
+                Exception exception;
+
                 switch (status) {
-                    case CefTerminationStatus.AbnormalTermination:
-                        reason = "terminated with an unknown reason";
-                        break;
                     case CefTerminationStatus.ProcessCrashed:
-                        reason = "crashed";
+                        exception = new RenderProcessCrashedException(ExceptionPrefix + "crashed");
                         break;
                     case CefTerminationStatus.ProcessWasKilled:
-                        reason = "was killed";
-                        wasKilled = true;
+                        exception = new RenderProcessKilledException(ExceptionPrefix + "was killed");
+                        break;
+                    default:
+                        exception = new RenderProcessCrashedException(ExceptionPrefix + "terminated with an unknown reason");
                         break;
                 }
-                OwnerWebView.ExecuteWithAsyncErrorHandling(() => throw new RenderProcessTerminatedException("WebView render process " + reason, wasKilled));
+
+                OwnerWebView.ExecuteWithAsyncErrorHandling(() => throw exception);
             }
 
             bool IRequestHandler.OnSelectClientCertificate(IWebBrowser browserControl, IBrowser browser, bool isProxy, string host, int port, X509Certificate2Collection certificates, ISelectClientCertificateCallback callback) {
