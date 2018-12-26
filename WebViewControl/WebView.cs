@@ -105,7 +105,7 @@ namespace WebViewControl {
         private static void InitializeCef() {
             if (!Cef.IsInitialized) {
                 var cefSettings = new CefSettings();
-                cefSettings.LogSeverity = string.IsNullOrWhiteSpace(LogFile) ? LogSeverity.Disable : LogSeverity.Verbose;
+                cefSettings.LogSeverity = string.IsNullOrWhiteSpace(LogFile) ? LogSeverity.Disable : (EnableErrorLogOnly ? LogSeverity.Error : LogSeverity.Verbose);
                 cefSettings.LogFile = LogFile;
                 cefSettings.UncaughtExceptionStackSize = 100; // enable stack capture
                 cefSettings.CachePath = TempDir; // enable cache for external resources to speedup loading
@@ -645,5 +645,7 @@ namespace WebViewControl {
         }
 
         public static string LogFile { get; set; }
+
+        public static bool EnableErrorLogOnly { get; set; } = false;
     }
 }
