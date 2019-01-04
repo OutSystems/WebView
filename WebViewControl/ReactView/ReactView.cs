@@ -33,10 +33,12 @@ namespace WebViewControl {
             SetResourceReference(StyleProperty, typeof(ReactView)); // force styles to be inherited, must be called after view is created otherwise view might be null
             Content = view;
             Dispatcher.BeginInvoke(DispatcherPriority.Send, (Action)(() => {
-                if (EnableHotReload) {
-                    view.EnableHotReload(Source);
+                if (!view.IsDisposing) {
+                    if (EnableHotReload) {
+                        view.EnableHotReload(Source);
+                    }
+                    view.LoadComponent(this);
                 }
-                view.LoadComponent(this);
             }));
 
             FocusManager.SetIsFocusScope(this, true);

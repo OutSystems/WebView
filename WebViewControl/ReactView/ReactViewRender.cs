@@ -254,7 +254,7 @@ namespace WebViewControl {
                     //if (fileExtensionsToWatch.Any(e => eventArgs.Name.EndsWith(e))) {
                     filesChanged = true;
                     webView.Dispatcher.BeginInvoke((Action) (() => {
-                        if (IsReady) {
+                        if (IsReady && !IsDisposing) {
                             IsReady = false;
                             cacheInvalidationTimestamp = DateTime.UtcNow.Ticks.ToString();
                             webView.Reload(true);
@@ -330,5 +330,7 @@ namespace WebViewControl {
         internal IInputElement FocusableElement {
             get { return webView.FocusableElement; }
         }
+
+        internal bool IsDisposing => webView.IsDisposing;
     }
 }

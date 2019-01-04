@@ -647,5 +647,7 @@ namespace WebViewControl {
         public static string LogFile { get; set; }
 
         public static bool EnableErrorLogOnly { get; set; } = false;
+
+        internal bool IsDisposing => isDisposing;
     }
 }
