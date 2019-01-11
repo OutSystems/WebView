@@ -20,19 +20,19 @@
     <Message Importance="Normal" Text="Generating View files" />
     <Exec Command="&quot;$(NodeJsExe)&quot; $(Ts2LangExe) -f $(Ts2LangConfig) -t $(Ts2LangTemplate)" />
     <ItemGroup>
-      <Compile Include="Generated\*.cs" />
+      <Compile Include="Generated\**\*.cs" />
     </ItemGroup>
   </Target>
 
   <Target Name="IncludeGeneratedFiles" BeforeTargets="PrepareForBuild">
     <ItemGroup>
-      <GeneratedTs2LangFiles Include="Generated\*.cs" />
+      <GeneratedTs2LangFiles Include="Generated\**\*.cs" />
     </ItemGroup>
   </Target>
 
   <Target Name="CleanGenerated">
     <ItemGroup>
-      <GeneratedTs2LangFiles Include="Generated\*.cs" />
+      <GeneratedTs2LangFiles Include="Generated\**\*.cs" />
     </ItemGroup>
     <Delete Files="@(GeneratedTs2LangFiles)"/>
   </Target>
