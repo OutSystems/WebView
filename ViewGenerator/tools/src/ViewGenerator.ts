@@ -42,7 +42,8 @@ class Generator {
         private fullPath: string,
         private filename: string,
         private preamble: string,
-        private baseComponentClass: string) {
+        private baseComponentClass: string,
+        private baseComponentInterface: string) {
 
         this.component = module.classes.filter(c => c.isPublic)[0];
         let interfaces = module.interfaces.filter((ifc) => ifc.isPublic && ifc.name.startsWith("I"));
@@ -160,37 +161,36 @@ class Generator {
             .join("\n");
     }
 
-    //private generateComponentAdapter() {
-    //    const generateProperty = (func: Units.TsFunction) => {
-    //        let eventName = toPascalCase(func.name);
-    //        return (
-    //            `public event ${this.componentName}.${eventName}${DelegateSuffix} ${eventName} {\n` +
-    //            `    add { component.${eventName} += value; } remove { component.${eventName} -= value; }\n` +
-    //            `}`
-    //        );
-    //    };
-    //    const generateBehaviorMethod = (func: Units.TsFunction) => {
-    //        let params = func.parameters.map(p => p.name).join(",");
-    //        let methodCall = `component.${toPascalCase(func.name)}(${params});`;
-    //        if (func.returnType != Types.TsVoidType) {
-    //            return `return ${methodCall}`;
-    //        } else {
-    //            return methodCall;
-    //        }
-    //    };
-    //    return (
-    //        `public class ${this.componentName}Adapter : ${this.baseAdapterClass}, I${this.componentName} {\n` +
-    //        `\n` +
-    //        `    private readonly ${ComponentAliasName} component;\n` +
-    //        `\n` +
-    //        `    internal ${this.componentName}Adapter(${ComponentAliasName} component) {\n` +
-    //        `        this.component = component;\n` +
-    //        `    }\n` +
-    //        `\n` +
-    //        `${this.generateComponentBody(generateProperty, generateBehaviorMethod)}\n` +
-    //        `}\n`
-    //    );
-    //}
+    private generateComponentAdapter() {
+        const componentField = "component";
+
+        const generateProperty = (func: Units.TsFunction) => {
+            let eventName = toPascalCase(func.name);
+            return (
+                `public event ${this.componentName}${eventName}${DelegateSuffix} ${eventName} {\n` +
+                `    add { ${componentField}.${eventName} += value; }\n` +
+                `    remove { ${ componentField }.${eventName} -= value; }\n` +
+                `}`
+            );
+        };
+        const generateBehaviorMethod = (func: Units.TsFunction) => {
+            let isVoid = func.returnType === Types.TsVoidType;
+
+            return (
+                `public ${this.generateMethodSignature(func)} {\n` +
+                `    ${isVoid ? "" : "return "}${componentField}.${toPascalCase(func.name)}(${func.parameters.map(p => p.name).join(",")});\n` +
+                `}`
+            );
+        };
+        return (
+            `partial class ${this.componentName}Adapter : I${this.componentName} {\n` +
+            `\n` +
+            `    private readonly ${this.componentName} ${componentField};\n` +
+            `\n` +
+            `    ${f(this.generateComponentBody(generateProperty, generateBehaviorMethod))}\n` +
+            `}\n`
+        );
+    }
 
     private generateComponentClass() {
         const generatePropertyEvent = (func: Units.TsFunction) => `${this.generatePropertyEvent(func)};`;
@@ -213,7 +213,7 @@ class Generator {
         };
 
         return (
-            `public class ${this.componentName} : ${BaseComponentAliasName}, I${this.componentName} {\n` +
+            `public partial class ${this.componentName} : ${BaseComponentAliasName} {\n` +
             `    \n` +
             `    ${f(this.generateNativeApi())}\n` +
             `    \n` +
@@ -239,13 +239,13 @@ class Generator {
         const generateBehaviorMethod = (func: Units.TsFunction) => `${this.generateMethodSignature(func)};`;
 
         return (
-            `public interface I${this.componentName} {\n` +
+            `public partial interface I${this.componentName} ${this.baseComponentInterface ? `: ${this.baseComponentInterface} ` : ""} {\n` +
             `    ${f(this.generateComponentBody(generateProperty, generateBehaviorMethod))}\n` +
             `}`
         );
     }
 
-    public generateComponent(emitComponentClass: boolean, emitComponentInterface: boolean, emitViewObjects: boolean) {
+    public generateComponent(emitComponentClass: boolean, emitComponentInterface: boolean, emitComponentAdapter: boolean, emitViewObjects: boolean) {
         if (!((this.component && this.behaviorsInterface && this.behaviorsInterface.functions.length > 0) ||
             (this.propsInterface && this.propsInterface.functions.length > 0))) {
             return "";
@@ -270,6 +270,7 @@ class Generator {
             (emitViewObjects ? `    ${f(this.generateNativeApiObjects())}\n\n` : "") +
             (emitComponentInterface ? `    ${f(this.generateComponentInterface())}\n\n` : ``) +
             (emitComponentClass ? `    ${f(this.generateComponentClass())}\n\n` : ``) +
+            (emitComponentAdapter ? `    ${f(this.generateComponentAdapter())}\n\n` : ``) +
             `}`
         );
     }
@@ -309,26 +310,21 @@ export function transform(module: Units.TsModule, context: Object): string {
     output = combinePath(output, filenameWithoutExtension + ".Generated.cs");
     context["$output"] = output;
     
-    let generator = new Generator(module, namespace, javascriptRelativePath, javascriptFullPath, filenameWithoutExtension, context["preamble"] || "", context["baseComponentClass"]);
+    let generator = new Generator(
+        module,
+        namespace,
+        javascriptRelativePath,
+        javascriptFullPath,
+        filenameWithoutExtension,
+        context["preamble"] || "",
+        context["baseComponentClass"],
+        context["baseComponentInterface"],
+    );
 
+    let emitComponent = context["emitComponent"] !== false;
+    let emitComponentInterface = context["emitComponentInterface"] !== false;
+    let emitComponentAdapter = context["emitComponentAdapter"] === true;
     let emitViewObjects = context["emitViewObjects"] !== false;
-    let emitInterface: boolean;
-    let emitComponent: boolean;
 
-    switch (context["emitComponent"]) {
-        case "component-only":
-            emitInterface = false;
-            emitComponent = true;
-            break;
-        case "interface-only":
-            emitInterface = true;
-            emitComponent = false;
-            break;
-        default:
-            emitInterface = true;
-            emitComponent = true;
-            break;
-    }
-
-    return generator.generateComponent(emitComponent, emitInterface, emitViewObjects);
+    return generator.generateComponent(emitComponent, emitComponentInterface, emitComponentAdapter, emitViewObjects);
 }
