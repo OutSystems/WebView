@@ -79,7 +79,7 @@ namespace WebViewControl {
 
                 // signal any pending js evaluations
                 foreach (var pendingScript in pendingScripts.ToArray()) {
-                    pendingScript.WaitHandle.Set();
+                    pendingScript.WaitHandle?.Set();
                 }
 
                 pendingScripts.Dispose();
