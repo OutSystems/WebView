@@ -111,6 +111,7 @@ namespace WebViewControl {
                 cefSettings.CachePath = TempDir; // enable cache for external resources to speedup loading
                 cefSettings.WindowlessRenderingEnabled = true;
 
+                CefSharpSettings.ConcurrentTaskExecution = true;
                 CefSharpSettings.LegacyJavascriptBindingEnabled = true;
                 CefSharpSettings.SubprocessExitIfParentProcessClosed = true;
 
