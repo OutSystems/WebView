@@ -7,7 +7,12 @@
             "parameters": {
                 "namespace": "YourPluginName",
                 "baseComponentClass": "",
-                "javascriptDistPath": ""
+                "baseComponentInterface": "",
+                "javascriptDistPath": "",
+                "emitComponent": true,
+                "emitComponentInterface": true,
+                "emitComponentAdapter": false,
+                "emitViewObjects": true
             }
         }
     ]
