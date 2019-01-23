@@ -1,9 +1,8 @@
 ﻿<Project>
   <PropertyGroup>
-    <Ts2LangExe>"$(MSBuildThisFileDirectory)..\tools\node_modules\@outsystems\ts2lang\ts2lang-main.js"</Ts2LangExe>
-    <Ts2LangConfig>"$(MSBuildProjectDirectory)\ts2lang.json"</Ts2LangConfig>
-    <Ts2LangTemplate>"$(MSBuildThisFileDirectory)..\tools\ViewGenerator.js"</Ts2LangTemplate>
-    <ViewGeneratedFolder>Generated</ViewGeneratedFolder>
+    <ViewGeneratorTs2LangExe>"$(MSBuildThisFileDirectory)..\tools\node_modules\@outsystems\ts2lang\ts2lang-main.js"</ViewGeneratorTs2LangExe>
+    <ViewGeneratorTs2LangConfig>"$(MSBuildProjectDirectory)\ts2lang.json"</ViewGeneratorTs2LangConfig>
+    <ViewGeneratorTs2LangTemplate>"$(MSBuildThisFileDirectory)..\tools\ViewGenerator.js"</ViewGeneratorTs2LangTemplate>
 
     <BuildDependsOn>
       GenerateView;
@@ -18,21 +17,21 @@
 
   <Target Name="GenerateView" BeforeTargets="CoreCompile">
     <Message Importance="Normal" Text="Generating View files" />
-    <Exec Command="&quot;$(NodeJsExe)&quot; $(Ts2LangExe) -f $(Ts2LangConfig) -t $(Ts2LangTemplate)" />
+    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; $(ViewGeneratorTs2LangExe) -f $(ViewGeneratorTs2LangConfig) -t $(ViewGeneratorTs2LangTemplate)" />
     <ItemGroup>
-      <Compile Include="$(ViewGeneratedFolder)\**\*.cs" />
+      <Compile Include="$(ViewGeneratorGeneratedFolder)\**\*.cs" />
     </ItemGroup>
   </Target>
 
   <Target Name="IncludeGeneratedFiles" BeforeTargets="PrepareForBuild">
     <ItemGroup>
-      <GeneratedTs2LangFiles Include="$(ViewGeneratedFolder)\**\*.cs" />
+      <GeneratedTs2LangFiles Include="$(ViewGeneratorGeneratedFolder)\**\*.cs" />
     </ItemGroup>
   </Target>
 
   <Target Name="CleanGenerated">
     <ItemGroup>
-      <GeneratedTs2LangFiles Include="$(ViewGeneratedFolder)\**\*.cs" />
+      <GeneratedTs2LangFiles Include="$(ViewGeneratorGeneratedFolder)\**\*.cs" />
     </ItemGroup>
     <Delete Files="@(GeneratedTs2LangFiles)"/>
   </Target>
