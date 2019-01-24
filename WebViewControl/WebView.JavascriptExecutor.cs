@@ -71,11 +71,14 @@ namespace WebViewControl {
             }
 
             private void StopFlush() {
+                OwnerWebView.RenderProcessCrashed -= StopFlush;
+                if (flushTaskCancelationToken.IsCancellationRequested) {
+                    return;
+                }
                 flushTaskCancelationToken.Cancel();
                 if (flushRunning) {
                     stoppedFlushHandle.WaitOne();
                 }
-                flushTaskCancelationToken.Dispose();
 
                 // signal any pending js evaluations
                 foreach (var pendingScript in pendingScripts.ToArray()) {
@@ -83,6 +86,7 @@ namespace WebViewControl {
                 }
 
                 pendingScripts.Dispose();
+                flushTaskCancelationToken.Dispose();
             }
 
             private ScriptTask QueueScript(string script, TimeSpan? timeout = default(TimeSpan?), bool awaitable = false) {
