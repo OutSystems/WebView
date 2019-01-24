@@ -23,7 +23,7 @@ namespace WebViewControl {
         private static string ComputeEmbeddedResourceName(string defaultNamespace, IEnumerable<string> resourcePath) {
             var resourceParts = (new[] { defaultNamespace }).Concat(resourcePath).ToArray();
             for (int i = 0; i < resourceParts.Length - 1; i++) {
-                resourceParts[i] = resourceParts[i].Replace('-', '_');
+                resourceParts[i] = resourceParts[i].Replace('-', '_').Replace('@', '_');
             }
             return string.Join(".", resourceParts);
         }
