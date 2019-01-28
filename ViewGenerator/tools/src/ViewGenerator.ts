@@ -162,14 +162,14 @@ class Generator {
     }
 
     private generateComponentAdapter() {
-        const componentField = "component";
+        const ComponentProperty = "Component";
 
         const generateProperty = (func: Units.TsFunction) => {
             let eventName = toPascalCase(func.name);
             return (
                 `public event ${this.componentName}${eventName}${DelegateSuffix} ${eventName} {\n` +
-                `    add { ${componentField}.${eventName} += value; }\n` +
-                `    remove { ${ componentField }.${eventName} -= value; }\n` +
+                `    add { ${ComponentProperty}.${eventName} += value; }\n` +
+                `    remove { ${ComponentProperty}.${eventName} -= value; }\n` +
                 `}`
             );
         };
@@ -178,14 +178,12 @@ class Generator {
 
             return (
                 `public ${this.generateMethodSignature(func)} {\n` +
-                `    ${isVoid ? "" : "return "}${componentField}.${toPascalCase(func.name)}(${func.parameters.map(p => p.name).join(",")});\n` +
+                `    ${isVoid ? "" : "return "}${ComponentProperty}.${toPascalCase(func.name)}(${func.parameters.map(p => p.name).join(",")});\n` +
                 `}`
             );
         };
         return (
             `partial class ${this.componentName}Adapter : I${this.componentName} {\n` +
-            `\n` +
-            `    private readonly ${this.componentName} ${componentField};\n` +
             `\n` +
             `    ${f(this.generateComponentBody(generateProperty, generateBehaviorMethod))}\n` +
             `}\n`
