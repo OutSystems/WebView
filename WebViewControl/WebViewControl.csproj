@@ -163,8 +163,8 @@
     <Exec Command="&quot;$(ProjectDir)nuget&quot; pack &quot;$(ProjectPath)&quot; -OutputDirectory &quot;$(ProjectDir)..\Nuget\ &quot; -Properties Configuration=$(ConfigurationName)" />
   </Target>
   <PropertyGroup>
-    <PreBuildEvent>$(ProjectDir)..\kill_testsengine.bat
-npm install --prefix $(ProjectDir)Resources</PreBuildEvent>
+    <PreBuildEvent>call "$(SolutionDir)"kill_testsengine.bat 
+npm install --prefix "$(ProjectDir)Resources" "$(ProjectDir)Resources"</PreBuildEvent>
   </PropertyGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

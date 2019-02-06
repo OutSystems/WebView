@@ -207,7 +207,9 @@
     <Error Condition="!Exists('..\packages\NUnit3TestAdapter.3.11.0\build\net35\NUnit3TestAdapter.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\NUnit3TestAdapter.3.11.0\build\net35\NUnit3TestAdapter.props'))" />
   </Target>
   <PropertyGroup>
-    <PreBuildEvent>$(ProjectDir)..\kill_testsengine.bat</PreBuildEvent>
+    <PreBuildEvent>call "$(SolutionDir)"kill_testsengine.bat
+npm install --prefix "$(ProjectDir)ReactViewResources" "$(ProjectDir)ReactViewResources" 
+</PreBuildEvent>
   </PropertyGroup>
   <Import Project="..\packages\Microsoft.TypeScript.MSBuild.2.8.3\build\Microsoft.TypeScript.MSBuild.targets" Condition="Exists('..\packages\Microsoft.TypeScript.MSBuild.2.8.3\build\Microsoft.TypeScript.MSBuild.targets')" />
   <PropertyGroup>
