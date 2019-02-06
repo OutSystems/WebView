@@ -59,7 +59,7 @@ How to use:
 	}
 
 	export interface IExampleProperties {
-		click(arg?: ISomeType): void;
+		click(arg: ISomeType): void;
 	}
 
 	export interface IExampleBehaviors {
