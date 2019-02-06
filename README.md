@@ -13,6 +13,9 @@ WebView is a WPF control that wraps CefSharp web view control. Provides the foll
 - Proxy configuration support
 - Runs under AnyCPU configuration (works both on x64 and x86 configurations)
 
+# Pre-requisites
+- NodeJS must be installed
+
 # TODO
 - Add examples
 - Improve documentation
