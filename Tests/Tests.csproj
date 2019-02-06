@@ -207,7 +207,7 @@
     <Error Condition="!Exists('..\packages\NUnit3TestAdapter.3.11.0\build\net35\NUnit3TestAdapter.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\NUnit3TestAdapter.3.11.0\build\net35\NUnit3TestAdapter.props'))" />
   </Target>
   <PropertyGroup>
-    <PreBuildEvent>call "$(SolutionDir)"kill_testsengine.bat
+    <PreBuildEvent>call "$(ProjectDir)"..\kill_testsengine.bat
 npm install --prefix "$(ProjectDir)ReactViewResources" "$(ProjectDir)ReactViewResources" 
 </PreBuildEvent>
   </PropertyGroup>
