@@ -1,10 +1,7 @@
 {
   "description": "",
   "main": "index.js",
-  "dependencies": {
-    "react": "^15.6.2",
-    "react-dom": "^15.6.2"
-  },
+  "dependencies": {},
   "devDependencies": {
     "@types/react-dom": "^15.5.6"
   },
