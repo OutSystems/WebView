@@ -137,6 +137,8 @@
       <Link>Nunit\nunit3-console.exe</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <EmbeddedResource Include="ReactViewResources\Test\PluginModule.js" />
+    <EmbeddedResource Include="ReactViewResources\Test\TestApp.js" />
     <Content Include="ReactViewResources\tsconfig.json" />
   </ItemGroup>
   <ItemGroup>
@@ -150,29 +152,23 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="ReactViewResources\src\PluginModule.ts" />
-    <TypeScriptCompile Include="ReactViewResources\src\TestApp.tsx" />
+    <TypeScriptCompile Include="ReactViewResources\Test\PluginModule.ts" />
+    <TypeScriptCompile Include="ReactViewResources\Test\TestApp.tsx" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Resources\dash-folder\EmbeddedJavascriptFile-With-Dashes.js" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="ReactViewResources\styles\styles.css" />
+    <EmbeddedResource Include="ReactViewResources\Test\styles.css" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="ReactViewResources\dist\TestApp.js" />
+    <EmbeddedResource Include="ReactViewResources\Test\default.css" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="ReactViewResources\styles\default.css" />
+    <EmbeddedResource Include="ReactViewResources\Test\styles-dependency.css" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="ReactViewResources\styles\styles-dependency.css" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="ReactViewResources\dist\PluginModule.js" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="ReactViewResources\imgs\image.png" />
+    <EmbeddedResource Include="ReactViewResources\Test\imgs\image.png" />
   </ItemGroup>
   <ItemGroup>
     <Resource Include="Resources\ResourceJavascriptFile.js" />

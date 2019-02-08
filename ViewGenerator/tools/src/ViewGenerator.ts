@@ -279,12 +279,12 @@ function combinePath(path: string, rest: string) {
 }
 
 export function transform(module: Units.TsModule, context: Object): string {
+    debugger; // left on purpose to ease debugging
     const JsExtension = ".js";
     let namespace = context["namespace"];
     let baseDir = normalizePath(context["$baseDir"]);
     let fullPath = normalizePath(context["$fullpath"]);
-    let javascriptDistPath = normalizePath(context["javascriptDistPath"] || "") || "View/dist";
-    let javascriptDistPathDepth = javascriptDistPath.split("/").filter(p => p !== "").length;
+    let javascriptDistPath = normalizePath(context["javascriptDistPath"] || "");
 
     let fileExtensionLen = fullPath.length - fullPath.lastIndexOf(".");
     let filenameWithoutExtension = fullPath.slice(fullPath.lastIndexOf("/") + 1, -fileExtensionLen);
@@ -298,7 +298,7 @@ export function transform(module: Units.TsModule, context: Object): string {
         javascriptRelativePath = javascriptDistPath;
     } else {
         // else combine dist path with input filename
-        javascriptRelativePath = combinePath(javascriptDistPath, javascriptRelativePath.split("/").filter(p => p !== "").slice(javascriptDistPathDepth).join("/")); // replace the src dir with dist dir    
+        javascriptRelativePath = combinePath(javascriptDistPath, javascriptRelativePath);
     }
 
     javascriptFullPath = combinePath(baseDir, javascriptRelativePath); // add the base dir

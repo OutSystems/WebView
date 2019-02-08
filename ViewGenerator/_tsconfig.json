@@ -1,13 +1,12 @@
 ﻿{
     "compilerOptions": {
-        "outDir": "dist",
         "module": "amd",
         "target": "es6",
         "jsx": "react",
         "moduleResolution": "node",
         "sourceMap": false,
         "allowJs": true,
-        "rootDir": "src",
+        "rootDir": ".",
         "forceConsistentCasingInFileNames": true,
         "noImplicitReturns": true,
         "noImplicitThis": true,
@@ -17,8 +16,6 @@
     "compileOnSave": true,
     "exclude": [
         "node_modules",
-        "dist",
-        "styles",
-        "lib"
+        "dist"
     ]
 }

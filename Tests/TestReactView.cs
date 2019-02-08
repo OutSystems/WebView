@@ -22,7 +22,7 @@ namespace Tests {
             }
         }
 
-        protected override string JavascriptSource => "/Tests/ReactViewResources/dist/TestApp";
+        protected override string JavascriptSource => "/Tests/ReactViewResources/Test/TestApp";
 
         protected override string NativeObjectName => nameof(TestReactView);
 

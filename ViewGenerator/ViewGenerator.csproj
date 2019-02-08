@@ -55,8 +55,11 @@
     <None Include="build\ViewGeneratorCore.targets">
       <SubType>Designer</SubType>
     </None>
-    <None Include="build\ViewGeneratorCore.props" />
+    <None Include="build\ViewGeneratorCore.props">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="content\ts2lang.json" />
+    <None Include="debug-generator.bat" />
     <None Include="packages.config" />
     <None Include="ViewGeneratorCore.nuspec">
       <SubType>Designer</SubType>
@@ -73,11 +76,7 @@
     <TypeScriptCompile Include="tools\src\ViewGenerator.ts" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="content\View\dist\" />
-    <Folder Include="content\View\lib\" />
-    <Folder Include="content\View\node_modules\lib\" />
-    <Folder Include="content\View\src\" />
-    <Folder Include="content\View\styles\" />
+    <Folder Include="content\node_modules\" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
@@ -99,4 +98,8 @@
     <Error Condition="!Exists('..\packages\Microsoft.TypeScript.MSBuild.2.8.3\build\Microsoft.TypeScript.MSBuild.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.TypeScript.MSBuild.2.8.3\build\Microsoft.TypeScript.MSBuild.targets'))" />
   </Target>
   <Import Project="..\packages\Microsoft.TypeScript.MSBuild.2.8.3\build\Microsoft.TypeScript.MSBuild.targets" Condition="Exists('..\packages\Microsoft.TypeScript.MSBuild.2.8.3\build\Microsoft.TypeScript.MSBuild.targets')" />
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+  </PropertyGroup>
 </Project>
