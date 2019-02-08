@@ -36,7 +36,6 @@ namespace WebViewControl {
         private IViewModule[] plugins;
         private FileSystemWatcher fileSystemWatcher;
         private string cacheInvalidationTimestamp;
-        private string rootRelativeDir = @"../..";
 
         public static bool UseEnhancedRenderingEngine { get; set; } = true;
 
