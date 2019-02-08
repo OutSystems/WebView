@@ -1,13 +1,12 @@
 ﻿{
   "compilerOptions": {
-    "outDir": "dist",
     "module": "amd",
     "target": "es2015",
     "sourceMap": false,
     "allowJs": true,
     "jsx": "react",
     "moduleResolution": "node",
-    "rootDir": "src",
+    "rootDir": "Test",
     "forceConsistentCasingInFileNames": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,

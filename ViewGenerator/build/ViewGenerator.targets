@@ -18,9 +18,8 @@
 
   <Target Name="IncludeGeneratedResources" DependsOnTargets="FindConfigFiles;CompileTypeScriptWithTSConfig">
     <ItemGroup> 
-      <EmbeddedResource Include="View\dist\**\*.js" />
-      <EmbeddedResource Include="View\lib\*.js" />
-      <EmbeddedResource Include="View\styles\*.css" Exclude="View\styles\*.min.css" />
+      <EmbeddedResource Include="**\*.js" />
+      <EmbeddedResource Include="**\*.css" Exclude="**\*.min.css" />
     </ItemGroup>
   </Target>
   
