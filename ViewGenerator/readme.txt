@@ -12,13 +12,13 @@ Edit your .csproj file and search for the following:
 
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
 
-Add the following snippet to your csproj file with the path of the nodejs executable:
+Add the following snippet to your csproj file with the path of the nodejs executable and the folder where to place the C# generated files (optional):
 
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
-      <NodeJsExe>$(ProjectDir)CustomNodeJs\node.exe</NodeJsExe>
+      <ViewGeneratorNodeJsExe>$(ProjectDir)CustomNodeJs\node.exe</ViewGeneratorNodeJsExe>
+	  <ViewGeneratorGeneratedFolder>Generated</ViewGeneratorGeneratedFolder>
     </PropertyGroup>
-
 
 How to use:
 -----------
@@ -50,9 +50,9 @@ How to use:
 	Eg:
 
 	import * as React from "react";
-	import "lib/third-party-lib";
+	import "third-party-lib";
 	import "./LocalModule";
-	import "css!styles/styles.css";
+	import "css!styles.css";
 
 	export interface ISomeType {
 		name: string;
@@ -86,12 +86,12 @@ Development Notes:
 
 A) To import css's use the following instruction:
 
-	import "css!styles/<name-of-the-css-file.css>";
+	import "css!<name-of-the-css-file.css>";
 
 
-B) To import 3rd party modules, place the module (must be AMD) javascript under the View\lib folder and the Typescript definition file (d.ts) under the node_modules\lib\<name-of-the-3rd-party-lib-module>:
+B) To import 3rd party modules, place the module (must be AMD) javascript and the Typescript definition file (d.ts) under the node_modules folder:
 
-	import "lib/<name-of-the-3rd-party-lib-module>";
+	import "<name-of-the-3rd-party-lib-module>";
 
 
 C) To import local modules:

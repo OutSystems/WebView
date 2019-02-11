@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using System.Web;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -97,12 +98,7 @@ namespace WebViewControl {
 
         private void InternalLoadComponent() {
             var source = NormalizeUrl(component.JavascriptSource);
-            var filenameParts = source.Split(new[] { ResourceUrl.PathSeparator }, StringSplitOptions.None);
-
-            // eg: example/dist/source.js
-            // baseUrl = /AssemblyName/example/
-            var sourceDepth = filenameParts.Length >= 2 ? 2 : 1;
-            var baseUrl = ToFullUrl(string.Join(ResourceUrl.PathSeparator, filenameParts.Take(filenameParts.Length - sourceDepth))) + ResourceUrl.PathSeparator;
+            var baseUrl = ToFullUrl(VirtualPathUtility.GetDirectory(source));
 
             var loadArgs = new List<string>() {
                 Quote(baseUrl),
@@ -233,7 +229,6 @@ namespace WebViewControl {
             }
 
             baseLocation = Path.GetDirectoryName(baseLocation);
-            baseLocation = Path.GetFullPath(baseLocation + "\\..\\.."); // get up 2 levels (.../View/src -> .../)
 
             if (fileSystemWatcher != null) {
                 fileSystemWatcher.Path = baseLocation;
@@ -302,7 +297,7 @@ namespace WebViewControl {
         private static string Object(IEnumerable<KeyValuePair<string, string>> properties) {
             return "{" + string.Join(",", properties.Select(p => p.Key + ":" + p.Value)) + "}";
         }
-
+        
         private static string NormalizeUrl(string url) {
             const string JsExtension = ".js";
 

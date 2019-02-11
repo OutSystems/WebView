@@ -141,8 +141,6 @@
     <EmbeddedResource Include="Resources\index.html" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\node_modules\react-dom\dist\react-dom.min.js" />
-    <EmbeddedResource Include="Resources\node_modules\react\dist\react.min.js" />
     <EmbeddedResource Include="Resources\node_modules\requirejs\require.js" />
   </ItemGroup>
   <ItemGroup>

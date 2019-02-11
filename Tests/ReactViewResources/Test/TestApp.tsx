@@ -1,5 +1,5 @@
 ﻿import * as React from 'react';
-import "css!styles/styles.css";
+import "css!styles.css";
 
 interface IAppProperties {
     event: (args: string) => void;
