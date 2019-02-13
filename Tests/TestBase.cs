@@ -92,7 +92,7 @@ namespace Tests {
 
         protected bool FailOnAsyncExceptions { get; set; } = true;
 
-        protected void OnUnhandledAsyncException(WebViewControl.UnhandledExceptionEventArgs e) {
+        protected void OnUnhandledAsyncException(WebViewControl.UnhandledAsyncExceptionEventArgs e) {
             if (FailOnAsyncExceptions) {
                 Application.Current.Dispatcher.BeginInvoke(new Action(() => {
                     Assert.Fail("An async exception ocurred: " + e.Exception.ToString());

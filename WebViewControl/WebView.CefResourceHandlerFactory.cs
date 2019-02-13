@@ -35,7 +35,7 @@ namespace WebViewControl {
                 }
 
                 Uri url;
-                var resourceHandler = new ResourceHandler(request, OwnerWebView.GetRequestUrl(request));
+                var resourceHandler = new ResourceHandler(request, OwnerWebView.GetRequestUrl(request.Url, (ResourceType) request.ResourceType));
                 if (Uri.TryCreate(resourceHandler.Url, UriKind.Absolute, out url) && url.Scheme == ResourceUrl.EmbeddedScheme) {
                     var urlWithoutQuery = new UriBuilder(url);
                     if (url.Query != "") {
@@ -62,8 +62,8 @@ namespace WebViewControl {
             }
         }
 
-        protected virtual string GetRequestUrl(IRequest request) {
-            return request.Url;
+        protected virtual string GetRequestUrl(string url, ResourceType resourceType) {
+            return url;
         }
 
         protected virtual void LoadEmbeddedResource(ResourceHandler resourceHandler, Uri url) {

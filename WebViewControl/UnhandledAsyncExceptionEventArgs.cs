@@ -2,9 +2,9 @@
 
 namespace WebViewControl {
 
-    public class UnhandledExceptionEventArgs {
+    public class UnhandledAsyncExceptionEventArgs {
 
-        public UnhandledExceptionEventArgs(Exception e) {
+        public UnhandledAsyncExceptionEventArgs(Exception e) {
             Exception = e;
         }
 

@@ -1,7 +1,7 @@
 ﻿using System;
-using CefSharp;
+using WebViewControl;
 
-namespace WebViewControl {
+namespace ReactViewControl {
 
     partial class ReactViewRender {
 
@@ -19,17 +19,17 @@ namespace WebViewControl {
                 }
             }
 
-            protected override string GetRequestUrl(IRequest request) {
-                if (request.ResourceType == ResourceType.Script) {
-                    var url = new UriBuilder(request.Url);
-                    if (!url.Path.EndsWith(JavascriptExtension)) {
+            protected override string GetRequestUrl(string url, ResourceType resourceType) {
+                if (resourceType == ResourceType.Script) {
+                    var uri = new UriBuilder(url);
+                    if (!uri.Path.EndsWith(JavascriptExtension)) {
                         // dependency modules fetched by requirejs do not come with the js extension :(
-                        url.Path += JavascriptExtension;
-                        return url.ToString();
+                        uri.Path += JavascriptExtension;
+                        return uri.ToString();
                     }
                 }
 
-                return base.GetRequestUrl(request);
+                return base.GetRequestUrl(url, resourceType);
             }
         }
     }

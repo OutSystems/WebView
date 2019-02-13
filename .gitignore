@@ -18,5 +18,7 @@ Tests/ReactViewResources/dist/
 WebViewControl/Resources/builtin/
 WebViewControl/Resources/node_modules/
 ViewGenerator/tools/dist/
-ViewGenerator/
 *.js
+ViewGenerator/content/node_modules/
+ReactViewResources/node_modules/
+*.tgz

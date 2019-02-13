@@ -1,4 +1,4 @@
-﻿namespace WebViewControl {
+﻿namespace ReactViewControl {
 
     public abstract class ViewModuleContainer : IViewModule {
 
