@@ -4,8 +4,9 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
+using WebViewControl;
 
-namespace WebViewControl {
+namespace ReactViewControl {
 
     public partial class ReactView : UserControl, IReactView, IViewModule {
 
@@ -73,7 +74,7 @@ namespace WebViewControl {
             remove { view.Ready -= value; }
         }
 
-        public event Action<UnhandledExceptionEventArgs> UnhandledAsyncException {
+        public event Action<UnhandledAsyncExceptionEventArgs> UnhandledAsyncException {
             add { view.UnhandledAsyncException += value; }
             remove { view.UnhandledAsyncException -= value; }
         }

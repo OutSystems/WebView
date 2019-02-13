@@ -24,7 +24,7 @@ namespace Tests {
         }
 
         protected void WithUnhandledExceptionHandling(Action action, Func<Exception, bool> onException) {
-            Action<WebViewControl.UnhandledExceptionEventArgs> unhandledException = (e) => {
+            Action<WebViewControl.UnhandledAsyncExceptionEventArgs> unhandledException = (e) => {
                 e.Handled = onException(e.Exception);
             };
 

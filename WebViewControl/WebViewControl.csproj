@@ -92,9 +92,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CefLoader.cs" />
-    <Compile Include="ReactView\IExecutionEngine.cs" />
     <Compile Include="InternalChromiumBrowser.cs" />
-    <Compile Include="ReactView\IReactView.cs" />
     <Compile Include="JavascriptSerializationHelper.cs" />
     <Compile Include="BrowserObjectListener.cs" />
     <Compile Include="LambdaMethodBinder.cs" />
@@ -103,15 +101,10 @@
     <Compile Include="ModuleInitializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ProxyAuthentication.cs" />
-    <Compile Include="ReactView\ReactViewRender.InternalWebView.cs" />
-    <Compile Include="ReactView\ReactViewRender.cs" />
-    <Compile Include="ReactView\ReactView.cs" />
-    <Compile Include="ReactView\SimpleViewModule.cs" />
     <Compile Include="RenderProcessTerminatedException.cs" />
+    <Compile Include="ResourceType.cs" />
     <Compile Include="ResourceUrl.cs" />
-    <Compile Include="UnhandledExceptionEventArgs.cs" />
-    <Compile Include="ReactView\IViewModule.cs" />
-    <Compile Include="ReactView\ViewModuleContainer.cs" />
+    <Compile Include="UnhandledAsyncExceptionEventArgs.cs" />
     <Compile Include="WebView.CefDownloadHandler.cs" />
     <Compile Include="WebView.CefLifeSpanHandler.cs" />
     <Compile Include="WebView.CefRequestHandler.cs" />
@@ -127,7 +120,7 @@
     <Compile Include="WebView.Request.cs" />
     <Compile Include="WebView.ResourceHandler.cs" />
     <Compile Include="ResourcesManager.cs" />
-    <Compile Include="ReactView\WindowsEventsListener.cs" />
+    <Compile Include="WindowsEventsListener.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -138,27 +131,12 @@
     <None Include="WebViewControl.props" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\index.html" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\node_modules\requirejs\require.js" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\node_modules\require-css\css.min.js" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\node_modules\preact\dist\preact.min.js" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\node_modules\preact-compat\dist\preact-compat.min.js" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\node_modules\prop-types\prop-types.min.js" />
+    <Folder Include="ReactView\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="InjectModuleInitializer" AfterTargets="AfterBuild">
     <Exec Command="..\packages\InjectModuleInitializer.1.5\tools\InjectModuleInitializer.exe &quot;$(TargetPath)&quot;" />
-    <Exec Command="&quot;$(ProjectDir)nuget&quot; pack &quot;$(ProjectPath)&quot; -OutputDirectory &quot;$(ProjectDir)..\Nuget\ &quot; -Properties Configuration=$(ConfigurationName)" />
+    <Exec Command="&quot;$(ProjectDir)..\nuget&quot; pack &quot;$(ProjectPath)&quot; -OutputDirectory &quot;$(ProjectDir)..\Nuget\ &quot; -Properties Configuration=$(ConfigurationName)" />
   </Target>
   <PropertyGroup>
     <PreBuildEvent>$(ProjectDir)..\kill_testsengine.bat

@@ -58,7 +58,7 @@ namespace WebViewControl {
                
                 bool cancel = false;
                 if (OwnerWebView.BeforeNavigate != null) {
-                    var wrappedRequest = new Request(request, OwnerWebView.GetRequestUrl(request));
+                    var wrappedRequest = new Request(request, OwnerWebView.GetRequestUrl(request.Url, (ResourceType) request.ResourceType));
                     OwnerWebView.ExecuteWithAsyncErrorHandling(() => OwnerWebView.BeforeNavigate(wrappedRequest));
                     cancel = wrappedRequest.Canceled;
                 }

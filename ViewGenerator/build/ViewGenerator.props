@@ -1,0 +1,6 @@
+﻿<Project>
+  <ItemGroup>
+    <Content Include="tsconfig.json" />
+  </ItemGroup>
+  
+</Project>
