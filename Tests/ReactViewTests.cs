@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
 using NUnit.Framework;
-using WebViewControl;
+using ReactViewControl;
 
 namespace Tests {
 

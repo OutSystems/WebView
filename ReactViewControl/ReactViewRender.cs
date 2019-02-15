@@ -7,8 +7,9 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Windows;
 using System.Windows.Controls;
+using WebViewControl;
 
-namespace WebViewControl {
+namespace ReactViewControl {
 
     internal partial class ReactViewRender : UserControl, IReactView, IExecutionEngine {
 
@@ -18,11 +19,6 @@ namespace WebViewControl {
         private const string ReadyEventName = "Ready";
 
         internal static TimeSpan CustomRequestTimeout = TimeSpan.FromSeconds(5);
-
-        private static readonly Assembly Assembly = typeof(ReactViewRender).Assembly;
-        private static readonly string BuiltinResourcesPath = "Resources/";
-        private static readonly string DefaultUrl = $"{BuiltinResourcesPath}index.html";
-        private static readonly string LibrariesPath = new ResourceUrl(Assembly, $"{BuiltinResourcesPath}node_modules/").ToString();
 
         private readonly WebView webView;
         private Assembly userCallingAssembly;
@@ -55,13 +51,13 @@ namespace WebViewControl {
 
             var urlParams = new string[] {
                 UseEnhancedRenderingEngine ? "1" : "0",
-                LibrariesPath,
+                new ResourceUrl(typeof(ReactViewResources.Resources).Assembly, ReactViewResources.Resources.LibrariesPath).ToString(),
                 ModulesObjectName,
                 Listener.EventListenerObjName,
                 ReadyEventName
             };
             
-            webView.LoadResource(new ResourceUrl(typeof(ReactViewRender).Assembly, DefaultUrl + "?" + string.Join("&", urlParams)));
+            webView.LoadResource(new ResourceUrl(typeof(ReactViewResources.Resources).Assembly, ReactViewResources.Resources.DefaultUrl + "?" + string.Join("&", urlParams)));
         }
 
         private void OnWebViewDisposed() {
@@ -82,7 +78,7 @@ namespace WebViewControl {
             }
         }
 
-        public event Action<UnhandledExceptionEventArgs> UnhandledAsyncException {
+        public event Action<UnhandledAsyncExceptionEventArgs> UnhandledAsyncException {
             add { webView.UnhandledAsyncException += value; }
             remove { webView.UnhandledAsyncException -= value; }
         }

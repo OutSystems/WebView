@@ -1,4 +1,6 @@
-﻿namespace WebViewControl {
+﻿using WebViewControl;
+
+namespace ReactViewControl {
 
     public class SimpleViewModule : ViewModuleContainer {
 

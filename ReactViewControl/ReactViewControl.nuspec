@@ -1,19 +1,13 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
-    <id>WebViewControl</id>
+    <id>ReactViewControl</id>
     <version>1.67.20</version>
-    <title>WebViewControl</title>
+    <title>ReactViewControl</title>
     <authors>OutSystems</authors>
     <owners>OutSystems</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Description</description>
     <copyright>Copyright ©  2018</copyright>
-    <dependencies>
-      <dependency id="CefSharp.Wpf" version="67.0.0" />
-    </dependencies>
   </metadata>
-  <files>
-    <file src="WebViewControl.props" target="build" />
-  </files>
 </package>

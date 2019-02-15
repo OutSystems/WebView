@@ -71,7 +71,7 @@ namespace WebViewControl {
         public event Action<string> DownloadCancelled;
         public event Action JavascriptContextCreated;
         public event Action TitleChanged;
-        public event Action<UnhandledExceptionEventArgs> UnhandledAsyncException;
+        public event Action<UnhandledAsyncExceptionEventArgs> UnhandledAsyncException;
         internal event Action Disposed;
 
         private event Action RenderProcessCrashed;
@@ -626,7 +626,7 @@ namespace WebViewControl {
 
             var unhandledAsyncException = UnhandledAsyncException;
             if (unhandledAsyncException != null) {
-                var eventArgs = new UnhandledExceptionEventArgs(e);
+                var eventArgs = new UnhandledAsyncExceptionEventArgs(e);
                 unhandledAsyncException(eventArgs);
                 handled = eventArgs.Handled;
             }
