@@ -63,4 +63,7 @@
     <EmbeddedResource Include="index.html" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PreBuildEvent>npm ci</PreBuildEvent>
+  </PropertyGroup>
 </Project>
