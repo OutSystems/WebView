@@ -1,14 +1,14 @@
 {
   "description": "",
   "main": "index.js",
-  "devDependencies": { 
-	"@types/react-dom": "16.8.0"
+  "devDependencies": {
+    "@types/react-dom": "16.8.2"
   },
   "dependencies": {
     "preact-compat": "3.18.4",
     "preact": "8.4.2",
-	"react": "16.8.1",
-	"react-dom": "16.8.1",
+    "react": "16.8.1",
+    "react-dom": "16.8.1",
     "require-css": "0.1.10",
     "requirejs": "2.3.6"
   },

@@ -208,7 +208,7 @@
   </Target>
   <PropertyGroup>
     <PreBuildEvent>call "$(ProjectDir)"..\kill_testsengine.bat
-npm install --prefix "$(ProjectDir)ReactViewResources" "$(ProjectDir)ReactViewResources" 
+npm ci --prefix "$(ProjectDir)ReactViewResources" "$(ProjectDir)ReactViewResources" 
 </PreBuildEvent>
   </PropertyGroup>
   <Import Project="..\packages\Microsoft.TypeScript.MSBuild.2.8.3\build\Microsoft.TypeScript.MSBuild.targets" Condition="Exists('..\packages\Microsoft.TypeScript.MSBuild.2.8.3\build\Microsoft.TypeScript.MSBuild.targets')" />
