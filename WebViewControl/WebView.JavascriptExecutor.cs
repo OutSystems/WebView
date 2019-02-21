@@ -129,13 +129,14 @@ namespace WebViewControl {
                 } while (pendingScripts.Count > 0);
 
                 if (scriptsToExecute.Count > 0) {
+                    var script = string.Join(";" + Environment.NewLine, scriptsToExecute.Select(s => s.Script));
                     var task = OwnerWebView.chromium.EvaluateScriptAsync(
-                        WrapScriptWithErrorHandling(string.Join(";" + Environment.NewLine, scriptsToExecute.Select(s => s.Script))), 
+                        WrapScriptWithErrorHandling(script), 
                         OwnerWebView.DefaultScriptsExecutionTimeout);
                     task.Wait(flushTaskCancelationToken.Token);
                     var response = task.Result;
                     if (!response.Success) {
-                        OwnerWebView.ExecuteWithAsyncErrorHandling(() => throw ParseResponseException(response));
+                        OwnerWebView.ExecuteWithAsyncErrorHandling(() => throw ParseResponseException(script, response));
                     }
                 }
 
@@ -190,7 +191,7 @@ namespace WebViewControl {
                     return GetResult<T>(scriptTask.Result.Result);
                 }
                 
-                throw ParseResponseException(scriptTask.Result);
+                throw ParseResponseException(script, scriptTask.Result);
             }
 
             public T EvaluateScriptFunction<T>(string functionName, bool serializeParams, params object[] args) {
@@ -260,7 +261,7 @@ namespace WebViewControl {
                 }
             }
 
-            private static Exception ParseResponseException(JavascriptResponse response) {
+            private static Exception ParseResponseException(string evaluatedScript, JavascriptResponse response) {
                 var jsErrorJSON = response.Message;
 
                 // try parse js exception
@@ -283,6 +284,10 @@ namespace WebViewControl {
 
                         var parsedStack = new List<JavascriptStackFrame>();
 
+                        parsedStack.Add(new JavascriptStackFrame() {
+                            FunctionName = evaluatedScript
+                        });
+
                         foreach(var stackFrame in jsStack) {
                             var frameParts = StackFrameRegex.Match(stackFrame);
                             if (frameParts.Success) {
@@ -299,7 +304,7 @@ namespace WebViewControl {
                     }
                 }
 
-                return new JavascriptException("Javascript Error", response.Message);
+                return new JavascriptException($"Error evaluating script: '{evaluatedScript}'", response.Message);
             }
 
             internal static bool IsInternalException(string exceptionMessage) {
