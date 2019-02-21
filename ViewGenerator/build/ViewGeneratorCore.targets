@@ -1,9 +1,5 @@
 ﻿<Project>
   <PropertyGroup>
-    <ViewGeneratorTs2LangExe>"$(MSBuildThisFileDirectory)..\tools\node_modules\@outsystems\ts2lang\ts2lang-main.js"</ViewGeneratorTs2LangExe>
-    <ViewGeneratorTs2LangConfig>"$(MSBuildProjectDirectory)\ts2lang.json"</ViewGeneratorTs2LangConfig>
-    <ViewGeneratorTs2LangTemplate>"$(MSBuildThisFileDirectory)..\tools\ViewGenerator.js"</ViewGeneratorTs2LangTemplate>
-
     <BuildDependsOn>
       GenerateView;
       $(BuildDependsOn)
@@ -17,7 +13,7 @@
 
   <Target Name="GenerateView" BeforeTargets="CoreCompile">
     <Message Importance="Normal" Text="Generating View files" />
-    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; $(ViewGeneratorTs2LangExe) -f $(ViewGeneratorTs2LangConfig) -t $(ViewGeneratorTs2LangTemplate)" />
+    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(MSBuildThisFileDirectory)..\tools\node_modules\@outsystems\ts2lang\ts2lang-main.js&quot; -f &quot;$(MSBuildProjectDirectory)\ts2lang.json&quot; -t &quot;$(MSBuildThisFileDirectory)..\tools\ViewGenerator.js&quot;" />
     <ItemGroup>
       <Compile Include="$(ViewGeneratorGeneratedFolder)\**\*.cs" />
     </ItemGroup>

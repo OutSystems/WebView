@@ -2,5 +2,7 @@
   <ItemGroup>
     <Content Include="tsconfig.json" />
   </ItemGroup>
-  
+  <PropertyGroup>
+    <TypeScriptBuildMode>true</TypeScriptBuildMode>
+  </PropertyGroup>
 </Project>
