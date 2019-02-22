@@ -16,7 +16,7 @@ namespace ReactViewControl {
         private const string JavascriptNullConstant = "null";
 
         private const string ModulesObjectName = "__Modules__";
-        private const string ReadyEventName = "Ready";
+        private const string ComponentLoadedEventName = "ComponentLoaded";
 
         internal static TimeSpan CustomRequestTimeout = TimeSpan.FromSeconds(5);
 
@@ -42,7 +42,8 @@ namespace ReactViewControl {
                 DisableBuiltinContextMenus = true,
                 IgnoreMissingResources = false
             };
-            webView.AttachListener(ReadyEventName, () => IsReady = true, executeInUI: false);
+            var loadedListener = webView.AttachListener(ComponentLoadedEventName);
+            loadedListener.Handler += () => IsReady = true;
             webView.Navigated += OnWebViewNavigated;
             webView.Disposed += OnWebViewDisposed;
             webView.BeforeResourceLoad += OnWebViewBeforeResourceLoad;
@@ -54,7 +55,7 @@ namespace ReactViewControl {
                 new ResourceUrl(typeof(ReactViewResources.Resources).Assembly, ReactViewResources.Resources.LibrariesPath).ToString(),
                 ModulesObjectName,
                 Listener.EventListenerObjName,
-                ReadyEventName
+                ComponentLoadedEventName
             };
             
             webView.LoadResource(new ResourceUrl(typeof(ReactViewResources.Resources).Assembly, ReactViewResources.Resources.DefaultUrl + "?" + string.Join("&", urlParams)));
@@ -70,10 +71,15 @@ namespace ReactViewControl {
         }
 
         public event Action Ready {
-            add { readyEventListener = webView.AttachListener(ReadyEventName, value); }
+            add {
+                if (readyEventListener == null) {
+                    readyEventListener = webView.AttachListener(ComponentLoadedEventName);
+                }
+                readyEventListener.UIHandler += value;
+            }
             remove {
                 if (readyEventListener != null) {
-                    webView.DetachListener(readyEventListener);
+                    readyEventListener.UIHandler -= value;
                 }
             }
         }

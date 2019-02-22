@@ -25,9 +25,6 @@ namespace WebViewControl {
             ResourceUrl.CustomScheme
         };
 
-        private static readonly string TempDir =
-            Path.Combine(Path.GetTempPath(), "WebView" + Guid.NewGuid().ToString().Replace("-", null) + DateTime.UtcNow.Ticks);
-
         private const string ChromeInternalProtocol = "chrome-devtools:";
 
         // converts cef zoom percentage to css zoom (between 0 and 1)
@@ -108,7 +105,7 @@ namespace WebViewControl {
                 cefSettings.LogSeverity = string.IsNullOrWhiteSpace(LogFile) ? LogSeverity.Disable : (EnableErrorLogOnly ? LogSeverity.Error : LogSeverity.Verbose);
                 cefSettings.LogFile = LogFile;
                 cefSettings.UncaughtExceptionStackSize = 100; // enable stack capture
-                cefSettings.CachePath = TempDir; // enable cache for external resources to speedup loading
+                cefSettings.CachePath = CachePath; // enable cache for external resources to speedup loading
                 cefSettings.WindowlessRenderingEnabled = true;
 
                 CefSharpSettings.ConcurrentTaskExecution = true;
@@ -144,8 +141,12 @@ namespace WebViewControl {
 
             Cef.Shutdown(); // must shutdown cef to free cache files (so that cleanup is able to delete files)
 
+            if (PersistCache) {
+                return;
+            }
+
             try {
-                var dirInfo = new DirectoryInfo(TempDir);
+                var dirInfo = new DirectoryInfo(CachePath);
                 if (dirInfo.Exists) {
                     dirInfo.Delete(true);
                 }
@@ -499,23 +500,18 @@ namespace WebViewControl {
             set { ExecuteWhenInitialized(() => chromium.ZoomLevel = Math.Log(value, PercentageToZoomFactor)); }
         }
 
-        public Listener AttachListener(string name, Action handler, bool executeInUI = true) {
-            Action<string> internalHandler = (eventName) => {
-                if (!isDisposing && eventName == name) {
+        public Listener AttachListener(string name) {
+            void HandleEvent(Action handler, bool executeInUI) {
+                if (!isDisposing) {
                     if (executeInUI) {
                         Dispatcher.Invoke(handler);
                     } else {
                         ExecuteWithAsyncErrorHandling(handler);
                     }
                 }
-            };
-            var listener = new Listener(name, internalHandler);
-            eventsListener.NotificationReceived += listener.Handler;
-            return listener;
-        }
+            }
 
-        public void DetachListener(Listener listener) {
-            eventsListener.NotificationReceived -= listener.Handler;
+            return new Listener(name, HandleEvent, eventsListener);
         }
 
         private void OnWebViewIsBrowserInitializedChanged(object sender, DependencyPropertyChangedEventArgs e) {
@@ -646,6 +642,10 @@ namespace WebViewControl {
         }
 
         public static string LogFile { get; set; }
+
+        public static string CachePath { get; set; } = Path.Combine(Path.GetTempPath(), "WebView" + Guid.NewGuid().ToString().Replace("-", null) + DateTime.UtcNow.Ticks);
+
+        public static bool PersistCache { get; set; } = false;
 
         public static bool EnableErrorLogOnly { get; set; } = false;
 
