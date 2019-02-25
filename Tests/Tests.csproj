@@ -77,6 +77,7 @@
     <Compile Include="ReactViewPluginModulesLoadTests.cs" />
     <Compile Include="ReactViewDefaultStylesheetLoadTests.cs" />
     <Compile Include="ReactViewInitializationTests.cs" />
+    <Compile Include="ReactViewTestsPrematureScriptEvaluation.cs" />
     <Compile Include="ReactViewTests.cs" />
     <Compile Include="ReactViewTestBase.cs" />
     <Compile Include="RequestInterception.cs" />

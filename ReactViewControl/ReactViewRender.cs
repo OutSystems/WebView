@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -33,6 +34,8 @@ namespace ReactViewControl {
         private FileSystemWatcher fileSystemWatcher;
         private string cacheInvalidationTimestamp;
 
+        private ConcurrentQueue<Tuple<string, object[]>> pendingScripts = new ConcurrentQueue<Tuple<string, object[]>>();
+
         public static bool UseEnhancedRenderingEngine { get; set; } = true;
 
         public ReactViewRender(bool preloadWebView) {
@@ -42,8 +45,10 @@ namespace ReactViewControl {
                 DisableBuiltinContextMenus = true,
                 IgnoreMissingResources = false
             };
+
             var loadedListener = webView.AttachListener(ComponentLoadedEventName);
-            loadedListener.Handler += () => IsReady = true;
+            loadedListener.Handler += OnReady;
+
             webView.Navigated += OnWebViewNavigated;
             webView.Disposed += OnWebViewDisposed;
             webView.BeforeResourceLoad += OnWebViewBeforeResourceLoad;
@@ -59,6 +64,18 @@ namespace ReactViewControl {
             };
             
             webView.LoadResource(new ResourceUrl(typeof(ReactViewResources.Resources).Assembly, ReactViewResources.Resources.DefaultUrl + "?" + string.Join("&", urlParams)));
+        }
+
+        private void OnReady() {
+            IsReady = true;
+            while (true) {
+                if (pendingScripts.TryDequeue(out var pendingScript)) {
+                    webView.ExecuteScriptFunctionWithSerializedParams(pendingScript.Item1, pendingScript.Item2);
+                } else {
+                    // nothing else to execute
+                    break;
+                }
+            }
         }
 
         private void OnWebViewDisposed() {
@@ -144,7 +161,12 @@ namespace ReactViewControl {
         }
 
         public void ExecuteMethod(IViewModule module, string methodCall, params object[] args) {
-            webView.ExecuteScriptFunctionWithSerializedParams(ModulesObjectName + "." + module.Name + "." + methodCall, args);
+            var method = ModulesObjectName + "." + module.Name + "." + methodCall;
+            if (IsReady) {
+                webView.ExecuteScriptFunctionWithSerializedParams(method, args);
+            } else {
+                pendingScripts.Enqueue(Tuple.Create(method, args));
+            }
         }
 
         public T EvaluateMethod<T>(IViewModule module, string methodCall, params object[] args) {
