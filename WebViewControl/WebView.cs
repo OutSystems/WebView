@@ -650,5 +650,9 @@ namespace WebViewControl {
         public static bool EnableErrorLogOnly { get; set; } = false;
 
         internal bool IsDisposing => isDisposing;
+
+        protected static void RegisterProtocolHandler(string protocol, Action<ResourceHandler> requestHandler) {
+            Cef.GetGlobalRequestContext().RegisterSchemeHandlerFactory(protocol, "", new CefSchemeHandlerFactory(requestHandler));
+        }
     }
 }
