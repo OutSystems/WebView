@@ -29,15 +29,21 @@ namespace WebViewControl {
 
         internal class ScriptTask {
 
-            public ScriptTask(string script, TimeSpan? timeout = default(TimeSpan?), bool awaitable = false) {
+            public ScriptTask(string script, string functionName, TimeSpan? timeout = default(TimeSpan?), bool awaitable = false) {
                 Script = script;
                 if (awaitable) {
                     WaitHandle = new ManualResetEvent(false);
                 }
                 Timeout = timeout;
+
+                // we store the function name apart from the script and use it later in the exception details 
+                // this prevents any params to be shown in the message because they can contain sensitive information
+                FunctionName = functionName;
             }
 
             public string Script { get; private set; }
+
+            public string FunctionName { get; private set; }
 
             public ManualResetEvent WaitHandle { get; private set; }
 
@@ -50,7 +56,7 @@ namespace WebViewControl {
 
         internal class JavascriptExecutor : IDisposable {
 
-            private static readonly Regex StackFrameRegex = new Regex(@"at\s*(?<method>.*?)\s(?<location>[^\s]+):(?<line>\d+):(?<column>\d+)", RegexOptions.Compiled);
+            private static readonly Regex StackFrameRegex = new Regex(@"at\s*(?<method>.*?)\s\(?(?<location>[^\s]+):(?<line>\d+):(?<column>\d+)", RegexOptions.Compiled);
             private const string InternalException = "|WebViewInternalException";
 
             private readonly WebView OwnerWebView;
@@ -89,11 +95,11 @@ namespace WebViewControl {
                 flushTaskCancelationToken.Dispose();
             }
 
-            private ScriptTask QueueScript(string script, TimeSpan? timeout = default(TimeSpan?), bool awaitable = false) {
+            private ScriptTask QueueScript(string script, string functionName = null, TimeSpan? timeout = default(TimeSpan?), bool awaitable = false) {
                 if (OwnerWebView.isDisposing) {
                     return null;
                 }
-                var scriptTask = new ScriptTask(script, timeout, awaitable);
+                var scriptTask = new ScriptTask(script, functionName, timeout, awaitable);
                 pendingScripts.Add(scriptTask);
                 return scriptTask;
             }
@@ -136,7 +142,8 @@ namespace WebViewControl {
                     task.Wait(flushTaskCancelationToken.Token);
                     var response = task.Result;
                     if (!response.Success) {
-                        OwnerWebView.ExecuteWithAsyncErrorHandling(() => throw ParseResponseException(script, response));
+                        var evaluatedScriptFunctions = scriptsToExecute.Select(s => s.FunctionName);
+                        OwnerWebView.ExecuteWithAsyncErrorHandling(() => throw ParseResponseException(response, evaluatedScriptFunctions));
                     }
                 }
 
@@ -162,10 +169,10 @@ namespace WebViewControl {
                 }
             }
 
-            public T EvaluateScript<T>(string script, TimeSpan? timeout = default(TimeSpan?)) {
+            public T EvaluateScript<T>(string script, string functionName = null, TimeSpan? timeout = default(TimeSpan?)) {
                 var scriptWithErrorHandling = WrapScriptWithErrorHandling(script);
 
-                var scriptTask = QueueScript(scriptWithErrorHandling, timeout, true);
+                var scriptTask = QueueScript(scriptWithErrorHandling, functionName, timeout, true);
                 if (scriptTask == null) {
                     return GetResult<T>(null); // webview is disposing
                 }
@@ -191,15 +198,15 @@ namespace WebViewControl {
                     return GetResult<T>(scriptTask.Result.Result);
                 }
                 
-                throw ParseResponseException(script, scriptTask.Result);
+                throw ParseResponseException(scriptTask.Result, new[] { functionName });
             }
 
             public T EvaluateScriptFunction<T>(string functionName, bool serializeParams, params object[] args) {
-                return EvaluateScript<T>(MakeScript(functionName, serializeParams, args));
+                return EvaluateScript<T>(MakeScript(functionName, serializeParams, args), functionName);
             }
 
             public void ExecuteScriptFunction(string functionName, bool serializeParams, params object[] args) {
-                QueueScript(MakeScript(functionName, serializeParams, args));
+                QueueScript(MakeScript(functionName, serializeParams, args), functionName);
             }
 
             public void ExecuteScript(string script) {
@@ -261,12 +268,15 @@ namespace WebViewControl {
                 }
             }
 
-            private static Exception ParseResponseException(string evaluatedScript, JavascriptResponse response) {
+            private static Exception ParseResponseException(JavascriptResponse response, IEnumerable<string> evaluatedScriptFunctions) {
                 var jsErrorJSON = response.Message;
 
                 // try parse js exception
                 jsErrorJSON = jsErrorJSON.Substring(Math.Max(0, jsErrorJSON.IndexOf("{")));
                 jsErrorJSON = jsErrorJSON.Substring(0, jsErrorJSON.LastIndexOf("}") + 1);
+
+                var evaluatedStackFrames = evaluatedScriptFunctions.Where(f => !string.IsNullOrEmpty(f))
+                                                                   .Select(f => new JavascriptStackFrame() { FunctionName = f, SourceName = "eval" });
 
                 if (!string.IsNullOrEmpty(jsErrorJSON)) {
                     JsError jsError = null;
@@ -284,9 +294,7 @@ namespace WebViewControl {
 
                         var parsedStack = new List<JavascriptStackFrame>();
 
-                        parsedStack.Add(new JavascriptStackFrame() {
-                            FunctionName = evaluatedScript
-                        });
+                        parsedStack.AddRange(evaluatedStackFrames);
 
                         foreach(var stackFrame in jsStack) {
                             var frameParts = StackFrameRegex.Match(stackFrame);
@@ -300,11 +308,11 @@ namespace WebViewControl {
                             }
                         }
                         
-                        return new JavascriptException(jsError.Name, jsError.Message, parsedStack.ToArray());
+                        return new JavascriptException(jsError.Name, jsError.Message, parsedStack);
                     }
                 }
 
-                return new JavascriptException($"Error evaluating script: '{evaluatedScript}'", response.Message);
+                return new JavascriptException("Javascript Error", response.Message, evaluatedStackFrames);
             }
 
             internal static bool IsInternalException(string exceptionMessage) {

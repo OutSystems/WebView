@@ -442,11 +442,11 @@ namespace WebViewControl {
         }
 
         public T EvaluateScript<T>(string script) {
-            return jsExecutor.EvaluateScript<T>(script, default(TimeSpan?));
+            return jsExecutor.EvaluateScript<T>(script, timeout: default(TimeSpan?));
         }
 
         public T EvaluateScript<T>(string script, TimeSpan? timeout) {
-            return jsExecutor.EvaluateScript<T>(script, timeout);
+            return jsExecutor.EvaluateScript<T>(script, timeout: timeout);
         }
 
         public void ExecuteScript(string script) {
