@@ -17,5 +17,4 @@ WebView is a WPF control that wraps CefSharp web view control. Provides the foll
 - NodeJS
 
 # TODO
-- Add examples
 - Improve documentation
