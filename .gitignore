@@ -15,10 +15,9 @@ Tests/ReactViewResources/node_modules/
 .vs/config/applicationhost.config
 Tests/ReactViewResources/dist/
 .vs/
-WebViewControl/Resources/builtin/
-WebViewControl/Resources/node_modules/
 ViewGenerator/tools/dist/
 *.js
 ViewGenerator/content/node_modules/
 ReactViewResources/node_modules/
 *.tgz
+ViewGenerator/tools/node_modules/
