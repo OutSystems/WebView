@@ -7,10 +7,6 @@ interface IAppProperties {
 
 class App extends React.Component<IAppProperties, {}> {
 
-    constructor() {
-        super();
-    }
-
     render() {
         return (
             <div className="App">
