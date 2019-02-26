@@ -252,7 +252,7 @@ class Generator {
         const generateAliases = () => {
             return (
                 `using ${ComponentAliasName} = ${this.componentName};\n` +
-                `using ${BaseComponentAliasName} = ${this.baseComponentClass || "WebViewControl.ReactView"};`
+                `using ${BaseComponentAliasName} = ${this.baseComponentClass || "ReactViewControl.ReactView"};`
             );
         };
 

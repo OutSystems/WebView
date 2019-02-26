@@ -1,0 +1,21 @@
+﻿{
+    "compilerOptions": {
+        "module": "amd",
+        "target": "es6",
+        "jsx": "react",
+        "moduleResolution": "node",
+        "sourceMap": false,
+        "allowJs": true,
+        "rootDir": ".",
+        "forceConsistentCasingInFileNames": true,
+        "noImplicitReturns": true,
+        "noImplicitThis": true,
+        "noImplicitAny": true,
+        "suppressImplicitAnyIndexErrors": true
+    },
+    "compileOnSave": true,
+    "exclude": [
+        "node_modules",
+        "dist"
+    ]
+}
