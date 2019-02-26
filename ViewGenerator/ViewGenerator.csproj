@@ -91,7 +91,7 @@
 </PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PreBuildEvent>npm ci --prefix "$(ProjectDir)content" "$(ProjectDir)content"</PreBuildEvent>
+    <PreBuildEvent>npm ci --prefix "$(ProjectDir)content" "$(ProjectDir)content" &amp;&amp; npm ci --prefix "$(ProjectDir)tools" "$(ProjectDir)tools"</PreBuildEvent>
   </PropertyGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
