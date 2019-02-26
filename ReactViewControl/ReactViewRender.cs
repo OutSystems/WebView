@@ -254,6 +254,10 @@ namespace ReactViewControl {
 
             baseLocation = Path.GetDirectoryName(baseLocation);
 
+            if (!Directory.Exists(baseLocation)) {
+                return;
+            }
+
             if (fileSystemWatcher != null) {
                 fileSystemWatcher.Path = baseLocation;
                 return;
