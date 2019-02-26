@@ -62,13 +62,24 @@ namespace Tests {
         }
 
         [Test(Description = "Evaluation of scripts with errors returns stack and message details")]
-        public void EvaluationErrorsReturnsDetails() {
+        public void EvaluationErrorsContainsMessageAndJavascriptStack() {
             var exception = Assert.Throws<WebView.JavascriptException>(() => TargetView.EvaluateScript<int>("(function foo() { (function bar() { throw new Error('ups'); })() })()"));
+
             Assert.AreEqual("Error: ups", exception.Message);
             var stack = exception.StackTrace.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
             Assert.Greater(stack.Length, 2);
-            Assert.True(stack.ElementAt(0).StartsWith("   at bar"));
-            Assert.True(stack.ElementAt(1).StartsWith("   at foo"));
+            Assert.True(stack.ElementAt(0).StartsWith("   at bar in about"));
+            Assert.True(stack.ElementAt(1).StartsWith("   at foo in about"));
+        }
+
+        [Test(Description = "Evaluation of scripts includes evaluated function but not args")]
+        public void EvaluationErrorsContainsEvaluatedJavascript() {
+            var exception = Assert.Throws<WebView.JavascriptException>(() => TargetView.EvaluateScriptFunction<int>("Math.min", "123", "(function() { throw new Error() })()"));
+
+            var stack = exception.StackTrace.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+            Assert.Greater(stack.Length, 1);
+            Assert.True(stack.ElementAt(0).StartsWith("   at Math.min in eval"));
+            Assert.IsFalse(stack.ElementAt(0).Contains("123"));
         }
 
         [Test(Description = "Evaluation of scripts with comments, json objects, and var declarations")]

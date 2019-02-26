@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using CefSharp;
 
@@ -10,14 +11,13 @@ namespace WebViewControl {
 
             private readonly JavascriptStackFrame[] jsStack;
 
-            internal JavascriptException(string message, JavascriptStackFrame[] stack = null)
+            internal JavascriptException(string message, IEnumerable<JavascriptStackFrame> stack = null)
             : base(message, null) {
-                jsStack = stack ?? new JavascriptStackFrame[0];
+                jsStack = stack?.ToArray() ?? new JavascriptStackFrame[0];
             }
 
-            internal JavascriptException(string name, string message, JavascriptStackFrame[] stack = null)
-            : base((string.IsNullOrEmpty(name) ? "" : name + ": ") + message, null) {
-                jsStack = stack ?? new JavascriptStackFrame[0];
+            internal JavascriptException(string name, string message, IEnumerable<JavascriptStackFrame> stack = null)
+            : this((string.IsNullOrEmpty(name) ? "" : name + ": ") + message, stack) {
             }
 
             public override string StackTrace {
