@@ -8,19 +8,6 @@ namespace Tests {
 
     public class JavascriptEvaluation : WebViewTestBase {
 
-        enum Kind {
-            A,
-            B,
-            C
-        }
-
-        class TestObject {
-            public string Name;
-            public int Age;
-            public TestObject Parent;
-            public Kind Kind;
-        }
-
         [Test(Description = "A simple script evaluates correctly")]
         public void EvaluateSimpleScript() {
             var result = TargetView.EvaluateScript<int>("2+1");

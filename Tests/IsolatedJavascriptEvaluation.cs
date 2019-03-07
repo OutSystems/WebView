@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Threading;
 using NUnit.Framework;
 using WebViewControl;
 
@@ -37,7 +36,7 @@ namespace Tests {
             TargetView.RegisterJavascriptObject(DotNetObject, functionToCall, interceptor);
             LoadAndWaitReady($"<html><script>{DotNetObject}.invoke();</script><body></body></html>");
 
-            WaitFor(() => functionCalled, TimeSpan.FromSeconds(2));
+            WaitFor(() => functionCalled, DefaultTimeout);
             Assert.IsTrue(functionCalled);
             Assert.IsTrue(interceptorCalled);
         }
@@ -54,7 +53,7 @@ namespace Tests {
             TargetView.RegisterJavascriptObject(DotNetObject, functionToCall, executeCallsInUI: true);
             LoadAndWaitReady($"<html><script>{DotNetObject}.invoke();</script><body></body></html>");
 
-            WaitFor(() => canAccessDispatcher != null, TimeSpan.FromSeconds(2));
+            WaitFor(() => canAccessDispatcher != null, DefaultTimeout);
             Assert.IsTrue(canAccessDispatcher);
         }
 
@@ -74,7 +73,7 @@ namespace Tests {
 
             var result = TargetView.EvaluateScriptFunction<int>("test");
 
-            WaitFor(() => functionCalled, TimeSpan.FromSeconds(2));
+            WaitFor(() => functionCalled, DefaultTimeout);
             Assert.AreEqual(1, result);
         }
 
@@ -92,10 +91,45 @@ namespace Tests {
             TargetView.RegisterJavascriptObject(DotNetObject, functionToCall);
             LoadAndWaitReady($"<html><script>{DotNetObject}.invoke(null, ['hello', null, 'world']);</script><body></body></html>");
 
-            WaitFor(() => functionCalled, TimeSpan.FromSeconds(2));
+            WaitFor(() => functionCalled, DefaultTimeout);
             Assert.IsTrue(functionCalled);
             Assert.AreEqual(null, obtainedArg1);
             Assert.That(new[] { "hello", null, "world" }, Is.EquivalentTo(obtainedArg2));
+        }
+
+        [Test(Description = ".Net Method returned objects serialization")]
+        public void RegisteredJsObjectReturnObjectSerialization() {
+            const string DotNetObject = "DotNetObject";
+            const string DotNetSetResult = "DotNetSetResult";
+
+            TestObject result = null;
+            var testObject = new TestObject() {
+                Age = 33,
+                Kind = Kind.B,
+                Name = "John",
+                Parent = new TestObject() {
+                    Name = "John Parent",
+                    Age = 66,
+                    Kind = Kind.C
+                }
+            };
+
+            Func<TestObject> functionToCall = () => testObject;
+            Action<TestObject> setResult = (r) => result = r;
+
+            TargetView.RegisterJavascriptObject(DotNetObject, functionToCall);
+            TargetView.RegisterJavascriptObject(DotNetSetResult, setResult);
+            LoadAndWaitReady($"<html><script>(async function test() {{ var result = await {DotNetObject}.invoke(); {DotNetSetResult}.invoke(result); }})()</script><body></body></html>");
+
+            WaitFor(() => result != null, DefaultTimeout);
+            Assert.IsNotNull(result);
+            Assert.AreEqual(testObject.Name, result.Name);
+            Assert.AreEqual(testObject.Age, result.Age);
+            Assert.AreEqual(testObject.Kind, result.Kind);
+            Assert.IsNotNull(result.Parent);
+            Assert.AreEqual(testObject.Parent.Name, result.Parent.Name);
+            Assert.AreEqual(testObject.Parent.Age, result.Parent.Age);
+            Assert.AreEqual(testObject.Parent.Kind, result.Parent.Kind);
         }
 
         [Test(Description = "Dispose is scheduled when there are js pending calls")]
@@ -113,25 +147,25 @@ namespace Tests {
             };
 
             TargetView.RegisterJavascriptObject(DotNetObject, functionToCall, executeCallsInUI: true);
-            LoadAndWaitReady("<html><script>function test() { DotNetObject.invoke(); return 1; }</script><body></body></html>");
+            LoadAndWaitReady($"<html><script>function test() {{ {DotNetObject}.invoke(); return 1; }}</script><body></body></html>");
             TargetView.Disposed += () => disposeCalled = true;
 
             var result = TargetView.EvaluateScriptFunction<int>("test");
-            WaitFor(() => functionCalled, TimeSpan.FromSeconds(2));
+            WaitFor(() => functionCalled, DefaultTimeout);
 
-            WaitFor(() => disposeCalled, TimeSpan.FromSeconds(2));
+            WaitFor(() => disposeCalled, DefaultTimeout);
 
             Assert.IsTrue(disposeCalled);
         }
 
-        [Test(Description = "")]
-        public void JsEvaluationReturnsDefaultValuesAfterWebViewwDispose() {
+        [Test(Description = "Javascript evaluation returns default values after webview is disposed")]
+        public void JsEvaluationReturnsDefaultValuesAfterWebViewDispose() {
             var disposeCalled = false;
             LoadAndWaitReady("<html><script>function test() { return 1; }</script><body></body></html>");
             TargetView.Disposed += () => disposeCalled = true;
             TargetView.Dispose();
 
-            WaitFor(() => disposeCalled, TimeSpan.FromSeconds(2));
+            WaitFor(() => disposeCalled, DefaultTimeout);
 
             var result = TargetView.EvaluateScriptFunction<int>("test");
 
