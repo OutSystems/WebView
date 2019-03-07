@@ -35,7 +35,6 @@ namespace WebViewControl {
         private static bool subscribedApplicationExit = false;
 
         private InternalChromiumBrowser chromium;
-        private BrowserSettings settings;
         private bool isDeveloperToolsOpened = false;
         private Action pendingInitialization;
         private string htmlToLoad;
@@ -184,11 +183,9 @@ namespace WebViewControl {
                 subscribedApplicationExit = true;
             }
 
-            settings = new BrowserSettings();
             lifeSpanHandler = new CefLifeSpanHandler(this);
 
             chromium = new InternalChromiumBrowser();
-            chromium.BrowserSettings = settings;
             chromium.IsBrowserInitializedChanged += OnWebViewIsBrowserInitializedChanged;
             chromium.FrameLoadEnd += OnWebViewFrameLoadEnd;
             chromium.LoadError += OnWebViewLoadError;
@@ -263,7 +260,6 @@ namespace WebViewControl {
                 JavascriptContextReleased = null;
 
                 jsExecutor.Dispose();
-                settings.Dispose();
                 chromium.Dispose();
                 cancellationTokenSource.Dispose();
 
@@ -323,11 +319,13 @@ namespace WebViewControl {
                 htmlToLoad = null;
             }
             if (address.Contains(Uri.SchemeDelimiter) || address == "about:blank" || address.StartsWith("data:")) {
-                if (CustomSchemes.Any(s => address.StartsWith(s + Uri.SchemeDelimiter))) {
-                    // custom schemes -> turn off security ... to enable full access without problems to local resources
-                    IsSecurityDisabled = true;
-                } else {
-                    IsSecurityDisabled = false;
+                if (chromium.BrowserSettings != null && !chromium.BrowserSettings.IsDisposed) {
+                    if (CustomSchemes.Any(s => address.StartsWith(s + Uri.SchemeDelimiter))) {
+                        // custom schemes -> turn off security ... to enable full access without problems to local resources
+                        IsSecurityDisabled = true;
+                    } else {
+                        IsSecurityDisabled = false;
+                    }
                 }
                 // must wait for the browser to be initialized otherwise navigation will be aborted
                 ExecuteWhenInitialized(() => chromium.Load(address));
@@ -347,8 +345,13 @@ namespace WebViewControl {
         }
 
         public bool IsSecurityDisabled {
-            get { return settings.WebSecurity != CefState.Enabled; }
-            set { settings.WebSecurity = (value ? CefState.Disabled : CefState.Enabled); }
+            set {
+                var settings = chromium.BrowserSettings;
+                if (settings == null || settings.IsDisposed) {
+                    throw new InvalidOperationException("Cannot change webview settings after initialized");
+                }
+                settings.WebSecurity = (value ? CefState.Disabled : CefState.Enabled);
+            }
         }
 
         public bool IgnoreCertificateErrors {

@@ -47,10 +47,12 @@ namespace CefSharp {
                 var archSpecificPath = Path.Combine(GetBaseArchitectureSpecificPath(), assemblyName);
 
                 if (!File.Exists(archSpecificPath)) {
-                    throw new FileNotFoundException("Unable to locate", archSpecificPath);
+                    if (!archSpecificPath.EndsWith(".resources.dll")) {
+                        throw new FileNotFoundException("Unable to locate", archSpecificPath);
+                    }
+                } else {
+                    return Assembly.LoadFile(archSpecificPath);
                 }
-
-                return Assembly.LoadFile(archSpecificPath);
             }
 
             return null;
