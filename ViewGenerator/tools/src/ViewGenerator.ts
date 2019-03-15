@@ -69,7 +69,7 @@ class Generator {
             case "string":
                 return "string";
             case "number":
-                return "int";
+                return "double";
             case "boolean":
                 return "bool";
             case "void":

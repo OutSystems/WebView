@@ -14,6 +14,21 @@
                 "emitComponentAdapter": false,
                 "emitViewObjects": true
             }
+        },
+        {
+            "input": "**/*.ts",
+            "output": "Generated/",
+            "template": "",
+            "parameters": {
+                "namespace": "Example",
+                "baseComponentClass": "ReactViewControl.ViewModuleContainer",
+                "baseComponentInterface": "",
+                "javascriptDistPath": "",
+                "emitComponent": true,
+                "emitComponentInterface": true,
+                "emitComponentAdapter": false,
+                "emitViewObjects": true
+            }
         }
     ]
 }
