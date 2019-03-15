@@ -37,9 +37,9 @@
             const ReadyEventName = UrlParams[4];
 
             async function notifyReady() {
+                window.dispatchEvent(new Event('viewready'));
                 await CefSharp.BindObjectAsync(EventListenerObjectName, EventListenerObjectName);
                 window[EventListenerObjectName].notify(ReadyEventName);
-                window.dispatchEvent(new Event('pluginsloaded'));
             }
 
             async function loadComponent(paths, baseUrl, userComponent, userDefaultStylesheet, enableDebugMode, cacheInvalidationSuffix, plugins, mappings) {

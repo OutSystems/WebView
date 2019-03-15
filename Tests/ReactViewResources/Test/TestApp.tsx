@@ -7,7 +7,11 @@ interface IAppProperties {
 
 class App extends React.Component<IAppProperties, {}> {
 
+    viewIsReady: boolean;
+
     render() {
+        this.viewIsReady = false;
+        window.addEventListener("viewready", () => this.viewIsReady = true);
         return (
             <div className="App">
                 <div className="App-header">
@@ -48,6 +52,16 @@ class App extends React.Component<IAppProperties, {}> {
         intervalHandle = setInterval(() => {
             if ((window as any).PluginModuleLoaded) {
                 this.props.event("PluginModuleLoaded");
+            }
+            clearInterval(intervalHandle);
+        }, 50);
+    }
+
+    checkViewReady() {
+        var intervalHandle = 0;
+        intervalHandle = setInterval(() => {
+            if (this.viewIsReady) {
+                this.props.event("ViewReadyTrigger");
             }
             clearInterval(intervalHandle);
         }, 50);
