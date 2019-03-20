@@ -14,6 +14,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReactViewControl", "ReactViewControl\ReactViewControl.csproj", "{E7083D15-8FF2-4D8F-8505-D4CB9BA050DC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example", "Example\Example.csproj", "{08B8917D-9E70-4EC2-A61C-2DCDDCD5BD02}"
+	ProjectSection(ProjectDependencies) = postProject
+		{7217988C-8461-4505-A7A8-99FC75C35A6B} = {7217988C-8461-4505-A7A8-99FC75C35A6B}
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
