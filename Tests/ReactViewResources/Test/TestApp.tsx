@@ -9,9 +9,13 @@ class App extends React.Component<IAppProperties, {}> {
 
     viewIsReady: boolean;
 
-    render() {
+    constructor(props: IAppProperties) {
+        super(props);
         this.viewIsReady = false;
         window.addEventListener("viewready", () => this.viewIsReady = true);
+    }
+
+    render() {
         return (
             <div className="App">
                 <div className="App-header">
