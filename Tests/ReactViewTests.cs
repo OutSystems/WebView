@@ -92,5 +92,17 @@ namespace Tests {
             }
 
         }
+
+        [Test(Description = "Tests view ready event is dispatched.")]
+        public void ViewReadyEventIsDispatched() {
+            var viewIsReady = false;
+            TargetView.Event += (args) => {
+                viewIsReady = args == "ViewReadyTrigger";
+            };
+
+            TargetView.ExecuteMethodOnRoot("checkViewReady");
+
+            WaitFor(() => viewIsReady, "View is ready");
+        }
     }
 }
