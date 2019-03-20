@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
     <id>ReactViewControl</id>
-    <version>1.71.3</version>
+    <version>1.71.5</version>
     <title>ReactViewControl</title>
     <authors>OutSystems</authors>
     <owners>OutSystems</owners>
@@ -10,7 +10,7 @@
     <description>Description</description>
     <copyright>Copyright ©  2018</copyright>
     <dependencies>
-      <dependency id="WebViewControl" version="1.71.4" />
+      <dependency id="WebViewControl" version="1.71.8" />
     </dependencies>
   </metadata>
 </package>

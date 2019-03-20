@@ -237,24 +237,15 @@ namespace WebViewControl {
             }
 
             private static string MakeScript(string functionName, bool serializeParams, object[] args) {
-                var argsSerialized = args.Select(a => Serialize(a, serializeParams));
+                string SerializeParam(object value) {
+                    if (serializeParams || value == null) {
+                        return JavascriptSerializer.Serialize(value);
+                    }
+                    // TODO complex types
+                    return value.ToString();
+                }
+                var argsSerialized = args.Select(SerializeParam);
                 return functionName + "(" + string.Join(",", argsSerialized) + ")";
-            }
-
-            private static string Serialize(object value, bool serializeValue) {
-                if (value == null) {
-                    return "null";
-                }
-                if (serializeValue) {
-                    if (value is string valueText) {
-                        return HttpUtility.JavaScriptStringEncode(valueText, true);
-                    }
-                    if (value is IEnumerable innerValues) {
-                        return "[" + string.Join(",", innerValues.Cast<object>().Select(v => Serialize(v, serializeValue))) + "]";
-                    }
-                }
-                // TODO complex types
-                return value.ToString();
             }
 
             private static string WrapScriptWithErrorHandling(string script) {

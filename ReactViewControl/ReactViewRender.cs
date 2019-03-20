@@ -14,8 +14,6 @@ namespace ReactViewControl {
 
     internal partial class ReactViewRender : UserControl, IReactView, IExecutionEngine {
 
-        private const string JavascriptNullConstant = "null";
-
         private const string ModulesObjectName = "__Modules__";
         private const string ComponentLoadedEventName = "ComponentLoaded";
 
@@ -120,32 +118,32 @@ namespace ReactViewControl {
             var baseUrl = ToFullUrl(VirtualPathUtility.GetDirectory(source));
 
             var loadArgs = new List<string>() {
-                Quote(baseUrl),
-                Array(Quote(component.NativeObjectName), Quote(component.Name), Quote(source))
+                JavascriptSerializer.Serialize(baseUrl),
+                JavascriptSerializer.Serialize(new [] { component.NativeObjectName, component.Name, source })
             };
 
             if (DefaultStyleSheet != null) {
-                loadArgs.Add(Quote(NormalizeUrl(ToFullUrl(DefaultStyleSheet.ToString()))));
+                loadArgs.Add(JavascriptSerializer.Serialize(NormalizeUrl(ToFullUrl(DefaultStyleSheet.ToString()))));
             } else {
-                loadArgs.Add(JavascriptNullConstant);
+                loadArgs.Add(JavascriptSerializer.Serialize((string)null));
             }
 
-            loadArgs.Add(AsBoolean(enableDebugMode));
-            loadArgs.Add(Quote(cacheInvalidationTimestamp));
+            loadArgs.Add(JavascriptSerializer.Serialize(enableDebugMode));
+            loadArgs.Add(JavascriptSerializer.Serialize(cacheInvalidationTimestamp));
 
             webView.RegisterJavascriptObject(component.NativeObjectName, component.CreateNativeObject(), executeCallsInUI: false);
 
             if (Plugins?.Length > 0) {
                 // plugins
                 var pluginsWithNativeObject = Plugins.Where(p => !string.IsNullOrEmpty(p.NativeObjectName)).ToArray();
-                loadArgs.Add(Array(pluginsWithNativeObject.Select(m => Array(Quote(m.Name), Quote(m.NativeObjectName)))));
+                loadArgs.Add(JavascriptSerializer.Serialize(pluginsWithNativeObject.Select(m => new[] { m.Name, m.NativeObjectName })));
 
                 foreach (var module in pluginsWithNativeObject) {
                     webView.RegisterJavascriptObject(module.NativeObjectName, module.CreateNativeObject(), executeCallsInUI: false);
                 }
 
                 // mappings
-                loadArgs.Add(Object(Plugins.Select(m => new KeyValuePair<string, string>(Quote(m.Name), Quote(NormalizeUrl(ToFullUrl(m.JavascriptSource)))))));
+                loadArgs.Add(JavascriptSerializer.Serialize(Plugins.Select(m => new KeyValuePair<string, object>(m.Name, NormalizeUrl(ToFullUrl(m.JavascriptSource))))));
             }
 
             ExecuteDeferredScriptFunction("load", loadArgs.ToArray());
@@ -234,7 +232,7 @@ namespace ReactViewControl {
 
         private void ShowErrorMessage(string msg) {
             msg = msg.Replace("\"", "\\\"");
-            ExecuteDeferredScriptFunction("showErrorMessage", Quote(msg));
+            ExecuteDeferredScriptFunction("showErrorMessage", JavascriptSerializer.Serialize(msg));
         }
         
         private string ToFullUrl(string url) {
@@ -304,26 +302,6 @@ namespace ReactViewControl {
         private void ExecuteDeferredScriptFunction(string functionName, params string[] args) {
             // using setimeout we make sure the function is already defined
             webView.ExecuteScript($"setTimeout(() => {functionName}({string.Join(",", args)}), 0)");
-        }
-
-        private static string Quote(string str) {
-            return "\"" + str + "\"";
-        }
-
-        private static string AsBoolean(bool value) {
-            return value ? "true" : "false";
-        }
-
-        private static string Array(params string[] elements) {
-            return "[" + string.Join(",", elements) + "]";
-        }
-
-        private static string Array(IEnumerable<string> elements) {
-            return Array(elements.ToArray());
-        }
-
-        private static string Object(IEnumerable<KeyValuePair<string, string>> properties) {
-            return "{" + string.Join(",", properties.Select(p => p.Key + ":" + p.Value)) + "}";
         }
         
         private static string NormalizeUrl(string url) {
