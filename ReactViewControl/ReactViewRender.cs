@@ -226,6 +226,11 @@ namespace ReactViewControl {
             }
         }
 
+        public double ZoomPercentage {
+            get { return webView.ZoomPercentage; }
+            set { webView.ZoomPercentage = value; }
+        }
+
         private void ShowResourceLoadFailedMessage(string url) {
             ShowErrorMessage("Failed to load resource '" + url + "'. Press F12 to open developer tools and see more details.");
         }

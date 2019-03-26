@@ -7,6 +7,7 @@ namespace ReactViewControl {
         ResourceUrl DefaultStyleSheet { get; set; }
         bool EnableDebugMode { get; set; }
         bool IsReady { get; }
+        double ZoomPercentage { get; set; }
 
         event Action Ready;
         event Action<UnhandledAsyncExceptionEventArgs> UnhandledAsyncException;
