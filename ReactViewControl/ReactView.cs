@@ -69,6 +69,8 @@ namespace ReactViewControl {
 
         public bool IsReady => view.IsReady;
 
+        public double ZoomPercentage { get => view.ZoomPercentage; set => view.ZoomPercentage = value; }
+
         public event Action Ready {
             add { view.Ready += value; }
             remove { view.Ready -= value; }
