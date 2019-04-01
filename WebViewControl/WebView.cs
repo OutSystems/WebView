@@ -107,6 +107,11 @@ namespace WebViewControl {
                 cefSettings.CachePath = CachePath; // enable cache for external resources to speedup loading
                 cefSettings.WindowlessRenderingEnabled = true;
 
+                if (DisableGPU) {
+                    cefSettings.CefCommandLineArgs.Add("disable-gpu", "1"); // Disable GPU acceleration
+                    cefSettings.CefCommandLineArgs.Add("disable-gpu-vsync", "1"); //Disable GPU vsync
+                }
+
                 CefSharpSettings.ConcurrentTaskExecution = true;
                 CefSharpSettings.LegacyJavascriptBindingEnabled = true;
                 CefSharpSettings.SubprocessExitIfParentProcessClosed = true;
@@ -651,6 +656,8 @@ namespace WebViewControl {
         public static bool PersistCache { get; set; } = false;
 
         public static bool EnableErrorLogOnly { get; set; } = false;
+
+        public static bool DisableGPU { get; set; } = false;
 
         internal bool IsDisposing => isDisposing;
 
