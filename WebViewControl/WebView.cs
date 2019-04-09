@@ -34,6 +34,7 @@ namespace WebViewControl {
         private static readonly List<WebView> DisposableWebViews = new List<WebView>();
         private static bool subscribedApplicationExit = false;
 
+        private readonly object SyncRoot = new object();
         private InternalChromiumBrowser chromium;
         private bool isDeveloperToolsOpened = false;
         private Action pendingInitialization;
@@ -228,11 +229,13 @@ namespace WebViewControl {
         }
 
         public void Dispose() {
-            if (isDisposing) {
-                return;
-            }
+            lock (SyncRoot) {
+                if (isDisposing) {
+                    return;
+                }
 
-            isDisposing = true;
+                isDisposing = true;
+            }
 
             GC.SuppressFinalize(this);
 
@@ -324,7 +327,8 @@ namespace WebViewControl {
                 htmlToLoad = null;
             }
             if (address.Contains(Uri.SchemeDelimiter) || address == "about:blank" || address.StartsWith("data:")) {
-                if (chromium.BrowserSettings != null && !chromium.BrowserSettings.IsDisposed) {
+                var settings = chromium.BrowserSettings;
+                if (settings != null /* TODO uncomment after upgrade to 71+ && !settings.IsDisposed*/) {
                     if (CustomSchemes.Any(s => address.StartsWith(s + Uri.SchemeDelimiter))) {
                         // custom schemes -> turn off security ... to enable full access without problems to local resources
                         IsSecurityDisabled = true;
@@ -352,7 +356,7 @@ namespace WebViewControl {
         public bool IsSecurityDisabled {
             set {
                 var settings = chromium.BrowserSettings;
-                if (settings == null || settings.IsDisposed) {
+                if (settings == null /* TODO uncomment after upgrade to 71+ || settings.IsDisposed*/) {
                     throw new InvalidOperationException("Cannot change webview settings after initialized");
                 }
                 settings.WebSecurity = (value ? CefState.Disabled : CefState.Enabled);
