@@ -13,9 +13,22 @@
     <CompileTypeScriptWithTSConfig>
       $(CompileTypeScriptWithTSConfig)
     </CompileTypeScriptWithTSConfig>
+
+    <CompileTypeScriptDependsOn>
+      CleanLegacyJSFiles;
+      $(CompileTypeScriptDependsOn);
+    </CompileTypeScriptDependsOn>
     
   </PropertyGroup>
 
+  <Target Name="CleanLegacyJSFiles">
+    <ItemGroup>
+      <JSFilesToDelete Include="**\*.js" Exclude="node_modules\**\*.js"/>
+    </ItemGroup>
+    <Message Text="Deleting old files: @(JSFilesToDelete)" Importance="high" />
+    <Delete Files="@(JSFilesToDelete)"/>
+  </Target>
+  
   <Target Name="IncludeGeneratedResources" DependsOnTargets="FindConfigFiles;CompileTypeScriptWithTSConfig">
     <ItemGroup> 
       <EmbeddedResource Include="**\*.js" />
