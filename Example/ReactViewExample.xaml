@@ -8,6 +8,7 @@
         Title="ReactViewExample" Height="450" Width="800">
     <DockPanel>
         <Button DockPanel.Dock="Bottom" Click="OnWPFButtonClick">WPF button</Button>
+        <Button DockPanel.Dock="Bottom" Click="OnShowDevTools">Show dev tools</Button>
 
         <local:ExampleView x:Name="exampleView" Click="OnExampleViewClick" />
     </DockPanel>

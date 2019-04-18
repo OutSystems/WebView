@@ -71,6 +71,11 @@
   <ItemGroup>
     <EmbeddedResource Include="index.html" />
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="node_modules\react-dom\umd\react-dom.production.min.js" />
+    <EmbeddedResource Include="node_modules\react\umd\react.production.min.js" />
+  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>npm ci</PreBuildEvent>

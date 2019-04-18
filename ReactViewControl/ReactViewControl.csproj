@@ -84,7 +84,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="PackNuget" AfterTargets="AfterBuild">
-    <Exec Command="&quot;$(ProjectDir)..\nuget&quot; pack &quot;$(ProjectPath)&quot; -OutputDirectory &quot;$(ProjectDir)..\Nuget\ &quot; -Properties Configuration=$(ConfigurationName) -IncludeReferencedProjects" />
+    <Exec Command="&quot;$(ProjectDir)..\nuget&quot; pack &quot;$(ProjectPath)&quot; -OutputDirectory &quot;$(ProjectDir)..\Nuget&quot; -Properties Configuration=$(ConfigurationName) -IncludeReferencedProjects" />
   </Target>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

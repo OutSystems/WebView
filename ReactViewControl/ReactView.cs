@@ -123,5 +123,7 @@ namespace ReactViewControl {
         IExecutionEngine IViewModule.ExecutionEngine => ExecutionEngine;
 
         protected IExecutionEngine ExecutionEngine => view; // ease access in generated code
+
+        public static bool UseEnhancedRenderingEngine { get; set; } = true;
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using ReactViewControl;
+using System.Windows;
 
 namespace Example {
     /// <summary>
@@ -7,6 +8,7 @@ namespace Example {
     public partial class MainWindow : Window {
         public MainWindow() {
             InitializeComponent();
+            ReactView.UseEnhancedRenderingEngine = true;
         }
 
         private void OnShowWebViewClick(object sender, RoutedEventArgs e) {

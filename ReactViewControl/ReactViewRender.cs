@@ -34,8 +34,6 @@ namespace ReactViewControl {
 
         private ConcurrentQueue<Tuple<string, object[]>> pendingScripts = new ConcurrentQueue<Tuple<string, object[]>>();
 
-        public static bool UseEnhancedRenderingEngine { get; set; } = true;
-
         public ReactViewRender(bool preloadWebView) {
             userCallingAssembly = WebView.GetUserCallingMethod().ReflectedType.Assembly;
 
@@ -54,7 +52,7 @@ namespace ReactViewControl {
             Content = webView;
 
             var urlParams = new string[] {
-                UseEnhancedRenderingEngine ? "1" : "0",
+                ReactView.UseEnhancedRenderingEngine ? "1" : "0",
                 new ResourceUrl(typeof(ReactViewResources.Resources).Assembly, ReactViewResources.Resources.LibrariesPath).ToString(),
                 ModulesObjectName,
                 Listener.EventListenerObjName,

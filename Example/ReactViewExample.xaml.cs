@@ -16,5 +16,9 @@ namespace Example {
         private void OnWPFButtonClick(object sender, RoutedEventArgs e) {
             exampleView.CallMe();
         }
+
+        private void OnShowDevTools(object sender, RoutedEventArgs e) {
+            exampleView.ShowDeveloperTools();
+        }
     }
 }
