@@ -1,0 +1,11 @@
+﻿<Project>
+  
+  <Target Name="WorkaroundCefSharpAnyCpuSupport" BeforeTargets="PrepareForBuild">
+    <Message Text="Setting CefSharpAnyCpuSupport" />
+    <PropertyGroup>
+      <CefSharpAnyCpuSupport>true</CefSharpAnyCpuSupport>
+      <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+    </PropertyGroup>
+  </Target>
+
+</Project>

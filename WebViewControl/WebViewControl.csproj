@@ -152,6 +152,9 @@
   <ItemGroup>
     <None Include="app.config" />
     <None Include="packages.config" />
+    <None Include="WebViewControl.targets">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="WebViewControl.nuspec">
       <SubType>Designer</SubType>
     </None>
@@ -171,7 +174,7 @@
     <Exec Command="..\packages\InjectModuleInitializer.1.5\tools\InjectModuleInitializer.exe &quot;$(TargetPath)&quot;" />
   </Target>
   <Target Name="CreateNugetPackage" AfterTargets="InjectModuleInitializer">
-    <Exec Command="&quot;$(ProjectDir)..\nuget&quot; pack &quot;$(ProjectPath)&quot; -OutputDirectory &quot;$(ProjectDir)..\Nuget\ &quot; -Properties Configuration=$(ConfigurationName)" />
+    <Exec Command="&quot;$(ProjectDir)..\nuget&quot; pack &quot;$(ProjectPath)&quot; -OutputDirectory &quot;$(ProjectDir)..\Nuget&quot; -Properties Configuration=$(ConfigurationName)" />
   </Target>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

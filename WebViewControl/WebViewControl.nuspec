@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
     <id>WebViewControl</id>
-    <version>1.67.31</version>
+    <version>1.67.33</version>
     <title>WebViewControl</title>
     <authors>OutSystems</authors>
     <owners>OutSystems</owners>
@@ -14,6 +14,7 @@
     </dependencies>
   </metadata>
   <files>
+    <file src="WebViewControl.targets" target="build" />
     <file src="WebViewControl.props" target="build" />
   </files>
 </package>
