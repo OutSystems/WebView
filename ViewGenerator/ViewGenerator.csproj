@@ -1,6 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\Microsoft.TypeScript.MSBuild.3.3.1\build\Microsoft.TypeScript.MSBuild.props" Condition="Exists('..\packages\Microsoft.TypeScript.MSBuild.3.3.1\build\Microsoft.TypeScript.MSBuild.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -52,31 +51,18 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="build\ViewGenerator.props" />
-    <None Include="build\ViewGeneratorCore.targets">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="build\ViewGeneratorCore.props">
-      <SubType>Designer</SubType>
-    </None>
-    <None Include="content\ts2lang.json" />
-    <None Include="debug-generator.bat" />
-    <None Include="packages.config" />
-    <None Include="ViewGeneratorCore.nuspec">
-      <SubType>Designer</SubType>
-    </None>
+    <None Include="contentFiles\ts2lang.json" />
+    <None Include="contentFiles\tsconfig.json" />
+    <None Include="tools\Init.ps1" />
     <None Include="ViewGenerator.nuspec">
       <SubType>Designer</SubType>
     </None>
     <None Include="build\ViewGenerator.targets">
       <SubType>Designer</SubType>
     </None>
-    <Content Include="tools\tsconfig.json" />
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="tools\src\ViewGenerator.ts" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="content\node_modules\" />
+    <Folder Include="contentFiles\node_modules\" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
@@ -86,19 +72,10 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>"$(ProjectDir)nuget" pack "$(ProjectDir)ViewGeneratorCore.nuspec" -OutputDirectory "$(ProjectDir)..\Nuget\ " -Properties Configuration=$(ConfigurationName)
-"$(ProjectDir)nuget" pack "$(ProjectDir)ViewGenerator.nuspec" -OutputDirectory "$(ProjectDir)..\Nuget\ " -Properties Configuration=$(ConfigurationName)
+    <PostBuildEvent>"$(ProjectDir)..\nuget" pack "$(ProjectDir)ViewGenerator.nuspec" -OutputDirectory "$(ProjectDir)..\Nuget\ " -Properties Configuration=$(ConfigurationName)
 </PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PreBuildEvent>npm ci --prefix "$(ProjectDir)content" "$(ProjectDir)content" &amp;&amp; npm ci --prefix "$(ProjectDir)tools" "$(ProjectDir)tools"</PreBuildEvent>
+    <PreBuildEvent>npm ci --prefix "$(ProjectDir)contentFiles" "$(ProjectDir)contentFiles"</PreBuildEvent>
   </PropertyGroup>
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\Microsoft.TypeScript.MSBuild.3.3.1\build\Microsoft.TypeScript.MSBuild.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.TypeScript.MSBuild.3.3.1\build\Microsoft.TypeScript.MSBuild.props'))" />
-    <Error Condition="!Exists('..\packages\Microsoft.TypeScript.MSBuild.3.3.1\build\Microsoft.TypeScript.MSBuild.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.TypeScript.MSBuild.3.3.1\build\Microsoft.TypeScript.MSBuild.targets'))" />
-  </Target>
-  <Import Project="..\packages\Microsoft.TypeScript.MSBuild.3.3.1\build\Microsoft.TypeScript.MSBuild.targets" Condition="Exists('..\packages\Microsoft.TypeScript.MSBuild.3.3.1\build\Microsoft.TypeScript.MSBuild.targets')" />
 </Project>

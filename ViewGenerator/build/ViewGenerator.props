@@ -1,6 +1,11 @@
 ﻿<Project>
   <ItemGroup>
-    <Content Include="tsconfig.json" />
+    <Content Include="tsconfig.json">
+      <Visible>True</Visible>
+    </Content>
+    <None Include="ts2lang.json">
+      <Visible>True</Visible>
+    </None>
   </ItemGroup>
   <PropertyGroup>
     <TypeScriptBuildMode>true</TypeScriptBuildMode>

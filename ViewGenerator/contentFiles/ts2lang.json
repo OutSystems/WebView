@@ -1,0 +1,19 @@
+{
+    "tasks": [
+        {
+            "input": "**/*.tsx",
+            "output": "Generated/",
+            "template": "",
+            "parameters": {
+                "namespace": "YourPluginName",
+                "baseComponentClass": "",
+                "baseComponentInterface": "",
+                "javascriptDistPath": "",
+                "emitComponent": true,
+                "emitComponentInterface": true,
+                "emitComponentAdapter": false,
+                "emitViewObjects": true
+            }
+        }
+    ]
+}

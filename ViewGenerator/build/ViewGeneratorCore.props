@@ -1,6 +1,0 @@
-﻿<Project>
-  <PropertyGroup>
-    <ViewGeneratorNodeJsExe>node</ViewGeneratorNodeJsExe>
-    <ViewGeneratorGeneratedFolder>Generated</ViewGeneratorGeneratedFolder>
-  </PropertyGroup>
-</Project>
