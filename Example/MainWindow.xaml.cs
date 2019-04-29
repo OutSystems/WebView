@@ -8,7 +8,7 @@ namespace Example {
     public partial class MainWindow : Window {
         public MainWindow() {
             InitializeComponent();
-            ReactView.UseEnhancedRenderingEngine = true;
+            ReactView.UseEnhancedRenderingEngine = false;
         }
 
         private void OnShowWebViewClick(object sender, RoutedEventArgs e) {

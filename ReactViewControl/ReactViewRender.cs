@@ -156,8 +156,13 @@ namespace ReactViewControl {
             }
         }
 
+
+        private static string FormatMethodInvocation(IViewModule module, string methodCall) {
+            return ModulesObjectName + "[\"" + module.Name + "\"]." + methodCall;
+        }
+
         public void ExecuteMethod(IViewModule module, string methodCall, params object[] args) {
-            var method = ModulesObjectName + "." + module.Name + "." + methodCall;
+            var method = FormatMethodInvocation(module, methodCall);
             if (IsReady) {
                 webView.ExecuteScriptFunctionWithSerializedParams(method, args);
             } else {
@@ -166,7 +171,8 @@ namespace ReactViewControl {
         }
 
         public T EvaluateMethod<T>(IViewModule module, string methodCall, params object[] args) {
-            return webView.EvaluateScriptFunctionWithSerializedParams<T>(ModulesObjectName + "." + module.Name + "." + methodCall, args);
+            var method = FormatMethodInvocation(module, methodCall);
+            return webView.EvaluateScriptFunctionWithSerializedParams<T>(method, args);
         }
         
         public ResourceUrl DefaultStyleSheet {
