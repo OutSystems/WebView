@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System;
+using System.Windows;
 using WebViewControl;
 
 namespace Example {
@@ -21,6 +22,10 @@ namespace Example {
 
         private void OnShowDevTools(object sender, RoutedEventArgs e) {
             exampleView.ShowDeveloperTools();
+        }
+
+        private string OnExampleViewGetTime() {
+            return DateTime.Now.ToShortTimeString();
         }
     }
 }

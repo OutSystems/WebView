@@ -10,6 +10,6 @@
         <Button DockPanel.Dock="Bottom" Click="OnWPFButtonClick">WPF button</Button>
         <Button DockPanel.Dock="Bottom" Click="OnShowDevTools">Show dev tools</Button>
 
-        <local:ExampleView x:Name="exampleView" Click="OnExampleViewClick" />
+        <local:ExampleView x:Name="exampleView" Click="OnExampleViewClick" GetTime="OnExampleViewGetTime" />
     </DockPanel>
 </Window>

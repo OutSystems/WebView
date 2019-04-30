@@ -36,6 +36,12 @@
             const EventListenerObjectName = UrlParams[3];
             const ReadyEventName = UrlParams[4];
 
+            function executeAfterPaint(action) {
+                requestAnimationFrame(() => {
+                    setTimeout(action);
+                });
+            }
+
             async function notifyReady() {
                 window.dispatchEvent(new Event('viewready'));
                 await CefSharp.BindObjectAsync(EventListenerObjectName, EventListenerObjectName);
@@ -90,10 +96,10 @@
                         modules[UserComponentName] = ReactDOM.render(
                             React.createElement(Component, Properties),
                             document.getElementById("webview_root"),
-                            () => resolve()
+                            () => executeAfterPaint(resolve)
                         );
                     });
-
+                    
                     if (plugins && plugins.length > 0) {
                         // load plugin modules
                         let pluginsPromises = [];
@@ -163,16 +169,18 @@
                         };
                     }
 
+                    const RequireCssPath = LibsPath + "require-css/css.min.js";
+
                     require.config({
                         paths: paths,
                         map: {
                             '*': {
-                                'css': LibsPath + "require-css/css.min.js"
+                                'css': RequireCssPath
                             }
                         }
                     });
 
-                    require(["react", "react-dom"]); // preload react
+                    require(["react", "react-dom", RequireCssPath]); // preload react and require-css
 
                     resolve(paths);
                 });
@@ -180,14 +188,19 @@
 
             function createPropertiesProxy(basePropertiesObj, nativeObjName) {
                 let proxy = Object.assign({}, basePropertiesObj);
-                let bound = false;
                 Object.keys(proxy).forEach(key => {
                     proxy[key] = async function () {
-                        if (!bound) {
-                            await CefSharp.BindObjectAsync(nativeObjName, nativeObjName);
-                            bound = true;
+                        let nativeObject = window[nativeObjName];
+                        if (!nativeObject) {
+                            await new Promise((resolve) => {
+                                executeAfterPaint(async () => {
+                                    await CefSharp.BindObjectAsync(nativeObjName, nativeObjName);
+                                    nativeObject = window[nativeObjName];
+                                    resolve();
+                                })
+                            });
                         }
-                        return window[nativeObjName][key].apply(window, arguments);
+                        return nativeObject[key].apply(window, arguments);
                     };
                 });
                 return proxy;
