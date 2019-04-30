@@ -25,7 +25,6 @@ namespace ReactViewControl {
         private bool enableDebugMode = false;
         private Listener readyEventListener;
         private bool pageLoaded = false;
-        private bool componentLoaded = false;
         private IViewModule component;
         private ResourceUrl defaultStyleSheet;
         private IViewModule[] plugins;
@@ -127,9 +126,14 @@ namespace ReactViewControl {
             }
 
             loadArgs.Add(JavascriptSerializer.Serialize(enableDebugMode));
-            loadArgs.Add(JavascriptSerializer.Serialize(cacheInvalidationTimestamp));
+            loadArgs.Add(cacheInvalidationTimestamp != null ? JavascriptSerializer.Serialize("t=" + cacheInvalidationTimestamp) : JavascriptSerializer.Serialize(null));
 
-            webView.RegisterJavascriptObject(component.NativeObjectName, component.CreateNativeObject(), executeCallsInUI: false);
+            var componentNativeObject = component.CreateNativeObject();
+
+            var methods = componentNativeObject.GetType().GetMethods();
+            loadArgs.Add(JavascriptSerializer.Serialize(methods.ToDictionary(m => JavascriptSerializer.GetJavascriptName(m.Name), m => (object) null)));
+
+            webView.RegisterJavascriptObject(component.NativeObjectName, componentNativeObject, executeCallsInUI: false);
 
             if (Plugins?.Length > 0) {
                 // plugins
@@ -145,8 +149,10 @@ namespace ReactViewControl {
             }
 
             ExecuteDeferredScriptFunction("load", loadArgs.ToArray());
-            componentLoaded = true;
+            IsComponentLoaded = true;
         }
+
+        public bool IsComponentLoaded { get; private set; }
 
         private void OnWebViewNavigated(string obj) {
             IsReady = false;
@@ -178,7 +184,7 @@ namespace ReactViewControl {
         public ResourceUrl DefaultStyleSheet {
             get { return defaultStyleSheet; }
             set {
-                if (componentLoaded) {
+                if (IsComponentLoaded) {
                     throw new InvalidOperationException($"Cannot set {nameof(DefaultStyleSheet)} after component has been loaded");
                 }
                 defaultStyleSheet = value;
@@ -188,7 +194,7 @@ namespace ReactViewControl {
         public IViewModule[] Plugins {
             get { return plugins; }
             set {
-                if (componentLoaded) {
+                if (IsComponentLoaded) {
                     throw new InvalidOperationException($"Cannot set {nameof(Plugins)} after component has been loaded");
                 }
                 var invalidPlugins = value.Where(p => string.IsNullOrEmpty(p.JavascriptSource) || string.IsNullOrEmpty(p.Name));
@@ -310,7 +316,7 @@ namespace ReactViewControl {
 
         private void ExecuteDeferredScriptFunction(string functionName, params string[] args) {
             // using setimeout we make sure the function is already defined
-            webView.ExecuteScript($"setTimeout(() => {functionName}({string.Join(",", args)}), 0)");
+            webView.EvaluateScript<int>($"setTimeout(() => {functionName}({string.Join(",", args)}), 0)");
         }
         
         private static string NormalizeUrl(string url) {

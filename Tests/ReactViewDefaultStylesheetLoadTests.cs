@@ -20,7 +20,7 @@ namespace Tests {
 
             TargetView.ExecuteMethodOnRoot("checkStyleSheetLoaded", "2");
 
-            WaitFor(() => stylesheet != null, TimeSpan.FromSeconds(10), "stylesheet load");
+            WaitFor(() => stylesheet != null, DefaultTimeout, "stylesheet load");
 
             Assert.IsTrue(stylesheet.Contains(".bar"));
         }

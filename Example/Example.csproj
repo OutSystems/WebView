@@ -105,6 +105,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
+    <None Include="ExampleView\DefaultStyleSheet.scss" />
     <None Include="ExampleView\ExampleView.scss" />
     <None Include="node_modules\%40types\prop-types\LICENSE" />
     <None Include="node_modules\%40types\prop-types\package.json" />

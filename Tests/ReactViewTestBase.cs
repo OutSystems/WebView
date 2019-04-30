@@ -6,10 +6,15 @@ namespace Tests {
 
         protected override void InitializeView() {
             TargetView.UnhandledAsyncException += OnUnhandledAsyncException;
+        }
+
+        protected override void AfterInitializeView() {
             if (WaitForReady) {
-                WaitFor(() => TargetView.IsReady, TimeSpan.FromSeconds(10), "view initialized");
+                WaitFor(() => TargetView.IsReady, DefaultTimeout, "view initialized");
             }
         }
+
+        protected virtual TimeSpan DefaultTimeout => TimeSpan.FromSeconds(10);
 
         protected virtual bool WaitForReady => true;
 

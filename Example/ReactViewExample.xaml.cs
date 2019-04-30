@@ -1,4 +1,5 @@
 ﻿using System.Windows;
+using WebViewControl;
 
 namespace Example {
     /// <summary>
@@ -7,6 +8,7 @@ namespace Example {
     public partial class ReactViewExample : Window {
         public ReactViewExample() {
             InitializeComponent();
+            exampleView.DefaultStyleSheet = new ResourceUrl(typeof(ReactViewExample).Assembly, "ExampleView", "DefaultStyleSheet.css");
         }
 
         private void OnExampleViewClick(SomeType arg) {

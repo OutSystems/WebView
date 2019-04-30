@@ -34,5 +34,13 @@ namespace WebViewControl {
         public static string Serialize(IEnumerable arr, SerializationHandler handleComplexType = null) {
             return "[" + string.Join(",", arr.Cast<object>().Select(i => Serialize(i, handleComplexType))) + "]";
         }
+
+        internal static string GetJavascriptName(string str) {
+            if (string.IsNullOrEmpty(str)) {
+                return string.Empty;
+            }
+
+            return char.ToLowerInvariant(str[0]) + str.Substring(1);
+        }
     }
 }

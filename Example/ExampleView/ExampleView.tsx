@@ -20,6 +20,6 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
     }
 
     render() {
-        return <button onClick={() => this.props.click(null)}>Click me!</button>
+        return <div className="wrapper"><button onClick={() => this.props.click(null)}>Click me!</button></div>
     }
 }

@@ -42,13 +42,17 @@ namespace Tests {
             if (view == null) {
                 view = new T();
 
+                InitializeView();
+
                 window.Content = view;
 
-                InitializeView();
+                AfterInitializeView();
             }
         }
 
         protected abstract void InitializeView();
+
+        protected virtual void AfterInitializeView() { }
 
         [TearDown]
         protected void TearDown() {

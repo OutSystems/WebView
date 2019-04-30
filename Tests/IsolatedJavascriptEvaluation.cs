@@ -12,6 +12,8 @@ namespace Tests {
 
         protected override void InitializeView() { }
 
+        protected override void AfterInitializeView() { }
+
         [Test(Description = "Evaluation timeouts when javascript engine is not initialized")]
         public void JavascriptEngineInitializationTimeout() {
             LoadAndWaitReady("<html><body></body></html>");

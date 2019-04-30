@@ -10,6 +10,8 @@ namespace ReactViewControl {
 
     public partial class ReactView : UserControl, IReactView, IViewModule {
 
+        private readonly ReactViewRender view;
+
         private static ReactViewRender cachedView;
 
         private static ReactViewRender CreateReactViewInstance() {
@@ -23,8 +25,6 @@ namespace ReactViewControl {
             return result ?? new ReactViewRender(true);
         }
 
-        private readonly ReactViewRender view;
-
         public ReactView(bool usePreloadedWebView = true) {
             if (usePreloadedWebView) {
                 view = CreateReactViewInstance();
@@ -33,17 +33,23 @@ namespace ReactViewControl {
             }
             SetResourceReference(StyleProperty, typeof(ReactView)); // force styles to be inherited, must be called after view is created otherwise view might be null
             Content = view;
-            Dispatcher.BeginInvoke(DispatcherPriority.Send, (Action)(() => {
-                if (!view.IsDisposing) {
-                    if (EnableHotReload) {
-                        view.EnableHotReload(Source);
-                    }
-                    view.LoadComponent(this);
-                }
-            }));
 
             FocusManager.SetIsFocusScope(this, true);
             FocusManager.SetFocusedElement(this, view.FocusableElement);
+        }
+
+        public override void OnApplyTemplate() {
+            Initialize();
+            base.OnApplyTemplate();
+        }
+
+        private void Initialize() {
+            if (!view.IsComponentLoaded) {
+                if (EnableHotReload) {
+                    view.EnableHotReload(Source);
+                }
+                view.LoadComponent(this);
+            }
         }
 
         ~ReactView() {
