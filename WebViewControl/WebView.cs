@@ -31,7 +31,6 @@ namespace WebViewControl {
         // from https://code.google.com/p/chromium/issues/detail?id=71484
         private const float PercentageToZoomFactor = 1.2f;
 
-        private static readonly List<WebView> DisposableWebViews = new List<WebView>();
         private static bool subscribedApplicationExit = false;
 
         private readonly object SyncRoot = new object();
@@ -87,16 +86,6 @@ namespace WebViewControl {
         /// Executed when a web view is initialized. Can be used to attach or configure the webview before it's ready.
         /// </summary>
         public static event Action<WebView> GlobalWebViewInitialized;
-
-        static WebView() {
-            WindowsEventsListener.WindowUnloaded += OnWindowUnloaded;
-        }
-
-        private static void OnWindowUnloaded(Window window) {
-            foreach (var webview in DisposableWebViews.Where(w => !w.IsLoaded && Window.GetWindow(w) == window).ToArray()) {
-                webview.Dispose();
-            }
-        }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void InitializeCef() {
@@ -214,8 +203,6 @@ namespace WebViewControl {
 
             GlobalWebViewInitialized?.Invoke(this);
 
-            DisposableWebViews.Add(this);
-
             FocusManager.SetIsFocusScope(this, true);
             FocusManager.SetFocusedElement(this, FocusableElement);
         }
@@ -249,7 +236,6 @@ namespace WebViewControl {
                 disposed = true;
 
                 AppDomain.CurrentDomain.AssemblyLoad -= OnAssemblyLoaded;
-                DisposableWebViews.Remove(this);
 
                 cancellationTokenSource.Cancel();
 
@@ -664,6 +650,25 @@ namespace WebViewControl {
         public static bool DisableGPU { get; set; } = false;
 
         internal bool IsDisposing => isDisposing;
+
+        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e) {
+            base.OnPropertyChanged(e);
+
+            // IWindowService is a WPF internal property set when component is loaded into a new window, even if the window isn't shown
+            if (e.Property.Name == "IWindowService") {
+                if (e.OldValue is Window oldWindow) {
+                    oldWindow.Closed -= OnHostWindowClosed;
+                }
+
+                if (e.NewValue is Window newWindow) {
+                    newWindow.Closed += OnHostWindowClosed;
+                }
+            }
+        }
+
+        private void OnHostWindowClosed(object sender, EventArgs e) {
+            Dispose();
+        }
 
         protected static void RegisterProtocolHandler(string protocol, Action<ResourceHandler> requestHandler) {
             Cef.GetGlobalRequestContext().RegisterSchemeHandlerFactory(protocol, "", new CefSchemeHandlerFactory(requestHandler));
