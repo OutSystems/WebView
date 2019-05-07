@@ -5,8 +5,9 @@
     "@types/react-dom": "16.8.2"
   },
   "dependencies": {
-    "preact-compat": "3.18.4",
+    "@types/requirejs": "^2.1.31",
     "preact": "8.4.2",
+    "preact-compat": "3.18.4",
     "react": "16.8.1",
     "react-dom": "16.8.1",
     "require-css": "0.1.10",

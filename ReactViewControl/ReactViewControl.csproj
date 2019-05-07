@@ -58,10 +58,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="IExecutionEngine.cs" />
-    <Compile Include="IReactView.cs" />
     <Compile Include="IViewModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReactView.cs" />
+    <Compile Include="ReactViewFactory.cs" />
     <Compile Include="ReactViewRender.cs" />
     <Compile Include="ReactViewRender.InternalWebView.cs" />
     <Compile Include="SimpleViewModule.cs" />

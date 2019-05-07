@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Text;
 using CefSharp;
 
 namespace WebViewControl {
@@ -12,13 +13,24 @@ namespace WebViewControl {
             }
 
             public void RespondWith(string filename) {
-                var resourceHandler = (CefSharp.ResourceHandler) CefSharp.ResourceHandler.FromFilePath(filename, CefSharp.ResourceHandler.GetMimeType(Path.GetExtension(filename)));
-                resourceHandler.AutoDisposeStream = true;
-                Handler = resourceHandler;
+                var handler = (CefSharp.ResourceHandler) CefSharp.ResourceHandler.FromFilePath(filename, CefSharp.ResourceHandler.GetMimeType(Path.GetExtension(filename)));
+                handler.AutoDisposeStream = true;
+                AddCacheInfo(handler);
+                Handler = handler;
             }
 
             public void RespondWith(Stream stream, string extension) {
-                Handler = CefSharp.ResourceHandler.FromStream(stream, CefSharp.ResourceHandler.GetMimeType(extension));
+                var handler = CefSharp.ResourceHandler.FromStream(stream, CefSharp.ResourceHandler.GetMimeType(extension));
+                AddCacheInfo(handler);
+                Handler = handler;
+            }
+
+            private static void AddCacheInfo(CefSharp.ResourceHandler handler) {
+                handler.Headers.Add("cache-control", "public, max-age=315360000");
+            }
+
+            public static IResourceHandler FromString(string content) {
+                return CefSharp.ResourceHandler.FromString(content, Encoding.UTF8);
             }
 
             public void Redirect(string url) {

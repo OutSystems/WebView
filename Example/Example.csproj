@@ -60,6 +60,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="ExtendedReactView.cs" />
     <Compile Include="ReactViewExample.xaml.cs">
       <DependentUpon>ReactViewExample.xaml</DependentUpon>
     </Compile>
@@ -130,6 +131,7 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <None Include="ts2lang.json" />
+    <Resource Include="ExampleView\beach.jpg" />
     <Content Include="tsconfig.json" />
   </ItemGroup>
   <ItemGroup>

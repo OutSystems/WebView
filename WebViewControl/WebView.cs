@@ -40,6 +40,7 @@ namespace WebViewControl {
         private string htmlToLoad;
         private JavascriptExecutor jsExecutor;
         private CefLifeSpanHandler lifeSpanHandler;
+        private CefResourceHandlerFactory resourceHandlerFactory;
         private volatile bool isDisposing;
         private volatile int javascriptPendingCalls;
 
@@ -160,7 +161,7 @@ namespace WebViewControl {
             }
 #endif
 
-            CurrentDomainId = domainId.ToString();
+            CurrentDomainId = ""; // domainId.ToString();
             domainId++;
 
             DefaultLocalUrl = new ResourceUrl(ResourceUrl.LocalScheme, "index.html").WithDomain(CurrentDomainId);
@@ -179,6 +180,7 @@ namespace WebViewControl {
             }
 
             lifeSpanHandler = new CefLifeSpanHandler(this);
+            resourceHandlerFactory = new CefResourceHandlerFactory(this);
 
             chromium = new InternalChromiumBrowser();
             chromium.IsBrowserInitializedChanged += OnWebViewIsBrowserInitializedChanged;
@@ -187,14 +189,14 @@ namespace WebViewControl {
             chromium.TitleChanged += OnWebViewTitleChanged;
             chromium.PreviewKeyDown += OnPreviewKeyDown;
             chromium.RequestHandler = new CefRequestHandler(this);
-            chromium.ResourceHandlerFactory = new CefResourceHandlerFactory(this);
+            chromium.ResourceHandlerFactory = resourceHandlerFactory;
             chromium.LifeSpanHandler = lifeSpanHandler;
             chromium.RenderProcessMessageHandler = new CefRenderProcessMessageHandler(this);
             chromium.MenuHandler = new CefMenuHandler(this);
             chromium.DialogHandler = new CefDialogHandler(this);
             chromium.DownloadHandler = new CefDownloadHandler(this);
             chromium.CleanupElement = new FrameworkElement(); // prevent chromium to listen to default cleanup element unload events, this will be controlled manually
-
+            
             jsExecutor = new JavascriptExecutor(this);
 
             RegisterJavascriptObject(Listener.EventListenerObjName, eventsListener);
@@ -235,8 +237,6 @@ namespace WebViewControl {
 
                 disposed = true;
 
-                AppDomain.CurrentDomain.AssemblyLoad -= OnAssemblyLoaded;
-
                 cancellationTokenSource.Cancel();
 
                 WebViewInitialized = null;
@@ -252,6 +252,8 @@ namespace WebViewControl {
                 UnhandledAsyncException = null;
                 RenderProcessCrashed = null;
                 JavascriptContextReleased = null;
+
+                resourceHandlerFactory.Dispose();
 
                 jsExecutor.Dispose();
                 chromium.Dispose();
@@ -670,8 +672,20 @@ namespace WebViewControl {
             Dispose();
         }
 
-        protected static void RegisterProtocolHandler(string protocol, Action<ResourceHandler> requestHandler) {
-            Cef.GetGlobalRequestContext().RegisterSchemeHandlerFactory(protocol, "", new CefSchemeHandlerFactory(requestHandler));
+        protected void RegisterProtocolHandler(string protocol, Action<ResourceHandler> requestHandler) {
+            if (chromium.RequestContext == null) {
+                chromium.RequestContext = new RequestContext();
+            }
+            chromium.RequestContext.RegisterSchemeHandlerFactory(protocol, "", new CefSchemeHandlerFactory(requestHandler));
+        }
+
+        protected void RegisterProtocolHandler(string protocol, CefResourceHandlerFactory handler) {
+            if (chromium.RequestContext == null) {
+                chromium.RequestContext = new RequestContext(new RequestContextSettings() {
+                    CachePath = CachePath
+                });
+            }
+            chromium.RequestContext.RegisterSchemeHandlerFactory(protocol, "", handler);
         }
     }
 }

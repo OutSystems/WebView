@@ -36,7 +36,10 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
     render() {
         return (
             <div className="wrapper">
-                Current time: {this.state.time}<br/>
+                Current time: {this.state.time}<br />
+                <br />
+                <img src="beach.jpg"/>
+                <br />
                 <button onClick={() => this.props.click(null)}>Click me!</button>
             </div>
         );

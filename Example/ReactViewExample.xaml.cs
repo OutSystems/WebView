@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ReactViewControl;
+using System;
 using System.Windows;
 using WebViewControl;
 
@@ -7,9 +8,9 @@ namespace Example {
     /// Interaction logic for ReactViewExample.xaml
     /// </summary>
     public partial class ReactViewExample : Window {
+
         public ReactViewExample() {
             InitializeComponent();
-            exampleView.DefaultStyleSheet = new ResourceUrl(typeof(ReactViewExample).Assembly, "ExampleView", "DefaultStyleSheet.css");
         }
 
         private void OnExampleViewClick(SomeType arg) {

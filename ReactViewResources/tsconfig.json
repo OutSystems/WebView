@@ -1,0 +1,23 @@
+﻿{
+	"compilerOptions": {
+		"outDir": ".",
+		"module": "es6",
+		"target": "es2017",
+		"sourceMap": false,
+		"allowJs": true,
+		"moduleResolution": "node",
+		"rootDir": ".",
+		"forceConsistentCasingInFileNames": true,
+		"noImplicitReturns": true,
+		"noImplicitThis": true,
+        "strictNullChecks": true,
+        "noImplicitAny": true,
+        "suppressImplicitAnyIndexErrors": true,
+        "removeComments": true
+	},
+	"compileOnSave": true,
+	"exclude": [
+		"node_modules",
+        "dist"
+	]
+}

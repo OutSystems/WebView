@@ -6,7 +6,7 @@
             "template": "",
             "parameters": {
                 "namespace": "Example",
-                "baseComponentClass": "",
+                "baseComponentClass": "Example.ExtendedReactView",
                 "baseComponentInterface": "",
                 "javascriptDistPath": "",
                 "emitComponent": true,

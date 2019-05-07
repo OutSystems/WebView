@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -8,35 +9,52 @@ using WebViewControl;
 
 namespace ReactViewControl {
 
-    public partial class ReactView : UserControl, IReactView, IViewModule {
+    public partial class ReactView : UserControl, IViewModule, IDisposable {
+
+        private static readonly Dictionary<Type, ReactViewRender> cachedViews = new Dictionary<Type, ReactViewRender>();
 
         private readonly ReactViewRender view;
 
-        private static ReactViewRender cachedView;
-
-        private static ReactViewRender CreateReactViewInstance() {
-            var result = cachedView;
-            cachedView = null;
-            Application.Current.Dispatcher.BeginInvoke((Action)(() => {
-                if (cachedView == null && !Application.Current.Dispatcher.HasShutdownStarted) {
-                    cachedView = new ReactViewRender(true);
+        private static ReactViewRender CreateReactViewInstance(ReactViewFactory factory, bool usePreloadedWebView = true, bool enableDebugMode = false) {
+            ReactViewRender InnerCreateView() {
+                var view = new ReactViewRender(factory.DefaultStyleSheet, factory.Plugins, usePreloadedWebView, factory.EnableDebugMode);
+                if (factory.ShowDeveloperTools) {
+                    view.ShowDeveloperTools();
                 }
-            }), DispatcherPriority.Background);
-            return result ?? new ReactViewRender(true);
+                return view;
+            }
+
+            if (usePreloadedWebView) {
+                var factoryType = factory.GetType();
+                if (cachedViews.TryGetValue(factoryType, out var cachedView)) {
+                    cachedViews.Remove(factoryType);
+                }
+
+                // create a new view in the background
+                Application.Current.Dispatcher.BeginInvoke((Action)(() => {
+                    if (!cachedViews.ContainsKey(factoryType) && !Application.Current.Dispatcher.HasShutdownStarted) {
+                        cachedViews.Add(factoryType, InnerCreateView());
+                    }
+                }), DispatcherPriority.Background);
+
+                if (cachedView != null) {
+                    return cachedView;
+                }
+            }
+
+            return InnerCreateView();
         }
 
         public ReactView(bool usePreloadedWebView = true) {
-            if (usePreloadedWebView) {
-                view = CreateReactViewInstance();
-            } else {
-                view = new ReactViewRender(false);
-            }
+            view = CreateReactViewInstance(Factory, usePreloadedWebView);
             SetResourceReference(StyleProperty, typeof(ReactView)); // force styles to be inherited, must be called after view is created otherwise view might be null
             Content = view;
 
             FocusManager.SetIsFocusScope(this, true);
             FocusManager.SetFocusedElement(this, view.FocusableElement);
         }
+
+        protected virtual ReactViewFactory Factory => new ReactViewFactory();
 
         public override void OnApplyTemplate() {
             Initialize();
@@ -60,10 +78,6 @@ namespace ReactViewControl {
             view.Dispose();
             GC.SuppressFinalize(this);
         }
-
-        public ResourceUrl DefaultStyleSheet { get => view.DefaultStyleSheet; set => view.DefaultStyleSheet = value; }
-
-        public IViewModule[] Plugins { get => view.Plugins; set => view.Plugins = value; }
 
         public T WithPlugin<T>() {
             return view.WithPlugin<T>();

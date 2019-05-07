@@ -12,10 +12,12 @@ using WebViewControl;
 
 namespace ReactViewControl {
 
-    internal partial class ReactViewRender : UserControl, IReactView, IExecutionEngine {
+    public partial class ReactViewRender : UserControl, IExecutionEngine, IDisposable {
 
         private const string ModulesObjectName = "__Modules__";
         private const string ComponentLoadedEventName = "ComponentLoaded";
+
+        private static readonly Assembly ResourcesAssembly = typeof(ReactViewResources.Resources).Assembly;
 
         internal static TimeSpan CustomRequestTimeout = TimeSpan.FromSeconds(5);
 
@@ -33,13 +35,17 @@ namespace ReactViewControl {
 
         private ConcurrentQueue<Tuple<string, object[]>> pendingScripts = new ConcurrentQueue<Tuple<string, object[]>>();
 
-        public ReactViewRender(bool preloadWebView) {
+        public ReactViewRender(ResourceUrl defaultStyleSheet, IViewModule[] plugins, bool preloadWebView, bool enableDebugMode) {
             userCallingAssembly = WebView.GetUserCallingMethod().ReflectedType.Assembly;
 
             webView = new InternalWebView(this, preloadWebView) {
                 DisableBuiltinContextMenus = true,
                 IgnoreMissingResources = false
             };
+
+            DefaultStyleSheet = defaultStyleSheet;
+            Plugins = plugins;
+            EnableDebugMode = enableDebugMode;
 
             var loadedListener = webView.AttachListener(ComponentLoadedEventName);
             loadedListener.Handler += OnReady;
@@ -52,13 +58,14 @@ namespace ReactViewControl {
 
             var urlParams = new string[] {
                 ReactView.UseEnhancedRenderingEngine ? "1" : "0",
-                new ResourceUrl(typeof(ReactViewResources.Resources).Assembly, ReactViewResources.Resources.LibrariesPath).ToString(),
+                enableDebugMode ? "1" : "0",
+                new ResourceUrl(ResourcesAssembly, ReactViewResources.Resources.LibrariesPath).ToString(),
                 ModulesObjectName,
                 Listener.EventListenerObjName,
                 ComponentLoadedEventName
             };
-            
-            webView.LoadResource(new ResourceUrl(typeof(ReactViewResources.Resources).Assembly, ReactViewResources.Resources.DefaultUrl + "?" + string.Join("&", urlParams)));
+
+            webView.LoadResource(new ResourceUrl(ResourcesAssembly, ReactViewResources.Resources.DefaultUrl + "?" + string.Join("&", urlParams)));
         }
 
         private void OnReady() {
@@ -119,13 +126,6 @@ namespace ReactViewControl {
                 JavascriptSerializer.Serialize(new [] { component.NativeObjectName, component.Name, source })
             };
 
-            if (DefaultStyleSheet != null) {
-                loadArgs.Add(JavascriptSerializer.Serialize(NormalizeUrl(ToFullUrl(DefaultStyleSheet.ToString()))));
-            } else {
-                loadArgs.Add(JavascriptSerializer.Serialize((string)null));
-            }
-
-            loadArgs.Add(JavascriptSerializer.Serialize(enableDebugMode));
             loadArgs.Add(cacheInvalidationTimestamp != null ? JavascriptSerializer.Serialize("t=" + cacheInvalidationTimestamp) : JavascriptSerializer.Serialize(null));
 
             var componentNativeObject = component.CreateNativeObject();
@@ -135,21 +135,37 @@ namespace ReactViewControl {
 
             webView.RegisterJavascriptObject(component.NativeObjectName, componentNativeObject, executeCallsInUI: false);
 
-            if (Plugins?.Length > 0) {
-                // plugins
-                var pluginsWithNativeObject = Plugins.Where(p => !string.IsNullOrEmpty(p.NativeObjectName)).ToArray();
-                loadArgs.Add(JavascriptSerializer.Serialize(pluginsWithNativeObject.Select(m => new[] { m.Name, m.NativeObjectName })));
+            ExecuteLoaderFunction("loadComponent", loadArgs.ToArray());
+            IsComponentLoaded = true;
+        }
 
-                foreach (var module in pluginsWithNativeObject) {
-                    webView.RegisterJavascriptObject(module.NativeObjectName, module.CreateNativeObject(), executeCallsInUI: false);
-                }
+        private void InternalLoadDefaultStyleSheet() {
+            var loadArgs = new List<string>();
 
-                // mappings
-                loadArgs.Add(JavascriptSerializer.Serialize(Plugins.Select(m => new KeyValuePair<string, object>(m.Name, NormalizeUrl(ToFullUrl(m.JavascriptSource))))));
+            if (DefaultStyleSheet != null) {
+                loadArgs.Add(JavascriptSerializer.Serialize(NormalizeUrl(ToFullUrl(DefaultStyleSheet.ToString()))));
+            } else {
+                loadArgs.Add(JavascriptSerializer.Serialize((string)null));
             }
 
-            ExecuteDeferredScriptFunction("load", loadArgs.ToArray());
-            IsComponentLoaded = true;
+            ExecuteLoaderFunction("loadStyleSheet", loadArgs.ToArray());
+        }
+
+        private void InternalLoadPlugins() {
+            var loadArgs = new List<string>();
+            
+            // plugins
+            var pluginsWithNativeObject = Plugins.Where(p => !string.IsNullOrEmpty(p.NativeObjectName)).ToArray();
+            loadArgs.Add(JavascriptSerializer.Serialize(pluginsWithNativeObject.Select(m => new[] { m.Name, m.NativeObjectName })));
+
+            foreach (var module in pluginsWithNativeObject) {
+                webView.RegisterJavascriptObject(module.NativeObjectName, module.CreateNativeObject(), executeCallsInUI: false);
+            }
+
+            // mappings
+            loadArgs.Add(JavascriptSerializer.Serialize(Plugins.Select(m => new KeyValuePair<string, object>(m.Name, NormalizeUrl(ToFullUrl(m.JavascriptSource))))));
+
+            ExecuteLoaderFunction("loadPlugins", loadArgs.ToArray());
         }
 
         public bool IsComponentLoaded { get; private set; }
@@ -157,11 +173,16 @@ namespace ReactViewControl {
         private void OnWebViewNavigated(string obj) {
             IsReady = false;
             pageLoaded = true;
+            if (DefaultStyleSheet != null) {
+                InternalLoadDefaultStyleSheet();
+            }
+            if (Plugins?.Length > 0) {
+                InternalLoadPlugins();
+            }
             if (component != null) {
                 InternalLoadComponent();
             }
         }
-
 
         private static string FormatMethodInvocation(IViewModule module, string methodCall) {
             return ModulesObjectName + "[\"" + module.Name + "\"]." + methodCall;
@@ -183,7 +204,7 @@ namespace ReactViewControl {
         
         public ResourceUrl DefaultStyleSheet {
             get { return defaultStyleSheet; }
-            set {
+            private set {
                 if (IsComponentLoaded) {
                     throw new InvalidOperationException($"Cannot set {nameof(DefaultStyleSheet)} after component has been loaded");
                 }
@@ -193,7 +214,7 @@ namespace ReactViewControl {
 
         public IViewModule[] Plugins {
             get { return plugins; }
-            set {
+            private set {
                 if (IsComponentLoaded) {
                     throw new InvalidOperationException($"Cannot set {nameof(Plugins)} after component has been loaded");
                 }
@@ -247,7 +268,7 @@ namespace ReactViewControl {
 
         private void ShowErrorMessage(string msg) {
             msg = msg.Replace("\"", "\\\"");
-            ExecuteDeferredScriptFunction("showErrorMessage", JavascriptSerializer.Serialize(msg));
+            ExecuteLoaderFunction("showErrorMessage", JavascriptSerializer.Serialize(msg));
         }
         
         private string ToFullUrl(string url) {
@@ -314,9 +335,10 @@ namespace ReactViewControl {
             };
         }
 
-        private void ExecuteDeferredScriptFunction(string functionName, params string[] args) {
+        private void ExecuteLoaderFunction(string functionName, params string[] args) {
             // using setimeout we make sure the function is already defined
-            webView.EvaluateScript<int>($"setTimeout(() => {functionName}({string.Join(",", args)}), 0)");
+            var loaderUrl = new ResourceUrl(ResourcesAssembly, ReactViewResources.Resources.LoaderUrl);
+            webView.EvaluateScript<int>($"import('{loaderUrl}').then(m => m.{functionName}({string.Join(",", args)}))");
         }
         
         private static string NormalizeUrl(string url) {
