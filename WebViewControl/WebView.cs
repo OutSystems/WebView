@@ -1,5 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using CefSharp;
+using CefSharp.ModelBinding;
+using CefSharp.Wpf;
+using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -11,9 +13,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
-using CefSharp;
-using CefSharp.ModelBinding;
-using CefSharp.Wpf;
 
 namespace WebViewControl {
 
@@ -161,7 +160,7 @@ namespace WebViewControl {
             }
 #endif
 
-            CurrentDomainId = ""; // domainId.ToString();
+            CurrentDomainId = domainId.ToString();
             domainId++;
 
             DefaultLocalUrl = new ResourceUrl(ResourceUrl.LocalScheme, "index.html").WithDomain(CurrentDomainId);

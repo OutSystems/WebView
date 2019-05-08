@@ -18,7 +18,7 @@ namespace Example {
                 }
             }
 
-            public override bool ShowDeveloperTools => true;
+            public override bool ShowDeveloperTools => false;
         }
 
         protected override ReactViewFactory Factory => new ViewFactory();

@@ -7,7 +7,7 @@ namespace WebViewControl {
     public class ResourceUrl {
 
         public const string LocalScheme = "local";
-        internal const string EmbeddedScheme = "https";
+        internal const string EmbeddedScheme = "embedded";
         internal const string CustomScheme = "custom";
 
         internal const string PathSeparator = "/";
@@ -86,7 +86,7 @@ namespace WebViewControl {
         }
 
         internal string WithDomain(string domain) {
-            return string.Format(url, domain); 
+            return string.Format(url, "." + domain);
         }
     }
 }

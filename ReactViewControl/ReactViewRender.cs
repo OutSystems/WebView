@@ -120,52 +120,42 @@ namespace ReactViewControl {
         private void InternalLoadComponent() {
             var source = NormalizeUrl(component.JavascriptSource);
             var baseUrl = ToFullUrl(VirtualPathUtility.GetDirectory(source));
-
-            var loadArgs = new List<string>() {
-                JavascriptSerializer.Serialize(baseUrl),
-                JavascriptSerializer.Serialize(new [] { component.NativeObjectName, component.Name, source })
-            };
-
-            loadArgs.Add(cacheInvalidationTimestamp != null ? JavascriptSerializer.Serialize("t=" + cacheInvalidationTimestamp) : JavascriptSerializer.Serialize(null));
-
             var componentNativeObject = component.CreateNativeObject();
-
             var methods = componentNativeObject.GetType().GetMethods();
-            loadArgs.Add(JavascriptSerializer.Serialize(methods.ToDictionary(m => JavascriptSerializer.GetJavascriptName(m.Name), m => (object) null)));
+            var urlSuffix = cacheInvalidationTimestamp != null ? "t=" + cacheInvalidationTimestamp : null;
+
+            var loadArgs = new [] {
+                JavascriptSerializer.Serialize(baseUrl),
+                JavascriptSerializer.Serialize(urlSuffix),
+                JavascriptSerializer.Serialize(DefaultStyleSheet != null),
+                JavascriptSerializer.Serialize(Plugins?.Length > 0),
+                JavascriptSerializer.Serialize(new [] { component.NativeObjectName, component.Name, source }),
+                JavascriptSerializer.Serialize(methods.ToDictionary(m => JavascriptSerializer.GetJavascriptName(m.Name), m => (object) null))
+            };
 
             webView.RegisterJavascriptObject(component.NativeObjectName, componentNativeObject, executeCallsInUI: false);
 
-            ExecuteLoaderFunction("loadComponent", loadArgs.ToArray());
+            ExecuteLoaderFunction("loadComponent", loadArgs);
             IsComponentLoaded = true;
         }
 
         private void InternalLoadDefaultStyleSheet() {
-            var loadArgs = new List<string>();
-
-            if (DefaultStyleSheet != null) {
-                loadArgs.Add(JavascriptSerializer.Serialize(NormalizeUrl(ToFullUrl(DefaultStyleSheet.ToString()))));
-            } else {
-                loadArgs.Add(JavascriptSerializer.Serialize((string)null));
-            }
-
-            ExecuteLoaderFunction("loadStyleSheet", loadArgs.ToArray());
+            var loadArg = JavascriptSerializer.Serialize(DefaultStyleSheet != null ? NormalizeUrl(ToFullUrl(DefaultStyleSheet.ToString())) : null);
+            ExecuteLoaderFunction("loadStyleSheet", loadArg);
         }
 
         private void InternalLoadPlugins() {
-            var loadArgs = new List<string>();
-            
-            // plugins
             var pluginsWithNativeObject = Plugins.Where(p => !string.IsNullOrEmpty(p.NativeObjectName)).ToArray();
-            loadArgs.Add(JavascriptSerializer.Serialize(pluginsWithNativeObject.Select(m => new[] { m.Name, m.NativeObjectName })));
+            var loadArgs = new[] {
+                JavascriptSerializer.Serialize(pluginsWithNativeObject.Select(m => new[] { m.Name, m.NativeObjectName })), // plugins
+                JavascriptSerializer.Serialize(Plugins.Select(m => new KeyValuePair<string, object>(m.Name, NormalizeUrl(ToFullUrl(m.JavascriptSource))))) // mappings
+            };
 
             foreach (var module in pluginsWithNativeObject) {
                 webView.RegisterJavascriptObject(module.NativeObjectName, module.CreateNativeObject(), executeCallsInUI: false);
             }
 
-            // mappings
-            loadArgs.Add(JavascriptSerializer.Serialize(Plugins.Select(m => new KeyValuePair<string, object>(m.Name, NormalizeUrl(ToFullUrl(m.JavascriptSource))))));
-
-            ExecuteLoaderFunction("loadPlugins", loadArgs.ToArray());
+            ExecuteLoaderFunction("loadPlugins", loadArgs);
         }
 
         public bool IsComponentLoaded { get; private set; }

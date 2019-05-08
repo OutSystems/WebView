@@ -26,11 +26,12 @@ namespace ReactViewControl {
 
             if (usePreloadedWebView) {
                 var factoryType = factory.GetType();
+                // check if we have a view cached for the current factory
                 if (cachedViews.TryGetValue(factoryType, out var cachedView)) {
                     cachedViews.Remove(factoryType);
                 }
 
-                // create a new view in the background
+                // create a new view in the background and put it in the cache
                 Application.Current.Dispatcher.BeginInvoke((Action)(() => {
                     if (!cachedViews.ContainsKey(factoryType) && !Application.Current.Dispatcher.HasShutdownStarted) {
                         cachedViews.Add(factoryType, InnerCreateView());

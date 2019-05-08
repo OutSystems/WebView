@@ -172,7 +172,7 @@ export function loadPlugins(plugins: string[][], mappings: Dictionary<string>): 
     innerLoad();
 }
 
-export function loadComponent(baseUrl: string, userComponent: [string, string, string], cacheInvalidationSuffix: string, userComponentNativeMethods: Dictionary<any>): void {
+export function loadComponent(baseUrl: string, cacheInvalidationSuffix: string, hasStyleSheet: boolean, hasPlugins: boolean, userComponent: [string, string, string], userComponentNativeMethods: Dictionary<any>): void {
     async function innerLoad() {
         try {
             // force images and other resources load from the appropriate path
@@ -189,7 +189,14 @@ export function loadComponent(baseUrl: string, userComponent: [string, string, s
                 await waitForNextPaint();
             }
 
-            await Promise.all([BootstrapTask.promise, StylesheetsLoadTask.promise, PluginsLoadTask.promise]);
+            let promisesToWaitFor = [BootstrapTask.promise];
+            if (hasStyleSheet) {
+                promisesToWaitFor.push(StylesheetsLoadTask.promise);
+            }
+            if (hasPlugins) {
+                promisesToWaitFor.push(PluginsLoadTask.promise);
+            }
+            await Promise.all(promisesToWaitFor);
 
             require.config({
                 baseUrl: baseUrl,
