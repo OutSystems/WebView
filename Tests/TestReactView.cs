@@ -7,7 +7,7 @@ namespace Tests {
 
         public event Action<string> Event;
 
-        public TestReactView() : base(usePreloadedWebView: false) { }
+        public TestReactView() : base() { }
 
         public class Properties {
 
@@ -39,5 +39,7 @@ namespace Tests {
         public void ExecuteMethodOnRoot(string methodCall, params string[] args) {
             ExecutionEngine.ExecuteMethod(this, methodCall, args);
         }
+
+        protected override ReactViewFactory Factory => new TestReactViewFactory();
     }
 }

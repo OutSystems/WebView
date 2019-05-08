@@ -350,30 +350,15 @@ namespace WebViewControl {
             }
         }
 
-        public bool IgnoreCertificateErrors {
-            get;
-            set;
-        }
+        public bool IgnoreCertificateErrors { get; set; }
 
-        public bool IsHistoryDisabled {
-            get;
-            set;
-        }
+        public bool IsHistoryDisabled { get; set; }
 
-        public TimeSpan? DefaultScriptsExecutionTimeout {
-            get;
-            set;
-        }
+        public TimeSpan? DefaultScriptsExecutionTimeout { get; set; }
 
-        public bool DisableBuiltinContextMenus {
-            get;
-            set;
-        }
+        public bool DisableBuiltinContextMenus { get; set; }
 
-        public bool DisableFileDialogs {
-            get;
-            set;
-        }
+        public bool DisableFileDialogs { get; set; }
 
         public bool IsBrowserInitialized {
             get { return chromium.IsBrowserInitialized; }
@@ -671,13 +656,6 @@ namespace WebViewControl {
             Dispose();
         }
 
-        protected void RegisterProtocolHandler(string protocol, Action<ResourceHandler> requestHandler) {
-            if (chromium.RequestContext == null) {
-                chromium.RequestContext = new RequestContext();
-            }
-            chromium.RequestContext.RegisterSchemeHandlerFactory(protocol, "", new CefSchemeHandlerFactory(requestHandler));
-        }
-
         protected void RegisterProtocolHandler(string protocol, CefResourceHandlerFactory handler) {
             if (chromium.RequestContext == null) {
                 chromium.RequestContext = new RequestContext(new RequestContextSettings() {
@@ -685,6 +663,10 @@ namespace WebViewControl {
                 });
             }
             chromium.RequestContext.RegisterSchemeHandlerFactory(protocol, "", handler);
+        }
+        
+        protected virtual string GetRequestUrl(string url, ResourceType resourceType) {
+            return url;
         }
     }
 }

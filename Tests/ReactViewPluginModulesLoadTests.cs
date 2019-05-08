@@ -5,6 +5,18 @@ namespace Tests {
 
     public class ReactViewPluginModulesLoadTests : ReactViewTestBase {
 
+        protected class ViewFactoryWithPlugin : TestReactViewFactory {
+            public override IViewModule[] Plugins => new[] { new PluginModule() };
+        }
+
+        protected class ReactViewWithPlugin : TestReactView {
+            protected override ReactViewFactory Factory => new ViewFactoryWithPlugin();
+        }
+
+        protected override TestReactView CreateView() {
+            return new ReactViewWithPlugin();
+        }
+
         class PluginModule : ViewModuleContainer {
 
             internal interface IProperties {
@@ -23,11 +35,6 @@ namespace Tests {
             protected override object CreateNativeObject() {
                 return new Properties(this);
             }
-        }
-
-        protected override void InitializeView() {
-            TargetView.Plugins = new[] { new PluginModule() };
-            base.InitializeView();
         }
 
         [Test(Description = "Tests plugin module is loaded")]

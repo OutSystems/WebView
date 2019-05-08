@@ -14,8 +14,6 @@ namespace Tests {
             }
         }
 
-        protected virtual TimeSpan DefaultTimeout => TimeSpan.FromSeconds(10);
-
         protected virtual bool WaitForReady => true;
 
         protected override bool ReuseView => false;

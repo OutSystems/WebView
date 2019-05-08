@@ -12,7 +12,7 @@ namespace Tests {
     [Apartment(ApartmentState.STA)]
     public abstract class TestBase<T> where T : class, IDisposable, new() {
 
-        protected static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(5);
+        protected virtual TimeSpan DefaultTimeout => TimeSpan.FromSeconds(5);
 
         private Window window;
         private T view;
@@ -40,7 +40,7 @@ namespace Tests {
         protected void SetUp() {
             window.Title = "Running: " + TestContext.CurrentContext.Test.Name;
             if (view == null) {
-                view = new T();
+                view = CreateView();
 
                 InitializeView();
 
@@ -48,6 +48,10 @@ namespace Tests {
 
                 AfterInitializeView();
             }
+        }
+
+        protected virtual T CreateView() {
+            return new T();
         }
 
         protected abstract void InitializeView();
@@ -71,7 +75,7 @@ namespace Tests {
             get { return view; }
         }
 
-        public static void WaitFor(Func<bool> predicate, string purpose = "") {
+        public void WaitFor(Func<bool> predicate, string purpose = "") {
             WaitFor(predicate, DefaultTimeout, purpose);
         }
 

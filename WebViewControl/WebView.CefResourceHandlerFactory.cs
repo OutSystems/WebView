@@ -46,7 +46,7 @@ namespace WebViewControl {
                 return resourceHandler.Handler;
             }
 
-            protected virtual void HandleRequest(ResourceHandler resourceHandler) {
+            protected void HandleRequest(ResourceHandler resourceHandler) {
                 if (Uri.TryCreate(resourceHandler.Url, UriKind.Absolute, out var url) && url.Scheme == ResourceUrl.EmbeddedScheme) {
                     var urlWithoutQuery = new UriBuilder(url);
                     if (url.Query != "") {
@@ -137,10 +137,6 @@ namespace WebViewControl {
             public void Dispose() {
                 AppDomain.CurrentDomain.AssemblyLoad -= OnAssemblyLoaded;
             }
-        }
-
-        protected virtual string GetRequestUrl(string url, ResourceType resourceType) {
-            return url;
         }
     }
 }

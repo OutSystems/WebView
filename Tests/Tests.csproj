@@ -79,6 +79,7 @@
     <Compile Include="TestBase.cs" />
     <Compile Include="TestObject.cs" />
     <Compile Include="TestReactView.cs" />
+    <Compile Include="TestReactViewFactory.cs" />
     <Compile Include="WebViewTestBase.cs" />
   </ItemGroup>
   <ItemGroup>
