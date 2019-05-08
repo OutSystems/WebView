@@ -68,6 +68,7 @@
     <Compile Include="IsolatedJavascriptEvaluation.cs" />
     <Compile Include="JavascriptEvaluation.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="DisposeTests.cs" />
     <Compile Include="ReactViewPluginModulesLoadTests.cs" />
     <Compile Include="ReactViewDefaultStylesheetLoadTests.cs" />
     <Compile Include="ReactViewInitializationTests.cs" />
