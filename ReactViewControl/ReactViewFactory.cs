@@ -12,5 +12,7 @@ namespace ReactViewControl {
         public virtual bool ShowDeveloperTools => false;
 
         public virtual bool EnableDebugMode => false;
+
+        public virtual bool EnableViewPreload => true;
     }
 }

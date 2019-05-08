@@ -15,16 +15,16 @@ namespace ReactViewControl {
 
         private readonly ReactViewRender view;
 
-        private static ReactViewRender CreateReactViewInstance(ReactViewFactory factory, bool usePreloadedWebView = true, bool enableDebugMode = false) {
+        private static ReactViewRender CreateReactViewInstance(ReactViewFactory factory) {
             ReactViewRender InnerCreateView() {
-                var view = new ReactViewRender(factory.DefaultStyleSheet, factory.Plugins, usePreloadedWebView, factory.EnableDebugMode);
+                var view = new ReactViewRender(factory.DefaultStyleSheet, factory.Plugins, factory.EnableViewPreload, factory.EnableDebugMode);
                 if (factory.ShowDeveloperTools) {
                     view.ShowDeveloperTools();
                 }
                 return view;
             }
 
-            if (usePreloadedWebView) {
+            if (factory.EnableViewPreload) {
                 var factoryType = factory.GetType();
                 // check if we have a view cached for the current factory
                 if (cachedViews.TryGetValue(factoryType, out var cachedView)) {
@@ -45,10 +45,13 @@ namespace ReactViewControl {
 
             return InnerCreateView();
         }
-
-        public ReactView(bool usePreloadedWebView = true) {
-            view = CreateReactViewInstance(Factory, usePreloadedWebView);
+        
+        public ReactView() {
+            view = CreateReactViewInstance(Factory);
             SetResourceReference(StyleProperty, typeof(ReactView)); // force styles to be inherited, must be called after view is created otherwise view might be null
+
+            Initialize();
+
             Content = view;
 
             FocusManager.SetIsFocusScope(this, true);
@@ -56,11 +59,6 @@ namespace ReactViewControl {
         }
 
         protected virtual ReactViewFactory Factory => new ReactViewFactory();
-
-        public override void OnApplyTemplate() {
-            Initialize();
-            base.OnApplyTemplate();
-        }
 
         private void Initialize() {
             if (!view.IsComponentLoaded) {
