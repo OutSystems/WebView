@@ -4,6 +4,7 @@ using CefSharp.Wpf;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -25,10 +26,6 @@ namespace WebViewControl {
         };
 
         private const string ChromeInternalProtocol = "chrome-devtools:";
-
-        // converts cef zoom percentage to css zoom (between 0 and 1)
-        // from https://code.google.com/p/chromium/issues/detail?id=71484
-        private const float PercentageToZoomFactor = 1.2f;
 
         private static bool subscribedApplicationExit = false;
 
@@ -74,12 +71,6 @@ namespace WebViewControl {
         private event Action JavascriptContextReleased;
         private event Action JavascriptCallFinished;
 
-        private static int domainId;
-
-        // cef maints same zoom level for all browser instances under the same domain
-        // having different domains will prevent synced zoom
-        private readonly string CurrentDomainId;
-
         private readonly string DefaultLocalUrl;
 
         /// <summary>
@@ -108,8 +99,7 @@ namespace WebViewControl {
 
                 foreach (var scheme in CustomSchemes) {
                     cefSettings.RegisterScheme(new CefCustomScheme() {
-                        SchemeName = scheme,
-                        SchemeHandlerFactory = new CefSchemeHandlerFactory()
+                        SchemeName = scheme
                     });
                 }
 
@@ -160,10 +150,7 @@ namespace WebViewControl {
             }
 #endif
 
-            CurrentDomainId = domainId.ToString();
-            domainId++;
-
-            DefaultLocalUrl = new ResourceUrl(ResourceUrl.LocalScheme, "index.html").WithDomain(CurrentDomainId);
+            DefaultLocalUrl = new ResourceUrl(ResourceUrl.LocalScheme, "index.html").ToString();
 
             Initialize();
         }
@@ -195,7 +182,17 @@ namespace WebViewControl {
             chromium.DialogHandler = new CefDialogHandler(this);
             chromium.DownloadHandler = new CefDownloadHandler(this);
             chromium.CleanupElement = new FrameworkElement(); // prevent chromium to listen to default cleanup element unload events, this will be controlled manually
-            
+
+            // create a new context to turn off zoom sharing between same domains
+            chromium.RequestContext = new RequestContext(new RequestContextSettings() {
+                CachePath = CachePath
+            });
+
+            // register custom schemes, otherwise chrome dev tools Applciation tab will blowup
+            foreach (var scheme in CustomSchemes) {
+                chromium.RequestContext.RegisterSchemeHandlerFactory(scheme, "", resourceHandlerFactory);
+            }
+
             jsExecutor = new JavascriptExecutor(this);
 
             RegisterJavascriptObject(Listener.EventListenerObjName, eventsListener);
@@ -327,12 +324,12 @@ namespace WebViewControl {
                 ExecuteWhenInitialized(() => chromium.Load(address));
             } else {
                 var userAssembly = GetUserCallingMethod().ReflectedType.Assembly;
-                Load(new ResourceUrl(userAssembly, address).WithDomain(CurrentDomainId));
+                Load(new ResourceUrl(userAssembly, address).ToString());
             }
         }
 
         public void LoadResource(ResourceUrl resourceUrl) {
-            Address = resourceUrl.WithDomain(CurrentDomainId);
+            Address = resourceUrl.ToString();
         }
 
         public void LoadHtml(string html) {
@@ -480,8 +477,8 @@ namespace WebViewControl {
         }
 
         public double ZoomPercentage {
-            get { return Math.Pow(PercentageToZoomFactor, chromium.ZoomLevel); }
-            set { ExecuteWhenInitialized(() => chromium.ZoomLevel = Math.Log(value, PercentageToZoomFactor)); }
+            get { return Convert.ToDouble(EvaluateScript<string>("document.body.style.zoom"), CultureInfo.InvariantCulture); }
+            set { ExecuteScript("document.body.style.zoom = " + value.ToString(CultureInfo.InvariantCulture)); }
         }
 
         public Listener AttachListener(string name) {
@@ -657,11 +654,6 @@ namespace WebViewControl {
         }
 
         protected void RegisterProtocolHandler(string protocol, CefResourceHandlerFactory handler) {
-            if (chromium.RequestContext == null) {
-                chromium.RequestContext = new RequestContext(new RequestContextSettings() {
-                    CachePath = CachePath
-                });
-            }
             chromium.RequestContext.RegisterSchemeHandlerFactory(protocol, "", handler);
         }
         

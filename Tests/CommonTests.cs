@@ -79,5 +79,21 @@ namespace Tests {
             Assert.IsTrue(navigated);
         }
 
+
+
+        [Test(Description = "Setting zoom works as expected")]
+        public void ZoomWorksAsExpected() {
+            var navigated = false;
+            TargetView.Navigated += _ => {
+                navigated = true;
+            };
+            LoadAndWaitReady("<html>><body></body></html>");
+
+            const double Zoom = 1.5;
+            TargetView.ZoomPercentage = Zoom;
+
+            WaitFor(() => navigated);
+            Assert.AreEqual(Zoom, TargetView.ZoomPercentage);
+        }
     }
 }

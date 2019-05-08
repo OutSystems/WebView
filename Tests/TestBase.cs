@@ -38,7 +38,9 @@ namespace Tests {
 
         [SetUp]
         protected void SetUp() {
+            Console.Write(" "); // nunit will output the test name if we write on the console
             window.Title = "Running: " + TestContext.CurrentContext.Test.Name;
+            
             if (view == null) {
                 view = CreateView();
 

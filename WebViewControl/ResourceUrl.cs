@@ -14,7 +14,7 @@ namespace WebViewControl {
 
         private const string AssemblyPathSeparator = ";";
         private const string AssemblyPrefix = "assembly:";
-        private const string DefaultDomain = "webview{0}";
+        private const string DefaultDomain = "webview";
 
         private readonly string url;
 
@@ -46,7 +46,7 @@ namespace WebViewControl {
         }
 
         public override string ToString() {
-            return string.Format(url, "");
+            return url;
         }
 
         private static bool ContainsAssemblyLocation(Uri url) {
@@ -83,10 +83,6 @@ namespace WebViewControl {
                 return assemblySegment.EndsWith(PathSeparator) ? assemblySegment.Substring(0, assemblySegment.Length - PathSeparator.Length) : assemblySegment; // default assembly name to the first path
             }
             return string.Empty;
-        }
-
-        internal string WithDomain(string domain) {
-            return string.Format(url, "." + domain);
         }
     }
 }
