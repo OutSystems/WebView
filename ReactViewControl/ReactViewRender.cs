@@ -108,6 +108,11 @@ namespace ReactViewControl {
             remove { webView.UnhandledAsyncException -= value; }
         }
 
+        public event Action<string> ResourceLoadFailed {
+            add { webView.ResourceLoadFailed += value; }
+            remove { webView.ResourceLoadFailed -= value; }
+        }
+
         public event Func<string, Stream> CustomResourceRequested;
 
         public void LoadComponent(IViewModule component) {
@@ -130,7 +135,8 @@ namespace ReactViewControl {
                 JavascriptSerializer.Serialize(DefaultStyleSheet != null),
                 JavascriptSerializer.Serialize(Plugins?.Length > 0),
                 JavascriptSerializer.Serialize(new [] { component.NativeObjectName, component.Name, source }),
-                JavascriptSerializer.Serialize(methods.ToDictionary(m => JavascriptSerializer.GetJavascriptName(m.Name), m => (object) null))
+                JavascriptSerializer.Serialize(methods.ToDictionary(m => JavascriptSerializer.GetJavascriptName(m.Name), m => (object) null)),
+                GetMappings()
             };
 
             webView.RegisterJavascriptObject(component.NativeObjectName, componentNativeObject, executeCallsInUI: false);
@@ -144,11 +150,15 @@ namespace ReactViewControl {
             ExecuteLoaderFunction("loadStyleSheet", loadArg);
         }
 
+        private string GetMappings() {
+            return JavascriptSerializer.Serialize(Plugins.Select(m => new KeyValuePair<string, object>(m.Name, NormalizeUrl(ToFullUrl(m.JavascriptSource)))));
+        }
+
         private void InternalLoadPlugins() {
             var pluginsWithNativeObject = Plugins.Where(p => !string.IsNullOrEmpty(p.NativeObjectName)).ToArray();
             var loadArgs = new[] {
                 JavascriptSerializer.Serialize(pluginsWithNativeObject.Select(m => new[] { m.Name, m.NativeObjectName })), // plugins
-                JavascriptSerializer.Serialize(Plugins.Select(m => new KeyValuePair<string, object>(m.Name, NormalizeUrl(ToFullUrl(m.JavascriptSource))))) // mappings
+                GetMappings()
             };
 
             foreach (var module in pluginsWithNativeObject) {
@@ -204,7 +214,7 @@ namespace ReactViewControl {
 
         public IViewModule[] Plugins {
             get { return plugins; }
-            private set {
+            internal set {
                 if (IsComponentLoaded) {
                     throw new InvalidOperationException($"Cannot set {nameof(Plugins)} after component has been loaded");
                 }

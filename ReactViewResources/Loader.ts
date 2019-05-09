@@ -86,11 +86,10 @@ function loadFramework(): void {
         });
     }
 
-    const Paths = getRequireBasePaths();
     const RequireCssPath = LibsPath + "require-css/css.min.js";
 
     require.config({
-        paths: Paths,
+        paths: getRequirePaths(),
         map: {
             "*": {
                 "css": RequireCssPath
@@ -128,18 +127,14 @@ export function loadStyleSheet(stylesheet: string): void {
 export function loadPlugins(plugins: string[][], mappings: Dictionary<string>): void {
     async function innerLoad() {
         try {
-            let paths = getRequireBasePaths();
-
-            // configure require
-            if (mappings) {
-                paths = Object.assign(paths, mappings);
-            }
-
             await BootstrapTask.promise;
 
-            require.config({
-                paths: paths
-            });
+            if (mappings) {
+                let paths = Object.assign(getRequirePaths(), mappings);
+                require.config({
+                    paths: paths
+                });
+            }
 
             if (plugins && plugins.length > 0) {
                 // load plugin modules
@@ -172,7 +167,7 @@ export function loadPlugins(plugins: string[][], mappings: Dictionary<string>): 
     innerLoad();
 }
 
-export function loadComponent(baseUrl: string, cacheInvalidationSuffix: string, hasStyleSheet: boolean, hasPlugins: boolean, userComponent: [string, string, string], userComponentNativeMethods: Dictionary<any>): void {
+export function loadComponent(baseUrl: string, cacheInvalidationSuffix: string, hasStyleSheet: boolean, hasPlugins: boolean, userComponent: [string, string, string], userComponentNativeMethods: Dictionary<any>, mappings: Dictionary<string>): void {
     async function innerLoad() {
         try {
             // force images and other resources load from the appropriate path
@@ -198,7 +193,13 @@ export function loadComponent(baseUrl: string, cacheInvalidationSuffix: string, 
             }
             await Promise.all(promisesToWaitFor);
 
+            let paths = getRequirePaths();
+            if (mappings) {
+                paths = Object.assign(paths, mappings);
+            }
+
             require.config({
+                paths: paths,
                 baseUrl: baseUrl,
                 urlArgs: cacheInvalidationSuffix
             });
@@ -279,24 +280,6 @@ function createPropertiesProxy(basePropertiesObj: {}, nativeObjName: string): {}
     return proxy;
 }
 
-
-function getRequireBasePaths() {
-    if (UseEnhancedRenderingEngine === "1") {
-        // load preact
-        return {
-            "prop-types": LibsPath + "prop-types/prop-types.min",
-            "react": LibsPath + "preact-compat/dist/preact-compat.min",
-        };
-    } else {
-        // load react
-        return {
-            "prop-types": LibsPath + "prop-types/prop-types.min",
-            "react": LibsPath + "react/umd/react.production.min",
-            "react-dom": LibsPath + "react-dom/umd/react-dom.production.min",
-        };
-    }
-}
-
 function handleError(error: Error) {
     if (EnableDebugMode) {
         showErrorMessage(error.message);
@@ -314,6 +297,22 @@ function waitForNextPaint() {
 
 function getAllStylesheets(): HTMLLinkElement[] {
     return document.head ? Array.from(document.head.querySelectorAll("link")) : [];
+}
+
+function getRequirePaths() {
+    if (UseEnhancedRenderingEngine === "1") {
+        return {
+            "prop-types": LibsPath + "prop-types/prop-types.min",
+            "react": LibsPath + "preact-compat/dist/preact-compat.min",
+        };
+    } else {
+        // load react
+        return {
+            "prop-types": LibsPath + "prop-types/prop-types.min",
+            "react": LibsPath + "react/umd/react.production.min",
+            "react-dom": LibsPath + "react-dom/umd/react-dom.production.min",
+        };
+    }
 }
 
 bootstrap();

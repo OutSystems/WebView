@@ -1,15 +1,22 @@
 ﻿using NUnit.Framework;
 using ReactViewControl;
+using WebViewControl;
 
 namespace Tests {
 
     public class ReactViewPluginModulesLoadTests : ReactViewTestBase {
 
-        protected class ViewFactoryWithPlugin : TestReactViewFactory {
+        private class ViewFactoryWithPlugin : TestReactViewFactory {
             public override IViewModule[] Plugins => new[] { new PluginModule() };
         }
 
-        protected class ReactViewWithPlugin : TestReactView {
+        private class ReactViewWithPlugin : TestReactView {
+
+            public ReactViewWithPlugin() : base(initialize: false) {
+                AddMappings(new SimpleViewModule("SimpleModuleWithAlias", new ResourceUrl(typeof(ReactViewWithPlugin).Assembly, "ReactViewResources", "Test", "AliasedModule.js")));
+                Initialize();
+            }
+
             protected override ReactViewFactory Factory => new ViewFactoryWithPlugin();
         }
 
@@ -47,6 +54,18 @@ namespace Tests {
             TargetView.ExecuteMethodOnRoot("checkPluginModuleLoaded");
 
             WaitFor(() => pluginModuleLoaded, "plugin module load");
+        }
+
+        [Test(Description = "Tests module with alias is loaded")]
+        public void AliasedModuleIsLoaded() {
+            var pluginModuleLoaded = false;
+            TargetView.Event += (args) => {
+                pluginModuleLoaded = args == "AliasedModuleLoaded";
+            };
+
+            TargetView.ExecuteMethodOnRoot("checkAliasedModuleLoaded");
+
+            WaitFor(() => pluginModuleLoaded, "aliased module load");
         }
     }
 }

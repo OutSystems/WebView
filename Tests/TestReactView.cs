@@ -7,7 +7,9 @@ namespace Tests {
 
         public event Action<string> Event;
 
-        public TestReactView() : base() { }
+        public TestReactView() : this(initialize: true) { }
+
+        public TestReactView(bool initialize) : base(initialize) { }
 
         public class Properties {
 

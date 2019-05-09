@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -45,12 +46,17 @@ namespace ReactViewControl {
 
             return InnerCreateView();
         }
-        
-        public ReactView() {
+
+        public ReactView() : this(initialize: true) {
+        }
+
+        protected ReactView(bool initialize) {
             view = CreateReactViewInstance(Factory);
             SetResourceReference(StyleProperty, typeof(ReactView)); // force styles to be inherited, must be called after view is created otherwise view might be null
 
-            Initialize();
+            if (initialize) {
+                Initialize();
+            }
 
             Content = view;
 
@@ -60,7 +66,7 @@ namespace ReactViewControl {
 
         protected virtual ReactViewFactory Factory => new ReactViewFactory();
 
-        private void Initialize() {
+        protected void Initialize() {
             if (!view.IsComponentLoaded) {
                 if (EnableHotReload) {
                     view.EnableHotReload(Source);
@@ -82,6 +88,10 @@ namespace ReactViewControl {
             return view.WithPlugin<T>();
         }
 
+        protected void AddMappings(params SimpleViewModule[] mappings) {
+            view.Plugins = view.Plugins.Concat(mappings).ToArray();
+        }
+
         public bool EnableDebugMode { get => view.EnableDebugMode; set => view.EnableDebugMode = value; }
 
         public bool EnableHotReload { get; set; }
@@ -98,6 +108,11 @@ namespace ReactViewControl {
         public event Action<UnhandledAsyncExceptionEventArgs> UnhandledAsyncException {
             add { view.UnhandledAsyncException += value; }
             remove { view.UnhandledAsyncException -= value; }
+        }
+
+        public event Action<string> ResourceLoadFailed {
+            add { view.ResourceLoadFailed += value; }
+            remove { view.ResourceLoadFailed -= value; }
         }
 
         public event Func<string, Stream> CustomResourceRequested {

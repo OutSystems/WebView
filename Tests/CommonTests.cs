@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Windows;
 using NUnit.Framework;
+using WebViewControl;
 
 namespace Tests {
 
@@ -94,6 +96,19 @@ namespace Tests {
 
             WaitFor(() => navigated);
             Assert.AreEqual(Zoom, TargetView.ZoomPercentage);
+        }
+
+        [Test(Description = "Tests that the webview is disposed when host window is not shown")]
+        public void WebViewIsDisposedWhenHostWindowIsNotShown() {
+            var view = new WebView();
+            var window = new Window();
+            window.Content = view;
+
+            var disposed = false;
+            view.Disposed += () => disposed = true;
+
+            window.Close();
+            Assert.IsTrue(disposed);
         }
     }
 }

@@ -6,9 +6,7 @@ namespace Tests {
 
     public class IsolatedJavascriptEvaluation : WebViewTestBase {
 
-        protected override bool ReuseView {
-            get { return false; }
-        }
+        protected override bool ReuseView => false;
 
         protected override void InitializeView() { }
 
