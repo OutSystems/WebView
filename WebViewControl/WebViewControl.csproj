@@ -140,6 +140,7 @@
     <Compile Include="WebView.CefMenuHandler.cs" />
     <Compile Include="WebView.CefRenderProcessMessageHandler.cs" />
     <Compile Include="WebView.CefResourceHandlerFactory.cs" />
+    <Compile Include="WebView.CefSchemeResourceHandler.cs" />
     <Compile Include="WebView.cs" />
     <Compile Include="WebView.JavascriptException.cs" />
     <Compile Include="WebView.JavascriptExecutor.cs" />
