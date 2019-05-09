@@ -99,7 +99,8 @@ namespace WebViewControl {
 
                 foreach (var scheme in CustomSchemes) {
                     cefSettings.RegisterScheme(new CefCustomScheme() {
-                        SchemeName = scheme
+                        SchemeName = scheme,
+                        SchemeHandlerFactory = new CefSchemeHandlerFactory()
                     });
                 }
 
@@ -182,16 +183,6 @@ namespace WebViewControl {
             chromium.DialogHandler = new CefDialogHandler(this);
             chromium.DownloadHandler = new CefDownloadHandler(this);
             chromium.CleanupElement = new FrameworkElement(); // prevent chromium to listen to default cleanup element unload events, this will be controlled manually
-
-            // create a new context to turn off zoom sharing between same domains
-            chromium.RequestContext = new RequestContext(new RequestContextSettings() {
-                CachePath = CachePath
-            });
-
-            // register custom schemes, otherwise chrome dev tools Applciation tab will blowup
-            foreach (var scheme in CustomSchemes) {
-                chromium.RequestContext.RegisterSchemeHandlerFactory(scheme, "", resourceHandlerFactory);
-            }
 
             jsExecutor = new JavascriptExecutor(this);
 
@@ -599,8 +590,12 @@ namespace WebViewControl {
         }
 
         private void ForwardUnhandledAsyncException(Exception e) {
-            var handled = false;
+            if (isDisposing) {
+                return;
+            }
 
+            var handled = false;
+            
             var unhandledAsyncException = UnhandledAsyncException;
             if (unhandledAsyncException != null) {
                 var eventArgs = new UnhandledAsyncExceptionEventArgs(e);
@@ -610,7 +605,11 @@ namespace WebViewControl {
 
             if (!handled) {
                 // don't use invoke async, as it won't forward the exception to the dispatcher unhandled exception event
-                Dispatcher.BeginInvoke((Action) (() => throw e));
+                Dispatcher.BeginInvoke((Action) (() => {
+                    if (!isDisposing) {
+                        throw e;
+                    }
+                }));
             }
         }
 
@@ -654,6 +653,12 @@ namespace WebViewControl {
         }
 
         protected void RegisterProtocolHandler(string protocol, CefResourceHandlerFactory handler) {
+            if (chromium.RequestContext == null) {
+                // create a new context to turn off zoom sharing between same domains
+                chromium.RequestContext = new RequestContext(new RequestContextSettings() {
+                    CachePath = CachePath
+                });
+            }
             chromium.RequestContext.RegisterSchemeHandlerFactory(protocol, "", handler);
         }
         
