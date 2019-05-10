@@ -47,16 +47,9 @@ namespace ReactViewControl {
             return InnerCreateView();
         }
 
-        public ReactView() : this(initialize: true) {
-        }
-
-        protected ReactView(bool initialize) {
+        public ReactView() {
             view = CreateReactViewInstance(Factory);
             SetResourceReference(StyleProperty, typeof(ReactView)); // force styles to be inherited, must be called after view is created otherwise view might be null
-
-            if (initialize) {
-                Initialize();
-            }
 
             Content = view;
 
@@ -66,13 +59,14 @@ namespace ReactViewControl {
 
         protected virtual ReactViewFactory Factory => new ReactViewFactory();
 
-        protected void Initialize() {
+        public override void OnApplyTemplate() {
             if (!view.IsComponentLoaded) {
                 if (EnableHotReload) {
                     view.EnableHotReload(Source);
                 }
                 view.LoadComponent(this);
             }
+            base.OnApplyTemplate();
         }
 
         ~ReactView() {

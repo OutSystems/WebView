@@ -5,9 +5,14 @@ export interface ISomeType {
     name: string;
 }
 
+export interface IInitialState {
+    constantMessage: string;
+}
+
 export interface IExampleViewProperties {
     click(arg: ISomeType): void;
-    getTime(): Promise<string>
+    getTime(): Promise<string>;
+    getInitialState(): IInitialState;
 }
 
 export interface IExampleViewBehaviors {
@@ -18,13 +23,13 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
 
     constructor(props: IExampleViewProperties) {
         super(props);
-        this.state = {
-            time: "-"
-        };
         this.initialize();
     }
 
     private async initialize() {
+        this.state = {
+            time: "-"
+        };
         let time = await this.props.getTime();
         this.setState({ time: time });
     }
@@ -36,6 +41,8 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
     render() {
         return (
             <div className="wrapper">
+                {this.props.getInitialState().constantMessage}
+                <br />
                 Current time: {this.state.time}<br />
                 <br />
                 <img src="beach.jpg"/>

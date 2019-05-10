@@ -167,17 +167,27 @@ export function loadPlugins(plugins: string[][], mappings: Dictionary<string>): 
     innerLoad();
 }
 
-export function loadComponent(baseUrl: string, cacheInvalidationSuffix: string, hasStyleSheet: boolean, hasPlugins: boolean, userComponent: [string, string, string], userComponentNativeMethods: Dictionary<any>, mappings: Dictionary<string>): void {
+export function loadComponent(
+    componentName: string,
+    componentSource: string,
+    componentNativeObjectName: string,
+    baseUrl: string,
+    cacheInvalidationSuffix: string,
+    hasStyleSheet: boolean,
+    hasPlugins: boolean,
+    componentNativeObject: Dictionary<any>,
+    componentHash: string,
+    mappings: Dictionary<string>): void {
+
     async function innerLoad() {
         try {
             // force images and other resources load from the appropriate path
             (document.getElementById("webview_base") as HTMLBaseElement).href = baseUrl;
 
-            const [UserComponentNativeObjectName, UserComponentName, UserComponentSource] = userComponent;
-
             const RootElement = document.getElementById("webview_root") as HTMLDivElement;
 
-            const CachedElementHtml = localStorage.getItem(UserComponentSource);
+            const ComponentCacheKey = componentSource + "|" + componentHash;
+            const CachedElementHtml = localStorage.getItem(ComponentCacheKey);
             if (CachedElementHtml) {
                 // render cached component html to reduce time to first render
                 RootElement.innerHTML = CachedElementHtml;
@@ -206,21 +216,21 @@ export function loadComponent(baseUrl: string, cacheInvalidationSuffix: string, 
 
             // load component module
             const [React, ReactDOM, Component] = await new Promise<[React, ReactDOM, any]>((resolve, reject) => {
-                require(["react", "react-dom", UserComponentSource], (React: React, ReactDOM: ReactDOM, UserComponentModule: any) => {
+                require(["react", "react-dom", componentSource], (React: React, ReactDOM: ReactDOM, UserComponentModule: any) => {
                     if (UserComponentModule.default) {
                         resolve([React, ReactDOM, UserComponentModule.default]);
                     } else {
-                        reject(`Component module ('${UserComponentSource}') does not have a default export.`);
+                        reject(`Component module ('${componentSource}') does not have a default export.`);
                     }
                 });
             });
 
             // create proxy for properties obj to delay its methods execution until native object is ready
-            const Properties = createPropertiesProxy(userComponentNativeMethods, UserComponentNativeObjectName);
+            const Properties = createPropertiesProxy(componentNativeObject, componentNativeObjectName);
 
             // render component
             await new Promise((resolve) => {
-                Modules[UserComponentName] = ReactDOM.render(
+                Modules[componentName] = ReactDOM.render(
                     React.createElement(Component, Properties),
                     RootElement,
                     resolve
@@ -234,7 +244,8 @@ export function loadComponent(baseUrl: string, cacheInvalidationSuffix: string, 
                 const ElementHtml = RootElement.innerHTML;
                 // get all stylesheets except the stick ones (which will be loaded by the time the html gets rendered) otherwise we could be loading them twice
                 const Stylesheets = getAllStylesheets().filter(l => l.dataset.sticky !== "true").map(l => l.outerHTML).join("");
-                localStorage.setItem(UserComponentSource, Stylesheets + ElementHtml);
+                localStorage.setItem(ComponentCacheKey, Stylesheets + ElementHtml);
+                // TODO limit number of cached items?
             }
 
             window.dispatchEvent(new Event('viewready'));
@@ -264,18 +275,25 @@ async function bootstrap() {
 function createPropertiesProxy(basePropertiesObj: {}, nativeObjName: string): {} {
     let proxy = Object.assign({}, basePropertiesObj);
     Object.keys(proxy).forEach(key => {
-        proxy[key] = async function () {
-            let nativeObject = window[nativeObjName];
-            if (!nativeObject) {
-                await new Promise(async (resolve) => {
-                    await waitForNextPaint();
-                    await CefSharp.BindObjectAsync(nativeObjName, nativeObjName);
-                    nativeObject = window[nativeObjName];
-                    resolve();
-                });
-            }
-            return nativeObject[key].apply(window, arguments);
-        };
+        let value = basePropertiesObj[key];
+        if (value !== null) {
+            proxy[key] = function () {
+                return value;
+            };
+        } else {
+            proxy[key] = async function () {
+                let nativeObject = window[nativeObjName];
+                if (!nativeObject) {
+                    await new Promise(async (resolve) => {
+                        await waitForNextPaint();
+                        await CefSharp.BindObjectAsync(nativeObjName, nativeObjName);
+                        nativeObject = window[nativeObjName];
+                        resolve();
+                    });
+                }
+                return nativeObject[key].apply(window, arguments);
+            };
+        }
     });
     return proxy;
 }

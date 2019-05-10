@@ -12,9 +12,8 @@ namespace Tests {
 
         private class ReactViewWithPlugin : TestReactView {
 
-            public ReactViewWithPlugin() : base(initialize: false) {
+            public ReactViewWithPlugin() {
                 AddMappings(new SimpleViewModule("SimpleModuleWithAlias", new ResourceUrl(typeof(ReactViewWithPlugin).Assembly, "ReactViewResources", "Test", "AliasedModule.js")));
-                Initialize();
             }
 
             protected override ReactViewFactory Factory => new ViewFactoryWithPlugin();

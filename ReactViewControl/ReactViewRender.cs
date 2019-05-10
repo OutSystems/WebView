@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 using System.Web;
 using System.Windows;
@@ -12,7 +14,7 @@ using WebViewControl;
 
 namespace ReactViewControl {
 
-    public partial class ReactViewRender : UserControl, IExecutionEngine, IDisposable {
+    internal partial class ReactViewRender : UserControl, IExecutionEngine, IDisposable {
 
         private const string ModulesObjectName = "__Modules__";
         private const string ComponentLoadedEventName = "ComponentLoaded";
@@ -125,17 +127,33 @@ namespace ReactViewControl {
         private void InternalLoadComponent() {
             var source = NormalizeUrl(component.JavascriptSource);
             var baseUrl = ToFullUrl(VirtualPathUtility.GetDirectory(source));
-            var componentNativeObject = component.CreateNativeObject();
-            var methods = componentNativeObject.GetType().GetMethods();
             var urlSuffix = cacheInvalidationTimestamp != null ? "t=" + cacheInvalidationTimestamp : null;
+            
+            var componentNativeObject = component.CreateNativeObject();
+            var componentSerialization = SerializeComponentNativeObject(componentNativeObject, out var componentHash);
+
+            // loadComponent arguments:
+            // componentName: string,
+            // componentSource: string,
+            // componentNativeObjectName: string,
+            // baseUrl: string,
+            // cacheInvalidationSuffix: string,
+            // hasStyleSheet: boolean,
+            // hasPlugins: boolean,
+            // componentNativeObject: Dictionary<any>,
+            // hash: string,
+            // mappings: Dictionary<string>
 
             var loadArgs = new [] {
+                JavascriptSerializer.Serialize(component.Name),
+                JavascriptSerializer.Serialize(source),
+                JavascriptSerializer.Serialize(component.NativeObjectName),
                 JavascriptSerializer.Serialize(baseUrl),
                 JavascriptSerializer.Serialize(urlSuffix),
                 JavascriptSerializer.Serialize(DefaultStyleSheet != null),
                 JavascriptSerializer.Serialize(Plugins?.Length > 0),
-                JavascriptSerializer.Serialize(new [] { component.NativeObjectName, component.Name, source }),
-                JavascriptSerializer.Serialize(methods.ToDictionary(m => JavascriptSerializer.GetJavascriptName(m.Name), m => (object) null)),
+                componentSerialization,
+                JavascriptSerializer.Serialize(componentHash),
                 GetMappings()
             };
 
@@ -370,5 +388,34 @@ namespace ReactViewControl {
         }
 
         internal bool IsDisposing => webView.IsDisposing;
+
+        private static string SerializeComponentNativeObject(object nativeObject, out string hash) {
+            const string InitialStateGetterMethodName = "GetInitialState";
+
+            object GetMethodValue(MethodInfo method) {
+                if (method.Name == InitialStateGetterMethodName && method.GetParameters().Length == 0) {
+                    return method.Invoke(nativeObject, null);
+                }
+                return null;
+            }
+
+            hash = string.Empty;
+
+            if (nativeObject != null) {
+                var nativeObjectMethods = nativeObject.GetType().GetMethods();
+                var nativeObjectMethodsMap = nativeObjectMethods.OrderBy(m => m.Name).Select(m => new KeyValuePair<string, object>(JavascriptSerializer.GetJavascriptName(m.Name), GetMethodValue(m)));
+                var result = JavascriptSerializer.Serialize(nativeObjectMethodsMap);
+                hash = ComputeHash(result);
+                return result;
+            }
+
+            return JavascriptSerializer.Serialize(null);
+        }
+
+        private static string ComputeHash(string inputString) {
+            using (var sha256 = SHA256.Create()) {
+                return Convert.ToBase64String(sha256.ComputeHash(Encoding.UTF8.GetBytes(inputString)));
+            }
+        }
     }
 }

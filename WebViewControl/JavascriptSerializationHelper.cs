@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using JavascriptObject = System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, object>>;
@@ -13,10 +13,10 @@ namespace WebViewControl {
             if (o == null) return "null";
             if (o is string str) return Serialize(str);
             if (o is IEnumerable col) return Serialize(col);
-            if (o is ValueType) return o.ToString().ToLowerInvariant();
             if (o is JavascriptObject jso) return Serialize(jso);
+            if (o.GetType().IsPrimitive) return o.ToString().ToLowerInvariant(); // ints, bools, ... but not structs
             if (handleComplexType != null) return handleComplexType(o);
-            return o.ToString();
+            return SerializeComplexType(o);
         }
 
         public static string Serialize(JavascriptObject o, SerializationHandler handleComplexType = null) {
@@ -33,6 +33,12 @@ namespace WebViewControl {
 
         public static string Serialize(IEnumerable arr, SerializationHandler handleComplexType = null) {
             return "[" + string.Join(",", arr.Cast<object>().Select(i => Serialize(i, handleComplexType))) + "]";
+        }
+
+        private static string SerializeComplexType(object obj) {
+            var fields = obj.GetType().GetProperties().Where(p => p.PropertyType.IsPrimitive || p.PropertyType == typeof(string));
+            // order members to create a stable serialization
+            return Serialize(fields.OrderBy(f => f.Name).Select(f => new KeyValuePair<string, object>(f.Name, f.GetValue(obj, null))));
         }
 
         internal static string GetJavascriptName(string str) {
