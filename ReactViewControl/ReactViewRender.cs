@@ -130,7 +130,14 @@ namespace ReactViewControl {
             var urlSuffix = cacheInvalidationTimestamp != null ? "t=" + cacheInvalidationTimestamp : null;
             
             var componentNativeObject = component.CreateNativeObject();
-            var componentSerialization = SerializeComponentNativeObject(componentNativeObject, out var componentHash);
+
+            var nativeObjectMethodsMap =
+                component.Events.Select(g => new KeyValuePair<string, object>(g, null))
+                .Concat(component.PropertiesValues)
+                .OrderBy(p => p.Key)
+                .Select(p => new KeyValuePair<string, object>(JavascriptSerializer.GetJavascriptName(p.Key), p.Value));
+            var componentSerialization = JavascriptSerializer.Serialize(nativeObjectMethodsMap);
+            var componentHash = ComputeHash(componentSerialization);
 
             // loadComponent arguments:
             // componentName: string,
@@ -356,7 +363,7 @@ namespace ReactViewControl {
         private void ExecuteLoaderFunction(string functionName, params string[] args) {
             // using setimeout we make sure the function is already defined
             var loaderUrl = new ResourceUrl(ResourcesAssembly, ReactViewResources.Resources.LoaderUrl);
-            webView.EvaluateScript<int>($"import('{loaderUrl}').then(m => m.{functionName}({string.Join(",", args)}))");
+            webView.ExecuteScript($"import('{loaderUrl}').then(m => m.{functionName}({string.Join(",", args)}))");
         }
         
         private static string NormalizeUrl(string url) {
@@ -388,29 +395,6 @@ namespace ReactViewControl {
         }
 
         internal bool IsDisposing => webView.IsDisposing;
-
-        private static string SerializeComponentNativeObject(object nativeObject, out string hash) {
-            const string InitialStateGetterMethodName = "GetInitialState";
-
-            object GetMethodValue(MethodInfo method) {
-                if (method.Name == InitialStateGetterMethodName && method.GetParameters().Length == 0) {
-                    return method.Invoke(nativeObject, null);
-                }
-                return null;
-            }
-
-            hash = string.Empty;
-
-            if (nativeObject != null) {
-                var nativeObjectMethods = nativeObject.GetType().GetMethods();
-                var nativeObjectMethodsMap = nativeObjectMethods.OrderBy(m => m.Name).Select(m => new KeyValuePair<string, object>(JavascriptSerializer.GetJavascriptName(m.Name), GetMethodValue(m)));
-                var result = JavascriptSerializer.Serialize(nativeObjectMethodsMap);
-                hash = ComputeHash(result);
-                return result;
-            }
-
-            return JavascriptSerializer.Serialize(null);
-        }
 
         private static string ComputeHash(string inputString) {
             using (var sha256 = SHA256.Create()) {

@@ -277,9 +277,7 @@ function createPropertiesProxy(basePropertiesObj: {}, nativeObjName: string): {}
     Object.keys(proxy).forEach(key => {
         let value = basePropertiesObj[key];
         if (value !== null) {
-            proxy[key] = function () {
-                return value;
-            };
+            proxy[key] = value;
         } else {
             proxy[key] = async function () {
                 let nativeObject = window[nativeObjName];

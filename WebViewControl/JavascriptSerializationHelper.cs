@@ -14,7 +14,10 @@ namespace WebViewControl {
             if (o is string str) return Serialize(str);
             if (o is IEnumerable col) return Serialize(col);
             if (o is JavascriptObject jso) return Serialize(jso);
-            if (o.GetType().IsPrimitive) return o.ToString().ToLowerInvariant(); // ints, bools, ... but not structs
+
+            var type = o.GetType();
+            if (type.IsPrimitive) return o.ToString().ToLowerInvariant(); // ints, bools, ... but not structs
+            if (type.IsEnum) return ((int) o).ToString();
             if (handleComplexType != null) return handleComplexType(o);
             return SerializeComplexType(o);
         }

@@ -5,14 +5,16 @@ export interface ISomeType {
     name: string;
 }
 
-export interface IInitialState {
-    constantMessage: string;
+export enum ImageKind {
+    None,
+    Beach
 }
 
 export interface IExampleViewProperties {
     click(arg: ISomeType): void;
     getTime(): Promise<string>;
-    getInitialState(): IInitialState;
+    readonly constantMessage: string;
+    readonly image: ImageKind;
 }
 
 export interface IExampleViewBehaviors {
@@ -41,11 +43,11 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
     render() {
         return (
             <div className="wrapper">
-                {this.props.getInitialState().constantMessage}
+                {this.props.constantMessage}
                 <br />
                 Current time: {this.state.time}<br />
                 <br />
-                <img src="beach.jpg"/>
+                {this.props.image === ImageKind.Beach ? <img src="beach.jpg" /> : null}
                 <br />
                 <button onClick={() => this.props.click(null)}>Click me!</button>
             </div>

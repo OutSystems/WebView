@@ -1,4 +1,6 @@
-﻿namespace ReactViewControl {
+﻿using System.Collections.Generic;
+
+namespace ReactViewControl {
 
     public abstract class ViewModuleContainer : IViewModule {
 
@@ -9,9 +11,11 @@
         protected virtual string ModuleName => null;
         protected virtual string Source => null;
 
-        protected virtual object CreateNativeObject() {
-            return null;
-        }
+        protected virtual object CreateNativeObject() => null;
+
+        protected virtual string[] Events => new string[0];
+
+        protected virtual KeyValuePair<string, object>[] PropertiesValues => new KeyValuePair<string, object>[0];
 
         string IViewModule.JavascriptSource => JavascriptSource;
 
@@ -21,13 +25,13 @@
 
         string IViewModule.Source => Source;
 
-        object IViewModule.CreateNativeObject() {
-            return CreateNativeObject();
-        }
+        object IViewModule.CreateNativeObject() => CreateNativeObject();
 
-        void IViewModule.Bind(IExecutionEngine engine) {
-            this.engine = engine;
-        }
+        string[] IViewModule.Events => Events;
+
+        KeyValuePair<string, object>[] IViewModule.PropertiesValues => PropertiesValues;
+
+        void IViewModule.Bind(IExecutionEngine engine) => this.engine = engine;
 
         protected IExecutionEngine ExecutionEngine => engine; // ease access in generated code
 

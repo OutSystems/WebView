@@ -1,7 +1,7 @@
 {
     "tasks": [
         {
-            "input": "**/*.tsx",
+            "input": "**/*.view.tsx",
             "output": "Generated/",
             "template": "",
             "parameters": {

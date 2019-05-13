@@ -468,7 +468,10 @@ namespace WebViewControl {
         }
 
         public double ZoomPercentage {
-            get { return Convert.ToDouble(EvaluateScript<string>("document.body.style.zoom"), CultureInfo.InvariantCulture); }
+            get {
+                double.TryParse(EvaluateScript<string>("document.body.style.zoom"), NumberStyles.Number, CultureInfo.InvariantCulture, out var zoom);
+                return zoom;
+            }
             set { ExecuteScript("document.body.style.zoom = " + value.ToString(CultureInfo.InvariantCulture)); }
         }
 

@@ -11,7 +11,7 @@
                 "javascriptDistPath": "",
                 "emitComponent": true,
                 "emitComponentInterface": true,
-                "emitComponentAdapter": false,
+                "emitComponentAdapter": true,
                 "emitViewObjects": true
             }
         },

@@ -28,11 +28,5 @@ namespace Example {
         private string OnExampleViewGetTime() {
             return DateTime.Now.ToShortTimeString();
         }
-
-        private InitialState OnGetInitialState() {
-            return new InitialState() {
-                constantMessage = "This is an example"
-            };
-        }
     }
 }

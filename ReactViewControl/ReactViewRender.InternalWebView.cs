@@ -25,7 +25,7 @@ namespace ReactViewControl {
             protected override string GetRequestUrl(string url, ResourceType resourceType) {
                 if (resourceType == ResourceType.Script || resourceType == ResourceType.Xhr) {
                     var uri = new UriBuilder(url);
-                    if (string.IsNullOrEmpty(Path.GetExtension(uri.Path))) {
+                    if (Path.GetExtension(uri.Path) != ".js") {
                         // dependency modules fetched by requirejs do not come with the js extension :(
                         uri.Path += JavascriptExtension;
                         return uri.ToString();

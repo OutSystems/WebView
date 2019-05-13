@@ -30,6 +30,8 @@ namespace Tests {
             return new Properties(this);
         }
 
+        protected override string[] Events => new [] { "event" };
+
         public T EvaluateMethodOnRoot<T>(string methodCall, params string[] args) {
             return ExecutionEngine.EvaluateMethod<T>(this, methodCall, args);
         }

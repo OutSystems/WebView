@@ -144,6 +144,14 @@ namespace ReactViewControl {
             return null;
         }
 
+        string[] IViewModule.Events => Events;
+
+        protected virtual string[] Events => new string[0];
+
+        KeyValuePair<string, object>[] IViewModule.PropertiesValues => PropertiesValues;
+
+        protected virtual KeyValuePair<string, object>[] PropertiesValues => new KeyValuePair<string, object>[0];
+
         void IViewModule.Bind(IExecutionEngine engine) {
             throw new Exception("Cannot bind ReactView");
         }
