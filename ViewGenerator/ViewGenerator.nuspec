@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>ViewGenerator</id>
-    <version>1.0.119</version>
+    <version>1.0.120</version>
     <authors>jmn</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <developmentDependency>true</developmentDependency>
@@ -11,6 +11,7 @@
       <dependency id="ViewGeneratorCore" version="1.0.116" />
       <dependency id="Microsoft.TypeScript.MSBuild" version="3.3.1" />
       <dependency id="Delegate.SassBuilder" version="1.4.0" />
+      <dependency id="OutSystems.ESLint.MSBuild" version="1.0.1" />
     </dependencies>
   </metadata>
   <files>
