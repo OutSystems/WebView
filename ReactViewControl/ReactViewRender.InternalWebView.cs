@@ -34,6 +34,8 @@ namespace ReactViewControl {
 
                 return base.GetRequestUrl(url, resourceType);
             }
+
+            protected override bool UseSharedDomain => true; // must be true for the local storage to be shared
         }
     }
 }

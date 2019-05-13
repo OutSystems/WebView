@@ -4,7 +4,6 @@ using CefSharp.Wpf;
 using System;
 using System.ComponentModel;
 using System.Diagnostics;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -26,6 +25,10 @@ namespace WebViewControl {
         };
 
         private const string ChromeInternalProtocol = "chrome-devtools:";
+
+        // converts cef zoom percentage to css zoom (between 0 and 1)
+        // from https://code.google.com/p/chromium/issues/detail?id=71484
+        private const float PercentageToZoomFactor = 1.2f;
 
         private static bool subscribedApplicationExit = false;
 
@@ -70,6 +73,12 @@ namespace WebViewControl {
         private event Action RenderProcessCrashed;
         private event Action JavascriptContextReleased;
         private event Action JavascriptCallFinished;
+
+        private static int domainId = 1;
+
+        // cef maints same zoom level for all browser instances under the same domain
+        // having different domains will prevent synced zoom
+        private readonly string CurrentDomainId;
 
         private readonly string DefaultLocalUrl;
 
@@ -151,7 +160,14 @@ namespace WebViewControl {
             }
 #endif
 
-            DefaultLocalUrl = new ResourceUrl(ResourceUrl.LocalScheme, "index.html").ToString();
+            if (UseSharedDomain) {
+                CurrentDomainId = "";
+            } else {
+                CurrentDomainId = domainId.ToString();
+                domainId++;
+            }
+
+            DefaultLocalUrl = new ResourceUrl(ResourceUrl.LocalScheme, "index.html").WithDomain(CurrentDomainId);
 
             Initialize();
         }
@@ -252,7 +268,7 @@ namespace WebViewControl {
             // avoid dead-lock, wait for all pending calls to finish
             JavascriptCallFinished += () => {
                 if (javascriptPendingCalls == 0) {
-                    Dispatcher.BeginInvoke((Action) InternalDispose);
+                    Dispatcher.BeginInvoke((Action)InternalDispose);
                 }
             };
 
@@ -315,12 +331,12 @@ namespace WebViewControl {
                 ExecuteWhenInitialized(() => chromium.Load(address));
             } else {
                 var userAssembly = GetUserCallingMethod().ReflectedType.Assembly;
-                Load(new ResourceUrl(userAssembly, address).ToString());
+                Load(new ResourceUrl(userAssembly, address).WithDomain(CurrentDomainId));
             }
         }
 
         public void LoadResource(ResourceUrl resourceUrl) {
-            Address = resourceUrl.ToString();
+            Address = resourceUrl.WithDomain(CurrentDomainId);
         }
 
         public void LoadHtml(string html) {
@@ -468,11 +484,8 @@ namespace WebViewControl {
         }
 
         public double ZoomPercentage {
-            get {
-                double.TryParse(EvaluateScript<string>("document.body.style.zoom"), NumberStyles.Number, CultureInfo.InvariantCulture, out var zoom);
-                return zoom;
-            }
-            set { ExecuteScript("document.body.style.zoom = " + value.ToString(CultureInfo.InvariantCulture)); }
+            get { return Math.Pow(PercentageToZoomFactor, chromium.ZoomLevel); }
+            set { ExecuteWhenInitialized(() => chromium.ZoomLevel = Math.Log(value, PercentageToZoomFactor)); }
         }
 
         public Listener AttachListener(string name) {
@@ -514,7 +527,7 @@ namespace WebViewControl {
             var loadFailed = LoadFailed;
             if (e.ErrorCode != CefErrorCode.Aborted && loadFailed != null) {
                 // ignore aborts, to prevent situations where we try to load an address inside Load failed handler (and its aborted)
-                AsyncExecuteInUI(() => loadFailed.Invoke(e.FailedUrl, (int) e.ErrorCode));
+                AsyncExecuteInUI(() => loadFailed.Invoke(e.FailedUrl, (int)e.ErrorCode));
             }
         }
 
@@ -598,7 +611,7 @@ namespace WebViewControl {
             }
 
             var handled = false;
-            
+
             var unhandledAsyncException = UnhandledAsyncException;
             if (unhandledAsyncException != null) {
                 var eventArgs = new UnhandledAsyncExceptionEventArgs(e);
@@ -608,7 +621,7 @@ namespace WebViewControl {
 
             if (!handled) {
                 // don't use invoke async, as it won't forward the exception to the dispatcher unhandled exception event
-                Dispatcher.BeginInvoke((Action) (() => {
+                Dispatcher.BeginInvoke((Action)(() => {
                     if (!isDisposing) {
                         throw e;
                     }
@@ -657,16 +670,17 @@ namespace WebViewControl {
 
         protected void RegisterProtocolHandler(string protocol, CefResourceHandlerFactory handler) {
             if (chromium.RequestContext == null) {
-                // create a new context to turn off zoom sharing between same domains
                 chromium.RequestContext = new RequestContext(new RequestContextSettings() {
                     CachePath = CachePath
                 });
             }
             chromium.RequestContext.RegisterSchemeHandlerFactory(protocol, "", handler);
         }
-        
+
         protected virtual string GetRequestUrl(string url, ResourceType resourceType) {
             return url;
         }
+
+        protected virtual bool UseSharedDomain => false;
     }
 }
