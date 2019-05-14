@@ -76,6 +76,7 @@
     <Compile Include="ReactViewTestBase.cs" />
     <Compile Include="RequestInterception.cs" />
     <Compile Include="ResourcesLoading.cs" />
+    <Compile Include="SerializationTests.cs" />
     <Compile Include="TestBase.cs" />
     <Compile Include="TestObject.cs" />
     <Compile Include="TestReactView.cs" />

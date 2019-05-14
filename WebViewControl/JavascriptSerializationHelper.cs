@@ -1,5 +1,7 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Web;
 using JavascriptObject = System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, object>>;
@@ -16,14 +18,16 @@ namespace WebViewControl {
             if (o is JavascriptObject jso) return Serialize(jso);
 
             var type = o.GetType();
-            if (type.IsPrimitive) return o.ToString().ToLowerInvariant(); // ints, bools, ... but not structs
+            
+            if (type.IsPrimitive) return Convert.ToString(o, CultureInfo.InvariantCulture).ToLowerInvariant(); // ints, bools, ... but not structs
             if (type.IsEnum) return ((int) o).ToString();
             if (handleComplexType != null) return handleComplexType(o);
             return SerializeComplexType(o);
         }
 
         public static string Serialize(JavascriptObject o, SerializationHandler handleComplexType = null) {
-            return "{" + string.Join(",", o.Select(kvp => Serialize(kvp.Key) + ":" + Serialize(kvp.Value, handleComplexType))) + "}";
+            // order members to create a stable serialization
+            return "{" + string.Join(",", o.OrderBy(kvp => kvp.Key).Select(kvp => Serialize(kvp.Key) + ":" + Serialize(kvp.Value, handleComplexType))) + "}";
         }
 
         public static string Serialize(string str) {
@@ -40,8 +44,7 @@ namespace WebViewControl {
 
         private static string SerializeComplexType(object obj) {
             var fields = obj.GetType().GetProperties().Where(p => p.PropertyType.IsPrimitive || p.PropertyType == typeof(string));
-            // order members to create a stable serialization
-            return Serialize(fields.OrderBy(f => f.Name).Select(f => new KeyValuePair<string, object>(f.Name, f.GetValue(obj, null))));
+            return Serialize(fields.Select(f => new KeyValuePair<string, object>(f.Name, f.GetValue(obj, null))));
         }
 
         internal static string GetJavascriptName(string str) {
