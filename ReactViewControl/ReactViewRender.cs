@@ -157,6 +157,7 @@ namespace ReactViewControl {
                 JavascriptSerializer.Serialize(component.NativeObjectName),
                 JavascriptSerializer.Serialize(baseUrl),
                 JavascriptSerializer.Serialize(urlSuffix),
+                JavascriptSerializer.Serialize(ReactView.PreloadedCacheEntriesSize),
                 JavascriptSerializer.Serialize(DefaultStyleSheet != null),
                 JavascriptSerializer.Serialize(Plugins?.Length > 0),
                 componentSerialization,

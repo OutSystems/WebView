@@ -51,6 +51,8 @@ namespace ReactViewControl {
             view = CreateReactViewInstance(Factory);
             SetResourceReference(StyleProperty, typeof(ReactView)); // force styles to be inherited, must be called after view is created otherwise view might be null
 
+            IsVisibleChanged += OnIsVisibleChanged;
+
             Content = view;
 
             FocusManager.SetIsFocusScope(this, true);
@@ -59,14 +61,43 @@ namespace ReactViewControl {
 
         protected virtual ReactViewFactory Factory => new ReactViewFactory();
 
-        public override void OnApplyTemplate() {
+        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e) {
+            base.OnPropertyChanged(e);
+
+            // IWindowService is a WPF internal property set when component is loaded into a new window, even if the window isn't shown
+            if (e.Property.Name == "IWindowService") {
+                if (e.OldValue is Window oldWindow) {
+                    oldWindow.IsVisibleChanged -= OnWindowIsVisibleChanged;
+                }
+
+                if (e.NewValue is Window newWindow) {
+                    newWindow.IsVisibleChanged += OnWindowIsVisibleChanged;
+                }
+            }
+        }
+
+        private void OnWindowIsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e) {
+            // this is the first event that we have available with guarantees that all the component properties have been set
+            // since its not supposed to change properties once the component has been shown
+            if (((Window)sender).IsVisible) {
+                LoadComponent();
+            }
+        }
+
+        private void OnIsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e) {
+            // fallback when window was already shown
+            if (IsVisible) {
+                LoadComponent();
+            }
+        }
+
+        private void LoadComponent() {
             if (!view.IsComponentLoaded) {
                 if (EnableHotReload) {
                     view.EnableHotReload(Source);
                 }
                 view.LoadComponent(this);
             }
-            base.OnApplyTemplate();
         }
 
         ~ReactView() {
@@ -161,5 +192,12 @@ namespace ReactViewControl {
         protected IExecutionEngine ExecutionEngine => view; // ease access in generated code
 
         public static bool UseEnhancedRenderingEngine { get; set; } = true;
+
+        /// <summary>
+        /// Number of preloaded views that are mantained in cache for each view.
+        /// Components with different property values are stored in different cache entries.
+        /// Defaults to 6. 
+        /// </summary>
+        public static int PreloadedCacheEntriesSize { get; set; }
     }
 }

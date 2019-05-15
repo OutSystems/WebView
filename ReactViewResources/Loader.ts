@@ -173,11 +173,16 @@ export function loadComponent(
     componentNativeObjectName: string,
     baseUrl: string,
     cacheInvalidationSuffix: string,
+    maxPreRenderedCacheEntries: number,
     hasStyleSheet: boolean,
     hasPlugins: boolean,
     componentNativeObject: Dictionary<any>,
     componentHash: string,
     mappings: Dictionary<string>): void {
+
+    function getComponentCacheKey(propertiesHash: string) {
+        return componentSource + "|" + propertiesHash;
+    }
 
     async function innerLoad() {
         try {
@@ -185,8 +190,8 @@ export function loadComponent(
             (document.getElementById("webview_base") as HTMLBaseElement).href = baseUrl;
 
             const RootElement = document.getElementById("webview_root") as HTMLDivElement;
-
-            const ComponentCacheKey = componentSource + "|" + componentHash;
+            
+            const ComponentCacheKey = getComponentCacheKey(componentHash);
             const CachedElementHtml = localStorage.getItem(ComponentCacheKey);
             if (CachedElementHtml) {
                 // render cached component html to reduce time to first render
@@ -239,13 +244,25 @@ export function loadComponent(
 
             await waitForNextPaint();
 
-            if (!CachedElementHtml) {
+            if (!CachedElementHtml && maxPreRenderedCacheEntries > 0) {
                 // cache view html for further use
                 const ElementHtml = RootElement.innerHTML;
                 // get all stylesheets except the stick ones (which will be loaded by the time the html gets rendered) otherwise we could be loading them twice
                 const Stylesheets = getAllStylesheets().filter(l => l.dataset.sticky !== "true").map(l => l.outerHTML).join("");
-                localStorage.setItem(ComponentCacheKey, Stylesheets + ElementHtml);
-                // TODO limit number of cached items?
+
+                localStorage.setItem(ComponentCacheKey, Stylesheets + ElementHtml); // insert html into the cache
+
+                let componentCachedInfo = localStorage.getItem(componentSource);
+                let cachedEntries: string[] = componentCachedInfo ? JSON.parse(componentCachedInfo) : [];
+
+                // remove cached entries that are older tomantina cache size within limits
+                while (cachedEntries.length >= maxPreRenderedCacheEntries) {
+                    let olderCacheEntryKey = cachedEntries.shift() as string;
+                    localStorage.removeItem(getComponentCacheKey(olderCacheEntryKey));
+                }
+
+                cachedEntries.push(componentHash);
+                localStorage.setItem(componentSource, JSON.stringify(cachedEntries));
             }
 
             window.dispatchEvent(new Event('viewready'));
