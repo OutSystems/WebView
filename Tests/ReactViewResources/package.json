@@ -1,7 +1,9 @@
 {
   "description": "",
   "main": "index.js",
-  "dependencies": {},
+  "dependencies": {
+    "@types/requirejs": "^2.1.31"
+  },
   "devDependencies": {
     "@types/react-dom": "16.8.2"
   },

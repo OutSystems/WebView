@@ -1,4 +1,6 @@
-﻿using System;
+﻿using ReactViewResources;
+using System;
+using System.IO;
 using WebViewControl;
 
 namespace ReactViewControl {
@@ -14,15 +16,16 @@ namespace ReactViewControl {
             public InternalWebView(ReactViewRender owner, bool preloadBrowser) {
                 this.owner = owner;
                 IsSecurityDisabled = true; // must be set before InitializeBrowser
+
                 if (preloadBrowser) {
                     InitializeBrowser();
                 }
             }
 
             protected override string GetRequestUrl(string url, ResourceType resourceType) {
-                if (resourceType == ResourceType.Script) {
+                if (resourceType == ResourceType.Script || resourceType == ResourceType.Xhr) {
                     var uri = new UriBuilder(url);
-                    if (!uri.Path.EndsWith(JavascriptExtension)) {
+                    if (Path.GetExtension(uri.Path) != ".js") {
                         // dependency modules fetched by requirejs do not come with the js extension :(
                         uri.Path += JavascriptExtension;
                         return uri.ToString();
@@ -31,6 +34,8 @@ namespace ReactViewControl {
 
                 return base.GetRequestUrl(url, resourceType);
             }
+
+            protected override bool UseSharedDomain => true; // must be true for the local storage to be shared
         }
     }
 }

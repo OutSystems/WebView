@@ -1,21 +1,20 @@
-﻿using System;
+﻿using CefSharp;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using CefSharp;
 
 namespace WebViewControl {
 
     partial class WebView {
 
-        private Dictionary<string, Assembly> assemblies;
-        private bool newAssembliesLoaded = true;
-
-        private class CefResourceHandlerFactory : IResourceHandlerFactory {
+        protected class CefResourceHandlerFactory : IResourceHandlerFactory, ISchemeHandlerFactory, IDisposable {
 
             private readonly WebView OwnerWebView;
+
+            private Dictionary<string, Assembly> assemblies;
+            private bool newAssembliesLoaded = true;
 
             public CefResourceHandlerFactory(WebView webView) {
                 OwnerWebView = webView;
@@ -25,23 +24,35 @@ namespace WebViewControl {
                 get { return true; }
             }
 
+            IResourceHandler ISchemeHandlerFactory.Create(IBrowser browser, IFrame frame, string schemeName, IRequest request) {
+                return GetResourceHandler(request);
+            }
+
             IResourceHandler IResourceHandlerFactory.GetResourceHandler(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request) {
+                return GetResourceHandler(request);
+            }
+
+            private IResourceHandler GetResourceHandler(IRequest request) {
                 if (request.Url == OwnerWebView.DefaultLocalUrl) {
-                    return OwnerWebView.htmlToLoad != null ? CefSharp.ResourceHandler.FromString(OwnerWebView.htmlToLoad, Encoding.UTF8) : null;
+                    return OwnerWebView.htmlToLoad != null ? ResourceHandler.FromString(OwnerWebView.htmlToLoad) : null;
                 }
 
                 if (OwnerWebView.FilterRequest(request)) {
                     return null;
                 }
 
-                Uri url;
-                var resourceHandler = new ResourceHandler(request, OwnerWebView.GetRequestUrl(request.Url, (ResourceType) request.ResourceType));
-                if (Uri.TryCreate(resourceHandler.Url, UriKind.Absolute, out url) && url.Scheme == ResourceUrl.EmbeddedScheme) {
+                var resourceHandler = new ResourceHandler(request, OwnerWebView.GetRequestUrl(request.Url, (ResourceType)request.ResourceType));
+                HandleRequest(resourceHandler);
+                return resourceHandler.Handler;
+            }
+
+            protected void HandleRequest(ResourceHandler resourceHandler) {
+                if (Uri.TryCreate(resourceHandler.Url, UriKind.Absolute, out var url) && url.Scheme == ResourceUrl.EmbeddedScheme) {
                     var urlWithoutQuery = new UriBuilder(url);
                     if (url.Query != "") {
                         urlWithoutQuery.Query = "";
                     }
-                    OwnerWebView.ExecuteWithAsyncErrorHandling(() => OwnerWebView.LoadEmbeddedResource(resourceHandler, urlWithoutQuery.Uri));
+                    OwnerWebView.ExecuteWithAsyncErrorHandling(() => LoadEmbeddedResource(resourceHandler, urlWithoutQuery.Uri));
                 }
 
                 if (OwnerWebView.BeforeResourceLoad != null) {
@@ -49,83 +60,83 @@ namespace WebViewControl {
                 }
 
                 if (resourceHandler.Handled) {
-                    return resourceHandler.Handler;
-                } else if (!OwnerWebView.IgnoreMissingResources && url != null && url.Scheme == ResourceUrl.EmbeddedScheme) {
+                    return;
+                }
+
+                if (!OwnerWebView.IgnoreMissingResources && url != null && url.Scheme == ResourceUrl.EmbeddedScheme) {
                     if (OwnerWebView.ResourceLoadFailed != null) {
-                        OwnerWebView.ResourceLoadFailed(request.Url);
+                        OwnerWebView.ResourceLoadFailed(resourceHandler.Url);
                     } else {
-                        OwnerWebView.ExecuteWithAsyncErrorHandling(() => throw new InvalidOperationException("Resource not found: " + request.Url));
+                        OwnerWebView.ExecuteWithAsyncErrorHandling(() => throw new InvalidOperationException("Resource not found: " + resourceHandler.Url));
                     }
                 }
-
-                return null;
-            }
-        }
-
-        protected virtual string GetRequestUrl(string url, ResourceType resourceType) {
-            return url;
-        }
-
-        protected virtual void LoadEmbeddedResource(ResourceHandler resourceHandler, Uri url) {
-            var resourceAssembly = ResolveResourceAssembly(url);
-            var resourcePath = ResourceUrl.GetEmbeddedResourcePath(url);
-
-            var extension = Path.GetExtension(resourcePath.Last()).ToLower();
-
-            var resourceStream = TryGetResourceWithFullPath(resourceAssembly, resourcePath);
-            if (resourceStream != null) {
-                resourceHandler.RespondWith(resourceStream, extension);
-            }
-        }
-
-        protected Assembly ResolveResourceAssembly(Uri resourceUrl) {
-            if (assemblies == null) {
-                assemblies = new Dictionary<string, Assembly>();
-                AppDomain.CurrentDomain.AssemblyLoad += OnAssemblyLoaded;
             }
 
-            var assemblyName = ResourceUrl.GetEmbeddedResourceAssemblyName(resourceUrl);
-            var assembly = GetAssemblyByName(assemblyName);
+            protected void LoadEmbeddedResource(ResourceHandler resourceHandler, Uri url) {
+                var resourceAssembly = ResolveResourceAssembly(url);
+                var resourcePath = ResourceUrl.GetEmbeddedResourcePath(url);
 
-            if (assembly == null) {
-                if (newAssembliesLoaded) {
-                    // add loaded assemblies to cache
-                    newAssembliesLoaded = false;
-                    foreach (var domainAssembly in AppDomain.CurrentDomain.GetAssemblies()) {
-                        // replace if duplicated (can happen)
-                        assemblies[domainAssembly.GetName().Name] = domainAssembly;
-                    }
+                var extension = Path.GetExtension(resourcePath.Last()).ToLower();
+
+                var resourceStream = TryGetResourceWithFullPath(resourceAssembly, resourcePath);
+                if (resourceStream != null) {
+                    resourceHandler.RespondWith(resourceStream, extension);
+                }
+            }
+
+            protected Assembly ResolveResourceAssembly(Uri resourceUrl) {
+                if (assemblies == null) {
+                    assemblies = new Dictionary<string, Assembly>();
+                    AppDomain.CurrentDomain.AssemblyLoad += OnAssemblyLoaded;
                 }
 
-                assembly = GetAssemblyByName(assemblyName);
+                var assemblyName = ResourceUrl.GetEmbeddedResourceAssemblyName(resourceUrl);
+                var assembly = GetAssemblyByName(assemblyName);
+
                 if (assembly == null) {
-                    // try load assembly from its name
-                    assembly = AppDomain.CurrentDomain.Load(new AssemblyName(assemblyName));
-                    if (assembly != null) {
-                        assemblies[assembly.GetName().Name] = assembly;
+                    if (newAssembliesLoaded) {
+                        // add loaded assemblies to cache
+                        newAssembliesLoaded = false;
+                        foreach (var domainAssembly in AppDomain.CurrentDomain.GetAssemblies()) {
+                            // replace if duplicated (can happen)
+                            assemblies[domainAssembly.GetName().Name] = domainAssembly;
+                        }
+                    }
+
+                    assembly = GetAssemblyByName(assemblyName);
+                    if (assembly == null) {
+                        // try load assembly from its name
+                        assembly = AppDomain.CurrentDomain.Load(new AssemblyName(assemblyName));
+                        if (assembly != null) {
+                            assemblies[assembly.GetName().Name] = assembly;
+                        }
                     }
                 }
+
+                if (assembly != null) {
+                    return assembly;
+                }
+
+                throw new InvalidOperationException("Could not find assembly for: " + resourceUrl);
             }
 
-            if (assembly != null) {
+            private Assembly GetAssemblyByName(string assemblyName) {
+                Assembly assembly;
+                assemblies.TryGetValue(assemblyName, out assembly);
                 return assembly;
             }
 
-            throw new InvalidOperationException("Could not find assembly for: " + resourceUrl);
-        }
+            protected Stream TryGetResourceWithFullPath(Assembly assembly, IEnumerable<string> resourcePath) {
+                return ResourcesManager.TryGetResourceWithFullPath(assembly, resourcePath);
+            }
 
-        private Assembly GetAssemblyByName(string assemblyName) {
-            Assembly assembly;
-            assemblies.TryGetValue(assemblyName, out assembly);
-            return assembly;
-        }
+            private void OnAssemblyLoaded(object sender, AssemblyLoadEventArgs args) {
+                newAssembliesLoaded = true;
+            }
 
-        protected virtual Stream TryGetResourceWithFullPath(Assembly assembly, IEnumerable<string> resourcePath) {
-            return ResourcesManager.TryGetResourceWithFullPath(assembly, resourcePath);
-        }
-
-        private void OnAssemblyLoaded(object sender, AssemblyLoadEventArgs args) {
-            newAssembliesLoaded = true;
+            public void Dispose() {
+                AppDomain.CurrentDomain.AssemblyLoad -= OnAssemblyLoaded;
+            }
         }
     }
 }

@@ -7,8 +7,6 @@ namespace Tests {
 
         public event Action<string> Event;
 
-        public TestReactView() : base(usePreloadedWebView: false) { }
-
         public class Properties {
 
             private readonly TestReactView owner;
@@ -32,6 +30,8 @@ namespace Tests {
             return new Properties(this);
         }
 
+        protected override string[] Events => new [] { "event" };
+
         public T EvaluateMethodOnRoot<T>(string methodCall, params string[] args) {
             return ExecutionEngine.EvaluateMethod<T>(this, methodCall, args);
         }
@@ -39,5 +39,7 @@ namespace Tests {
         public void ExecuteMethodOnRoot(string methodCall, params string[] args) {
             ExecutionEngine.ExecuteMethod(this, methodCall, args);
         }
+
+        protected override ReactViewFactory Factory => new TestReactViewFactory();
     }
 }

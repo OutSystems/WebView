@@ -61,6 +61,14 @@ class App extends React.Component<IAppProperties, {}> {
         }, 50);
     }
 
+    checkAliasedModuleLoaded() {
+        require(["SimpleModuleWithAlias"], () => {
+            if ((window as any).AliasedModuleLoaded) {
+                this.props.event("AliasedModuleLoaded");
+            }
+        });
+    }
+
     checkViewReady() {
         var intervalHandle = 0;
         intervalHandle = setInterval(() => {

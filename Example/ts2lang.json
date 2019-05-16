@@ -6,12 +6,12 @@
             "template": "",
             "parameters": {
                 "namespace": "Example",
-                "baseComponentClass": "",
+                "baseComponentClass": "Example.ExtendedReactView",
                 "baseComponentInterface": "",
                 "javascriptDistPath": "",
                 "emitComponent": true,
                 "emitComponentInterface": true,
-                "emitComponentAdapter": false,
+                "emitComponentAdapter": true,
                 "emitViewObjects": true
             }
         },

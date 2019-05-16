@@ -1,10 +1,14 @@
-﻿using System.Windows;
+﻿using ReactViewControl;
+using System;
+using System.Windows;
+using WebViewControl;
 
 namespace Example {
     /// <summary>
     /// Interaction logic for ReactViewExample.xaml
     /// </summary>
     public partial class ReactViewExample : Window {
+
         public ReactViewExample() {
             InitializeComponent();
         }
@@ -19,6 +23,10 @@ namespace Example {
 
         private void OnShowDevTools(object sender, RoutedEventArgs e) {
             exampleView.ShowDeveloperTools();
+        }
+
+        private string OnExampleViewGetTime() {
+            return DateTime.Now.ToShortTimeString();
         }
     }
 }

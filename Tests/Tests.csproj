@@ -76,9 +76,11 @@
     <Compile Include="ReactViewTestBase.cs" />
     <Compile Include="RequestInterception.cs" />
     <Compile Include="ResourcesLoading.cs" />
+    <Compile Include="SerializationTests.cs" />
     <Compile Include="TestBase.cs" />
     <Compile Include="TestObject.cs" />
     <Compile Include="TestReactView.cs" />
+    <Compile Include="TestReactViewFactory.cs" />
     <Compile Include="WebViewTestBase.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -130,11 +132,18 @@
       <Link>Nunit\nunit3-console.exe</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <EmbeddedResource Include="ReactViewResources\Test\PluginModule.js" />
-    <EmbeddedResource Include="ReactViewResources\Test\TestApp.js" />
+    <EmbeddedResource Include="ReactViewResources\Test\PluginModule.js">
+      <DependentUpon>PluginModule.ts</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ReactViewResources\Test\AliasedModule.js">
+      <DependentUpon>AliasedModule.ts</DependentUpon>
+    </EmbeddedResource>
     <Content Include="ReactViewResources\tsconfig.json" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="ReactViewResources\Test\TestApp.js">
+      <DependentUpon>TestApp.tsx</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Resources\EmbeddedJavascriptFile.js" />
   </ItemGroup>
   <ItemGroup>
@@ -149,6 +158,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="ReactViewResources\Test\AliasedModule.ts" />
     <TypeScriptCompile Include="ReactViewResources\Test\PluginModule.ts" />
     <TypeScriptCompile Include="ReactViewResources\Test\TestApp.tsx" />
   </ItemGroup>

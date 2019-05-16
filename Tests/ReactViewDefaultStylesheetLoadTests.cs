@@ -1,14 +1,22 @@
 ﻿using System;
 using NUnit.Framework;
+using ReactViewControl;
 using WebViewControl;
 
 namespace Tests {
 
     public class ReactViewDefaultStyleSheetLoadTests : ReactViewTestBase {
 
-        protected override void InitializeView() {
-            TargetView.DefaultStyleSheet = new ResourceUrl(typeof(ReactViewDefaultStyleSheetLoadTests).Assembly, "ReactViewResources", "Test", "default.css");
-            base.InitializeView();
+        protected class ViewFactoryWithStyleSheet : TestReactViewFactory {
+            public override ResourceUrl DefaultStyleSheet => new ResourceUrl(typeof(ReactViewDefaultStyleSheetLoadTests).Assembly, "ReactViewResources", "Test", "default.css");
+        }
+
+        protected class ReactViewWithStyleSheet : TestReactView {
+            protected override ReactViewFactory Factory => new ViewFactoryWithStyleSheet();
+        }
+
+        protected override TestReactView CreateView() {
+            return new ReactViewWithStyleSheet();
         }
 
         [Test(Description = "Tests default stylesheets get loaded")]
@@ -20,7 +28,7 @@ namespace Tests {
 
             TargetView.ExecuteMethodOnRoot("checkStyleSheetLoaded", "2");
 
-            WaitFor(() => stylesheet != null, TimeSpan.FromSeconds(10), "stylesheet load");
+            WaitFor(() => stylesheet != null, DefaultTimeout, "stylesheet load");
 
             Assert.IsTrue(stylesheet.Contains(".bar"));
         }

@@ -1,21 +1,22 @@
 ﻿{
     "compilerOptions": {
-        "module": "amd",
+        "outDir": ".",
+        "module": "es6",
         "target": "es2017",
-        "jsx": "react",
-        "moduleResolution": "node",
         "sourceMap": false,
         "allowJs": true,
+        "moduleResolution": "node",
         "rootDir": ".",
         "forceConsistentCasingInFileNames": true,
         "noImplicitReturns": true,
         "noImplicitThis": true,
+        "strictNullChecks": true,
         "noImplicitAny": true,
-        "suppressImplicitAnyIndexErrors": true
+        "suppressImplicitAnyIndexErrors": true,
+        "removeComments": true
     },
     "compileOnSave": true,
     "exclude": [
-        "node_modules",
-        "dist"
+        "node_modules"
     ]
 }

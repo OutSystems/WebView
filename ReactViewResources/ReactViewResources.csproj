@@ -12,6 +12,8 @@
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <Deterministic>true</Deterministic>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -54,6 +56,9 @@
     <Compile Include="Resources.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Loader.js">
+      <DependentUpon>Loader.ts</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="node_modules\preact\dist\preact.min.js" />
   </ItemGroup>
   <ItemGroup>
@@ -75,7 +80,19 @@
     <EmbeddedResource Include="node_modules\react-dom\umd\react-dom.production.min.js" />
     <EmbeddedResource Include="node_modules\react\umd\react.production.min.js" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <TypeScriptCompile Include="Loader.ts" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="tsconfig.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.TypeScript.MSBuild">
+      <Version>3.4.5</Version>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>npm ci</PreBuildEvent>
