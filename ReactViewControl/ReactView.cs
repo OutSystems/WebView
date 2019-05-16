@@ -198,6 +198,6 @@ namespace ReactViewControl {
         /// Components with different property values are stored in different cache entries.
         /// Defaults to 6. 
         /// </summary>
-        public static int PreloadedCacheEntriesSize { get; set; }
+        public static int PreloadedCacheEntriesSize { get; set; } = 6;
     }
 }
