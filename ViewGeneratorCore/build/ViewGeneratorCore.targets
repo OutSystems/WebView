@@ -17,12 +17,12 @@
     </TransformDuringBuild>
   </PropertyGroup>
   
-  <Target Name="GenerateView" BeforeTargets="TransformDuringBuild;PrepareForBuild" DependsOnTargets="CleanGenerated">
+  <Target Name="GenerateView" BeforeTargets="TransformDuringBuild;PrepareForBuild;CoreCompile" DependsOnTargets="CleanGenerated">
     <Message Importance="Normal" Text="Generating View files" />
     <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(MSBuildThisFileDirectory)..\tools\node_modules\@outsystems\ts2lang\ts2lang-main.js&quot; -f &quot;$(MSBuildProjectDirectory)\ts2lang.json&quot; -t &quot;$(MSBuildThisFileDirectory)..\tools\ViewGenerator.js&quot;" />
   </Target>
 
-  <Target Name="IncludeGeneratedFiles" BeforeTargets="PrepareForBuild">
+  <Target Name="IncludeGeneratedFiles" BeforeTargets="PrepareForBuild;CoreCompile">
     <ItemGroup>
       <Compile Include="$(ViewGeneratorGeneratedFolder)\**\*.cs" />
     </ItemGroup>

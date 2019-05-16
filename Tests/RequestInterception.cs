@@ -10,9 +10,7 @@ namespace Tests {
         private const string ResourceJs = "resource.js";
         private static readonly string HtmlWithResource = $"<html><script src='{ResourceJs}' onerror='scriptFailed = true'></script><body>Test Page</body></html>";
 
-        protected override bool ReuseView {
-            get { return false; }
-        }
+        protected override bool ReuseView => false;
 
         private static Stream ToStream(string str) {
             var stream = new MemoryStream();

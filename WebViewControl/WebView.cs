@@ -1,5 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using CefSharp;
+using CefSharp.ModelBinding;
+using CefSharp.Wpf;
+using System;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -11,9 +13,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
-using CefSharp;
-using CefSharp.ModelBinding;
-using CefSharp.Wpf;
 
 namespace WebViewControl {
 
@@ -40,6 +39,7 @@ namespace WebViewControl {
         private string htmlToLoad;
         private JavascriptExecutor jsExecutor;
         private CefLifeSpanHandler lifeSpanHandler;
+        private CefResourceHandlerFactory resourceHandlerFactory;
         private volatile bool isDisposing;
         private volatile int javascriptPendingCalls;
 
@@ -74,7 +74,7 @@ namespace WebViewControl {
         private event Action JavascriptContextReleased;
         private event Action JavascriptCallFinished;
 
-        private static int domainId;
+        private static int domainId = 1;
 
         // cef maints same zoom level for all browser instances under the same domain
         // having different domains will prevent synced zoom
@@ -160,8 +160,12 @@ namespace WebViewControl {
             }
 #endif
 
-            CurrentDomainId = domainId.ToString();
-            domainId++;
+            if (UseSharedDomain) {
+                CurrentDomainId = "";
+            } else {
+                CurrentDomainId = domainId.ToString();
+                domainId++;
+            }
 
             DefaultLocalUrl = new ResourceUrl(ResourceUrl.LocalScheme, "index.html").WithDomain(CurrentDomainId);
 
@@ -179,6 +183,7 @@ namespace WebViewControl {
             }
 
             lifeSpanHandler = new CefLifeSpanHandler(this);
+            resourceHandlerFactory = new CefResourceHandlerFactory(this);
 
             chromium = new InternalChromiumBrowser();
             chromium.IsBrowserInitializedChanged += OnWebViewIsBrowserInitializedChanged;
@@ -187,7 +192,7 @@ namespace WebViewControl {
             chromium.TitleChanged += OnWebViewTitleChanged;
             chromium.PreviewKeyDown += OnPreviewKeyDown;
             chromium.RequestHandler = new CefRequestHandler(this);
-            chromium.ResourceHandlerFactory = new CefResourceHandlerFactory(this);
+            chromium.ResourceHandlerFactory = resourceHandlerFactory;
             chromium.LifeSpanHandler = lifeSpanHandler;
             chromium.RenderProcessMessageHandler = new CefRenderProcessMessageHandler(this);
             chromium.MenuHandler = new CefMenuHandler(this);
@@ -235,8 +240,6 @@ namespace WebViewControl {
 
                 disposed = true;
 
-                AppDomain.CurrentDomain.AssemblyLoad -= OnAssemblyLoaded;
-
                 cancellationTokenSource.Cancel();
 
                 WebViewInitialized = null;
@@ -253,6 +256,8 @@ namespace WebViewControl {
                 RenderProcessCrashed = null;
                 JavascriptContextReleased = null;
 
+                resourceHandlerFactory.Dispose();
+
                 jsExecutor.Dispose();
                 chromium.Dispose();
                 cancellationTokenSource.Dispose();
@@ -263,7 +268,7 @@ namespace WebViewControl {
             // avoid dead-lock, wait for all pending calls to finish
             JavascriptCallFinished += () => {
                 if (javascriptPendingCalls == 0) {
-                    Dispatcher.BeginInvoke((Action) InternalDispose);
+                    Dispatcher.BeginInvoke((Action)InternalDispose);
                 }
             };
 
@@ -349,30 +354,15 @@ namespace WebViewControl {
             }
         }
 
-        public bool IgnoreCertificateErrors {
-            get;
-            set;
-        }
+        public bool IgnoreCertificateErrors { get; set; }
 
-        public bool IsHistoryDisabled {
-            get;
-            set;
-        }
+        public bool IsHistoryDisabled { get; set; }
 
-        public TimeSpan? DefaultScriptsExecutionTimeout {
-            get;
-            set;
-        }
+        public TimeSpan? DefaultScriptsExecutionTimeout { get; set; }
 
-        public bool DisableBuiltinContextMenus {
-            get;
-            set;
-        }
+        public bool DisableBuiltinContextMenus { get; set; }
 
-        public bool DisableFileDialogs {
-            get;
-            set;
-        }
+        public bool DisableFileDialogs { get; set; }
 
         public bool IsBrowserInitialized {
             get { return chromium.IsBrowserInitialized; }
@@ -537,7 +527,7 @@ namespace WebViewControl {
             var loadFailed = LoadFailed;
             if (e.ErrorCode != CefErrorCode.Aborted && loadFailed != null) {
                 // ignore aborts, to prevent situations where we try to load an address inside Load failed handler (and its aborted)
-                AsyncExecuteInUI(() => loadFailed.Invoke(e.FailedUrl, (int) e.ErrorCode));
+                AsyncExecuteInUI(() => loadFailed.Invoke(e.FailedUrl, (int)e.ErrorCode));
             }
         }
 
@@ -616,6 +606,10 @@ namespace WebViewControl {
         }
 
         private void ForwardUnhandledAsyncException(Exception e) {
+            if (isDisposing) {
+                return;
+            }
+
             var handled = false;
 
             var unhandledAsyncException = UnhandledAsyncException;
@@ -627,7 +621,11 @@ namespace WebViewControl {
 
             if (!handled) {
                 // don't use invoke async, as it won't forward the exception to the dispatcher unhandled exception event
-                Dispatcher.BeginInvoke((Action) (() => throw e));
+                Dispatcher.BeginInvoke((Action)(() => {
+                    if (!isDisposing) {
+                        throw e;
+                    }
+                }));
             }
         }
 
@@ -670,8 +668,19 @@ namespace WebViewControl {
             Dispose();
         }
 
-        protected static void RegisterProtocolHandler(string protocol, Action<ResourceHandler> requestHandler) {
-            Cef.GetGlobalRequestContext().RegisterSchemeHandlerFactory(protocol, "", new CefSchemeHandlerFactory(requestHandler));
+        protected void RegisterProtocolHandler(string protocol, CefResourceHandlerFactory handler) {
+            if (chromium.RequestContext == null) {
+                chromium.RequestContext = new RequestContext(new RequestContextSettings() {
+                    CachePath = CachePath
+                });
+            }
+            chromium.RequestContext.RegisterSchemeHandlerFactory(protocol, "", handler);
         }
+
+        protected virtual string GetRequestUrl(string url, ResourceType resourceType) {
+            return url;
+        }
+
+        protected virtual bool UseSharedDomain => false;
     }
 }

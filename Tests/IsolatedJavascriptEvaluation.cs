@@ -6,11 +6,11 @@ namespace Tests {
 
     public class IsolatedJavascriptEvaluation : WebViewTestBase {
 
-        protected override bool ReuseView {
-            get { return false; }
-        }
+        protected override bool ReuseView => false;
 
         protected override void InitializeView() { }
+
+        protected override void AfterInitializeView() { }
 
         [Test(Description = "Evaluation timeouts when javascript engine is not initialized")]
         public void JavascriptEngineInitializationTimeout() {

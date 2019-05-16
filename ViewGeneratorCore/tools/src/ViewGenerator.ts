@@ -99,26 +99,22 @@ class Generator {
     }
 
     private generateNativeApi() {
+        const generateNativeApiMethod = (func: Units.TsFunction) => {
+            let isVoid = func.returnType.name === Types.TsVoidType.name;
+            return (
+                `public ${this.generateMethodSignature(func)} => owner.${toPascalCase(func.name)}?.Invoke(${func.parameters.map(p => p.name).join(", ")})${isVoid ? "" : ` ?? default(${this.getFunctionReturnType(func)})`};\n`
+            );
+        }
+
         return (
             `internal interface I${PropertiesClassName} {\n` +
-            `    ${f(this.propsInterface ? this.propsInterface.functions.map(f => this.generateMethodSignature(f) + ";").join("\n") : "")}\n` + 
+            `    ${f(this.propsInterface ? this.propsInterface.functions.map(f => this.generateMethodSignature(f) + ";").join("\n") : "")}\n` +
             `}\n` +
             `\n` +
             `private class ${PropertiesClassName} : I${PropertiesClassName} {\n` +
             `    protected readonly ${ComponentAliasName} owner;\n` +
-            `    public ${PropertiesClassName}(${ComponentAliasName} owner) {\n` +
-            `        this.owner = owner;\n` +
-            `    }\n` +
-            `    ${f(this.propsInterface ? (this.propsInterface.functions.length > 0 ? this.propsInterface.functions.map(f => this.generateNativeApiMethod(f)).join("\n") : "// the interface does not contain methods") : "")}\n` +
-            `}`
-        );
-    }
-
-    private generateNativeApiMethod(func: Units.TsFunction): string {
-        let isVoid = func.returnType.name === Types.TsVoidType.name;
-        return (
-            `public ${this.generateMethodSignature(func)} {\n` +
-            `    ${isVoid ? "" : "return "}owner.${toPascalCase(func.name)}?.Invoke(${func.parameters.map(p => p.name).join(", ")})${isVoid ? "" : ` ?? default(${this.getFunctionReturnType(func)})`};\n` +
+            `    public ${PropertiesClassName}(${ComponentAliasName} owner) => this.owner = owner;\n` +
+            `    ${f(this.propsInterface ? (this.propsInterface.functions.length > 0 ? this.propsInterface.functions.map(f => generateNativeApiMethod(f)).join("\n") : "// the interface does not contain methods") : "")}\n` +
             `}`
         );
     }
@@ -145,31 +141,41 @@ class Generator {
         );
     }
 
-    private generatePropertyDelegate(func: Units.TsFunction, accessibility: string = "public"): string {
-        accessibility = accessibility ? accessibility + " " : "";
-        return `${accessibility}delegate ${this.generateMethodSignature(func, this.componentName, DelegateSuffix)}`;
-    }
-
     private generatePropertyEvent(func: Units.TsFunction, accessibility: string = "public"): string {
         accessibility = accessibility ? accessibility + " " : "";
         return `${accessibility}event ${this.componentName}${toPascalCase(func.name)}${DelegateSuffix} ${toPascalCase(func.name)}`
     }
 
-    private generateComponentBody(generatePropertyEvent: (prop: Units.TsFunction) => string, generateBehaviorMethod: (func: Units.TsFunction) => string) {
-        return (this.propsInterface ? this.propsInterface.functions.map(f => generatePropertyEvent(f)) : [])
-            .concat(this.behaviorsInterface ? this.behaviorsInterface.functions.map(f => generateBehaviorMethod(f)) : [])
+    private generateProperty(prop: Units.TsProperty, accessibility: string = "public"): string {
+        accessibility = accessibility ? accessibility + " " : "";
+        return `${accessibility}${this.getTypeName(prop.type)} ${toPascalCase(prop.name)} { get; set; }`
+    }
+
+    private generateComponentBody(generatePropertyEvent: (prop: Units.TsFunction) => string, generateProperty: (prop: Units.TsProperty) => string, generateBehaviorMethod: (func: Units.TsFunction) => string) {
+        return (
+            this.propsInterface ? this.propsInterface.functions.map(generatePropertyEvent).concat(this.propsInterface.properties.map(generateProperty)) : [])
+            .concat(this.behaviorsInterface ? this.behaviorsInterface.functions.map(generateBehaviorMethod) : [])
             .join("\n");
     }
 
     private generateComponentAdapter() {
         const ComponentProperty = "Component";
 
-        const generateProperty = (func: Units.TsFunction) => {
+        const generatePropertyEvent = (func: Units.TsFunction) => {
             let eventName = toPascalCase(func.name);
             return (
                 `public event ${this.componentName}${eventName}${DelegateSuffix} ${eventName} {\n` +
-                `    add { ${ComponentProperty}.${eventName} += value; }\n` +
-                `    remove { ${ComponentProperty}.${eventName} -= value; }\n` +
+                `    add => ${ComponentProperty}.${eventName} += value;\n` +
+                `    remove => ${ComponentProperty}.${eventName} -= value;\n` +
+                `}`
+            );
+        };
+        const generateProperty = (prop: Units.TsProperty) => {
+            let propertyName = toPascalCase(prop.name);
+            return (
+                `public ${this.getTypeName(prop.type)} ${propertyName} {\n` +
+                `    get => ${ComponentProperty}.${propertyName};\n` +
+                `    set => ${ComponentProperty}.${propertyName} = value;\n` +
                 `}`
             );
         };
@@ -177,54 +183,58 @@ class Generator {
             let isVoid = func.returnType === Types.TsVoidType;
 
             return (
-                `public ${this.generateMethodSignature(func)} {\n` +
-                `    ${isVoid ? "" : "return "}${ComponentProperty}.${toPascalCase(func.name)}(${func.parameters.map(p => p.name).join(",")});\n` +
-                `}`
+                `public ${this.generateMethodSignature(func)} => ${ComponentProperty}.${toPascalCase(func.name)}(${func.parameters.map(p => p.name).join(",")});\n`
             );
         };
         return (
             `partial class ${this.componentName}Adapter : I${this.componentName} {\n` +
             `\n` +
-            `    ${f(this.generateComponentBody(generateProperty, generateBehaviorMethod))}\n` +
+            `    ${f(this.generateComponentBody(generatePropertyEvent, generateProperty, generateBehaviorMethod))}\n` +
             `}\n`
         );
     }
 
     private generateComponentClass() {
+        const keyValuePairType = "System.Collections.Generic.KeyValuePair<string, object>";
+
         const generatePropertyEvent = (func: Units.TsFunction) => `${this.generatePropertyEvent(func)};`;
+        const generateProperty = (func: Units.TsProperty) => `${this.generateProperty(func)}`;
 
         const generateBehaviorMethod = (func: Units.TsFunction) => {
             let params = [`"${func.name}"`].concat(func.parameters.map(p => p.name)).join(", ");
             let body = "";
             if (func.returnType != Types.TsVoidType) {
                 let returnType = this.getFunctionReturnType(func);
-                body = `return ExecutionEngine.EvaluateMethod<${returnType}>(this, ${params});`;
+                body = `ExecutionEngine.EvaluateMethod<${returnType}>(this, ${params})`;
             } else {
-                body = `ExecutionEngine.ExecuteMethod(this, ${params});`;
+                body = `ExecutionEngine.ExecuteMethod(this, ${params})`;
             }
 
             return (
-                `public ${this.generateMethodSignature(func)} {\n` +
-                `    ${body}\n` +
-                `}`
+                `public ${this.generateMethodSignature(func)} => ${body};`
             );
         };
+
 
         return (
             `public partial class ${this.componentName} : ${BaseComponentAliasName} {\n` +
             `    \n` +
             `    ${f(this.generateNativeApi())}\n` +
             `    \n` +
-            `    ${f(this.generateComponentBody(generatePropertyEvent, generateBehaviorMethod))}\n` +
+            `    ${f(this.generateComponentBody(generatePropertyEvent, generateProperty, generateBehaviorMethod))}\n` +
             `    \n` +
             `    protected override string JavascriptSource => \"${this.relativePath}\";\n` +
             `    protected override string NativeObjectName => \"${this.propsInterfaceCoreName}\";\n` +
             `    protected override string ModuleName => \"${this.filename}\";\n` +
-            `    \n` +
-            `    protected override object CreateNativeObject() {\n` +
-            `        return new ${PropertiesClassName}(this);\n` +
+            `    protected override object CreateNativeObject() => new ${PropertiesClassName}(this);\n` +
+            `    protected override string[] Events => ${this.propsInterface ? `new string[] { ${this.propsInterface.functions.map(p => `"${p.name}"`).join(",")} }` : ``};\n` +
+            `    protected override ${keyValuePairType}[] PropertiesValues {\n` +
+            `        get { \n` +
+            `            return new ${keyValuePairType}[] {\n` +
+            `    ${this.propsInterface ? f(this.propsInterface.properties.map(p => `            new ${keyValuePairType}("${p.name}", ${toPascalCase(p.name)})`).join(",\n")) : `` }\n` +
+            `            };\n` +
+            `        }\n` +
             `    }\n` +
-            `    \n` +
             `    #if DEBUG\n` +
             `    protected override string Source => \"${this.fullPath}\";\n` +
             `    #endif\n` +
@@ -233,12 +243,13 @@ class Generator {
     }
 
     private generateComponentInterface() {
-        const generateProperty = (func: Units.TsFunction) => `${this.generatePropertyEvent(func, "")};`;
+        const generatePropertyEvent = (func: Units.TsFunction) => `${this.generatePropertyEvent(func, "")};`;
+        const generateProperty = (prop: Units.TsProperty) => `${this.generateProperty(prop, "")}`;
         const generateBehaviorMethod = (func: Units.TsFunction) => `${this.generateMethodSignature(func)};`;
 
         return (
             `public partial interface I${this.componentName} ${this.baseComponentInterface ? `: ${this.baseComponentInterface} ` : ""} {\n` +
-            `    ${f(this.generateComponentBody(generateProperty, generateBehaviorMethod))}\n` +
+            `    ${f(this.generateComponentBody(generatePropertyEvent, generateProperty, generateBehaviorMethod))}\n` +
             `}`
         );
     }
@@ -256,7 +267,12 @@ class Generator {
             );
         };
 
-        const generatePropertiesDelegates = () => this.propsInterface ? this.propsInterface.functions.map(f => `${this.generatePropertyDelegate(f)};`).join("\n") : "";
+        const generatePropertyDelegate = (func: Units.TsFunction, accessibility: string = "public"): string => {
+            accessibility = accessibility ? accessibility + " " : "";
+            return `${accessibility}delegate ${this.generateMethodSignature(func, this.componentName, DelegateSuffix)}`;
+        }
+
+        const generatePropertiesDelegates = () => this.propsInterface ? this.propsInterface.functions.map(f => `${generatePropertyDelegate(f)};`).join("\n") : "";
 
         return (
             `${GeneratedFilesHeader}\n` +

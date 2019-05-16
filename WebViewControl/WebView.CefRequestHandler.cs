@@ -23,7 +23,8 @@ namespace WebViewControl {
             }
 
             bool IRequestHandler.OnQuotaRequest(IWebBrowser browserControl, IBrowser browser, string originUrl, long newSize, IRequestCallback callback) {
-                return false;
+                callback.Continue(true);
+                return true;
             }
 
             void IRequestHandler.OnRenderViewReady(IWebBrowser browserControl, IBrowser browser) {

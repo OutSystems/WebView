@@ -6,9 +6,12 @@ namespace Tests {
 
     public class WebViewTestBase : TestBase<WebView> {
 
-
         protected override void InitializeView() {
             TargetView.UnhandledAsyncException += OnUnhandledAsyncException;
+        }
+
+        protected override void AfterInitializeView() {
+            base.AfterInitializeView();
             LoadAndWaitReady("<html><script>;</script><body>Test page</body></html>", TimeSpan.FromSeconds(10), "webview initialization");
         }
 

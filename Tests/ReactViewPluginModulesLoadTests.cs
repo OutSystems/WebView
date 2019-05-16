@@ -1,9 +1,27 @@
 ﻿using NUnit.Framework;
 using ReactViewControl;
+using WebViewControl;
 
 namespace Tests {
 
     public class ReactViewPluginModulesLoadTests : ReactViewTestBase {
+
+        private class ViewFactoryWithPlugin : TestReactViewFactory {
+            public override IViewModule[] Plugins => new[] { new PluginModule() };
+        }
+
+        private class ReactViewWithPlugin : TestReactView {
+
+            public ReactViewWithPlugin() {
+                AddMappings(new SimpleViewModule("SimpleModuleWithAlias", new ResourceUrl(typeof(ReactViewWithPlugin).Assembly, "ReactViewResources", "Test", "AliasedModule.js")));
+            }
+
+            protected override ReactViewFactory Factory => new ViewFactoryWithPlugin();
+        }
+
+        protected override TestReactView CreateView() {
+            return new ReactViewWithPlugin();
+        }
 
         class PluginModule : ViewModuleContainer {
 
@@ -25,11 +43,6 @@ namespace Tests {
             }
         }
 
-        protected override void InitializeView() {
-            TargetView.Plugins = new[] { new PluginModule() };
-            base.InitializeView();
-        }
-
         [Test(Description = "Tests plugin module is loaded")]
         public void PluginModuleIsLoaded() {
             var pluginModuleLoaded = false;
@@ -40,6 +53,18 @@ namespace Tests {
             TargetView.ExecuteMethodOnRoot("checkPluginModuleLoaded");
 
             WaitFor(() => pluginModuleLoaded, "plugin module load");
+        }
+
+        [Test(Description = "Tests module with alias is loaded")]
+        public void AliasedModuleIsLoaded() {
+            var pluginModuleLoaded = false;
+            TargetView.Event += (args) => {
+                pluginModuleLoaded = args == "AliasedModuleLoaded";
+            };
+
+            TargetView.ExecuteMethodOnRoot("checkAliasedModuleLoaded");
+
+            WaitFor(() => pluginModuleLoaded, "aliased module load");
         }
     }
 }

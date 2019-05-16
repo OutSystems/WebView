@@ -1,5 +1,4 @@
 ﻿using CefSharp;
-using System.Linq;
 using System;
 
 namespace WebViewControl {
