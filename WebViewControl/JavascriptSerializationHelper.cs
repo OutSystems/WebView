@@ -11,8 +11,11 @@ namespace WebViewControl {
 
     public static class JavascriptSerializer {
 
+        public static readonly object Undefined = new object();
+
         public static string Serialize(object o, SerializationHandler handleComplexType = null) {
             if (o == null) return "null";
+            if (o == Undefined) return "undefined";
             if (o is string str) return Serialize(str);
             if (o is IEnumerable col) return Serialize(col);
             if (o is JavascriptObject jso) return Serialize(jso);

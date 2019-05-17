@@ -59,9 +59,8 @@ namespace ReactViewControl {
             Content = webView;
 
             var urlParams = new string[] {
-                ReactView.UseEnhancedRenderingEngine ? "1" : "0",
-                enableDebugMode ? "1" : "0",
                 new ResourceUrl(ResourcesAssembly, ReactViewResources.Resources.LibrariesPath).ToString(),
+                enableDebugMode ? "1" : "0",
                 ModulesObjectName,
                 Listener.EventListenerObjName,
                 ComponentLoadedEventName
@@ -132,7 +131,7 @@ namespace ReactViewControl {
             var componentNativeObject = component.CreateNativeObject();
 
             var nativeObjectMethodsMap =
-                component.Events.Select(g => new KeyValuePair<string, object>(g, null))
+                component.Events.Select(g => new KeyValuePair<string, object>(g, JavascriptSerializer.Undefined))
                 .Concat(component.PropertiesValues)
                 .OrderBy(p => p.Key)
                 .Select(p => new KeyValuePair<string, object>(JavascriptSerializer.GetJavascriptName(p.Key), p.Value));

@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using ReactViewControl;
 
 namespace Tests {
 
-    public class TestReactView : ReactView {
+    public class TestReactView : ReactView {        
 
         public event Action<string> Event;
 
@@ -32,6 +33,8 @@ namespace Tests {
 
         protected override string[] Events => new [] { "event" };
 
+        protected override KeyValuePair<string, object>[] PropertiesValues => new[] { new KeyValuePair<string, object>("propertyValue", PropertyValue) };
+
         public T EvaluateMethodOnRoot<T>(string methodCall, params string[] args) {
             return ExecutionEngine.EvaluateMethod<T>(this, methodCall, args);
         }
@@ -41,5 +44,7 @@ namespace Tests {
         }
 
         protected override ReactViewFactory Factory => new TestReactViewFactory();
+
+        public string PropertyValue { get; set; }
     }
 }

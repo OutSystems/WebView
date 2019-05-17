@@ -36,5 +36,11 @@ namespace Tests {
         }
     }
 
-    public class ReactViewTestBase : ReactViewTestBase<TestReactView> { }
+    public class ReactViewTestBase : ReactViewTestBase<TestReactView> {
+
+        protected override TestReactView CreateView() {
+            TestReactView.PreloadedCacheEntriesSize = 0; // disable cache during tests
+            return base.CreateView();
+        }
+    }
 }

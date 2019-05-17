@@ -72,14 +72,17 @@ namespace ReactViewControl {
 
                 if (e.NewValue is Window newWindow) {
                     newWindow.IsVisibleChanged += OnWindowIsVisibleChanged;
+                    Unloaded += delegate { newWindow.IsVisibleChanged -= OnWindowIsVisibleChanged; };
                 }
             }
         }
 
         private void OnWindowIsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e) {
+            var window = (Window)sender;
             // this is the first event that we have available with guarantees that all the component properties have been set
             // since its not supposed to change properties once the component has been shown
-            if (((Window)sender).IsVisible) {
+            if (window.IsVisible) {
+                window.IsVisibleChanged -= OnWindowIsVisibleChanged;
                 LoadComponent();
             }
         }
@@ -87,6 +90,7 @@ namespace ReactViewControl {
         private void OnIsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e) {
             // fallback when window was already shown
             if (IsVisible) {
+                IsVisibleChanged -= OnIsVisibleChanged;
                 LoadComponent();
             }
         }
@@ -190,8 +194,6 @@ namespace ReactViewControl {
         IExecutionEngine IViewModule.ExecutionEngine => ExecutionEngine;
 
         protected IExecutionEngine ExecutionEngine => view; // ease access in generated code
-
-        public static bool UseEnhancedRenderingEngine { get; set; } = true;
 
         /// <summary>
         /// Number of preloaded views that are mantained in cache for each view.

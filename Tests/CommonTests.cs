@@ -81,8 +81,6 @@ namespace Tests {
             Assert.IsTrue(navigated);
         }
 
-
-
         [Test(Description = "Setting zoom works as expected")]
         public void ZoomWorksAsExpected() {
             var navigated = false;
@@ -102,13 +100,47 @@ namespace Tests {
         public void WebViewIsDisposedWhenHostWindowIsNotShown() {
             var view = new WebView();
             var window = new Window();
-            window.Content = view;
+            window.Title = CurrentTestName;
+
+            try {
+                window.Content = view;
+
+                var disposed = false;
+                view.Disposed += () => disposed = true;
+
+                window.Close();
+                Assert.IsTrue(disposed);
+            } finally {
+                window.Close();
+            }
+        }
+
+        [Test(Description = "Tests that the webview is disposed when host window is not shown")]
+        public void WebViewIsNotDisposedWhenUnloaded() {
+            var view = new WebView();
 
             var disposed = false;
             view.Disposed += () => disposed = true;
 
-            window.Close();
-            Assert.IsTrue(disposed);
+            var window = new Window();
+            window.Title = CurrentTestName;
+            window.Content = view;
+
+            try {    
+                window.Show();
+                WaitFor(() => view.IsLoaded);
+
+                window.Content = null;
+                WaitFor(() => !view.IsLoaded);
+                Assert.IsFalse(disposed);
+
+                window.Content = view;
+                window.Close();
+                WaitFor(() => !view.IsLoaded);
+                Assert.IsTrue(disposed);
+            } finally {
+                window.Close();
+            }
         }
     }
 }

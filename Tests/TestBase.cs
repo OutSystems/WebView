@@ -17,6 +17,8 @@ namespace Tests {
         private Window window;
         private T view;
 
+        protected static string CurrentTestName => TestContext.CurrentContext.Test.Name;
+
         [OneTimeSetUp]
         protected void OneTimeSetUp() {
             if (Application.Current == null) {
@@ -39,7 +41,7 @@ namespace Tests {
         [SetUp]
         protected void SetUp() {
             Console.Write(" "); // nunit will output the test name if we write on the console
-            window.Title = "Running: " + TestContext.CurrentContext.Test.Name;
+            window.Title = "Running: " + CurrentTestName;
             
             if (view == null) {
                 view = CreateView();
@@ -52,11 +54,13 @@ namespace Tests {
             }
         }
 
+        protected Window Window => window;
+
         protected virtual T CreateView() {
             return new T();
         }
 
-        protected abstract void InitializeView();
+        protected virtual void InitializeView() { }
 
         protected virtual void AfterInitializeView() { }
 

@@ -26,7 +26,7 @@ class Task<ResultType> {
     }
 }
 
-const [UseEnhancedRenderingEngine, EnableDebugMode, LibsPath, ModulesObjectName, EventListenerObjectName, ReadyEventName] = Array.from(new URLSearchParams(location.search).keys());
+const [LibsPath, EnableDebugMode, ModulesObjectName, EventListenerObjectName, ReadyEventName] = Array.from(new URLSearchParams(location.search).keys());
 
 const Modules: Dictionary<{}> = {};
 window[ModulesObjectName] = Modules;
@@ -73,19 +73,6 @@ function loadRequire(): Promise<void> {
 }
 
 function loadFramework(): void {
-    if (UseEnhancedRenderingEngine === "1") {
-        // load preact, instead
-        define("preact", [LibsPath + "preact/dist/preact.min.js"], () => {
-            // export preact as a module
-            return window["preact"];
-        });
-
-        define("react-dom", ["react"], (react: React) => {
-            // export react-dom as a module
-            return react;
-        });
-    }
-
     const RequireCssPath = LibsPath + "require-css/css.min.js";
 
     require.config({
@@ -190,7 +177,12 @@ export function loadComponent(
             (document.getElementById("webview_base") as HTMLBaseElement).href = baseUrl;
 
             const RootElement = document.getElementById("webview_root") as HTMLDivElement;
-            
+
+            if (hasStyleSheet) {
+                // wait for the stylesheet to load before first render
+                await StylesheetsLoadTask.promise;
+            }
+
             const ComponentCacheKey = getComponentCacheKey(componentHash);
             const CachedElementHtml = localStorage.getItem(ComponentCacheKey);
             if (CachedElementHtml) {
@@ -200,9 +192,6 @@ export function loadComponent(
             }
 
             let promisesToWaitFor = [BootstrapTask.promise];
-            if (hasStyleSheet) {
-                promisesToWaitFor.push(StylesheetsLoadTask.promise);
-            }
             if (hasPlugins) {
                 promisesToWaitFor.push(PluginsLoadTask.promise);
             }
@@ -235,11 +224,8 @@ export function loadComponent(
 
             // render component
             await new Promise((resolve) => {
-                Modules[componentName] = ReactDOM.render(
-                    React.createElement(Component, Properties),
-                    RootElement,
-                    resolve
-                );
+                const Root = React.createElement(Component, Properties);
+                Modules[componentName] = ReactDOM.hydrate(Root, RootElement, resolve);
             });
 
             await waitForNextPaint();
@@ -293,7 +279,7 @@ function createPropertiesProxy(basePropertiesObj: {}, nativeObjName: string): {}
     let proxy = Object.assign({}, basePropertiesObj);
     Object.keys(proxy).forEach(key => {
         let value = basePropertiesObj[key];
-        if (value !== null) {
+        if (value !== undefined) {
             proxy[key] = value;
         } else {
             proxy[key] = async function () {
@@ -333,19 +319,12 @@ function getAllStylesheets(): HTMLLinkElement[] {
 }
 
 function getRequirePaths() {
-    if (UseEnhancedRenderingEngine === "1") {
-        return {
-            "prop-types": LibsPath + "prop-types/prop-types.min",
-            "react": LibsPath + "preact-compat/dist/preact-compat.min",
-        };
-    } else {
-        // load react
-        return {
-            "prop-types": LibsPath + "prop-types/prop-types.min",
-            "react": LibsPath + "react/umd/react.production.min",
-            "react-dom": LibsPath + "react-dom/umd/react-dom.production.min",
-        };
-    }
+    // load react
+    return {
+        "prop-types": LibsPath + "prop-types/prop-types.min",
+        "react": LibsPath + "react/umd/react.production.min",
+        "react-dom": LibsPath + "react-dom/umd/react-dom.production.min",
+    };
 }
 
 bootstrap();

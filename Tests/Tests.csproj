@@ -71,6 +71,7 @@
     <Compile Include="ReactViewPluginModulesLoadTests.cs" />
     <Compile Include="ReactViewDefaultStylesheetLoadTests.cs" />
     <Compile Include="ReactViewInitializationTests.cs" />
+    <Compile Include="ReactViewPreRenderCacheTests.cs" />
     <Compile Include="ReactViewTestsPrematureScriptEvaluation.cs" />
     <Compile Include="ReactViewTests.cs" />
     <Compile Include="ReactViewTestBase.cs" />
@@ -84,6 +85,7 @@
     <Compile Include="WebViewTestBase.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="TestsToRun.txt" />
     <None Include="$(NuGetPackageRoot)\NUnit.ConsoleRunner\3.10.0\tools\nunit-agent-x86.exe.config">
       <Link>Nunit\nunit-agent-x86.exe.config</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -139,6 +141,7 @@
       <DependentUpon>AliasedModule.ts</DependentUpon>
     </EmbeddedResource>
     <Content Include="ReactViewResources\tsconfig.json" />
+    <None Include="debugtests.bat" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ReactViewResources\Test\TestApp.js">
