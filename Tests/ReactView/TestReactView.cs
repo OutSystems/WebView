@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using ReactViewControl;
 
-namespace Tests {
+namespace Tests.ReactView {
 
-    public class TestReactView : ReactView {        
+    public class TestReactView : ReactViewControl.ReactView {        
 
         public event Action<string> Event;
 

@@ -2,9 +2,9 @@
 using ReactViewControl;
 using WebViewControl;
 
-namespace Tests {
+namespace Tests.ReactView {
 
-    public class ReactViewPluginModulesLoadTests : ReactViewTestBase {
+    public class PluginModulesLoadTests : ReactViewTestBase {
 
         private class ViewFactoryWithPlugin : TestReactViewFactory {
             public override IViewModule[] Plugins => new[] { new PluginModule() };

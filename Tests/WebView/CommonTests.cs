@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Windows;
 using NUnit.Framework;
-using WebViewControl;
 
-namespace Tests {
+namespace Tests.WebView {
 
     public class CommonTests : WebViewTestBase {
 
@@ -98,7 +97,7 @@ namespace Tests {
 
         [Test(Description = "Tests that the webview is disposed when host window is not shown")]
         public void WebViewIsDisposedWhenHostWindowIsNotShown() {
-            var view = new WebView();
+            var view = new WebViewControl.WebView();
             var window = new Window();
             window.Title = CurrentTestName;
 
@@ -117,7 +116,7 @@ namespace Tests {
 
         [Test(Description = "Tests that the webview is disposed when host window is not shown")]
         public void WebViewIsNotDisposedWhenUnloaded() {
-            var view = new WebView();
+            var view = new WebViewControl.WebView();
 
             var disposed = false;
             view.Disposed += () => disposed = true;

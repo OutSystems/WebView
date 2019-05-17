@@ -46,11 +46,15 @@ namespace Tests {
             if (view == null) {
                 view = CreateView();
 
-                InitializeView();
+                if (view != null) {
+                    InitializeView();
+                }
 
                 window.Content = view;
 
-                AfterInitializeView();
+                if (view != null) {
+                    AfterInitializeView();
+                }
             }
         }
 
@@ -67,9 +71,11 @@ namespace Tests {
         [TearDown]
         protected void TearDown() {
             if (!ReuseView) {
-                view.Dispose();
+                if (view != null) {
+                    view.Dispose();
+                    view = null;
+                }
                 window.Content = null;
-                view = null;
             }
         }
 

@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 using System.Windows;
 using NUnit.Framework;
 
-namespace Tests {
+namespace Tests.ReactView {
 
     public class ReactViewPreRenderCacheTests : TestBase<TestReactView> {
 
@@ -12,33 +12,7 @@ namespace Tests {
             return null;
         }
 
-        class Sandbox : IDisposable {
-
-            private readonly TestReactView view;
-
-            public Sandbox(Window window, string propertyValue, TimeSpan timeout) {
-                view = new TestReactView();
-                view.PropertyValue = propertyValue;
-                window.Content = view;
-                ReactViewTestBase.WaitFor(() => view.IsReady, timeout, "View is ready");
-            }
-
-            public string GetFirstRenderHtml() {
-                return view.EvaluateMethodOnRoot<string>("getFirstRenderHtml");
-            }
-
-            public string GetHtml() {
-                return view.EvaluateMethodOnRoot<string>("getHtml");
-            }
-
-            public string GetPropertyValue() {
-                return view.EvaluateMethodOnRoot<string>("getPropertyValue");
-            }
-
-            public void Dispose() {
-                view.Dispose();
-            }
-        }
+        
 
         private static void WithCacheSize(int size, Action action) {
             var previousCacheSize = TestReactView.PreloadedCacheEntriesSize;

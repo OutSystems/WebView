@@ -1,22 +1,28 @@
 ﻿using System;
 
-namespace Tests {
+namespace Tests.WebView {
 
-    public abstract class ReactViewTestBase<T> : TestBase<T> where T : TestReactView, new() {
+    public class WebViewTestBase : TestBase<WebViewControl.WebView> {
 
         protected override void InitializeView() {
             TargetView.UnhandledAsyncException += OnUnhandledAsyncException;
         }
 
         protected override void AfterInitializeView() {
-            if (WaitForReady) {
-                WaitFor(() => TargetView.IsReady, DefaultTimeout, "view initialized");
-            }
+            base.AfterInitializeView();
+            LoadAndWaitReady("<html><script>;</script><body>Test page</body></html>", TimeSpan.FromSeconds(10), "webview initialization");
         }
 
-        protected virtual bool WaitForReady => true;
+        protected void LoadAndWaitReady(string html) {
+            LoadAndWaitReady(html, DefaultTimeout);
+        }
 
-        protected override bool ReuseView => false;
+        protected void LoadAndWaitReady(string html, TimeSpan timeout, string timeoutMsg = null) {
+            var navigated = false;
+            TargetView.Navigated += (string url) => navigated = true;
+            TargetView.LoadHtml(html);
+            WaitFor(() => navigated, timeout, timeoutMsg);
+        }
 
         protected void WithUnhandledExceptionHandling(Action action, Func<Exception, bool> onException) {
             Action<WebViewControl.UnhandledAsyncExceptionEventArgs> unhandledException = (e) => {
@@ -33,14 +39,6 @@ namespace Tests {
                 TargetView.UnhandledAsyncException -= unhandledException;
                 FailOnAsyncExceptions = failOnAsyncExceptions;
             }
-        }
-    }
-
-    public class ReactViewTestBase : ReactViewTestBase<TestReactView> {
-
-        protected override TestReactView CreateView() {
-            TestReactView.PreloadedCacheEntriesSize = 0; // disable cache during tests
-            return base.CreateView();
         }
     }
 }

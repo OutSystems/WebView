@@ -1,14 +1,13 @@
-﻿using System;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using ReactViewControl;
 using WebViewControl;
 
-namespace Tests {
+namespace Tests.ReactView {
 
-    public class ReactViewDefaultStyleSheetLoadTests : ReactViewTestBase {
+    public class DefaultStyleSheetLoadTests : ReactViewTestBase {
 
         protected class ViewFactoryWithStyleSheet : TestReactViewFactory {
-            public override ResourceUrl DefaultStyleSheet => new ResourceUrl(typeof(ReactViewDefaultStyleSheetLoadTests).Assembly, "ReactViewResources", "Test", "default.css");
+            public override ResourceUrl DefaultStyleSheet => new ResourceUrl(typeof(DefaultStyleSheetLoadTests).Assembly, "ReactViewResources", "Test", "default.css");
         }
 
         protected class ReactViewWithStyleSheet : TestReactView {

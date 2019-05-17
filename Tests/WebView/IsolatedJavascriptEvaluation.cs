@@ -1,8 +1,7 @@
 ﻿using System;
 using NUnit.Framework;
-using WebViewControl;
 
-namespace Tests {
+namespace Tests.WebView {
 
     public class IsolatedJavascriptEvaluation : WebViewTestBase {
 
@@ -15,7 +14,7 @@ namespace Tests {
         [Test(Description = "Evaluation timeouts when javascript engine is not initialized")]
         public void JavascriptEngineInitializationTimeout() {
             LoadAndWaitReady("<html><body></body></html>");
-            var exception = Assert.Throws<WebView.JavascriptException>(() => TargetView.EvaluateScript<int>("1", TimeSpan.FromSeconds(1)));
+            var exception = Assert.Throws<WebViewControl.WebView.JavascriptException>(() => TargetView.EvaluateScript<int>("1", TimeSpan.FromSeconds(1)));
             Assert.IsNotNull(exception);
             Assert.IsTrue(exception.Message.Contains("not initialized"));
         }

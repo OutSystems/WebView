@@ -1,9 +1,8 @@
 ﻿using System;
 using System.IO;
 using NUnit.Framework;
-using WebViewControl;
 
-namespace Tests {
+namespace Tests.WebView {
 
     public class RequestInterception : WebViewTestBase {
 
@@ -24,15 +23,15 @@ namespace Tests {
         [Test(Description = "Resource requested is intercepted")]
         public void ResourceRequestIsIntercepted() {
             var resourceRequested = "";
-            TargetView.BeforeResourceLoad += (WebView.ResourceHandler resourceHandler) => resourceRequested = resourceHandler.Url;
+            TargetView.BeforeResourceLoad += (resourceHandler) => resourceRequested = resourceHandler.Url;
             LoadAndWaitReady(HtmlWithResource);
 
             Assert.AreEqual("/" + ResourceJs, new Uri(resourceRequested).AbsolutePath);
         }
 
         [Test(Description = "Resource response with a stream is loaded properly")]
-        public void InterceptedResourceIsLoaded() {
-            TargetView.BeforeResourceLoad += (WebView.ResourceHandler resourceHandler) => resourceHandler.RespondWith(ToStream("scriptLoaded = true"), "js"); // declare x
+        public void InterceptedResourceRequestIsLoaded() {
+            TargetView.BeforeResourceLoad += (resourceHandler) => resourceHandler.RespondWith(ToStream("scriptLoaded = true"), "js"); // declare x
             LoadAndWaitReady(HtmlWithResource);
 
             var loaded = TargetView.EvaluateScript<bool>("scriptLoaded"); // check that the value of x is what was declared before in the resource
@@ -41,7 +40,7 @@ namespace Tests {
 
         [Test(Description = "Resource request canceled is not loaded")]
         public void ResourceRequestIsCanceled() {
-            TargetView.BeforeResourceLoad += (WebView.ResourceHandler resourceHandler) => resourceHandler.Cancel();
+            TargetView.BeforeResourceLoad += (resourceHandler) => resourceHandler.Cancel();
             LoadAndWaitReady(HtmlWithResource);
 
             var failed = TargetView.EvaluateScript<bool>("scriptFailed"); // check that the value of x is what was declared before in the resource
@@ -49,11 +48,11 @@ namespace Tests {
         }
 
         [Test(Description = "Resource request is redirected")]
-        public void ResourceRedirect() {
+        public void RequestRedirect() {
             var redirected = false;
             const string RedirectUrl = "anotherResource.js";
 
-            TargetView.BeforeResourceLoad += (WebView.ResourceHandler resourceHandler) => {
+            TargetView.BeforeResourceLoad += (resourceHandler) => {
                 var url = new Uri(resourceHandler.Url);
                 switch (url.AbsolutePath.TrimStart('/')) {
                     case ResourceJs:

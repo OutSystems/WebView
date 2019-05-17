@@ -2,7 +2,7 @@
 using NUnit.Framework;
 using WebViewControl;
 
-namespace Tests {
+namespace Tests.WebView {
 
     public class ResourcesLoading : WebViewTestBase {
 

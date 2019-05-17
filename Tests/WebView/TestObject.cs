@@ -1,4 +1,4 @@
-﻿namespace Tests {
+﻿namespace Tests.WebView {
 
     public enum Kind {
         A,

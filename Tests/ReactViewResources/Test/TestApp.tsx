@@ -96,7 +96,7 @@ class App extends React.Component<IAppProperties, {}> {
     }
 
     getHtml() {
-        return document.body.firstElementChild as HTMLElement).innerHTML || "";
+        return (document.body.firstElementChild as HTMLElement).innerHTML || "";
     }
 
     getPropertyValue() {
