@@ -72,7 +72,6 @@ namespace ReactViewControl {
 
                 if (e.NewValue is Window newWindow) {
                     newWindow.IsVisibleChanged += OnWindowIsVisibleChanged;
-                    Unloaded += delegate { newWindow.IsVisibleChanged -= OnWindowIsVisibleChanged; };
                 }
             }
         }

@@ -660,7 +660,6 @@ namespace WebViewControl {
 
                 if (e.NewValue is Window newWindow) {
                     newWindow.Closed += OnHostWindowClosed;
-                    Unloaded += delegate { newWindow.Closed -= OnHostWindowClosed; };
                 }
             }
         }
