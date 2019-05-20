@@ -1,6 +1,6 @@
 # WebView
 
-WebView is a WPF control that wraps CefSharp web view control. Provides the following additional features:
+WebView is a WPF control that wraps [CefSharp](https://github.com/cefsharp/CefSharp) web view control. Provides the following additional features:
 - Strongly-typed javascript evaluation: results of javascript evaluation returns the appropriate type
 - Scripts are aggregated and executed in bulk for improved performance
 - Synchronous javascript evaluation
