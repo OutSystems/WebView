@@ -1,10 +1,8 @@
 ﻿using System;
-using NUnit.Framework;
-using WebViewControl;
 
-namespace Tests {
+namespace Tests.WebView {
 
-    public class WebViewTestBase : TestBase<WebView> {
+    public class WebViewTestBase : TestBase<WebViewControl.WebView> {
 
         protected override void InitializeView() {
             TargetView.UnhandledAsyncException += OnUnhandledAsyncException;

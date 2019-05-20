@@ -59,10 +59,6 @@
     <EmbeddedResource Include="Loader.js">
       <DependentUpon>Loader.ts</DependentUpon>
     </EmbeddedResource>
-    <EmbeddedResource Include="node_modules\preact\dist\preact.min.js" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="node_modules\preact-compat\dist\preact-compat.min.js" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="node_modules\prop-types\prop-types.min.js" />

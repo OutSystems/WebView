@@ -665,6 +665,7 @@ namespace WebViewControl {
         }
 
         private void OnHostWindowClosed(object sender, EventArgs e) {
+            ((Window) sender).Closed -= OnHostWindowClosed;
             Dispose();
         }
 

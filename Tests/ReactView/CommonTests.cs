@@ -3,9 +3,9 @@ using System.Threading;
 using NUnit.Framework;
 using ReactViewControl;
 
-namespace Tests {
+namespace Tests.ReactView {
 
-    public class ReactViewTests : ReactViewTestBase {
+    public class CommonTests : ReactViewTestBase {
 
         [Test(Description = "Test loading a simple react component")]
         public void SimpleComponentIsLoaded() {
@@ -90,7 +90,6 @@ namespace Tests {
             } finally {
                 ReactViewRender.CustomRequestTimeout = originalTimeout;
             }
-
         }
 
         [Test(Description = "Tests view ready event is dispatched.")]

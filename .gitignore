@@ -26,3 +26,4 @@ Example/Generated/
 Example/node_modules/
 ViewGeneratorCore/tools/node_modules/
 ViewGenerator/contentFiles/node_modules/
+Tests/TestResult.xml

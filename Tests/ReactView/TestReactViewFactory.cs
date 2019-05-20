@@ -1,6 +1,6 @@
 ﻿using ReactViewControl;
 
-namespace Tests {
+namespace Tests.ReactView {
     public class TestReactViewFactory : ReactViewFactory {
         public override bool EnableViewPreload => false;
     }

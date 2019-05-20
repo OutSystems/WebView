@@ -2,9 +2,9 @@
 using System.Linq;
 using System.Windows.Threading;
 using NUnit.Framework;
-using WebViewControl;
+using JavascriptException = WebViewControl.WebView.JavascriptException;
 
-namespace Tests {
+namespace Tests.WebView {
 
     public class JavascriptEvaluation : WebViewTestBase {
 
@@ -50,7 +50,7 @@ namespace Tests {
 
         [Test(Description = "Evaluation of scripts with errors returns stack and message details")]
         public void EvaluationErrorsContainsMessageAndJavascriptStack() {
-            var exception = Assert.Throws<WebView.JavascriptException>(() => TargetView.EvaluateScript<int>("(function foo() { (function bar() { throw new Error('ups'); })() })()"));
+            var exception = Assert.Throws<JavascriptException>(() => TargetView.EvaluateScript<int>("(function foo() { (function bar() { throw new Error('ups'); })() })()"));
 
             Assert.AreEqual("Error: ups", exception.Message);
             var stack = exception.StackTrace.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
@@ -61,7 +61,7 @@ namespace Tests {
 
         [Test(Description = "Evaluation of scripts includes evaluated function but not args")]
         public void EvaluationErrorsContainsEvaluatedJavascript() {
-            var exception = Assert.Throws<WebView.JavascriptException>(() => TargetView.EvaluateScriptFunction<int>("Math.min", "123", "(function() { throw new Error() })()"));
+            var exception = Assert.Throws<JavascriptException>(() => TargetView.EvaluateScriptFunction<int>("Math.min", "123", "(function() { throw new Error() })()"));
 
             var stack = exception.StackTrace.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
             Assert.Greater(stack.Length, 1);
@@ -83,7 +83,7 @@ namespace Tests {
 
         [Test(Description = "Evaluation of scripts timesout after timeout elapsed")]
         public void EvaluationTimeoutIsThrown() {
-            var exception = Assert.Throws<WebView.JavascriptException>(
+            var exception = Assert.Throws<JavascriptException>(
                 () => TargetView.EvaluateScript<int>("var start = new Date().getTime(); while((new Date().getTime() - start) < 150);",
                 TimeSpan.FromMilliseconds(50)));
             Assert.True(exception.Message.Contains("Timeout"));

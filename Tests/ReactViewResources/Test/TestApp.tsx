@@ -3,24 +3,29 @@ import "css!styles.css";
 
 interface IAppProperties {
     event: (args: string) => void;
+    propertyValue: string;
 }
 
 class App extends React.Component<IAppProperties, {}> {
 
+    firstRenderHtml: string;
     viewIsReady: boolean;
 
     constructor(props: IAppProperties) {
         super(props);
         this.viewIsReady = false;
         window.addEventListener("viewready", () => this.viewIsReady = true);
+        this.firstRenderHtml = this.getHtml();
     }
 
     render() {
+        const uniqueTimestamp = new Date().getTime() + "" + Math.random() ;
         return (
             <div className="App">
                 <div className="App-header">
                     <h2>Welcome to React</h2>
                     <img src="imgs/image.png" />
+                    <div>Cache timestamp: {uniqueTimestamp}</div>
                 </div>
             </div>
         );
@@ -84,6 +89,18 @@ class App extends React.Component<IAppProperties, {}> {
         var img = document.createElement("img");
         img.src = url;
         document.body.appendChild(img);
+    }
+
+    getFirstRenderHtml() {
+        return this.firstRenderHtml;
+    }
+
+    getHtml() {
+        return (document.body.firstElementChild as HTMLElement).innerHTML || "";
+    }
+
+    getPropertyValue() {
+        return this.props.propertyValue;
     }
 }
 

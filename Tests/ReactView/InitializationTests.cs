@@ -1,6 +1,7 @@
-﻿using NUnit.Framework;
+﻿using System.Windows;
+using NUnit.Framework;
 
-namespace Tests {
+namespace Tests.ReactView {
 
     public class TestReactCustomInitializationView : TestReactView {
 
@@ -16,7 +17,7 @@ namespace Tests {
         }
     }
 
-    public class ReactViewInitializationTests : ReactViewTestBase<TestReactCustomInitializationView> {
+    public class InitializationTests : ReactViewTestBase<TestReactCustomInitializationView> {
 
         [Test(Description = "Test loading a react component with a fullpath source")]
         public void ComponentWithSourceAndRootPropertiesLateBound() {

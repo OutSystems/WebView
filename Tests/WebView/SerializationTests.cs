@@ -2,7 +2,7 @@
 using NUnit.Framework;
 using WebViewControl;
 
-namespace Tests {
+namespace Tests.WebView {
     public class SerializationTests {
 
         private enum SerializationEnum {
@@ -14,6 +14,7 @@ namespace Tests {
         public void JavascriptDataSerialization() {
             Assert.AreEqual("true", JavascriptSerializer.Serialize(true));
             Assert.AreEqual("false", JavascriptSerializer.Serialize(false));
+            Assert.AreEqual("undefined", JavascriptSerializer.Serialize(JavascriptSerializer.Undefined));
 
             Assert.AreEqual("1", JavascriptSerializer.Serialize(1));
             Assert.AreEqual("-1", JavascriptSerializer.Serialize(-1));
@@ -26,7 +27,8 @@ namespace Tests {
 
             Assert.AreEqual("[1,2,3]", JavascriptSerializer.Serialize(new[] { 1, 2, 3 }));
 
-            Assert.AreEqual("{\"prop-a\":\"value-a\",\"prop-b\":\"value-b\",\"prop-c\":1.1}", JavascriptSerializer.Serialize(new Dictionary<string, object>() { { "prop-b", "value-b" }, { "prop-a", "value-a" }, { "prop-c", 1.1 } }));
+            Assert.AreEqual("{\"prop-a\":\"value-a\",\"prop-b\":\"value-b\",\"prop-c\":1.1,\"prop-d\":undefined}", 
+                JavascriptSerializer.Serialize(new Dictionary<string, object>() { { "prop-b", "value-b" }, { "prop-a", "value-a" }, { "prop-c", 1.1 }, { "prop-d", JavascriptSerializer.Undefined } }));
         }
     }
 }

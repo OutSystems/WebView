@@ -1,9 +1,9 @@
 ﻿using System;
 using NUnit.Framework;
 
-namespace Tests {
+namespace Tests.ReactView {
 
-    public class ReactViewTestsPrematureScriptEvaluation : ReactViewTestBase {
+    public class PrematureScriptEvaluation : ReactViewTestBase {
 
         protected override bool WaitForReady => false;
 
