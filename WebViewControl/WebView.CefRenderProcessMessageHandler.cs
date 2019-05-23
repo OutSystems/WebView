@@ -21,7 +21,7 @@ namespace WebViewControl {
                 if (!IgnoreEvent(frame)) {
                     var javascriptContextCreated = OwnerWebView.JavascriptContextCreated;
                     if (javascriptContextCreated != null) {
-                        OwnerWebView.ExecuteWithAsyncErrorHandling(() => javascriptContextCreated.Invoke());
+                        OwnerWebView.ExecuteWithAsyncErrorHandling(() => javascriptContextCreated.Invoke(frame.Identifier));
                     }
                 }
             }
@@ -30,7 +30,7 @@ namespace WebViewControl {
                 if (!IgnoreEvent(frame)) {
                     var javascriptContextReleased = OwnerWebView.JavascriptContextReleased;
                     if (javascriptContextReleased != null) {
-                        OwnerWebView.ExecuteWithAsyncErrorHandling(() => javascriptContextReleased.Invoke());
+                        OwnerWebView.ExecuteWithAsyncErrorHandling(() => javascriptContextReleased.Invoke(frame.Identifier));
                     }
                 }
             }

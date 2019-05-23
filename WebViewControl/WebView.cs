@@ -65,13 +65,13 @@ namespace WebViewControl {
         public event Action<string, long, long> DownloadProgressChanged;
         public event Action<string> DownloadCompleted;
         public event Action<string> DownloadCancelled;
-        public event Action JavascriptContextCreated;
+        public event Action<long> JavascriptContextCreated;
         public event Action TitleChanged;
         public event Action<UnhandledAsyncExceptionEventArgs> UnhandledAsyncException;
         internal event Action Disposed;
 
         private event Action RenderProcessCrashed;
-        private event Action JavascriptContextReleased;
+        private event Action<long> JavascriptContextReleased;
         private event Action JavascriptCallFinished;
 
         private static int domainId = 1;
@@ -683,5 +683,9 @@ namespace WebViewControl {
         }
 
         protected virtual bool UseSharedDomain => false;
+
+        public long[] GetFrameIds() {
+            return chromium.GetBrowser().GetFrameIdentifiers().ToArray();
+        } 
     }
 }

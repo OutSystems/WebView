@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -10,7 +9,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
 using CefSharp;
 
 namespace WebViewControl {
@@ -63,21 +61,44 @@ namespace WebViewControl {
             private readonly BlockingCollection<ScriptTask> pendingScripts = new BlockingCollection<ScriptTask>();
             private readonly CancellationTokenSource flushTaskCancelationToken = new CancellationTokenSource();
             private readonly ManualResetEvent stoppedFlushHandle = new ManualResetEvent(false);
+
+            private IFrame frame;
             private volatile bool flushRunning;
 
-            public JavascriptExecutor(WebView ownerWebView) {
-                OwnerWebView = ownerWebView;
+            public JavascriptExecutor(WebView owner, IFrame frame = null) {
+                OwnerWebView = owner;
+                this.frame = frame;
                 OwnerWebView.JavascriptContextCreated += OnJavascriptContextCreated;
-                OwnerWebView.RenderProcessCrashed += StopFlush;
             }
 
-            private void OnJavascriptContextCreated() {
+            private void OnJavascriptContextCreated(long frameId) {
+                if (frame == null) {
+                    frame = OwnerWebView.chromium.GetMainFrame();
+                }
+
+                if (frameId != frame.Identifier) {
+                    return;
+                }
+
                 OwnerWebView.JavascriptContextCreated -= OnJavascriptContextCreated;
+                OwnerWebView.JavascriptContextReleased += OnJavascriptContextReleased;
+                OwnerWebView.RenderProcessCrashed += StopFlush;
+
                 Task.Factory.StartNew(FlushScripts, flushTaskCancelationToken.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
             }
 
+            private void OnJavascriptContextReleased(long frameId) {
+                if (frameId != frame.Identifier) {
+                    return;
+                }
+                StopFlush();
+            }
+
             private void StopFlush() {
+                OwnerWebView.JavascriptContextCreated -= OnJavascriptContextCreated;
+                OwnerWebView.JavascriptContextReleased -= OnJavascriptContextReleased;
                 OwnerWebView.RenderProcessCrashed -= StopFlush;
+
                 if (flushTaskCancelationToken.IsCancellationRequested) {
                     return;
                 }
@@ -136,9 +157,9 @@ namespace WebViewControl {
 
                 if (scriptsToExecute.Count > 0) {
                     var script = string.Join(";" + Environment.NewLine, scriptsToExecute.Select(s => s.Script));
-                    var task = OwnerWebView.chromium.EvaluateScriptAsync(
+                    var task = frame.EvaluateScriptAsync(
                         WrapScriptWithErrorHandling(script), 
-                        OwnerWebView.DefaultScriptsExecutionTimeout);
+                        timeout: OwnerWebView.DefaultScriptsExecutionTimeout);
                     task.Wait(flushTaskCancelationToken.Token);
                     var response = task.Result;
                     if (!response.Success) {
@@ -153,7 +174,7 @@ namespace WebViewControl {
                     var script = scriptToEvaluate.Script;
                     var timeout = scriptToEvaluate.Timeout ?? OwnerWebView.DefaultScriptsExecutionTimeout;
                     try {
-                        task = OwnerWebView.chromium.EvaluateScriptAsync(script, timeout);
+                        task = frame.EvaluateScriptAsync(script, timeout: timeout);
                         task.Wait(flushTaskCancelationToken.Token);
                         scriptToEvaluate.Result = task.Result;
                     } catch(Exception e) {
