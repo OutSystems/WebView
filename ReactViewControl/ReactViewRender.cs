@@ -335,7 +335,7 @@ namespace ReactViewControl {
                     // TODO visual studio reports a change in a file with a (strange) temporary name
                     //if (fileExtensionsToWatch.Any(e => eventArgs.Name.EndsWith(e))) {
                     filesChanged = true;
-                    webView.Dispatcher.BeginInvoke((Action) (() => {
+                    Dispatcher.BeginInvoke((Action) (() => {
                         if (IsReady && !IsDisposing) {
                             IsReady = false;
                             cacheInvalidationTimestamp = DateTime.UtcNow.Ticks.ToString();

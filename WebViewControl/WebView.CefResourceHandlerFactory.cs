@@ -37,7 +37,7 @@ namespace WebViewControl {
                     return OwnerWebView.htmlToLoad != null ? ResourceHandler.FromString(OwnerWebView.htmlToLoad) : null;
                 }
 
-                if (OwnerWebView.FilterRequest(request)) {
+                if (OwnerWebView.FilterUrl(request.Url)) {
                     return null;
                 }
 

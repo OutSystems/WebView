@@ -65,13 +65,18 @@ namespace WebViewControl {
             private IFrame frame;
             private volatile bool flushRunning;
 
-            public JavascriptExecutor(WebView owner, IFrame frame = null) {
+            public JavascriptExecutor(WebView owner, IFrame frame = null, bool autoStart = false) {
                 OwnerWebView = owner;
                 this.frame = frame;
-                OwnerWebView.JavascriptContextCreated += OnJavascriptContextCreated;
+                if (autoStart) {
+                    StartFlush();
+                } else {
+                    OwnerWebView.JavascriptContextCreated += OnJavascriptContextCreated;
+                }
             }
 
             private void OnJavascriptContextCreated(long frameId) {
+                Console.WriteLine("JavascriptContextCreated " + frameId);
                 if (frame == null) {
                     frame = OwnerWebView.chromium.GetMainFrame();
                 }
@@ -81,17 +86,24 @@ namespace WebViewControl {
                 }
 
                 OwnerWebView.JavascriptContextCreated -= OnJavascriptContextCreated;
-                OwnerWebView.JavascriptContextReleased += OnJavascriptContextReleased;
-                OwnerWebView.RenderProcessCrashed += StopFlush;
-
-                Task.Factory.StartNew(FlushScripts, flushTaskCancelationToken.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+                StartFlush();
             }
 
             private void OnJavascriptContextReleased(long frameId) {
+                Console.WriteLine("JavascriptContextReleased " + frameId);
                 if (frameId != frame.Identifier) {
                     return;
                 }
                 StopFlush();
+            }
+
+            private void StartFlush() {
+                if (!frame.IsMain) {
+                    OwnerWebView.JavascriptContextReleased += OnJavascriptContextReleased;
+                }
+                OwnerWebView.RenderProcessCrashed += StopFlush;
+
+                Task.Factory.StartNew(FlushScripts, flushTaskCancelationToken.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
             }
 
             private void StopFlush() {
@@ -199,9 +211,10 @@ namespace WebViewControl {
                 }
 
                 if (!flushRunning) {
-                    var succeeded = scriptTask.WaitHandle.WaitOne(timeout ?? TimeSpan.FromSeconds(15)); // wait with timeout if flush is not running yet to avoid hanging forever
+                    timeout = timeout ?? TimeSpan.FromSeconds(15);
+                    var succeeded = scriptTask.WaitHandle.WaitOne(timeout.Value); // wait with timeout if flush is not running yet to avoid hanging forever
                     if (!succeeded) {
-                        throw new JavascriptException("Timeout", "Javascript engine is not initialized");
+                        throw new JavascriptException("Timeout", $"Javascript engine is not initialized after {timeout.Value.Seconds}s");
                     }
                 } else {
                     scriptTask.WaitHandle.WaitOne();

@@ -74,7 +74,7 @@ namespace Tests.WebView {
                 TargetView.EvaluateScript<int>("1+1");
                 navigated = true;
             };
-            LoadAndWaitReady("<html>><body></body></html>");
+            LoadAndWaitReady("<html><body></body></html>");
 
             WaitFor(() => navigated);
             Assert.IsTrue(navigated);
@@ -86,7 +86,7 @@ namespace Tests.WebView {
             TargetView.Navigated += _ => {
                 navigated = true;
             };
-            LoadAndWaitReady("<html>><body></body></html>");
+            LoadAndWaitReady("<html><body></body></html>");
 
             const double Zoom = 1.5;
             TargetView.ZoomPercentage = Zoom;

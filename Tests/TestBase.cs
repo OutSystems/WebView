@@ -70,17 +70,11 @@ namespace Tests {
 
         [TearDown]
         protected void TearDown() {
-            if (!ReuseView) {
-                if (view != null) {
-                    view.Dispose();
-                    view = null;
-                }
-                window.Content = null;
+            if (view != null) {
+                view.Dispose();
+                view = null;
             }
-        }
-
-        protected virtual bool ReuseView {
-            get { return true; }
+            window.Content = null;
         }
 
         protected T TargetView {

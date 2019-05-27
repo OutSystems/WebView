@@ -19,9 +19,16 @@ namespace Tests.WebView {
 
         protected void LoadAndWaitReady(string html, TimeSpan timeout, string timeoutMsg = null) {
             var navigated = false;
-            TargetView.Navigated += (string url) => navigated = true;
-            TargetView.LoadHtml(html);
-            WaitFor(() => navigated, timeout, timeoutMsg);
+            void OnNavigated(string url) {
+                navigated = true;
+            }
+            try {
+                TargetView.Navigated += OnNavigated;
+                TargetView.LoadHtml(html);
+                WaitFor(() => navigated, timeout, timeoutMsg);
+            } finally {
+                TargetView.Navigated -= OnNavigated;
+            }
         }
 
         protected void WithUnhandledExceptionHandling(Action action, Func<Exception, bool> onException) {

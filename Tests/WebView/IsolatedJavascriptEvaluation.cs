@@ -5,8 +5,6 @@ namespace Tests.WebView {
 
     public class IsolatedJavascriptEvaluation : WebViewTestBase {
 
-        protected override bool ReuseView => false;
-
         protected override void InitializeView() { }
 
         protected override void AfterInitializeView() { }
@@ -14,7 +12,7 @@ namespace Tests.WebView {
         [Test(Description = "Evaluation timeouts when javascript engine is not initialized")]
         public void JavascriptEngineInitializationTimeout() {
             LoadAndWaitReady("<html><body></body></html>");
-            var exception = Assert.Throws<WebViewControl.WebView.JavascriptException>(() => TargetView.EvaluateScript<int>("1", TimeSpan.FromSeconds(1)));
+            var exception = Assert.Throws<WebViewControl.WebView.JavascriptException>(() => TargetView.EvaluateScript<int>("1", timeout: TimeSpan.FromSeconds(1)));
             Assert.IsNotNull(exception);
             Assert.IsTrue(exception.Message.Contains("not initialized"));
         }
