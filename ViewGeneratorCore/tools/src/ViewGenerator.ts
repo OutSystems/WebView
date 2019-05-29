@@ -4,8 +4,8 @@ import * as Units from "@outsystems/ts2lang/ts-units";
 const GeneratedFilesHeader = "/*** Auto-generated ***/";
 
 const DelegateSuffix = "EventHandler";
-const ComponentAliasName = "Component";
-const BaseComponentAliasName = "Base" + ComponentAliasName;
+const BaseComponentAliasName = "BaseComponent";
+const BaseModuleAliasName = "BaseModule";
 const PropertiesClassName = "Properties";
 const PropertiesInterfaceSuffix = "Properties";
 const BehaviorsInterfaceSuffix = "Behaviors";
@@ -43,7 +43,9 @@ class Generator {
         private filename: string,
         private preamble: string,
         private baseComponentClass: string,
-        private baseComponentInterface: string) {
+        private baseModuleClass: string,
+        private baseComponentInterface: string,
+        private isModule: boolean) {
 
         this.component = module.classes.filter(c => c.isPublic)[0];
         let interfaces = module.interfaces.filter((ifc) => ifc.isPublic && ifc.name.startsWith("I"));
@@ -54,6 +56,10 @@ class Generator {
 
         this.propsInterfaceCoreName = this.propsInterface ? this.propsInterface.name.substring(1, this.propsInterface.name.length - PropertiesInterfaceSuffix.length) : "";
         this.componentName = this.component ? this.component.name : this.propsInterfaceCoreName;
+    }
+
+    private get moduleName() {
+        return this.componentName + "Module";
     }
 
     private getFunctionReturnType(func: Units.TsFunction): string {
@@ -99,10 +105,11 @@ class Generator {
     }
 
     private generateNativeApi() {
+        const ownerPropertyName = "Owner";
         const generateNativeApiMethod = (func: Units.TsFunction) => {
             let isVoid = func.returnType.name === Types.TsVoidType.name;
             return (
-                `public ${this.generateMethodSignature(func)} => owner.${toPascalCase(func.name)}?.Invoke(${func.parameters.map(p => p.name).join(", ")})${isVoid ? "" : ` ?? default(${this.getFunctionReturnType(func)})`};\n`
+                `public ${this.generateMethodSignature(func)} => ${ownerPropertyName}.${toPascalCase(func.name)}?.Invoke(${func.parameters.map(p => p.name).join(", ")})${isVoid ? "" : ` ?? default(${this.getFunctionReturnType(func)})`};\n`
             );
         }
 
@@ -112,8 +119,8 @@ class Generator {
             `}\n` +
             `\n` +
             `private class ${PropertiesClassName} : I${PropertiesClassName} {\n` +
-            `    protected readonly ${ComponentAliasName} owner;\n` +
-            `    public ${PropertiesClassName}(${ComponentAliasName} owner) => this.owner = owner;\n` +
+            `    protected ${this.moduleName} Owner { get; }\n` +
+            `    public ${PropertiesClassName}(${this.moduleName} owner) => ${ownerPropertyName} = owner;\n` +
             `    ${f(this.propsInterface ? (this.propsInterface.functions.length > 0 ? this.propsInterface.functions.map(f => generateNativeApiMethod(f)).join("\n") : "// the interface does not contain methods") : "")}\n` +
             `}`
         );
@@ -158,15 +165,13 @@ class Generator {
             .join("\n");
     }
 
-    private generateComponentAdapter() {
-        const ComponentProperty = "Component";
-
+    private generateComponentWrapperBody(hostPropertyName: string) {
         const generatePropertyEvent = (func: Units.TsFunction) => {
             let eventName = toPascalCase(func.name);
             return (
                 `public event ${this.componentName}${eventName}${DelegateSuffix} ${eventName} {\n` +
-                `    add => ${ComponentProperty}.${eventName} += value;\n` +
-                `    remove => ${ComponentProperty}.${eventName} -= value;\n` +
+                `    add => ${hostPropertyName}.${eventName} += value;\n` +
+                `    remove => ${hostPropertyName}.${eventName} -= value;\n` +
                 `}`
             );
         };
@@ -174,27 +179,31 @@ class Generator {
             let propertyName = toPascalCase(prop.name);
             return (
                 `public ${this.getTypeName(prop.type)} ${propertyName} {\n` +
-                `    get => ${ComponentProperty}.${propertyName};\n` +
-                `    set => ${ComponentProperty}.${propertyName} = value;\n` +
+                `    get => ${hostPropertyName}.${propertyName};\n` +
+                `    set => ${hostPropertyName}.${propertyName} = value;\n` +
                 `}`
             );
         };
         const generateBehaviorMethod = (func: Units.TsFunction) => {
-            let isVoid = func.returnType === Types.TsVoidType;
-
             return (
-                `public ${this.generateMethodSignature(func)} => ${ComponentProperty}.${toPascalCase(func.name)}(${func.parameters.map(p => p.name).join(",")});\n`
+                `public ${this.generateMethodSignature(func)} => ${hostPropertyName}.${toPascalCase(func.name)}(${func.parameters.map(p => p.name).join(",")});\n`
             );
         };
+        return this.generateComponentBody(generatePropertyEvent, generateProperty, generateBehaviorMethod);
+    }
+
+    private generateComponentAdapter() {
         return (
             `partial class ${this.componentName}Adapter : I${this.componentName} {\n` +
             `\n` +
-            `    ${f(this.generateComponentBody(generatePropertyEvent, generateProperty, generateBehaviorMethod))}\n` +
+            `    ${f(this.generateComponentWrapperBody("Component"))}\n` +
             `}\n`
         );
     }
 
     private generateComponentClass() {
+        const mainModuleName = this.componentName + "Module";
+        const mainModulePropertyName = "MainModule";
         const keyValuePairType = "System.Collections.Generic.KeyValuePair<string, object>";
 
         const generatePropertyEvent = (func: Units.TsFunction) => `${this.generatePropertyEvent(func)};`;
@@ -215,9 +224,21 @@ class Generator {
             );
         };
 
+        const generateComponentClass = () => {
+            return (
+                `public partial class ${this.componentName} : ${BaseComponentAliasName} {\n` +
+                `\n` +
+                `    public ${this.componentName}() : base(new ${mainModuleName}()) {}\n` +
+                `\n` +
+                `    protected new ${mainModuleName} ${mainModulePropertyName} => (${mainModuleName}) base.MainModule;\n` +
+                `\n` +
+                `    ${f(this.generateComponentWrapperBody(mainModulePropertyName))}\n` +
+                `}`
+            );
+        };
 
         return (
-            `public partial class ${this.componentName} : ${BaseComponentAliasName} {\n` +
+            `public partial class ${this.moduleName} : ${BaseModuleAliasName} {\n` +
             `    \n` +
             `    ${f(this.generateNativeApi())}\n` +
             `    \n` +
@@ -238,7 +259,9 @@ class Generator {
             `    #if DEBUG\n` +
             `    protected override string Source => \"${this.fullPath}\";\n` +
             `    #endif\n` +
-            `}`
+            `}\n` +
+            `\n` +
+            (this.isModule ? "" : generateComponentClass())
         );
     }
 
@@ -262,8 +285,8 @@ class Generator {
 
         const generateAliases = () => {
             return (
-                `using ${ComponentAliasName} = ${this.componentName};\n` +
-                `using ${BaseComponentAliasName} = ${this.baseComponentClass || "ReactViewControl.ReactView"};`
+                (this.isModule ? "" : `using ${BaseComponentAliasName} = ${this.baseComponentClass || "ReactViewControl.ReactView"};\n`) +
+                `using ${BaseModuleAliasName} = ${this.baseModuleClass || "ReactViewControl.ViewModuleContainer"};`
             );
         };
 
@@ -332,7 +355,9 @@ export function transform(module: Units.TsModule, context: Object): string {
         filenameWithoutExtension,
         context["preamble"] || "",
         context["baseComponentClass"],
+        context["baseModuleClass"],
         context["baseComponentInterface"],
+        context["isModule"]
     );
 
     let emitComponent = context["emitComponent"] !== false;

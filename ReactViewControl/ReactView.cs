@@ -12,7 +12,7 @@ namespace ReactViewControl {
 
     public delegate Stream CustomResourceRequestedEventHandler(string url);
 
-    public partial class ReactView : UserControl, IViewModule, IDisposable {
+    public abstract partial class ReactView : UserControl, IDisposable {
 
         private static readonly Dictionary<Type, ReactViewRender> cachedViews = new Dictionary<Type, ReactViewRender>();
 
@@ -49,7 +49,8 @@ namespace ReactViewControl {
             return InnerCreateView();
         }
 
-        public ReactView() {
+        public ReactView(IViewModule mainModule) {
+            MainModule = mainModule;
             view = CreateReactViewInstance(Factory);
             SetResourceReference(StyleProperty, typeof(ReactView)); // force styles to be inherited, must be called after view is created otherwise view might be null
 
@@ -99,9 +100,9 @@ namespace ReactViewControl {
         private void LoadComponent() {
             if (!view.IsComponentLoaded) {
                 if (EnableHotReload) {
-                    view.EnableHotReload(Source);
+                    view.EnableHotReload(MainModule.Source);
                 }
-                view.LoadComponent(this);
+                view.LoadComponent(MainModule);
             }
         }
 
@@ -157,44 +158,8 @@ namespace ReactViewControl {
         public void CloseDeveloperTools() {
             view.CloseDeveloperTools();
         }
-
-        string IViewModule.JavascriptSource => JavascriptSource;
-
-        protected virtual string JavascriptSource => null;
-
-        string IViewModule.NativeObjectName => NativeObjectName;
-
-        protected virtual string NativeObjectName => null;
-
-        protected virtual string ModuleName => null;
-
-        string IViewModule.Name => ModuleName;
-
-        string IViewModule.Source => Source;
-
-        protected virtual string Source => null; // used for hot reload
-
-        object IViewModule.CreateNativeObject() => CreateNativeObject();
-
-        protected virtual object CreateNativeObject() {
-            return null;
-        }
-
-        string[] IViewModule.Events => Events;
-
-        protected virtual string[] Events => new string[0];
-
-        KeyValuePair<string, object>[] IViewModule.PropertiesValues => PropertiesValues;
-
-        protected virtual KeyValuePair<string, object>[] PropertiesValues => new KeyValuePair<string, object>[0];
-
-        void IViewModule.Bind(IExecutionEngine engine) {
-            throw new Exception("Cannot bind ReactView");
-        }
-
-        IExecutionEngine IViewModule.ExecutionEngine => ExecutionEngine;
-
-        protected IExecutionEngine ExecutionEngine => view; // ease access in generated code
+        
+        protected IViewModule MainModule { get; }
 
         /// <summary>
         /// Number of preloaded views that are mantained in cache for each view.
