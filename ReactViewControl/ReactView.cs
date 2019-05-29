@@ -10,6 +10,8 @@ using WebViewControl;
 
 namespace ReactViewControl {
 
+    public delegate Stream CustomResourceRequestedEventHandler(string url);
+
     public partial class ReactView : UserControl, IViewModule, IDisposable {
 
         private static readonly Dictionary<Type, ReactViewRender> cachedViews = new Dictionary<Type, ReactViewRender>();
@@ -133,17 +135,17 @@ namespace ReactViewControl {
             remove { view.Ready -= value; }
         }
 
-        public event Action<UnhandledAsyncExceptionEventArgs> UnhandledAsyncException {
+        public event UnhandledAsyncExceptionEventHandler UnhandledAsyncException {
             add { view.UnhandledAsyncException += value; }
             remove { view.UnhandledAsyncException -= value; }
         }
 
-        public event Action<string> ResourceLoadFailed {
+        public event ResourceLoadFailedEventHandler ResourceLoadFailed {
             add { view.ResourceLoadFailed += value; }
             remove { view.ResourceLoadFailed -= value; }
         }
 
-        public event Func<string, Stream> CustomResourceRequested {
+        public event CustomResourceRequestedEventHandler CustomResourceRequested {
             add { view.CustomResourceRequested += value; }
             remove { view.CustomResourceRequested -= value; }
         }
@@ -200,5 +202,9 @@ namespace ReactViewControl {
         /// Defaults to 6. 
         /// </summary>
         public static int PreloadedCacheEntriesSize { get; set; } = 6;
+
+        public void AttachInnerView(IViewModule viewModule, string frameName) {
+            view.LoadComponent(viewModule, frameName);
+        }
     }
 }
