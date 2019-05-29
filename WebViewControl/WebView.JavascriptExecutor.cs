@@ -63,59 +63,41 @@ namespace WebViewControl {
             private readonly ManualResetEvent stoppedFlushHandle = new ManualResetEvent(false);
 
             private IFrame frame;
-            private volatile bool flushRunning;
+            private volatile bool isFlushRunning;
 
-            public JavascriptExecutor(WebView owner, IFrame frame = null, bool autoStart = false) {
+#if DEBUG
+            private readonly int id;
+#endif
+            public JavascriptExecutor(WebView owner, IFrame frame = null) {
                 OwnerWebView = owner;
-                this.frame = frame;
-                if (autoStart) {
-                    StartFlush();
-                } else {
-                    OwnerWebView.JavascriptContextCreated += OnJavascriptContextCreated;
+#if DEBUG
+                id = GetHashCode();
+#endif
+                if (frame != null) {
+                    StartFlush(frame);
                 }
             }
 
-            private void OnJavascriptContextCreated(long frameId) {
-                Console.WriteLine("JavascriptContextCreated " + frameId);
-                if (frame == null) {
-                    frame = OwnerWebView.chromium.GetMainFrame();
+            public bool IsRunning => frame != null; // consider running when start is called
+
+            public void StartFlush(IFrame frame) {
+                lock (flushTaskCancelationToken) {
+                    if (this.frame != null || flushTaskCancelationToken.IsCancellationRequested) {
+                        return;
+                    }
+                    this.frame = frame;
                 }
-
-                if (frameId != frame.Identifier) {
-                    return;
-                }
-
-                OwnerWebView.JavascriptContextCreated -= OnJavascriptContextCreated;
-                StartFlush();
-            }
-
-            private void OnJavascriptContextReleased(long frameId) {
-                Console.WriteLine("JavascriptContextReleased " + frameId);
-                if (frameId != frame.Identifier) {
-                    return;
-                }
-                StopFlush();
-            }
-
-            private void StartFlush() {
-                if (!frame.IsMain) {
-                    OwnerWebView.JavascriptContextReleased += OnJavascriptContextReleased;
-                }
-                OwnerWebView.RenderProcessCrashed += StopFlush;
-
                 Task.Factory.StartNew(FlushScripts, flushTaskCancelationToken.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
             }
 
             private void StopFlush() {
-                OwnerWebView.JavascriptContextCreated -= OnJavascriptContextCreated;
-                OwnerWebView.JavascriptContextReleased -= OnJavascriptContextReleased;
-                OwnerWebView.RenderProcessCrashed -= StopFlush;
-
-                if (flushTaskCancelationToken.IsCancellationRequested) {
-                    return;
+                lock (flushTaskCancelationToken) {
+                    if (flushTaskCancelationToken.IsCancellationRequested) {
+                        return;
+                    }
+                    flushTaskCancelationToken.Cancel();
                 }
-                flushTaskCancelationToken.Cancel();
-                if (flushRunning) {
+                if (isFlushRunning) {
                     stoppedFlushHandle.WaitOne();
                 }
 
@@ -140,14 +122,14 @@ namespace WebViewControl {
             private void FlushScripts() {
                 OwnerWebView.ExecuteWithAsyncErrorHandling(() => {
                     try {
-                        flushRunning = true;
+                        isFlushRunning = true;
                         while (!flushTaskCancelationToken.IsCancellationRequested) {
                             InnerFlushScripts();
                         }
                     } catch (OperationCanceledException) {
                         // stop
                     } finally {
-                        flushRunning = false;
+                        isFlushRunning = false;
                         stoppedFlushHandle.Set();
                     }
                 });
@@ -169,14 +151,16 @@ namespace WebViewControl {
 
                 if (scriptsToExecute.Count > 0) {
                     var script = string.Join(";" + Environment.NewLine, scriptsToExecute.Select(s => s.Script));
-                    var task = frame.EvaluateScriptAsync(
-                        WrapScriptWithErrorHandling(script), 
-                        timeout: OwnerWebView.DefaultScriptsExecutionTimeout);
-                    task.Wait(flushTaskCancelationToken.Token);
-                    var response = task.Result;
-                    if (!response.Success) {
-                        var evaluatedScriptFunctions = scriptsToExecute.Select(s => s.FunctionName);
-                        OwnerWebView.ExecuteWithAsyncErrorHandling(() => throw ParseResponseException(response, evaluatedScriptFunctions));
+                    if (frame.IsValid) {
+                        var task = frame.EvaluateScriptAsync(
+                            WrapScriptWithErrorHandling(script),
+                            timeout: OwnerWebView.DefaultScriptsExecutionTimeout);
+                        task.Wait(flushTaskCancelationToken.Token);
+                        var response = task.Result;
+                        if (!response.Success) {
+                            var evaluatedScriptFunctions = scriptsToExecute.Select(s => s.FunctionName);
+                            OwnerWebView.ExecuteWithAsyncErrorHandling(() => throw ParseResponseException(response, evaluatedScriptFunctions));
+                        }
                     }
                 }
 
@@ -186,9 +170,11 @@ namespace WebViewControl {
                     var script = scriptToEvaluate.Script;
                     var timeout = scriptToEvaluate.Timeout ?? OwnerWebView.DefaultScriptsExecutionTimeout;
                     try {
-                        task = frame.EvaluateScriptAsync(script, timeout: timeout);
-                        task.Wait(flushTaskCancelationToken.Token);
-                        scriptToEvaluate.Result = task.Result;
+                        if (frame.IsValid) {
+                            task = frame.EvaluateScriptAsync(script, timeout: timeout);
+                            task.Wait(flushTaskCancelationToken.Token);
+                            scriptToEvaluate.Result = task.Result;
+                        }
                     } catch(Exception e) {
                         if (task?.IsCanceled == true) {
                             // timeout
@@ -210,7 +196,7 @@ namespace WebViewControl {
                     return GetResult<T>(null); // webview is disposing
                 }
 
-                if (!flushRunning) {
+                if (!isFlushRunning) {
                     timeout = timeout ?? TimeSpan.FromSeconds(15);
                     var succeeded = scriptTask.WaitHandle.WaitOne(timeout.Value); // wait with timeout if flush is not running yet to avoid hanging forever
                     if (!succeeded) {

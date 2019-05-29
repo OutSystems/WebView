@@ -70,7 +70,7 @@ namespace Tests.WebView {
         [Test(Description = "Javascript evaluation on navigated event does not block")]
         public void JavascriptEvaluationOnNavigatedDoesNotBlock() {
             var navigated = false;
-            TargetView.Navigated += _ => {
+            TargetView.Navigated += (_, __) => {
                 TargetView.EvaluateScript<int>("1+1");
                 navigated = true;
             };
@@ -83,7 +83,7 @@ namespace Tests.WebView {
         [Test(Description = "Setting zoom works as expected")]
         public void ZoomWorksAsExpected() {
             var navigated = false;
-            TargetView.Navigated += _ => {
+            TargetView.Navigated += (_, __) => {
                 navigated = true;
             };
             LoadAndWaitReady("<html><body></body></html>");

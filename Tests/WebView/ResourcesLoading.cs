@@ -10,7 +10,7 @@ namespace Tests.WebView {
         public void HtmlIsWellEncoded() {
             const string BodyContent = "some text and a double byte char '●'";
             var navigated = false;
-            TargetView.Navigated += _ => navigated = true;
+            TargetView.Navigated += (_, __) => navigated = true;
 
             TargetView.LoadHtml($"<html><script>;</script><body>{BodyContent}</body></html>");
             WaitFor(() => navigated);

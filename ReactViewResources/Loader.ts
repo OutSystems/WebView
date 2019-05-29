@@ -315,7 +315,7 @@ function waitForNextPaint() {
 }
 
 function getAllStylesheets(): HTMLLinkElement[] {
-    return document.head ? Array.from(document.head.querySelectorAll("link")) : [];
+    return document.head ? Array.from(document.head.getElementsByTagName("link")) : [];
 }
 
 function getRequirePaths() {
