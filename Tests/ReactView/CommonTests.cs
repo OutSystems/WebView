@@ -16,7 +16,7 @@ namespace Tests.ReactView {
         public void PropertiesAreInjected() {
             var eventCalled = false;
             TargetView.Event += (args) => eventCalled = true;
-            TargetView.ExecuteMethodOnRoot("callEvent");
+            TargetView.ExecuteMethod("callEvent");
             WaitFor(() => eventCalled, TimeSpan.FromSeconds(10), "event call");
         }
 
@@ -30,7 +30,7 @@ namespace Tests.ReactView {
                 }));
             };
 
-            TargetView.ExecuteMethodOnRoot("callEvent");
+            TargetView.ExecuteMethod("callEvent");
 
             WaitFor(() => disposed, TimeSpan.FromSeconds(10), "view disposed");
         }
@@ -42,7 +42,7 @@ namespace Tests.ReactView {
                 stylesheet = args;
             };
 
-            TargetView.ExecuteMethodOnRoot("checkStyleSheetLoaded", "1");
+            TargetView.ExecuteMethod("checkStyleSheetLoaded", "1");
 
             WaitFor(() => stylesheet != null, TimeSpan.FromSeconds(10), "stylesheet load");
 
@@ -57,7 +57,7 @@ namespace Tests.ReactView {
                 canAccessDispatcher = TargetView.Dispatcher.CheckAccess();
             };
 
-            TargetView.ExecuteMethodOnRoot("callEvent");
+            TargetView.ExecuteMethod("callEvent");
 
             WaitFor(() => canAccessDispatcher != null, TimeSpan.FromSeconds(10), "event call");
             Assert.IsFalse(canAccessDispatcher, "Can access dispatcher");
@@ -78,7 +78,7 @@ namespace Tests.ReactView {
 
                 var exceptionThrown = false;
                 WithUnhandledExceptionHandling(() => {
-                    TargetView.ExecuteMethodOnRoot("loadCustomResource", "custom://webview/test.png");
+                    TargetView.ExecuteMethod("loadCustomResource", "custom://webview/test.png");
                     WaitFor(() => requestHandlerCalled && exceptionThrown, TimeSpan.FromSeconds(10), "exception thrown");
                 }, (e) => {
                     exceptionThrown = true;
@@ -99,7 +99,7 @@ namespace Tests.ReactView {
                 viewIsReady = args == "ViewReadyTrigger";
             };
 
-            TargetView.ExecuteMethodOnRoot("checkViewReady");
+            TargetView.ExecuteMethod("checkViewReady");
 
             WaitFor(() => viewIsReady, "View is ready");
         }

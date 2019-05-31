@@ -28,6 +28,8 @@ class Task<ResultType> {
 
 const [LibsPath, EnableDebugMode, ModulesObjectName, EventListenerObjectName, ReadyEventName] = Array.from(new URLSearchParams(location.search).keys());
 
+const ExternalLibsPath = LibsPath + "node_modules/";
+
 const Modules: Dictionary<{}> = {};
 window[ModulesObjectName] = Modules;
 
@@ -64,7 +66,7 @@ function loadRequire(): Promise<void> {
     return new Promise((resolve) => {
         // load require js
         let requireScript = document.createElement("script");
-        requireScript.src = LibsPath + "requirejs/require.js";
+        requireScript.src = ExternalLibsPath + "requirejs/require.js";
         requireScript.addEventListener("load", () => resolve());
         if (document.head) {
             document.head.appendChild(requireScript);
@@ -73,7 +75,7 @@ function loadRequire(): Promise<void> {
 }
 
 function loadFramework(): void {
-    const RequireCssPath = LibsPath + "require-css/css.min.js";
+    const RequireCssPath = ExternalLibsPath + "require-css/css.min.js";
 
     require.config({
         paths: getRequirePaths(),
@@ -321,9 +323,10 @@ function getAllStylesheets(): HTMLLinkElement[] {
 function getRequirePaths() {
     // load react
     return {
-        "prop-types": LibsPath + "prop-types/prop-types.min",
-        "react": LibsPath + "react/umd/react.production.min",
-        "react-dom": LibsPath + "react-dom/umd/react-dom.production.min",
+        "prop-types": ExternalLibsPath + "prop-types/prop-types.min",
+        "react": ExternalLibsPath + "react/umd/react.production.min",
+        "react-dom": ExternalLibsPath + "react-dom/umd/react-dom.production.min",
+        "ViewFrame": LibsPath + "libs/ViewFrame",
     };
 }
 

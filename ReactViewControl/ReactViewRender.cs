@@ -59,7 +59,7 @@ namespace ReactViewControl {
             Content = webView;
 
             var urlParams = new string[] {
-                new ResourceUrl(ResourcesAssembly, ReactViewResources.Resources.LibrariesPath).ToString(),
+                new ResourceUrl(ResourcesAssembly).ToString(),
                 enableDebugMode ? "1" : "0",
                 ModulesObjectName,
                 Listener.EventListenerObjName,
@@ -131,8 +131,6 @@ namespace ReactViewControl {
             var source = NormalizeUrl(component.JavascriptSource);
             var baseUrl = ToFullUrl(VirtualPathUtility.GetDirectory(source));
             var urlSuffix = cacheInvalidationTimestamp != null ? "t=" + cacheInvalidationTimestamp : null;
-            
-            var componentNativeObject = component.CreateNativeObject();
 
             var nativeObjectMethodsMap =
                 component.Events.Select(g => new KeyValuePair<string, object>(g, JavascriptSerializer.Undefined))
@@ -141,7 +139,7 @@ namespace ReactViewControl {
                 .Select(p => new KeyValuePair<string, object>(JavascriptSerializer.GetJavascriptName(p.Key), p.Value));
             var componentSerialization = JavascriptSerializer.Serialize(nativeObjectMethodsMap);
             var componentHash = ComputeHash(componentSerialization);
-
+            
             // loadComponent arguments:
             // componentName: string,
             // componentSource: string,
@@ -157,7 +155,7 @@ namespace ReactViewControl {
             var loadArgs = new [] {
                 JavascriptSerializer.Serialize(component.Name),
                 JavascriptSerializer.Serialize(source),
-                JavascriptSerializer.Serialize(component.NativeObjectName),
+                JavascriptSerializer.Serialize(GetNativeObjectFullName(component.NativeObjectName, frameName)),
                 JavascriptSerializer.Serialize(baseUrl),
                 JavascriptSerializer.Serialize(urlSuffix),
                 JavascriptSerializer.Serialize(ReactView.PreloadedCacheEntriesSize),
@@ -168,7 +166,8 @@ namespace ReactViewControl {
                 GetMappings()
             };
 
-            webView.RegisterJavascriptObject(component.NativeObjectName, componentNativeObject, executeCallsInUI: false);
+            RegisterNativeObject(component, frameName);
+            component.Bind(this);
 
             ExecuteLoaderFunction("loadComponent", frameName, loadArgs);
             IsComponentLoaded = true;
@@ -186,12 +185,12 @@ namespace ReactViewControl {
         private void InternalLoadPlugins(string frameName) {
             var pluginsWithNativeObject = Plugins.Where(p => !string.IsNullOrEmpty(p.NativeObjectName)).ToArray();
             var loadArgs = new[] {
-                JavascriptSerializer.Serialize(pluginsWithNativeObject.Select(m => new[] { m.Name, m.NativeObjectName })), // plugins
+                JavascriptSerializer.Serialize(pluginsWithNativeObject.Select(m => new[] { m.Name, GetNativeObjectFullName(m.NativeObjectName, frameName) })), // plugins
                 GetMappings()
             };
 
             foreach (var module in pluginsWithNativeObject) {
-                webView.RegisterJavascriptObject(module.NativeObjectName, module.CreateNativeObject(), executeCallsInUI: false);
+                RegisterNativeObject(module, frameName);
             }
 
             ExecuteLoaderFunction("loadPlugins", frameName, loadArgs);
@@ -404,6 +403,14 @@ namespace ReactViewControl {
             using (var sha256 = SHA256.Create()) {
                 return Convert.ToBase64String(sha256.ComputeHash(Encoding.UTF8.GetBytes(inputString)));
             }
+        }
+
+        private void RegisterNativeObject(IViewModule module, string frameName) {
+            webView.RegisterJavascriptObject(GetNativeObjectFullName(module.NativeObjectName, frameName), module.CreateNativeObject(), executeCallsInUI: false);
+        }
+
+        private static string GetNativeObjectFullName(string name, string frameName) {
+            return (frameName == WebView.MainFrameName ? frameName : frameName + "$") + name;
         }
     }
 }

@@ -6,7 +6,9 @@ interface IAppProperties {
     propertyValue: string;
 }
 
-class App extends React.Component<IAppProperties, {}> {
+type ViewFrame = React.ComponentClass<{ name: string }>;
+
+class App extends React.Component<IAppProperties, { innerViewComponent?: ViewFrame }> {
 
     firstRenderHtml: string;
     viewIsReady: boolean;
@@ -18,6 +20,10 @@ class App extends React.Component<IAppProperties, {}> {
         this.firstRenderHtml = this.getHtml();
     }
 
+    renderInnerViewContainer() {
+        return this.state.innerViewComponent ? React.createElement(this.state.innerViewComponent, { name: "test" }) : null;
+    }
+
     render() {
         const uniqueTimestamp = new Date().getTime() + "" + Math.random() ;
         return (
@@ -26,6 +32,7 @@ class App extends React.Component<IAppProperties, {}> {
                     <h2>Welcome to React</h2>
                     <img src="imgs/image.png" />
                     <div>Cache timestamp: {uniqueTimestamp}</div>
+                    {this.renderInnerViewContainer()}
                 </div>
             </div>
         );
@@ -101,6 +108,12 @@ class App extends React.Component<IAppProperties, {}> {
 
     getPropertyValue() {
         return this.props.propertyValue;
+    }
+
+    loadInnerViewContainer() {
+        requirejs(["ViewFrame"], (ViewFrameComponent: { default: ViewFrame }) => {
+            this.setState({ innerViewComponent: ViewFrameComponent.default });
+        });
     }
 }
 

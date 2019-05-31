@@ -24,6 +24,7 @@
                 "baseComponentClass": "ReactViewControl.ViewModuleContainer",
                 "baseComponentInterface": "",
                 "javascriptDistPath": "",
+                "isModule": true,
                 "emitComponent": true,
                 "emitComponentInterface": true,
                 "emitComponentAdapter": false,

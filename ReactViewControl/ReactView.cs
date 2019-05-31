@@ -12,7 +12,7 @@ namespace ReactViewControl {
 
     public delegate Stream CustomResourceRequestedEventHandler(string url);
 
-    public abstract partial class ReactView : UserControl, IDisposable {
+    public abstract class ReactView : UserControl, IDisposable {
 
         private static readonly Dictionary<Type, ReactViewRender> cachedViews = new Dictionary<Type, ReactViewRender>();
 

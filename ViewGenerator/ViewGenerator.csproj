@@ -62,7 +62,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="contentFiles\node_modules\" />
+    <Folder Include="contentFiles\node_modules\%40types\" />
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
@@ -72,7 +72,8 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>"$(ProjectDir)..\nuget" pack "$(ProjectDir)ViewGenerator.nuspec" -OutputDirectory "$(ProjectDir)..\Nuget\ " -Properties Configuration=$(ConfigurationName)
+    <PostBuildEvent>xcopy "$(ProjectDir)declarations" "$(ProjectDir)contentFiles\node_modules\@types\" /s /y
+"$(ProjectDir)..\nuget" pack "$(ProjectDir)ViewGenerator.nuspec" -OutputDirectory "$(ProjectDir)..\Nuget\ " -Properties Configuration=$(ConfigurationName)
 </PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>

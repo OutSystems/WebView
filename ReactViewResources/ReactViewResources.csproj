@@ -78,9 +78,13 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="Loader.ts" />
+    <TypeScriptCompile Include="libs\ViewFrame.tsx" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="tsconfig.json" />
+    <EmbeddedResource Include="libs\ViewFrame.js">
+      <DependentUpon>ViewFrame.tsx</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.TypeScript.MSBuild">
@@ -88,6 +92,9 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="libs\tsconfig.json" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

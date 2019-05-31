@@ -50,7 +50,7 @@ namespace Tests.ReactView {
                 pluginModuleLoaded = args == "PluginModuleLoaded";
             };
 
-            TargetView.ExecuteMethodOnRoot("checkPluginModuleLoaded");
+            TargetView.ExecuteMethod("checkPluginModuleLoaded");
 
             WaitFor(() => pluginModuleLoaded, "plugin module load");
         }
@@ -62,7 +62,7 @@ namespace Tests.ReactView {
                 pluginModuleLoaded = args == "AliasedModuleLoaded";
             };
 
-            TargetView.ExecuteMethodOnRoot("checkAliasedModuleLoaded");
+            TargetView.ExecuteMethod("checkAliasedModuleLoaded");
 
             WaitFor(() => pluginModuleLoaded, "aliased module load");
         }

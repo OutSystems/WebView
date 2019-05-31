@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using System.Windows;
 using NUnit.Framework;
 
 namespace Tests.ReactView {
@@ -11,8 +10,6 @@ namespace Tests.ReactView {
         protected override TestReactView CreateView() {
             return null;
         }
-
-        
 
         private static void WithCacheSize(int size, Action action) {
             var previousCacheSize = TestReactView.PreloadedCacheEntriesSize;

@@ -11,7 +11,7 @@ namespace Tests.ReactView {
         public void ExecuteBeforeReady() {
             var eventCalled = false;
             TargetView.Event += (args) => eventCalled = true;
-            TargetView.ExecuteMethodOnRoot("callEvent");
+            TargetView.ExecuteMethod("callEvent");
             WaitFor(() => eventCalled, TimeSpan.FromSeconds(10), "event call");
         }
     }

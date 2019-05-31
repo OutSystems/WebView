@@ -22,15 +22,15 @@ namespace Tests.ReactView {
         }
 
         public string GetFirstRenderHtml() {
-            return view.EvaluateMethodOnRoot<string>("getFirstRenderHtml");
+            return view.EvaluateMethod<string>("getFirstRenderHtml");
         }
 
         public string GetHtml() {
-            return view.EvaluateMethodOnRoot<string>("getHtml");
+            return view.EvaluateMethod<string>("getHtml");
         }
 
         public string GetPropertyValue() {
-            return view.EvaluateMethodOnRoot<string>("getPropertyValue");
+            return view.EvaluateMethod<string>("getPropertyValue");
         }
 
         public string PropertyValue { get => view.PropertyValue; set => view.PropertyValue = value; }

@@ -25,7 +25,7 @@ namespace Tests.ReactView {
                 stylesheet = args;
             };
 
-            TargetView.ExecuteMethodOnRoot("checkStyleSheetLoaded", "2");
+            TargetView.ExecuteMethod("checkStyleSheetLoaded", "2");
 
             WaitFor(() => stylesheet != null, DefaultTimeout, "stylesheet load");
 

@@ -1,12 +1,14 @@
 ﻿{
     "compilerOptions": {
         "outDir": ".",
-        "module": "es6",
+        "module": "amd",
         "target": "es2017",
         "sourceMap": false,
         "moduleResolution": "node",
         "rootDir": ".",
         "jsx": "react",
+        "declaration": true,
+        "declarationDir": "./../../ViewGenerator/declarations",
         "forceConsistentCasingInFileNames": true,
         "noImplicitReturns": true,
         "noImplicitThis": true,
@@ -17,7 +19,6 @@
     },
     "compileOnSave": true,
     "exclude": [
-        "libs",
         "node_modules"
     ]
 }

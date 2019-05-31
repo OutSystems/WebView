@@ -169,5 +169,14 @@ namespace Tests.WebView {
             Assert.IsTrue(disposeCalled);
             Assert.AreEqual(result, 0);
         }
+
+        [Test(Description = "Evaluation runs successfully on an iframe")]
+        public void JavascriptEvaluationOnIframe() {
+            LoadAndWaitReady("<html><script>var x = 1;</script><body><iframe name='test'><script>var y = 2;</script></iframe></body></html>");
+            var x = TargetView.EvaluateScript<int>("x", "");
+            var y = TargetView.EvaluateScript<int>("y", "test");
+            Assert.AreEqual(1, x);
+            Assert.AreEqual(2, y);
+        }
     }
 }

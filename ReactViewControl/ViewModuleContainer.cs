@@ -34,7 +34,5 @@ namespace ReactViewControl {
         void IViewModule.Bind(IExecutionEngine engine) => this.engine = engine;
 
         protected IExecutionEngine ExecutionEngine => engine; // ease access in generated code
-
-        IExecutionEngine IViewModule.ExecutionEngine => ExecutionEngine;
     }
 }
