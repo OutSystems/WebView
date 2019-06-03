@@ -11,7 +11,7 @@ namespace Tests.WebView {
 
         [Test(Description = "Evaluation timeouts when javascript engine is not initialized")]
         public void JavascriptEngineInitializationTimeout() {
-            LoadAndWaitReady("<html><body></body></html>");
+            //LoadAndWaitReady("<html><body></body></html>");
             var exception = Assert.Throws<WebViewControl.WebView.JavascriptException>(() => TargetView.EvaluateScript<int>("1", timeout: TimeSpan.FromSeconds(1)));
             Assert.IsNotNull(exception);
             Assert.IsTrue(exception.Message.Contains("not initialized"));
@@ -172,7 +172,16 @@ namespace Tests.WebView {
 
         [Test(Description = "Evaluation runs successfully on an iframe")]
         public void JavascriptEvaluationOnIframe() {
-            LoadAndWaitReady("<html><script>var x = 1;</script><body><iframe name='test'><script>var y = 2;</script></iframe></body></html>");
+            LoadAndWaitReady(
+                "<html>" +
+                "<body>" +
+                "<script>" +
+                "var x = 1;" +
+                "</script>" +
+                "<iframe name='test' srcdoc='<html><body><script>var y = 2;</script></body></html>'></iframe>" +
+                "</body>" + 
+                "</html>"
+            );
             var x = TargetView.EvaluateScript<int>("x", "");
             var y = TargetView.EvaluateScript<int>("y", "test");
             Assert.AreEqual(1, x);

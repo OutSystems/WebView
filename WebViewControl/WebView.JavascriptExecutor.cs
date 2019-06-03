@@ -57,13 +57,14 @@ namespace WebViewControl {
             private static readonly Regex StackFrameRegex = new Regex(@"at\s*(?<method>.*?)\s\(?(?<location>[^\s]+):(?<line>\d+):(?<column>\d+)", RegexOptions.Compiled);
             private const string InternalException = "|WebViewInternalException";
 
-            private readonly WebView OwnerWebView;
             private readonly BlockingCollection<ScriptTask> pendingScripts = new BlockingCollection<ScriptTask>();
             private readonly CancellationTokenSource flushTaskCancelationToken = new CancellationTokenSource();
             private readonly ManualResetEvent stoppedFlushHandle = new ManualResetEvent(false);
 
             private IFrame frame;
             private volatile bool isFlushRunning;
+
+            private WebView OwnerWebView { get; }
 
 #if DEBUG
             private readonly int id;
@@ -78,7 +79,7 @@ namespace WebViewControl {
                 }
             }
 
-            public bool IsRunning => frame != null; // consider running when start is called
+            public bool IsValid => frame == null || frame.IsValid; // consider valid when not bound (yet) or frame is valid
 
             public void StartFlush(IFrame frame) {
                 lock (flushTaskCancelationToken) {

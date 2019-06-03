@@ -356,7 +356,7 @@ namespace WebViewControl {
                     if (frameName == MainFrameName) {
                         chromium.Load(address);
                     } else {
-                        chromium.GetBrowser().GetFrame(frameName)?.LoadUrl(address);
+                        GetFrame(frameName)?.LoadUrl(address);
                     }
                 });
             } else {
@@ -571,6 +571,9 @@ namespace WebViewControl {
         private void OnWebViewFrameLoadEnd(object sender, FrameLoadEndEventArgs e) {
             if (e.Frame.IsMain) {
                 htmlToLoad = null;
+            } else {
+                // js context created event is not called for child frames
+                OnJavascriptContextCreated(e.Frame.Name);
             }
             var navigated = Navigated;
             if (navigated != null) {
@@ -745,13 +748,18 @@ namespace WebViewControl {
         protected virtual bool UseSharedDomain => false;
 
         public string[] GetFrameNames() {
-            return chromium.GetBrowser().GetFrameNames().Where(n => !string.IsNullOrEmpty(n)).ToArray();
+            var browser = chromium.GetBrowser();
+            return browser?.GetFrameNames().Where(n => n != MainFrameName).ToArray() ?? new string[0];
+        }
+
+        private IFrame GetFrame(string frameName) {
+            return chromium.GetBrowser()?.GetFrame(frameName);
         }
 
         private JavascriptExecutor GetJavascriptExecutor(string frameName) {
             lock(jsExecutors) {
                 if (!jsExecutors.TryGetValue(frameName, out var jsExecutor)) {
-                    jsExecutor = new JavascriptExecutor(this, chromium.GetBrowser().GetFrame(frameName));
+                    jsExecutor = new JavascriptExecutor(this, GetFrame(frameName));
                     jsExecutors.Add(frameName, jsExecutor);
                 }
                 return jsExecutor;
@@ -763,11 +771,11 @@ namespace WebViewControl {
                 if (frameName == MainFrameName) {
                     // when a new main frame in created, dispose all running executors -> since they should not be valid anymore
                     // all child iframes were gone
-                    DisposeJavascriptExecutors(jsExecutors.Where(e => e.Value.IsRunning).Select(e => e.Key).ToArray());
+                    DisposeJavascriptExecutors(jsExecutors.Where(e => !e.Value.IsValid).Select(e => e.Key).ToArray());
                 }
 
                 var jsExecutor = GetJavascriptExecutor(frameName);
-                jsExecutor.StartFlush(chromium.GetBrowser().GetFrame(frameName));
+                jsExecutor.StartFlush(GetFrame(frameName));
             }
         }
 

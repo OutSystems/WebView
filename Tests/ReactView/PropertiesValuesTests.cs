@@ -9,6 +9,9 @@ namespace Tests.ReactView {
             return null;
         }
 
+        protected override void ShowDebugConsole() {
+        }
+
         [Test(Description = "Test setting properties after component added to window but window is not visible yet.")]
         public void PropertyValuesArePassedToView() {
             const string PropertyValue = "test value";

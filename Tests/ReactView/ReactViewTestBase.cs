@@ -32,6 +32,10 @@ namespace Tests.ReactView {
                 FailOnAsyncExceptions = failOnAsyncExceptions;
             }
         }
+
+        protected override void ShowDebugConsole() {
+            TargetView.ShowDeveloperTools();
+        }
     }
 
     public class ReactViewTestBase : ReactViewTestBase<TestReactView> {

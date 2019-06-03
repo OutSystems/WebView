@@ -117,11 +117,12 @@ namespace ReactViewControl {
         public event CustomResourceRequestedEventHandler CustomResourceRequested;
 
         public void LoadComponent(IViewModule component) {
-            LoadComponent(component, "");
+            LoadComponent(component, WebView.MainFrameName);
         }
 
         public void LoadComponent(IViewModule component, string frameName) {
             components[frameName] = component;
+            component.Bind(this);
             if (pageLoaded) {
                 InternalLoadComponent(component, frameName);
             }
@@ -167,10 +168,12 @@ namespace ReactViewControl {
             };
 
             RegisterNativeObject(component, frameName);
-            component.Bind(this);
 
             ExecuteLoaderFunction("loadComponent", frameName, loadArgs);
-            IsComponentLoaded = true;
+
+            if (frameName == WebView.MainFrameName) {
+                IsMainComponentLoaded = true;
+            }
         }
 
         private void InternalLoadDefaultStyleSheet(string frameName) {
@@ -196,7 +199,7 @@ namespace ReactViewControl {
             ExecuteLoaderFunction("loadPlugins", frameName, loadArgs);
         }
 
-        public bool IsComponentLoaded { get; private set; }
+        public bool IsMainComponentLoaded { get; private set; }
 
         private void OnWebViewNavigated(string url, string frameName) {
             IsReady = false;
@@ -233,7 +236,7 @@ namespace ReactViewControl {
         public ResourceUrl DefaultStyleSheet {
             get { return defaultStyleSheet; }
             private set {
-                if (IsComponentLoaded) {
+                if (IsMainComponentLoaded) {
                     throw new InvalidOperationException($"Cannot set {nameof(DefaultStyleSheet)} after component has been loaded");
                 }
                 defaultStyleSheet = value;
@@ -243,7 +246,7 @@ namespace ReactViewControl {
         public IViewModule[] Plugins {
             get { return plugins; }
             internal set {
-                if (IsComponentLoaded) {
+                if (IsMainComponentLoaded) {
                     throw new InvalidOperationException($"Cannot set {nameof(Plugins)} after component has been loaded");
                 }
                 var invalidPlugins = value.Where(p => string.IsNullOrEmpty(p.JavascriptSource) || string.IsNullOrEmpty(p.Name));

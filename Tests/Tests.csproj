@@ -65,9 +65,10 @@
   </Choose>
   <ItemGroup>
     <Compile Include="ReactView\InnerViewTests.cs" />
+    <Compile Include="ReactView\PreLoadedWebViewTests.cs" />
     <Compile Include="ReactView\PropertiesValuesTests.cs" />
     <Compile Include="ReactView\Sandbox.cs" />
-    <Compile Include="ReactView\InnerViewModule.cs" />
+    <Compile Include="ReactView\TestReactView.cs" />
     <Compile Include="WebView\CommonTests.cs" />
     <Compile Include="WebView\IsolatedJavascriptEvaluation.cs" />
     <Compile Include="WebView\JavascriptEvaluation.cs" />
@@ -83,11 +84,14 @@
     <Compile Include="WebView\SerializationTests.cs" />
     <Compile Include="TestBase.cs" />
     <Compile Include="WebView\TestObject.cs" />
-    <Compile Include="ReactView\TestReactView.cs" />
+    <Compile Include="ReactView\InnerViewModule.cs" />
     <Compile Include="ReactView\TestReactViewFactory.cs" />
     <Compile Include="WebView\WebViewTestBase.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="ReactViewResources\Test\InnerView.js">
+      <DependentUpon>InnerView.tsx</DependentUpon>
+    </EmbeddedResource>
     <Content Include="TestsToRun.txt" />
     <None Include="$(NuGetPackageRoot)\NUnit.ConsoleRunner\3.10.0\tools\nunit-agent-x86.exe.config">
       <Link>Nunit\nunit-agent-x86.exe.config</Link>

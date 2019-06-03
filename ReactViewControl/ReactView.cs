@@ -49,10 +49,12 @@ namespace ReactViewControl {
             return InnerCreateView();
         }
 
-        public ReactView(IViewModule mainModule) {
-            MainModule = mainModule;
+        protected ReactView(IViewModule mainModule) {
             view = CreateReactViewInstance(Factory);
             SetResourceReference(StyleProperty, typeof(ReactView)); // force styles to be inherited, must be called after view is created otherwise view might be null
+
+            mainModule.Bind(view);
+            MainModule = mainModule;
 
             IsVisibleChanged += OnIsVisibleChanged;
 
@@ -98,7 +100,7 @@ namespace ReactViewControl {
         }
 
         private void LoadComponent() {
-            if (!view.IsComponentLoaded) {
+            if (!view.IsMainComponentLoaded) {
                 if (EnableHotReload) {
                     view.EnableHotReload(MainModule.Source);
                 }

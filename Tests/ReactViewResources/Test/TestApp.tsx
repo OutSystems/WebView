@@ -1,14 +1,17 @@
-﻿import * as React from 'react';
+﻿/// <amd-dependency path="ViewFrame" name="ViewFrame"/>
+
+import * as React from 'react';
 import "css!styles.css";
 
 interface IAppProperties {
     event: (args: string) => void;
     propertyValue: string;
+    autoShowInnerView: boolean;
 }
 
-type ViewFrame = React.ComponentClass<{ name: string }>;
+declare var ViewFrame: { default: React.ComponentClass<{ name: string }> };
 
-class App extends React.Component<IAppProperties, { innerViewComponent?: ViewFrame }> {
+class App extends React.Component<IAppProperties> {
 
     firstRenderHtml: string;
     viewIsReady: boolean;
@@ -21,7 +24,7 @@ class App extends React.Component<IAppProperties, { innerViewComponent?: ViewFra
     }
 
     renderInnerViewContainer() {
-        return this.state.innerViewComponent ? React.createElement(this.state.innerViewComponent, { name: "test" }) : null;
+        return this.props.autoShowInnerView ? <ViewFrame.default name="test"/> : null;
     }
 
     render() {
@@ -110,10 +113,12 @@ class App extends React.Component<IAppProperties, { innerViewComponent?: ViewFra
         return this.props.propertyValue;
     }
 
-    loadInnerViewContainer() {
-        requirejs(["ViewFrame"], (ViewFrameComponent: { default: ViewFrame }) => {
-            this.setState({ innerViewComponent: ViewFrameComponent.default });
-        });
+    getCurrentTime() {
+        return new Date().valueOf();
+    }
+
+    getStartTime() {
+        return window.performance.timing.navigationStart;
     }
 }
 

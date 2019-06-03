@@ -5,14 +5,14 @@ namespace WebViewControl {
 
     internal class LambdaMethodInterceptor : IMethodInterceptor {
 
-        private readonly Func<Func<object>, object> interceptCall;
+        private Func<Func<object>, object> InterceptCall { get; }
 
         public LambdaMethodInterceptor(Func<Func<object>, object> interceptCall) {
-            this.interceptCall = interceptCall;
+            InterceptCall = interceptCall;
         }
 
         object IMethodInterceptor.Intercept(Func<object> originalMethod, string methodName) {
-            return interceptCall(originalMethod);
+            return InterceptCall(originalMethod);
         }
     }
 }

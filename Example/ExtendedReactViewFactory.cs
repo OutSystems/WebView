@@ -10,8 +10,8 @@ namespace Example {
         public override IViewModule[] Plugins {
             get {
                 return new[]{
-                        new PluginModule()
-                    };
+                    new PluginModule()
+                };
             }
         }
 

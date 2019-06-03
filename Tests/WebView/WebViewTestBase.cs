@@ -48,5 +48,9 @@ namespace Tests.WebView {
                 FailOnAsyncExceptions = failOnAsyncExceptions;
             }
         }
+
+        protected override void ShowDebugConsole() {
+            TargetView.ShowDeveloperTools();
+        }
     }
 }

@@ -70,12 +70,19 @@ namespace Tests {
 
         [TearDown]
         protected void TearDown() {
+            if (Debugger.IsAttached && TestContext.CurrentContext.Result.FailCount > 0) {
+                ShowDebugConsole();
+                WaitFor(() => false, TimeSpan.MaxValue);
+                return;
+            }
             if (view != null) {
                 view.Dispose();
                 view = null;
             }
             window.Content = null;
         }
+
+        protected abstract void ShowDebugConsole();
 
         protected T TargetView {
             get { return view; }
@@ -104,7 +111,7 @@ namespace Tests {
             Dispatcher.PushFrame(frame);
         }
 
-        protected bool FailOnAsyncExceptions { get; set; } = true;
+        protected bool FailOnAsyncExceptions { get; set; } = !Debugger.IsAttached;
 
         protected void OnUnhandledAsyncException(WebViewControl.UnhandledAsyncExceptionEventArgs e) {
             if (FailOnAsyncExceptions) {
