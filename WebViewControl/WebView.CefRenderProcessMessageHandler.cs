@@ -7,7 +7,7 @@ namespace WebViewControl {
 
         private class CefRenderProcessMessageHandler : IRenderProcessMessageHandler {
 
-            private readonly WebView OwnerWebView;
+            private WebView OwnerWebView { get; }
 
             public CefRenderProcessMessageHandler(WebView webView) {
                 OwnerWebView = webView;

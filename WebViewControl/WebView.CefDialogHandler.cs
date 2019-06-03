@@ -6,7 +6,7 @@ namespace WebViewControl {
     partial class WebView {
         private class CefDialogHandler : IDialogHandler {
 
-            private readonly WebView OwnerWebView;
+            private WebView OwnerWebView { get; }
 
             public CefDialogHandler(WebView webView) {
                 OwnerWebView = webView;

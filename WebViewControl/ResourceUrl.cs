@@ -7,34 +7,34 @@ namespace WebViewControl {
     public class ResourceUrl {
 
         public const string LocalScheme = "local";
+
         internal const string EmbeddedScheme = "embedded";
         internal const string CustomScheme = "custom";
-
         internal const string PathSeparator = "/";
 
         private const string AssemblyPathSeparator = ";";
         private const string AssemblyPrefix = "assembly:";
         private const string DefaultDomain = "webview{0}";
-
-        private readonly string url;
+        
+        private string Url { get; }
 
         public ResourceUrl(params string[] path) {
-            url = string.Join("/", path);
+            Url = string.Join("/", path);
         }
 
         public ResourceUrl(Assembly assembly, params string[] path) : this(path) {
             var assemblyName = assembly.GetName().Name;
-            if (url.StartsWith(PathSeparator)) {
+            if (Url.StartsWith(PathSeparator)) {
                 // only prefix with assembly if necessary, to avoid having the same resource loaded from multiple locations
-                url = AssemblyPrefix + assemblyName + AssemblyPathSeparator + url.Substring(1);
+                Url = AssemblyPrefix + assemblyName + AssemblyPathSeparator + Url.Substring(1);
             } else {
-                url = assemblyName + PathSeparator + url;
+                Url = assemblyName + PathSeparator + Url;
             }
-            url = BuildUrl(EmbeddedScheme, url);
+            Url = BuildUrl(EmbeddedScheme, Url);
         }
 
         internal ResourceUrl(string scheme, string path) {
-            url = BuildUrl(scheme, path);
+            Url = BuildUrl(scheme, path);
         }
 
         private static string BuildUrl(string scheme, string path) {
@@ -46,7 +46,7 @@ namespace WebViewControl {
         }
 
         public override string ToString() {
-            return string.Format(url, "");
+            return string.Format(Url, "");
         }
 
         private static bool ContainsAssemblyLocation(Uri url) {
@@ -86,7 +86,7 @@ namespace WebViewControl {
         }
 
         internal string WithDomain(string domain) {
-            return string.Format(url, string.IsNullOrEmpty(domain) ? "" : ("." + domain));
+            return string.Format(Url, string.IsNullOrEmpty(domain) ? "" : ("." + domain));
         }
     }
 }

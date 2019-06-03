@@ -6,8 +6,8 @@ namespace WebViewControl {
 
         public class Request {
 
-            private readonly IRequest CefRequest;
-            private readonly string UrlOverride;
+            private IRequest CefRequest { get; }
+            private string UrlOverride { get; }
 
             internal Request(IRequest request, string urlOverride) {
                 CefRequest = request;

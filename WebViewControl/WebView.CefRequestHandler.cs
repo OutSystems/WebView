@@ -8,7 +8,7 @@ namespace WebViewControl {
 
         private class CefRequestHandler : IRequestHandler {
 
-            private readonly WebView OwnerWebView;
+            private WebView OwnerWebView { get; }
 
             public CefRequestHandler(WebView webView) {
                 OwnerWebView = webView;

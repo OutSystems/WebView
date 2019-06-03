@@ -7,15 +7,15 @@ namespace WebViewControl {
 
         internal class CefResourceHandler : CefSharp.ResourceHandler {
 
-            private readonly string redirectUrl;
+            private string RedirectUrl { get; }
 
             public CefResourceHandler(string redirectUrl) {
-                this.redirectUrl = redirectUrl;
+                RedirectUrl = redirectUrl;
             }
 
             public override Stream GetResponse(IResponse response, out long responseLength, out string redirectUrl) {
                 responseLength = 0;
-                redirectUrl = this.redirectUrl;
+                redirectUrl = RedirectUrl;
                 return null;
             }
         }

@@ -7,7 +7,8 @@ namespace Tests.WebView {
     public class RequestInterception : WebViewTestBase {
 
         private const string ResourceJs = "resource.js";
-        private static readonly string HtmlWithResource = $"<html><script src='{ResourceJs}' onerror='scriptFailed = true'></script><body>Test Page</body></html>";
+
+        private static string HtmlWithResource { get; } = $"<html><script src='{ResourceJs}' onerror='scriptFailed = true'></script><body>Test Page</body></html>";
 
         private static Stream ToStream(string str) {
             var stream = new MemoryStream();

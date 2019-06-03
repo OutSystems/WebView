@@ -29,9 +29,9 @@ namespace Tests.ReactView {
             }
 
             private class Properties : IProperties {
-                protected readonly PluginModule owner;
+                protected PluginModule Owner { get; }
                 public Properties(PluginModule owner) {
-                    this.owner = owner;
+                    Owner = owner;
                 }
             }
 

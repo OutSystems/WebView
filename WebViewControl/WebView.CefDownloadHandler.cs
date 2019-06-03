@@ -6,7 +6,7 @@ namespace WebViewControl {
 
         private class CefDownloadHandler : IDownloadHandler {
 
-            private readonly WebView OwnerWebView;
+            private WebView OwnerWebView { get; }
 
             public CefDownloadHandler(WebView owner) {
                 OwnerWebView = owner;

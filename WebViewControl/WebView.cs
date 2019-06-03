@@ -35,7 +35,7 @@ namespace WebViewControl {
 
         internal const string MainFrameName = "";
 
-        private static readonly string[] CustomSchemes = new[] {
+        private static string[] CustomSchemes { get; } = new[] {
             ResourceUrl.LocalScheme,
             ResourceUrl.EmbeddedScheme,
             ResourceUrl.CustomScheme
@@ -49,8 +49,9 @@ namespace WebViewControl {
 
         private static bool subscribedApplicationExit = false;
 
-        private readonly object SyncRoot = new object();
-        private readonly Dictionary<string, JavascriptExecutor> jsExecutors = new Dictionary<string, JavascriptExecutor>();
+        private object SyncRoot { get; } = new object();
+
+        private Dictionary<string, JavascriptExecutor> JsExecutors { get; } = new Dictionary<string, JavascriptExecutor>();
 
         private InternalChromiumBrowser chromium;
         private bool isDeveloperToolsOpened = false;
@@ -60,10 +61,10 @@ namespace WebViewControl {
         private string htmlToLoad;
         private volatile bool isDisposing;
         private volatile int javascriptPendingCalls;
-
-        private readonly DefaultBinder binder = new DefaultBinder(new DefaultFieldNameConverter());
-        private readonly BrowserObjectListener eventsListener = new BrowserObjectListener();
-        private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+        
+        private DefaultBinder Binder { get; } = new DefaultBinder(new DefaultFieldNameConverter());
+        private BrowserObjectListener EventsListener { get; } = new BrowserObjectListener();
+        private CancellationTokenSource AsyncCancellationTokenSource { get; } = new CancellationTokenSource();
 
         public event Action WebViewInitialized;
 
@@ -97,9 +98,9 @@ namespace WebViewControl {
 
         // cef maints same zoom level for all browser instances under the same domain
         // having different domains will prevent synced zoom
-        private readonly string CurrentDomainId;
+        private string CurrentDomainId { get; }
 
-        private readonly string DefaultLocalUrl;
+        private string DefaultLocalUrl { get; }
 
         /// <summary>
         /// Executed when a web view is initialized. Can be used to attach or configure the webview before it's ready.
@@ -219,7 +220,7 @@ namespace WebViewControl {
             chromium.DownloadHandler = new CefDownloadHandler(this);
             chromium.CleanupElement = new FrameworkElement(); // prevent chromium to listen to default cleanup element unload events, this will be controlled manually
 
-            RegisterJavascriptObject(Listener.EventListenerObjName, eventsListener);
+            RegisterJavascriptObject(Listener.EventListenerObjName, EventsListener);
 
             Content = chromium;
 
@@ -261,7 +262,7 @@ namespace WebViewControl {
 
                 disposed = true;
 
-                cancellationTokenSource.Cancel();
+                AsyncCancellationTokenSource.Cancel();
 
                 WebViewInitialized = null;
                 BeforeNavigate = null;
@@ -279,12 +280,12 @@ namespace WebViewControl {
 
                 resourceHandlerFactory.Dispose();
 
-                foreach (var jsExecutor in jsExecutors.Values) {
+                foreach (var jsExecutor in JsExecutors.Values) {
                     jsExecutor.Dispose();
                 }
                 
                 chromium.Dispose();
-                cancellationTokenSource.Dispose();
+                AsyncCancellationTokenSource.Dispose();
 
                 Disposed?.Invoke();
             }
@@ -428,7 +429,7 @@ namespace WebViewControl {
                 if (bind != null) {
                     bindingOptions.Binder = new LambdaMethodBinder(bind);
                 } else {
-                    bindingOptions.Binder = binder;
+                    bindingOptions.Binder = Binder;
                 }
 
                 if (interceptCall == null) {
@@ -553,7 +554,7 @@ namespace WebViewControl {
                 }
             }
 
-            return new Listener(name, HandleEvent, eventsListener);
+            return new Listener(name, HandleEvent, EventsListener);
         }
 
         private void OnWebViewIsBrowserInitializedChanged(object sender, DependencyPropertyChangedEventArgs e) {
@@ -656,7 +657,7 @@ namespace WebViewControl {
                     }
                 },
                 DispatcherPriority.Normal,
-                cancellationTokenSource.Token);
+                AsyncCancellationTokenSource.Token);
         }
 
         [DebuggerNonUserCode]
@@ -757,21 +758,21 @@ namespace WebViewControl {
         }
 
         private JavascriptExecutor GetJavascriptExecutor(string frameName) {
-            lock(jsExecutors) {
-                if (!jsExecutors.TryGetValue(frameName, out var jsExecutor)) {
+            lock(JsExecutors) {
+                if (!JsExecutors.TryGetValue(frameName, out var jsExecutor)) {
                     jsExecutor = new JavascriptExecutor(this, GetFrame(frameName));
-                    jsExecutors.Add(frameName, jsExecutor);
+                    JsExecutors.Add(frameName, jsExecutor);
                 }
                 return jsExecutor;
             }
         }
 
         private void OnJavascriptContextCreated(string frameName) {
-            lock (jsExecutors) {
+            lock (JsExecutors) {
                 if (frameName == MainFrameName) {
                     // when a new main frame in created, dispose all running executors -> since they should not be valid anymore
                     // all child iframes were gone
-                    DisposeJavascriptExecutors(jsExecutors.Where(e => !e.Value.IsValid).Select(e => e.Key).ToArray());
+                    DisposeJavascriptExecutors(JsExecutors.Where(e => !e.Value.IsValid).Select(e => e.Key).ToArray());
                 }
 
                 var jsExecutor = GetJavascriptExecutor(frameName);
@@ -780,21 +781,21 @@ namespace WebViewControl {
         }
 
         private void OnJavascriptContextReleased(string frameName) {
-            lock (jsExecutors) {
+            lock (JsExecutors) {
                 DisposeJavascriptExecutors(new[] { frameName });
             }
         }
 
         private void OnRenderProcessCrashed() {
-            lock (jsExecutors) {
-                DisposeJavascriptExecutors(jsExecutors.Keys);
+            lock (JsExecutors) {
+                DisposeJavascriptExecutors(JsExecutors.Keys);
             }
         }
 
         private void DisposeJavascriptExecutors(IEnumerable<string> executorsKeys) {
             foreach (var executorKey in executorsKeys) {
-                jsExecutors[executorKey].Dispose();
-                jsExecutors.Remove(executorKey);
+                JsExecutors[executorKey].Dispose();
+                JsExecutors.Remove(executorKey);
             }
         }
     }

@@ -7,31 +7,31 @@ namespace WebViewControl {
 
         internal const string EventListenerObjName = "__WebviewListener__";
 
-        private readonly string eventName;
-        private readonly Action<Action, bool> handlerWrapper;
-        private readonly BrowserObjectListener underlyingListener;
+        private string EventName { get; }
+        private Action<Action, bool> HandlerWrapper { get; }
+        private BrowserObjectListener UnderlyingListener { get; }
 
         internal Listener(string eventName, Action<Action, bool> handlerWrapper, BrowserObjectListener underlyingListener) {
-            this.eventName = eventName;
-            this.handlerWrapper = handlerWrapper;
-            this.underlyingListener = underlyingListener;
+            EventName = eventName;
+            HandlerWrapper = handlerWrapper;
+            UnderlyingListener = underlyingListener;
 
-            underlyingListener.NotificationReceived += HandleEvent;
+            UnderlyingListener.NotificationReceived += HandleEvent;
         }
         
         private void HandleEvent(string eventName) {
-            if (this.eventName == eventName) {
+            if (this.EventName == eventName) {
                 foreach(Action handler in Handler?.GetInvocationList() ?? Enumerable.Empty<Delegate>()) {
-                    handlerWrapper(handler, false);
+                    HandlerWrapper(handler, false);
                 }
                 foreach (Action handler in UIHandler?.GetInvocationList() ?? Enumerable.Empty<Delegate>()) {
-                    handlerWrapper(handler, true);
+                    HandlerWrapper(handler, true);
                 }
             }
         }
 
         public override string ToString() {
-            return $"({EventListenerObjName}.notify('{eventName}'));";
+            return $"({EventListenerObjName}.notify('{EventName}'));";
         }
 
         public event Action Handler;
@@ -39,7 +39,7 @@ namespace WebViewControl {
         public event Action UIHandler;
 
         public void Dispose() {
-            underlyingListener.NotificationReceived -= HandleEvent;
+            UnderlyingListener.NotificationReceived -= HandleEvent;
         }
     }
 }

@@ -11,7 +11,7 @@ namespace WebViewControl {
 
         protected class CefResourceHandlerFactory : IResourceHandlerFactory, ISchemeHandlerFactory, IDisposable {
 
-            private readonly WebView OwnerWebView;
+            private WebView OwnerWebView { get; }
 
             private Dictionary<string, Assembly> assemblies;
             private bool newAssembliesLoaded = true;
