@@ -59,7 +59,7 @@ class Generator {
     }
 
     private get moduleName() {
-        return this.componentName + "Module";
+        return this.componentName + (this.isModule ? "" : "Module"); // if not a module we need to add Module suffix
     }
 
     private getFunctionReturnType(func: Units.TsFunction): string {
@@ -202,7 +202,6 @@ class Generator {
     }
 
     private generateComponentClass() {
-        const mainModuleName = this.componentName + "Module";
         const mainModulePropertyName = "MainModule";
         const keyValuePairType = "System.Collections.Generic.KeyValuePair<string, object>";
 
@@ -224,13 +223,19 @@ class Generator {
             );
         };
 
+        const partialInitializeMethodName = `Initialize${this.componentName}`;
+
         const generateComponentClass = () => {
             return (
                 `public partial class ${this.componentName} : ${BaseComponentAliasName} {\n` +
                 `\n` +
-                `    public ${this.componentName}() : base(new ${mainModuleName}()) {}\n` +
+                `    public ${this.componentName}() : base(new ${this.moduleName}()) {\n` +
+                `        ${partialInitializeMethodName}();\n` +
+                `    }\n` +
                 `\n` +
-                `    protected new ${mainModuleName} ${mainModulePropertyName} => (${mainModuleName}) base.MainModule;\n` +
+                `    partial void ${partialInitializeMethodName}();\n` +
+                `\n` +
+                `    protected new ${this.moduleName} ${mainModulePropertyName} => (${this.moduleName}) base.MainModule;\n` +
                 `\n` +
                 `    ${f(this.generateComponentWrapperBody(mainModulePropertyName))}\n` +
                 `}`
@@ -238,7 +243,7 @@ class Generator {
         };
 
         return (
-            `public partial class ${this.moduleName} : ${BaseModuleAliasName} {\n` +
+            `public partial class ${this.moduleName} : ${BaseModuleAliasName}, I${this.moduleName} {\n` +
             `    \n` +
             `    ${f(this.generateNativeApi())}\n` +
             `    \n` +
@@ -270,10 +275,22 @@ class Generator {
         const generateProperty = (prop: Units.TsProperty) => `${this.generateProperty(prop, "")}`;
         const generateBehaviorMethod = (func: Units.TsFunction) => `${this.generateMethodSignature(func)};`;
 
+        const moduleInterfaceName = "I" + this.moduleName;
+
+        let baseInterfaces: string[] = [];
+        if (!this.isModule) {
+            baseInterfaces.push(moduleInterfaceName);
+        }
+        if (this.baseComponentInterface) {
+            baseInterfaces.push(this.baseComponentInterface);
+        }
+
         return (
-            `public partial interface I${this.componentName} ${this.baseComponentInterface ? `: ${this.baseComponentInterface} ` : ""} {\n` +
+            `public partial interface ${moduleInterfaceName} {\n` +
             `    ${f(this.generateComponentBody(generatePropertyEvent, generateProperty, generateBehaviorMethod))}\n` +
-            `}`
+            `}\n` +
+            `\n` +
+            `public partial interface I${this.componentName}${baseInterfaces.length > 0 ? " : " + baseInterfaces.join(",") : ""} {}`
         );
     }
 

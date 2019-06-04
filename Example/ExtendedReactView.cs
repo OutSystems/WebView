@@ -8,7 +8,7 @@ namespace Example {
         protected override ReactViewFactory Factory => new ExtendedReactViewFactory();
 
         public ExtendedReactView(IViewModule mainModule) : base(mainModule) {
-            WithPlugin<PluginModule>().NotifyPluginLoaded += OnNotifyPluginLoaded;
+            WithPlugin<Plugin>().NotifyPluginLoaded += OnNotifyPluginLoaded;
         }
 
         private void OnNotifyPluginLoaded() {
