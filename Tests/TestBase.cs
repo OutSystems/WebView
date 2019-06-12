@@ -21,6 +21,7 @@ namespace Tests {
 
         [OneTimeSetUp]
         protected void OneTimeSetUp() {
+            DispatcherSynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext());
             if (Application.Current == null) {
                 new Application();
                 Application.Current.ShutdownMode = ShutdownMode.OnExplicitShutdown;
@@ -105,9 +106,16 @@ namespace Tests {
 
         [DebuggerNonUserCode]
         [SecurityPermissionAttribute(SecurityAction.Demand, Flags = SecurityPermissionFlag.UnmanagedCode)]
-        private static void DoEvents() {
+        protected static void DoEvents() {
             var frame = new DispatcherFrame();
-            Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Background, new DispatcherOperationCallback(_ => frame.Continue = false), frame);
+            Dispatcher.CurrentDispatcher.BeginInvoke(
+                DispatcherPriority.Background, 
+                new DispatcherOperationCallback(_ => {
+                    Thread.Sleep(1);
+                    frame.Continue = false;
+                    return null;
+                }), 
+                frame);
             Dispatcher.PushFrame(frame);
         }
 

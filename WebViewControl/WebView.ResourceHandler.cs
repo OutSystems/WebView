@@ -1,57 +1,82 @@
-﻿using System.IO;
-using System.Text;
+﻿using System;
+using System.IO;
+using System.Threading.Tasks;
 using CefSharp;
 
 namespace WebViewControl {
-    
+
     partial class WebView {
 
         public sealed class ResourceHandler : Request {
+
+            private bool isAsync;
 
             internal ResourceHandler(IRequest request, string urlOverride)
                 : base(request, urlOverride) {
             }
 
-            public void RespondWith(string filename) {
-                var handler = (CefSharp.ResourceHandler) CefSharp.ResourceHandler.FromFilePath(filename, CefSharp.ResourceHandler.GetMimeType(Path.GetExtension(filename)));
-                handler.AutoDisposeStream = true;
-                AddCacheInfo(handler);
-                Handler = handler;
+            public void BeginAsyncResponse(Action handleResponse) {
+                isAsync = true;
+                if (Handler == null) {
+                    Handler = CreateCefResourceHandler();
+                }
+                Task.Run(() => {
+                    handleResponse();
+                    Handler.Continue();
+                });
             }
 
-            public void RespondWith(Stream stream, string extension) {
-                var handler = CefSharp.ResourceHandler.FromStream(stream, CefSharp.ResourceHandler.GetMimeType(extension));
-                AddCacheInfo(handler);
-                Handler = handler;
+            private void Continue() {
+                if (isAsync) {
+                    return;
+                }
+                Handler.Continue();
             }
 
-            private static void AddCacheInfo(CefSharp.ResourceHandler handler) {
+            private static CefAsyncResourceHandler CreateCefResourceHandler() {
+                var handler = new CefAsyncResourceHandler();
                 handler.Headers.Add("cache-control", "public, max-age=315360000");
+                return handler;
             }
 
-            public static IResourceHandler FromString(string content) {
-                return CefSharp.ResourceHandler.FromString(content, Encoding.UTF8);
+            public void RespondWith(string filename) {
+                var fileStream = File.OpenRead(filename);
+                if (Handler == null) {
+                    Handler = CreateCefResourceHandler();
+                }
+                Handler.SetResponse(fileStream, CefSharp.ResourceHandler.GetMimeType(Path.GetExtension(filename)), autoDisposeStream: true);
+                Continue();
+            }
+
+            public void RespondWithText(string text) {
+                if (Handler == null) {
+                    Handler = CreateCefResourceHandler();
+                }
+                Handler.SetResponse(text);
+                Continue();
+            }
+
+            public void RespondWith(Stream stream, string extension = null) {
+                if (Handler == null) {
+                    Handler = CreateCefResourceHandler();
+                }
+                Handler.SetResponse(stream, string.IsNullOrEmpty(extension) ? CefSharp.ResourceHandler.DefaultMimeType : CefSharp.ResourceHandler.GetMimeType(extension));
+                Continue();
             }
 
             public void Redirect(string url) {
-                Handler = new CefResourceHandler(url);
-            }
-
-            internal IResourceHandler Handler {
-                get;
-                private set;
-            }
-
-            public bool Handled {
-                get { return Handler != null; }
-            }
-
-            public Stream Response {
-                get {
-                    var handler = Handler as CefSharp.ResourceHandler;
-                    return handler != null ? handler.Stream : null;
+                if (Handler == null) {
+                    Handler = CreateCefResourceHandler();
                 }
+                Handler.RedirectTo(url);
+                Continue();
             }
+
+            internal CefAsyncResourceHandler Handler { get; private set; }
+
+            public bool Handled => Handler != null;
+
+            public Stream Response => (Handler as CefSharp.ResourceHandler)?.Stream;
         }
     }
 }

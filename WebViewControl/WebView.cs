@@ -61,7 +61,7 @@ namespace WebViewControl {
         private string htmlToLoad;
         private volatile bool isDisposing;
         private volatile int javascriptPendingCalls;
-        
+
         private DefaultBinder Binder { get; } = new DefaultBinder(new DefaultFieldNameConverter());
         private BrowserObjectListener EventsListener { get; } = new BrowserObjectListener();
         private CancellationTokenSource AsyncCancellationTokenSource { get; } = new CancellationTokenSource();
@@ -283,7 +283,7 @@ namespace WebViewControl {
                 foreach (var jsExecutor in JsExecutors.Values) {
                     jsExecutor.Dispose();
                 }
-                
+
                 chromium.Dispose();
                 AsyncCancellationTokenSource.Dispose();
 
@@ -729,7 +729,7 @@ namespace WebViewControl {
         }
 
         private void OnHostWindowClosed(object sender, EventArgs e) {
-            ((Window) sender).Closed -= OnHostWindowClosed;
+            ((Window)sender).Closed -= OnHostWindowClosed;
             Dispose();
         }
 
@@ -751,6 +751,10 @@ namespace WebViewControl {
         public string[] GetFrameNames() {
             var browser = chromium.GetBrowser();
             return browser?.GetFrameNames().Where(n => n != MainFrameName).ToArray() ?? new string[0];
+        }
+
+        internal bool HasFrame(string name) {
+            return GetFrame(name) != null;
         }
 
         private IFrame GetFrame(string frameName) {

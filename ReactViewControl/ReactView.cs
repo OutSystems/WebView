@@ -12,6 +12,8 @@ namespace ReactViewControl {
 
     public delegate Stream CustomResourceRequestedEventHandler(string url);
 
+    public delegate void ExternalResourceRequestedEventHandler(WebView.ResourceHandler resourceHandler);
+
     public abstract class ReactView : UserControl, IDisposable {
 
         private static Dictionary<Type, ReactViewRender> CachedViews { get; } = new Dictionary<Type, ReactViewRender>();
@@ -151,6 +153,11 @@ namespace ReactViewControl {
         public event CustomResourceRequestedEventHandler CustomResourceRequested {
             add { View.CustomResourceRequested += value; }
             remove { View.CustomResourceRequested -= value; }
+        }
+
+        public event ExternalResourceRequestedEventHandler ExternalResourceRequested {
+            add { View.ExternalResourceRequested += value; }
+            remove { View.ExternalResourceRequested -= value; }
         }
 
         public void ShowDeveloperTools() {

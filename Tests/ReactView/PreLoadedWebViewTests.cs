@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using System;
+using NUnit.Framework;
 using ReactViewControl;
 
 namespace Tests.ReactView {
@@ -10,6 +11,7 @@ namespace Tests.ReactView {
     public class TestReactViewWithPreload : TestReactView {
 
         public TestReactViewWithPreload() {
+            AutoShowInnerView = true;
             AttachInnerView(new InnerViewModule(), "test");
         }
 
@@ -33,7 +35,13 @@ namespace Tests.ReactView {
 
         [Test(Description = "Loading a view with preload enabled uses a webview from cache")]
         public void PreloadUsesWebViewFromCache() {
+            var start = DateTime.Now;
+            while ((DateTime.Now - start).TotalSeconds < 2) {
+                DoEvents(); // let the cached webview have time to be created
+            }
+
             var currentTime = TargetView.EvaluateMethod<double>("getCurrentTime");
+            
             using (var newView = new TestReactViewWithPreload()) {
                 Window.Content = newView;
                 WaitFor(() => newView.IsReady, "second view load");

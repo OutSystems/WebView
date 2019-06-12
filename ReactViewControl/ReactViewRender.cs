@@ -6,7 +6,6 @@ using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
 using System.Web;
 using System.Windows;
 using System.Windows.Controls;
@@ -16,20 +15,24 @@ namespace ReactViewControl {
 
     internal partial class ReactViewRender : UserControl, IExecutionEngine, IDisposable {
 
+        private enum LoadStatus {
+            Initialized,
+            PageLoaded,
+            Ready
+        }
+
         private const string ModulesObjectName = "__Modules__";
         private const string ComponentLoadedEventName = "ComponentLoaded";
 
         private static Assembly ResourcesAssembly { get; } = typeof(ReactViewResources.Resources).Assembly;
-
-        internal static TimeSpan CustomRequestTimeout = TimeSpan.FromSeconds(5);
 
         private Dictionary<string, IViewModule> Components { get; } = new Dictionary<string, IViewModule>();
         private WebView WebView { get; }
         private Assembly UserCallingAssembly { get; }
 
         private bool enableDebugMode = false;
+        private LoadStatus status;
         private Listener readyEventListener;
-        private bool pageLoaded = false;
         private ResourceUrl defaultStyleSheet;
         private IViewModule[] plugins;
         private FileSystemWatcher fileSystemWatcher;
@@ -70,7 +73,8 @@ namespace ReactViewControl {
         }
 
         private void OnReady() {
-            IsReady = true;
+            // TODO what if the ready comes from an inner view?
+            status = LoadStatus.Ready;
             while (true) {
                 if (pendingScripts.TryDequeue(out var pendingScript)) {
                     WebView.ExecuteScriptFunctionWithSerializedParams(pendingScript.Item1, pendingScript.Item2);
@@ -116,6 +120,12 @@ namespace ReactViewControl {
 
         public event CustomResourceRequestedEventHandler CustomResourceRequested;
 
+        /// <summary>
+        /// Handle external resource requests. 
+        /// Call <see cref="WebView.ResourceHandler.BeginAsyncResponse"/> to handle the request in an async way.
+        /// </summary>
+        public event ExternalResourceRequestedEventHandler ExternalResourceRequested;
+
         public void LoadComponent(IViewModule component) {
             LoadComponent(component, WebView.MainFrameName);
         }
@@ -123,7 +133,7 @@ namespace ReactViewControl {
         public void LoadComponent(IViewModule component, string frameName) {
             Components[frameName] = component;
             component.Bind(this);
-            if (pageLoaded) {
+            if (status >= LoadStatus.PageLoaded && WebView.HasFrame(frameName)) {
                 InternalLoadComponent(component, frameName);
             }
         }
@@ -202,8 +212,13 @@ namespace ReactViewControl {
         public bool IsMainComponentLoaded { get; private set; }
 
         private void OnWebViewNavigated(string url, string frameName) {
-            IsReady = false;
-            pageLoaded = true;
+            if (!url.StartsWith(ResourceUrl.EmbeddedScheme + Uri.SchemeDelimiter)) {
+                // not a component, maybe its an iframe with an external url, bail out
+                return;
+            }
+            if (frameName == WebView.MainFrameName) {
+                status = LoadStatus.PageLoaded;
+            }
             if (DefaultStyleSheet != null) {
                 InternalLoadDefaultStyleSheet(frameName);
             }
@@ -265,7 +280,7 @@ namespace ReactViewControl {
             return Plugins.OfType<T>().First();
         }
 
-        public bool IsReady { get; private set; }
+        public bool IsReady => status == LoadStatus.Ready;
 
         public void ShowDeveloperTools() {
             WebView.ShowDeveloperTools();
@@ -343,7 +358,7 @@ namespace ReactViewControl {
                     filesChanged = true;
                     Dispatcher.BeginInvoke((Action) (() => {
                         if (IsReady && !IsDisposing) {
-                            IsReady = false;
+                            status = LoadStatus.Initialized;
                             cacheInvalidationTimestamp = DateTime.UtcNow.Ticks.ToString();
                             WebView.Reload(true);
                         }
@@ -383,16 +398,26 @@ namespace ReactViewControl {
         }
 
         private void OnWebViewBeforeResourceLoad(WebView.ResourceHandler resourceHandler) {
-            var customResourceRequested = CustomResourceRequested;
-            if (customResourceRequested != null) {
-                if (resourceHandler.Url.StartsWith(ResourceUrl.CustomScheme + Uri.SchemeDelimiter)) {
-                    var customResourceFetchTask = Task.Run(() => customResourceRequested(resourceHandler.Url));
-                    customResourceFetchTask.Wait(CustomRequestTimeout);
-                    if (!customResourceFetchTask.IsCompleted) {
-                        throw new Exception($"Failed to fetch ({resourceHandler.Url}) within the alotted timeout");
-                    }
-                    resourceHandler.RespondWith(customResourceFetchTask.Result, "");
+            if (resourceHandler.Url.StartsWith(ResourceUrl.CustomScheme + Uri.SchemeDelimiter)) {
+                var customResourceRequested = CustomResourceRequested;
+                if (customResourceRequested != null) {
+                    resourceHandler.BeginAsyncResponse(() => {
+                        var url = resourceHandler.Url;
+                        var response = customResourceRequested(url);
+
+                        if (response != null) {
+                            string extension = null;
+                            if (Uri.TryCreate(url, UriKind.Absolute, out var uri)) {
+                                var path = uri.AbsolutePath;
+                                extension = Path.GetExtension(path).TrimStart('.');
+                            }
+
+                            resourceHandler.RespondWith(response, extension);
+                        }
+                    });
                 }
+            } else if (resourceHandler.Url.StartsWith(Uri.UriSchemeHttp) || resourceHandler.Url.StartsWith(Uri.UriSchemeHttps)) {
+                ExternalResourceRequested?.Invoke(resourceHandler);
             }
         }
 

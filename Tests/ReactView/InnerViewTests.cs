@@ -4,9 +4,9 @@ namespace Tests.ReactView {
 
     public class InnerViewTests : ReactViewTestBase {
 
-        protected override void AfterInitializeView() {
+        protected override void InitializeView() {
             TargetView.AutoShowInnerView = true;
-            base.AfterInitializeView();
+            base.InitializeView();
         }
 
         [Test(Description = "Tests inner view load")]
