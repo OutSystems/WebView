@@ -54,7 +54,9 @@ namespace Tests.ReactView {
 
     public class TestReactView : ReactViewControl.ReactView {
 
-        public TestReactView() : this(new TestReactViewModule()) { }
+        public TestReactView() : this(new TestReactViewModule()) {
+            EnableDebugMode = true;
+        }
 
         protected TestReactView(TestReactViewModule module) : base(module) { }
 

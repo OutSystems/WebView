@@ -12,6 +12,7 @@ namespace Tests.ReactView {
             var eventCalled = false;
             TargetView.Event += (args) => eventCalled = true;
             TargetView.ExecuteMethod("callEvent");
+            Assert.IsFalse(TargetView.IsReady);
             WaitFor(() => eventCalled, DefaultTimeout, "event call");
         }
     }

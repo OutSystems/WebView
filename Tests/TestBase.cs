@@ -10,6 +10,7 @@ namespace Tests {
 
     [TestFixture]
     [Apartment(ApartmentState.STA)]
+    [SingleThreaded]
     public abstract class TestBase<T> where T : class, IDisposable, new() {
 
         protected virtual TimeSpan DefaultTimeout => TimeSpan.FromSeconds(5);
@@ -21,8 +22,8 @@ namespace Tests {
 
         [OneTimeSetUp]
         protected void OneTimeSetUp() {
-            DispatcherSynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext());
             if (Application.Current == null) {
+                DispatcherSynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext());
                 new Application();
                 Application.Current.ShutdownMode = ShutdownMode.OnExplicitShutdown;
             }
@@ -107,16 +108,10 @@ namespace Tests {
         [DebuggerNonUserCode]
         [SecurityPermissionAttribute(SecurityAction.Demand, Flags = SecurityPermissionFlag.UnmanagedCode)]
         protected static void DoEvents() {
-            var frame = new DispatcherFrame();
-            Dispatcher.CurrentDispatcher.BeginInvoke(
-                DispatcherPriority.Background, 
-                new DispatcherOperationCallback(_ => {
-                    Thread.Sleep(1);
-                    frame.Continue = false;
-                    return null;
-                }), 
-                frame);
-            Dispatcher.PushFrame(frame);
+            Dispatcher.CurrentDispatcher.Invoke(
+                DispatcherPriority.Background,
+                new ThreadStart(delegate { }));
+            Thread.Sleep(1);
         }
 
         protected bool FailOnAsyncExceptions { get; set; } = !Debugger.IsAttached;

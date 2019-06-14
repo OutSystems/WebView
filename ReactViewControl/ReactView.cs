@@ -37,8 +37,8 @@ namespace ReactViewControl {
                 }
 
                 // create a new view in the background and put it in the cache
-                Application.Current.Dispatcher.BeginInvoke((Action)(() => {
-                    if (!CachedViews.ContainsKey(factoryType) && !Application.Current.Dispatcher.HasShutdownStarted) {
+                Dispatcher.CurrentDispatcher.BeginInvoke((Action)(() => {
+                    if (!CachedViews.ContainsKey(factoryType) && !Dispatcher.CurrentDispatcher.HasShutdownStarted) {
                         CachedViews.Add(factoryType, InnerCreateView());
                     }
                 }), DispatcherPriority.Background);
@@ -55,7 +55,7 @@ namespace ReactViewControl {
             View = CreateReactViewInstance(Factory);
             SetResourceReference(StyleProperty, typeof(ReactView)); // force styles to be inherited, must be called after view is created otherwise view might be null
 
-            mainModule.Bind(View);
+            View.BindModule(mainModule, WebView.MainFrameName);
             MainModule = mainModule;
 
             IsVisibleChanged += OnIsVisibleChanged;

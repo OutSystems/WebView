@@ -3,15 +3,17 @@ using System.Linq;
 
 namespace WebViewControl {
 
+    public delegate void ListenerEventHandler(params object[] args);
+
     public class Listener : IDisposable {
 
         internal const string EventListenerObjName = "__WebviewListener__";
 
         private string EventName { get; }
-        private Action<Action, bool> HandlerWrapper { get; }
+        private Action<ListenerEventHandler, object[], bool> HandlerWrapper { get; }
         private BrowserObjectListener UnderlyingListener { get; }
 
-        internal Listener(string eventName, Action<Action, bool> handlerWrapper, BrowserObjectListener underlyingListener) {
+        internal Listener(string eventName, Action<ListenerEventHandler, object[], bool> handlerWrapper, BrowserObjectListener underlyingListener) {
             EventName = eventName;
             HandlerWrapper = handlerWrapper;
             UnderlyingListener = underlyingListener;
@@ -19,13 +21,13 @@ namespace WebViewControl {
             UnderlyingListener.NotificationReceived += HandleEvent;
         }
         
-        private void HandleEvent(string eventName) {
-            if (this.EventName == eventName) {
-                foreach(Action handler in Handler?.GetInvocationList() ?? Enumerable.Empty<Delegate>()) {
-                    HandlerWrapper(handler, false);
+        private void HandleEvent(string eventName, object[] args) {
+            if (EventName == eventName) {
+                foreach(ListenerEventHandler handler in Handler?.GetInvocationList() ?? Enumerable.Empty<Delegate>()) {
+                    HandlerWrapper(handler, args, false);
                 }
-                foreach (Action handler in UIHandler?.GetInvocationList() ?? Enumerable.Empty<Delegate>()) {
-                    HandlerWrapper(handler, true);
+                foreach (ListenerEventHandler handler in UIHandler?.GetInvocationList() ?? Enumerable.Empty<Delegate>()) {
+                    HandlerWrapper(handler, args, true);
                 }
             }
         }
@@ -34,9 +36,9 @@ namespace WebViewControl {
             return $"({EventListenerObjName}.notify('{EventName}'));";
         }
 
-        public event Action Handler;
+        public event ListenerEventHandler Handler;
 
-        public event Action UIHandler;
+        public event ListenerEventHandler UIHandler;
 
         public void Dispose() {
             UnderlyingListener.NotificationReceived -= HandleEvent;

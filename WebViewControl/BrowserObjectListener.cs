@@ -4,10 +4,10 @@ namespace WebViewControl {
 
     internal class BrowserObjectListener {
 
-        public event Action<string> NotificationReceived;
+        public event Action<string, object[]> NotificationReceived;
 
-        public void Notify(string listenerName) {
-            NotificationReceived?.Invoke(listenerName);
+        public void Notify(string listenerName, params object[] args) {
+            NotificationReceived?.Invoke(listenerName, args);
         }
     }
 }

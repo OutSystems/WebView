@@ -16,6 +16,7 @@ namespace Example {
             subView.ConstantMessage = "This is a sub view";
             subView.GetTime += OnSubViewGetTime;
             exampleView.AttachInnerView(subView, "test");
+            subView.CallMe();
         }
 
         private void OnExampleViewClick(SomeType arg) {
@@ -35,7 +36,7 @@ namespace Example {
         }
 
         private string OnSubViewGetTime() {
-            return DateTime.Now.ToShortTimeString();
+            return DateTime.Now.AddHours(1).ToShortTimeString();
         }
     }
 }

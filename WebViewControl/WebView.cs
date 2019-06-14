@@ -1,8 +1,4 @@
-﻿using CefSharp;
-using CefSharp.ModelBinding;
-using CefSharp.Wpf;
-using System;
-using System.Collections.Concurrent;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
@@ -15,6 +11,9 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
+using CefSharp;
+using CefSharp.ModelBinding;
+using CefSharp.Wpf;
 
 namespace WebViewControl {
 
@@ -89,9 +88,9 @@ namespace WebViewControl {
         public event UnhandledAsyncExceptionEventHandler UnhandledAsyncException;
 
         internal event Action Disposed;
+        internal event JavascriptContextReleasedEventHandler JavascriptContextReleased;
 
         private event Action RenderProcessCrashed;
-        private event JavascriptContextReleasedEventHandler JavascriptContextReleased;
         private event Action JavascriptCallFinished;
 
         private static int domainId = 1;
@@ -544,12 +543,12 @@ namespace WebViewControl {
         }
 
         public Listener AttachListener(string name) {
-            void HandleEvent(Action handler, bool executeInUI) {
+            void HandleEvent(ListenerEventHandler handler, object[] args, bool executeInUI) {
                 if (!isDisposing) {
                     if (executeInUI) {
-                        Dispatcher.Invoke(handler);
+                        Dispatcher.BeginInvoke(handler, new object[] { args });
                     } else {
-                        ExecuteWithAsyncErrorHandling(handler);
+                        ExecuteWithAsyncErrorHandling(handler, new object[] { args });
                     }
                 }
             }
@@ -666,6 +665,15 @@ namespace WebViewControl {
                 action();
             } catch (Exception e) {
                 ForwardUnhandledAsyncException(e);
+            }
+        }
+
+        [DebuggerNonUserCode]
+        private void ExecuteWithAsyncErrorHandling(Delegate method, params object[] args) {
+            try {
+                method.DynamicInvoke(args);
+            } catch (Exception e) {
+                ForwardUnhandledAsyncException(e.InnerException);
             }
         }
 

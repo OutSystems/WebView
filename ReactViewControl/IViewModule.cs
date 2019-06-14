@@ -19,5 +19,7 @@ namespace ReactViewControl {
         KeyValuePair<string, object>[] PropertiesValues { get; }
 
         void Bind(IExecutionEngine engine);
+
+        IExecutionEngine Engine { get; }
     }
 }

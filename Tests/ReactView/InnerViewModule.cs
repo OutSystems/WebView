@@ -16,9 +16,19 @@ namespace Tests.ReactView {
             public void Loaded() {
                 Owner.Loaded?.Invoke();
             }
+
+            public void MethodCalled() {
+                Owner.MethodCalled?.Invoke();
+            }
         }
 
         public event Action Loaded;
+
+        public event Action MethodCalled;
+
+        public void TestMethod() {
+            ExecutionEngine.ExecuteMethod(this, "testMethod");
+        }
 
         protected override string JavascriptSource => "/Tests/ReactViewResources/Test/InnerView";
 
@@ -30,7 +40,7 @@ namespace Tests.ReactView {
             return new Properties(this);
         }
 
-        protected override string[] Events => new[] { "loaded" };
+        protected override string[] Events => new[] { "loaded", "methodCalled" };
 
     }
 }

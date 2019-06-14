@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -13,7 +12,7 @@ using WebViewControl;
 
 namespace ReactViewControl {
 
-    internal partial class ReactViewRender : UserControl, IExecutionEngine, IDisposable {
+    internal partial class ReactViewRender : UserControl, IDisposable {
 
         private enum LoadStatus {
             Initialized,
@@ -21,24 +20,23 @@ namespace ReactViewControl {
             Ready
         }
 
-        private const string ModulesObjectName = "__Modules__";
+        internal const string ModulesObjectName = "__Modules__";
         private const string ComponentLoadedEventName = "ComponentLoaded";
 
         private static Assembly ResourcesAssembly { get; } = typeof(ReactViewResources.Resources).Assembly;
 
-        private Dictionary<string, IViewModule> Components { get; } = new Dictionary<string, IViewModule>();
+        private Dictionary<string, IViewModule> FrameToComponentMap { get; } = new Dictionary<string, IViewModule>();
+        private Dictionary<string, ExecutionEngine> FrameToExecutionEngineMap { get; } = new Dictionary<string, ExecutionEngine>();
+
         private WebView WebView { get; }
         private Assembly UserCallingAssembly { get; }
 
         private bool enableDebugMode = false;
         private LoadStatus status;
-        private Listener readyEventListener;
         private ResourceUrl defaultStyleSheet;
         private IViewModule[] plugins;
         private FileSystemWatcher fileSystemWatcher;
         private string cacheInvalidationTimestamp;
-
-        private ConcurrentQueue<Tuple<string, object[]>> pendingScripts = new ConcurrentQueue<Tuple<string, object[]>>();
 
         public ReactViewRender(ResourceUrl defaultStyleSheet, IViewModule[] plugins, bool preloadWebView, bool enableDebugMode) {
             UserCallingAssembly = WebView.GetUserCallingMethod().ReflectedType.Assembly;
@@ -54,11 +52,12 @@ namespace ReactViewControl {
 
             var loadedListener = WebView.AttachListener(ComponentLoadedEventName);
             loadedListener.Handler += OnReady;
+            loadedListener.UIHandler += OnReadyUIHandler;
 
             WebView.Navigated += OnWebViewNavigated;
             WebView.Disposed += OnWebViewDisposed;
             WebView.BeforeResourceLoad += OnWebViewBeforeResourceLoad;
-
+            WebView.JavascriptContextReleased += OnWebViewJavascriptContextReleased;
             Content = WebView;
 
             var urlParams = new string[] {
@@ -72,16 +71,25 @@ namespace ReactViewControl {
             WebView.LoadResource(new ResourceUrl(ResourcesAssembly, ReactViewResources.Resources.DefaultUrl + "?" + string.Join("&", urlParams)));
         }
 
-        private void OnReady() {
-            // TODO what if the ready comes from an inner view?
-            status = LoadStatus.Ready;
-            while (true) {
-                if (pendingScripts.TryDequeue(out var pendingScript)) {
-                    WebView.ExecuteScriptFunctionWithSerializedParams(pendingScript.Item1, pendingScript.Item2);
-                } else {
-                    // nothing else to execute
-                    break;
+        private void OnReady(params object[] args) {
+            var frameName = (string) args.FirstOrDefault();
+            if (frameName == WebView.MainFrameName) {
+                status = LoadStatus.Ready;
+            }
+            if (FrameToComponentMap.TryGetValue(frameName, out var component)) {
+                if (component.Engine is ExecutionEngine engine) {
+                    engine.Start();
                 }
+            }
+        }
+
+        private void OnReadyUIHandler(object[] args) {
+            Ready?.Invoke();
+        }
+
+        private void OnWebViewJavascriptContextReleased(string frameName) {
+            lock (FrameToExecutionEngineMap) {
+                FrameToExecutionEngineMap.Remove(frameName);
             }
         }
 
@@ -94,19 +102,7 @@ namespace ReactViewControl {
             WebView.Dispose();
         }
 
-        public event Action Ready {
-            add {
-                if (readyEventListener == null) {
-                    readyEventListener = WebView.AttachListener(ComponentLoadedEventName);
-                }
-                readyEventListener.UIHandler += value;
-            }
-            remove {
-                if (readyEventListener != null) {
-                    readyEventListener.UIHandler -= value;
-                }
-            }
-        }
+        public event Action Ready;
 
         public event UnhandledAsyncExceptionEventHandler UnhandledAsyncException {
             add { WebView.UnhandledAsyncException += value; }
@@ -131,8 +127,8 @@ namespace ReactViewControl {
         }
 
         public void LoadComponent(IViewModule component, string frameName) {
-            Components[frameName] = component;
-            component.Bind(this);
+            FrameToComponentMap[frameName] = component;
+            BindModule(component, frameName);
             if (status >= LoadStatus.PageLoaded && WebView.HasFrame(frameName)) {
                 InternalLoadComponent(component, frameName);
             }
@@ -225,28 +221,11 @@ namespace ReactViewControl {
             if (Plugins?.Length > 0) {
                 InternalLoadPlugins(frameName);
             }
-            if (Components.TryGetValue(frameName, out var component)) { 
+            if (FrameToComponentMap.TryGetValue(frameName, out var component)) { 
                 InternalLoadComponent(component, frameName);
             }
         }
 
-        private static string FormatMethodInvocation(IViewModule module, string methodCall) {
-            return ModulesObjectName + "[\"" + module.Name + "\"]." + methodCall;
-        }
-
-        public void ExecuteMethod(IViewModule module, string methodCall, params object[] args) {
-            var method = FormatMethodInvocation(module, methodCall);
-            if (IsReady) {
-                WebView.ExecuteScriptFunctionWithSerializedParams(method, args);
-            } else {
-                pendingScripts.Enqueue(Tuple.Create(method, args));
-            }
-        }
-
-        public T EvaluateMethod<T>(IViewModule module, string methodCall, params object[] args) {
-            var method = FormatMethodInvocation(module, methodCall);
-            return WebView.EvaluateScriptFunctionWithSerializedParams<T>(method, args);
-        }
         
         public ResourceUrl DefaultStyleSheet {
             get { return defaultStyleSheet; }
@@ -271,9 +250,20 @@ namespace ReactViewControl {
                 }
                 plugins = value;
                 foreach(var plugin in plugins) {
-                    plugin.Bind(this);
+                    BindModule(plugin, WebView.MainFrameName);
                 }
             }
+        }
+
+        internal void BindModule(IViewModule module, string frameName) {
+            ExecutionEngine engine;
+            lock (FrameToExecutionEngineMap) {
+                if (!FrameToExecutionEngineMap.TryGetValue(frameName, out engine)) {
+                    engine = new ExecutionEngine(WebView, frameName);
+                    FrameToExecutionEngineMap[frameName] = engine;
+                }
+            }
+            module.Bind(engine);
         }
 
         public T WithPlugin<T>() {
