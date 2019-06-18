@@ -5,7 +5,7 @@ namespace Tests.ReactView {
 
     internal class Sandbox : IDisposable {
 
-        private readonly TestReactView view;
+        private TestReactView View { get; }
 
         public Sandbox(Window window, string propertyValue, TimeSpan timeout) : this(propertyValue) {
             AttachTo(window);
@@ -13,34 +13,34 @@ namespace Tests.ReactView {
         }
 
         public Sandbox(string propertyValue) {
-            view = new TestReactView();
-            view.PropertyValue = propertyValue;
+            View = new TestReactView();
+            View.PropertyValue = propertyValue;
         }
 
         public void AttachTo(Window window) {
-            window.Content = view;
+            window.Content = View;
         }
 
         public string GetFirstRenderHtml() {
-            return view.EvaluateMethodOnRoot<string>("getFirstRenderHtml");
+            return View.EvaluateMethod<string>("getFirstRenderHtml");
         }
 
         public string GetHtml() {
-            return view.EvaluateMethodOnRoot<string>("getHtml");
+            return View.EvaluateMethod<string>("getHtml");
         }
 
         public string GetPropertyValue() {
-            return view.EvaluateMethodOnRoot<string>("getPropertyValue");
+            return View.EvaluateMethod<string>("getPropertyValue");
         }
 
-        public string PropertyValue { get => view.PropertyValue; set => view.PropertyValue = value; }
+        public string PropertyValue { get => View.PropertyValue; set => View.PropertyValue = value; }
 
         public void WaitReady(TimeSpan timeout) {
-            ReactViewTestBase.WaitFor(() => view.IsReady, timeout, "View is ready");
+            ReactViewTestBase.WaitFor(() => View.IsReady, timeout, "View is ready");
         }
 
         public void Dispose() {
-            view.Dispose();
+            View.Dispose();
         }
     }
 }

@@ -9,11 +9,11 @@ namespace WebViewControl {
 
         public class JavascriptException : Exception {
 
-            private readonly JavascriptStackFrame[] jsStack;
+            private JavascriptStackFrame[] JsStack { get; }
 
             internal JavascriptException(string message, IEnumerable<JavascriptStackFrame> stack = null)
             : base(message, null) {
-                jsStack = stack?.ToArray() ?? new JavascriptStackFrame[0];
+                JsStack = stack?.ToArray() ?? new JavascriptStackFrame[0];
             }
 
             internal JavascriptException(string name, string message, IEnumerable<JavascriptStackFrame> stack = null)
@@ -21,7 +21,7 @@ namespace WebViewControl {
             }
 
             public override string StackTrace {
-                get { return string.Join(Environment.NewLine, jsStack.Select(FormatStackFrame).Concat(new[] { base.StackTrace })); }
+                get { return string.Join(Environment.NewLine, JsStack.Select(FormatStackFrame).Concat(new[] { base.StackTrace })); }
             }
 
             private static string FormatStackFrame(JavascriptStackFrame frame) {

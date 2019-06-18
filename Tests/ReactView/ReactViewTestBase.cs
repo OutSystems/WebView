@@ -16,23 +16,25 @@ namespace Tests.ReactView {
 
         protected virtual bool WaitForReady => true;
 
-        protected override bool ReuseView => false;
-
         protected void WithUnhandledExceptionHandling(Action action, Func<Exception, bool> onException) {
-            Action<WebViewControl.UnhandledAsyncExceptionEventArgs> unhandledException = (e) => {
+            void OnUnhandledException(WebViewControl.UnhandledAsyncExceptionEventArgs e) {
                 e.Handled = onException(e.Exception);
-            };
-
+            }
+            
             var failOnAsyncExceptions = FailOnAsyncExceptions;
             FailOnAsyncExceptions = false;
-            TargetView.UnhandledAsyncException += unhandledException;
+            TargetView.UnhandledAsyncException += OnUnhandledException;
 
             try {
                 action();
             } finally {
-                TargetView.UnhandledAsyncException -= unhandledException;
+                TargetView.UnhandledAsyncException -= OnUnhandledException;
                 FailOnAsyncExceptions = failOnAsyncExceptions;
             }
+        }
+
+        protected override void ShowDebugConsole() {
+            TargetView.ShowDeveloperTools();
         }
     }
 

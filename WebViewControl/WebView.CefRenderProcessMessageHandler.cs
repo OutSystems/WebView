@@ -7,7 +7,7 @@ namespace WebViewControl {
 
         private class CefRenderProcessMessageHandler : IRenderProcessMessageHandler {
 
-            private readonly WebView OwnerWebView;
+            private WebView OwnerWebView { get; }
 
             public CefRenderProcessMessageHandler(WebView webView) {
                 OwnerWebView = webView;
@@ -21,7 +21,8 @@ namespace WebViewControl {
                 if (!IgnoreEvent(frame)) {
                     var javascriptContextCreated = OwnerWebView.JavascriptContextCreated;
                     if (javascriptContextCreated != null) {
-                        OwnerWebView.ExecuteWithAsyncErrorHandling(() => javascriptContextCreated.Invoke());
+                        var frameName = frame.Name; // store frame name beforehand (cannot do it later, since frame might be disposed)
+                        OwnerWebView.ExecuteWithAsyncErrorHandling(() => javascriptContextCreated(frameName));
                     }
                 }
             }
@@ -30,7 +31,8 @@ namespace WebViewControl {
                 if (!IgnoreEvent(frame)) {
                     var javascriptContextReleased = OwnerWebView.JavascriptContextReleased;
                     if (javascriptContextReleased != null) {
-                        OwnerWebView.ExecuteWithAsyncErrorHandling(() => javascriptContextReleased.Invoke());
+                        var frameName = frame.Name; // store frame name beforehand (cannot do it later, since frame might be disposed)
+                        OwnerWebView.ExecuteWithAsyncErrorHandling(() => javascriptContextReleased(frameName));
                     }
                 }
             }

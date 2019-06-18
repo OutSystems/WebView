@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -10,7 +9,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Web;
 using CefSharp;
 
 namespace WebViewControl {
@@ -56,43 +54,62 @@ namespace WebViewControl {
 
         internal class JavascriptExecutor : IDisposable {
 
-            private static readonly Regex StackFrameRegex = new Regex(@"at\s*(?<method>.*?)\s\(?(?<location>[^\s]+):(?<line>\d+):(?<column>\d+)", RegexOptions.Compiled);
+            private static Regex StackFrameRegex { get; } = new Regex(@"at\s*(?<method>.*?)\s\(?(?<location>[^\s]+):(?<line>\d+):(?<column>\d+)", RegexOptions.Compiled);
+
             private const string InternalException = "|WebViewInternalException";
+            
+            private BlockingCollection<ScriptTask> PendingScripts { get; } = new BlockingCollection<ScriptTask>();
+            private CancellationTokenSource FlushTaskCancelationToken { get; } = new CancellationTokenSource();
+            private ManualResetEvent StoppedFlushHandle { get; } = new ManualResetEvent(false);
 
-            private readonly WebView OwnerWebView;
-            private readonly BlockingCollection<ScriptTask> pendingScripts = new BlockingCollection<ScriptTask>();
-            private readonly CancellationTokenSource flushTaskCancelationToken = new CancellationTokenSource();
-            private readonly ManualResetEvent stoppedFlushHandle = new ManualResetEvent(false);
-            private volatile bool flushRunning;
+            private IFrame frame;
+            private volatile bool isFlushRunning;
 
-            public JavascriptExecutor(WebView ownerWebView) {
-                OwnerWebView = ownerWebView;
-                OwnerWebView.JavascriptContextCreated += OnJavascriptContextCreated;
-                OwnerWebView.RenderProcessCrashed += StopFlush;
+            private WebView OwnerWebView { get; }
+
+#if DEBUG
+            private int Id { get; }
+#endif
+            public JavascriptExecutor(WebView owner, IFrame frame = null) {
+                OwnerWebView = owner;
+#if DEBUG
+                Id = GetHashCode();
+#endif
+                if (frame != null) {
+                    StartFlush(frame);
+                }
             }
 
-            private void OnJavascriptContextCreated() {
-                OwnerWebView.JavascriptContextCreated -= OnJavascriptContextCreated;
-                Task.Factory.StartNew(FlushScripts, flushTaskCancelationToken.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+            public bool IsValid => frame == null || frame.IsValid; // consider valid when not bound (yet) or frame is valid
+
+            public void StartFlush(IFrame frame) {
+                lock (FlushTaskCancelationToken) {
+                    if (this.frame != null || FlushTaskCancelationToken.IsCancellationRequested) {
+                        return;
+                    }
+                    this.frame = frame;
+                }
+                Task.Factory.StartNew(FlushScripts, FlushTaskCancelationToken.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
             }
 
             private void StopFlush() {
-                OwnerWebView.RenderProcessCrashed -= StopFlush;
-                if (flushTaskCancelationToken.IsCancellationRequested) {
-                    return;
+                lock (FlushTaskCancelationToken) {
+                    if (FlushTaskCancelationToken.IsCancellationRequested) {
+                        return;
+                    }
+                    FlushTaskCancelationToken.Cancel();
                 }
-                flushTaskCancelationToken.Cancel();
-                if (flushRunning) {
-                    stoppedFlushHandle.WaitOne();
+                if (isFlushRunning) {
+                    StoppedFlushHandle.WaitOne();
                 }
 
                 // signal any pending js evaluations
-                foreach (var pendingScript in pendingScripts.ToArray()) {
+                foreach (var pendingScript in PendingScripts.ToArray()) {
                     pendingScript.WaitHandle?.Set();
                 }
 
-                pendingScripts.Dispose();
-                flushTaskCancelationToken.Dispose();
+                PendingScripts.Dispose();
+                FlushTaskCancelationToken.Dispose();
             }
 
             private ScriptTask QueueScript(string script, string functionName = null, TimeSpan? timeout = default(TimeSpan?), bool awaitable = false) {
@@ -100,22 +117,22 @@ namespace WebViewControl {
                     return null;
                 }
                 var scriptTask = new ScriptTask(script, functionName, timeout, awaitable);
-                pendingScripts.Add(scriptTask);
+                PendingScripts.Add(scriptTask);
                 return scriptTask;
             }
 
             private void FlushScripts() {
                 OwnerWebView.ExecuteWithAsyncErrorHandling(() => {
                     try {
-                        flushRunning = true;
-                        while (!flushTaskCancelationToken.IsCancellationRequested) {
+                        isFlushRunning = true;
+                        while (!FlushTaskCancelationToken.IsCancellationRequested) {
                             InnerFlushScripts();
                         }
                     } catch (OperationCanceledException) {
                         // stop
                     } finally {
-                        flushRunning = false;
-                        stoppedFlushHandle.Set();
+                        isFlushRunning = false;
+                        StoppedFlushHandle.Set();
                     }
                 });
             }
@@ -125,25 +142,27 @@ namespace WebViewControl {
                 var scriptsToExecute = new List<ScriptTask>();
 
                 do {
-                    var scriptTask = pendingScripts.Take(flushTaskCancelationToken.Token);
+                    var scriptTask = PendingScripts.Take(FlushTaskCancelationToken.Token);
                     if (scriptTask.WaitHandle == null) {
                         scriptsToExecute.Add(scriptTask);
                     } else { 
                         scriptToEvaluate = scriptTask;
                         break; // this script result needs to be handled separately
                     }
-                } while (pendingScripts.Count > 0);
+                } while (PendingScripts.Count > 0);
 
                 if (scriptsToExecute.Count > 0) {
                     var script = string.Join(";" + Environment.NewLine, scriptsToExecute.Select(s => s.Script));
-                    var task = OwnerWebView.chromium.EvaluateScriptAsync(
-                        WrapScriptWithErrorHandling(script), 
-                        OwnerWebView.DefaultScriptsExecutionTimeout);
-                    task.Wait(flushTaskCancelationToken.Token);
-                    var response = task.Result;
-                    if (!response.Success) {
-                        var evaluatedScriptFunctions = scriptsToExecute.Select(s => s.FunctionName);
-                        OwnerWebView.ExecuteWithAsyncErrorHandling(() => throw ParseResponseException(response, evaluatedScriptFunctions));
+                    if (frame.IsValid) {
+                        var task = frame.EvaluateScriptAsync(
+                            WrapScriptWithErrorHandling(script),
+                            timeout: OwnerWebView.DefaultScriptsExecutionTimeout);
+                        task.Wait(FlushTaskCancelationToken.Token);
+                        var response = task.Result;
+                        if (!response.Success) {
+                            var evaluatedScriptFunctions = scriptsToExecute.Select(s => s.FunctionName);
+                            OwnerWebView.ExecuteWithAsyncErrorHandling(() => throw ParseResponseException(response, evaluatedScriptFunctions));
+                        }
                     }
                 }
 
@@ -153,9 +172,11 @@ namespace WebViewControl {
                     var script = scriptToEvaluate.Script;
                     var timeout = scriptToEvaluate.Timeout ?? OwnerWebView.DefaultScriptsExecutionTimeout;
                     try {
-                        task = OwnerWebView.chromium.EvaluateScriptAsync(script, timeout);
-                        task.Wait(flushTaskCancelationToken.Token);
-                        scriptToEvaluate.Result = task.Result;
+                        if (frame.IsValid) {
+                            task = frame.EvaluateScriptAsync(script, timeout: timeout);
+                            task.Wait(FlushTaskCancelationToken.Token);
+                            scriptToEvaluate.Result = task.Result;
+                        }
                     } catch(Exception e) {
                         if (task?.IsCanceled == true) {
                             // timeout
@@ -177,10 +198,11 @@ namespace WebViewControl {
                     return GetResult<T>(null); // webview is disposing
                 }
 
-                if (!flushRunning) {
-                    var succeeded = scriptTask.WaitHandle.WaitOne(timeout ?? TimeSpan.FromSeconds(15)); // wait with timeout if flush is not running yet to avoid hanging forever
+                if (!isFlushRunning) {
+                    timeout = timeout ?? TimeSpan.FromSeconds(15);
+                    var succeeded = scriptTask.WaitHandle.WaitOne(timeout.Value); // wait with timeout if flush is not running yet to avoid hanging forever
                     if (!succeeded) {
-                        throw new JavascriptException("Timeout", "Javascript engine is not initialized");
+                        throw new JavascriptException("Timeout", $"Javascript engine is not initialized after {timeout.Value.Seconds}s");
                     }
                 } else {
                     scriptTask.WaitHandle.WaitOne();
@@ -225,7 +247,7 @@ namespace WebViewControl {
                     // return empty arrays when value is null and return type is array
                     return (T)(object)Array.CreateInstance(targetType.GetElementType(), 0);
                 }
-                return (T)OwnerWebView.binder.Bind(result, targetType);
+                return (T)OwnerWebView.Binder.Bind(result, targetType);
             }
 
             public void Dispose() {

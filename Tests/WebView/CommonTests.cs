@@ -12,11 +12,11 @@ namespace Tests.WebView {
             var listener2Counter = 0;
 
             var listener1 = TargetView.AttachListener("event1_name");
-            listener1.Handler += () => listener1Counter++;
+            listener1.Handler += delegate { listener1Counter++; };
 
             var listener2 = TargetView.AttachListener("event2_name");
-            listener2.Handler += () => listener2Counter++;
-            listener2.Handler += () => listener2Counter++;
+            listener2.Handler += delegate { listener2Counter++; };
+            listener2.Handler += delegate { listener2Counter++; };
 
             LoadAndWaitReady($"<html><script>{listener1}{listener2}</script><body></body></html>");
             WaitFor(() => listener1Counter > 0 && listener2Counter > 0);
@@ -28,7 +28,7 @@ namespace Tests.WebView {
         public void ListenersAreCalledInDispatcherThread() {
             bool? canAccessDispatcher = null;
             var listener = TargetView.AttachListener("event_name");
-            listener.UIHandler += () => canAccessDispatcher = TargetView.Dispatcher.CheckAccess();
+            listener.UIHandler += delegate { canAccessDispatcher = TargetView.Dispatcher.CheckAccess(); };
             LoadAndWaitReady($"<html><script>{listener}</script><body></body></html>");
             WaitFor(() => canAccessDispatcher != null);
             Assert.IsTrue(canAccessDispatcher);
@@ -42,7 +42,7 @@ namespace Tests.WebView {
 
             WithUnhandledExceptionHandling(() => {
                 var listener = TargetView.AttachListener("event_name");
-                listener.Handler += () => throw new Exception(ExceptionMessage);
+                listener.Handler += delegate { throw new Exception(ExceptionMessage); };
 
                 LoadAndWaitReady($"<html><script>{listener}</script><body></body></html>");
 
@@ -70,11 +70,11 @@ namespace Tests.WebView {
         [Test(Description = "Javascript evaluation on navigated event does not block")]
         public void JavascriptEvaluationOnNavigatedDoesNotBlock() {
             var navigated = false;
-            TargetView.Navigated += _ => {
+            TargetView.Navigated += (_, __) => {
                 TargetView.EvaluateScript<int>("1+1");
                 navigated = true;
             };
-            LoadAndWaitReady("<html>><body></body></html>");
+            LoadAndWaitReady("<html><body></body></html>");
 
             WaitFor(() => navigated);
             Assert.IsTrue(navigated);
@@ -83,10 +83,10 @@ namespace Tests.WebView {
         [Test(Description = "Setting zoom works as expected")]
         public void ZoomWorksAsExpected() {
             var navigated = false;
-            TargetView.Navigated += _ => {
+            TargetView.Navigated += (_, __) => {
                 navigated = true;
             };
-            LoadAndWaitReady("<html>><body></body></html>");
+            LoadAndWaitReady("<html><body></body></html>");
 
             const double Zoom = 1.5;
             TargetView.ZoomPercentage = Zoom;

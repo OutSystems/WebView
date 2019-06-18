@@ -57,6 +57,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ExecutionEngine.cs" />
     <Compile Include="IExecutionEngine.cs" />
     <Compile Include="IViewModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

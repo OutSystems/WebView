@@ -3,43 +3,45 @@ using System.Linq;
 
 namespace WebViewControl {
 
+    public delegate void ListenerEventHandler(params object[] args);
+
     public class Listener : IDisposable {
 
         internal const string EventListenerObjName = "__WebviewListener__";
 
-        private readonly string eventName;
-        private readonly Action<Action, bool> handlerWrapper;
-        private readonly BrowserObjectListener underlyingListener;
+        private string EventName { get; }
+        private Action<ListenerEventHandler, object[], bool> HandlerWrapper { get; }
+        private BrowserObjectListener UnderlyingListener { get; }
 
-        internal Listener(string eventName, Action<Action, bool> handlerWrapper, BrowserObjectListener underlyingListener) {
-            this.eventName = eventName;
-            this.handlerWrapper = handlerWrapper;
-            this.underlyingListener = underlyingListener;
+        internal Listener(string eventName, Action<ListenerEventHandler, object[], bool> handlerWrapper, BrowserObjectListener underlyingListener) {
+            EventName = eventName;
+            HandlerWrapper = handlerWrapper;
+            UnderlyingListener = underlyingListener;
 
-            underlyingListener.NotificationReceived += HandleEvent;
+            UnderlyingListener.NotificationReceived += HandleEvent;
         }
         
-        private void HandleEvent(string eventName) {
-            if (this.eventName == eventName) {
-                foreach(Action handler in Handler?.GetInvocationList() ?? Enumerable.Empty<Delegate>()) {
-                    handlerWrapper(handler, false);
+        private void HandleEvent(string eventName, object[] args) {
+            if (EventName == eventName) {
+                foreach(ListenerEventHandler handler in Handler?.GetInvocationList() ?? Enumerable.Empty<Delegate>()) {
+                    HandlerWrapper(handler, args, false);
                 }
-                foreach (Action handler in UIHandler?.GetInvocationList() ?? Enumerable.Empty<Delegate>()) {
-                    handlerWrapper(handler, true);
+                foreach (ListenerEventHandler handler in UIHandler?.GetInvocationList() ?? Enumerable.Empty<Delegate>()) {
+                    HandlerWrapper(handler, args, true);
                 }
             }
         }
 
         public override string ToString() {
-            return $"({EventListenerObjName}.notify('{eventName}'));";
+            return $"({EventListenerObjName}.notify('{EventName}'));";
         }
 
-        public event Action Handler;
+        public event ListenerEventHandler Handler;
 
-        public event Action UIHandler;
+        public event ListenerEventHandler UIHandler;
 
         public void Dispose() {
-            underlyingListener.NotificationReceived -= HandleEvent;
+            UnderlyingListener.NotificationReceived -= HandleEvent;
         }
     }
 }

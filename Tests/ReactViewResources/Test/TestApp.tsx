@@ -1,12 +1,17 @@
-﻿import * as React from 'react';
+﻿/// <amd-dependency path="ViewFrame" name="ViewFrame"/>
+
+import * as React from 'react';
 import "css!styles.css";
 
 interface IAppProperties {
     event: (args: string) => void;
     propertyValue: string;
+    autoShowInnerView: boolean;
 }
 
-class App extends React.Component<IAppProperties, {}> {
+declare var ViewFrame: { default: React.ComponentClass<{ name: string }> };
+
+class App extends React.Component<IAppProperties> {
 
     firstRenderHtml: string;
     viewIsReady: boolean;
@@ -18,6 +23,10 @@ class App extends React.Component<IAppProperties, {}> {
         this.firstRenderHtml = this.getHtml();
     }
 
+    renderInnerViewContainer() {
+        return this.props.autoShowInnerView ? <ViewFrame.default name="test"/> : null;
+    }
+
     render() {
         const uniqueTimestamp = new Date().getTime() + "" + Math.random() ;
         return (
@@ -26,6 +35,7 @@ class App extends React.Component<IAppProperties, {}> {
                     <h2>Welcome to React</h2>
                     <img src="imgs/image.png" />
                     <div>Cache timestamp: {uniqueTimestamp}</div>
+                    {this.renderInnerViewContainer()}
                 </div>
             </div>
         );
@@ -101,6 +111,14 @@ class App extends React.Component<IAppProperties, {}> {
 
     getPropertyValue() {
         return this.props.propertyValue;
+    }
+
+    getCurrentTime() {
+        return new Date().valueOf();
+    }
+
+    getStartTime() {
+        return window.performance.timing.navigationStart;
     }
 }
 

@@ -29,9 +29,9 @@ namespace Tests.ReactView {
             }
 
             private class Properties : IProperties {
-                protected readonly PluginModule owner;
+                protected PluginModule Owner { get; }
                 public Properties(PluginModule owner) {
-                    this.owner = owner;
+                    Owner = owner;
                 }
             }
 
@@ -50,7 +50,7 @@ namespace Tests.ReactView {
                 pluginModuleLoaded = args == "PluginModuleLoaded";
             };
 
-            TargetView.ExecuteMethodOnRoot("checkPluginModuleLoaded");
+            TargetView.ExecuteMethod("checkPluginModuleLoaded");
 
             WaitFor(() => pluginModuleLoaded, "plugin module load");
         }
@@ -62,7 +62,7 @@ namespace Tests.ReactView {
                 pluginModuleLoaded = args == "AliasedModuleLoaded";
             };
 
-            TargetView.ExecuteMethodOnRoot("checkAliasedModuleLoaded");
+            TargetView.ExecuteMethod("checkAliasedModuleLoaded");
 
             WaitFor(() => pluginModuleLoaded, "aliased module load");
         }

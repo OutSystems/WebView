@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace ReactViewControl {
 
@@ -33,8 +34,16 @@ namespace ReactViewControl {
 
         void IViewModule.Bind(IExecutionEngine engine) => this.engine = engine;
 
-        protected IExecutionEngine ExecutionEngine => engine; // ease access in generated code
+        IExecutionEngine IViewModule.Engine => ExecutionEngine;
 
-        IExecutionEngine IViewModule.ExecutionEngine => ExecutionEngine;
+        // ease access in generated code
+        protected IExecutionEngine ExecutionEngine {
+            get {
+                if (engine == null) {
+                    throw new InvalidOperationException("View module must be bound to an execution engine ");
+                }
+                return engine;
+            }
+        }
     }
 }

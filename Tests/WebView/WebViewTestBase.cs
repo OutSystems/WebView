@@ -1,4 +1,5 @@
 ﻿using System;
+using WebViewControl;
 
 namespace Tests.WebView {
 
@@ -19,26 +20,37 @@ namespace Tests.WebView {
 
         protected void LoadAndWaitReady(string html, TimeSpan timeout, string timeoutMsg = null) {
             var navigated = false;
-            TargetView.Navigated += (string url) => navigated = true;
-            TargetView.LoadHtml(html);
-            WaitFor(() => navigated, timeout, timeoutMsg);
+            void OnNavigated(string url, string frameName) {
+                navigated = true;
+            }
+            try {
+                TargetView.Navigated += OnNavigated;
+                TargetView.LoadHtml(html);
+                WaitFor(() => navigated, timeout, timeoutMsg);
+            } finally {
+                TargetView.Navigated -= OnNavigated;
+            }
         }
 
         protected void WithUnhandledExceptionHandling(Action action, Func<Exception, bool> onException) {
-            Action<WebViewControl.UnhandledAsyncExceptionEventArgs> unhandledException = (e) => {
+            void OnUnhandledException(UnhandledAsyncExceptionEventArgs e) {
                 e.Handled = onException(e.Exception);
-            };
+            }
 
             var failOnAsyncExceptions = FailOnAsyncExceptions;
             FailOnAsyncExceptions = false;
-            TargetView.UnhandledAsyncException += unhandledException;
+            TargetView.UnhandledAsyncException += OnUnhandledException;
 
             try {
                 action();
             } finally {
-                TargetView.UnhandledAsyncException -= unhandledException;
+                TargetView.UnhandledAsyncException -= OnUnhandledException;
                 FailOnAsyncExceptions = failOnAsyncExceptions;
             }
+        }
+
+        protected override void ShowDebugConsole() {
+            TargetView.ShowDeveloperTools();
         }
     }
 }

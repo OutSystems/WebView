@@ -8,7 +8,7 @@ namespace WebViewControl {
 
         private class CefLifeSpanHandler : ILifeSpanHandler {
 
-            private readonly WebView OwnerWebView;
+            private WebView OwnerWebView { get; }
 
             public CefLifeSpanHandler(WebView webView) {
                 OwnerWebView = webView;

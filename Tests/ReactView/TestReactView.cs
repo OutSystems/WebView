@@ -4,22 +4,34 @@ using ReactViewControl;
 
 namespace Tests.ReactView {
 
-    public class TestReactView : ReactViewControl.ReactView {        
-
-        public event Action<string> Event;
+    public class TestReactViewModule : ViewModuleContainer {
 
         public class Properties {
 
-            private readonly TestReactView owner;
+            private TestReactViewModule Owner { get; }
 
-            public Properties(TestReactView owner) {
-                this.owner = owner;
+            public Properties(TestReactViewModule owner) {
+                Owner = owner;
             }
 
             public void Event(string args) {
-                owner.Event(args);
+                Owner.Event?.Invoke(args);
             }
         }
+
+        public event Action<string> Event;
+
+        public T EvaluateMethod<T>(string functionName, params object[] args) {
+            return ExecutionEngine.EvaluateMethod<T>(this, functionName, args);
+        }
+
+        public void ExecuteMethod(string functionName, params object[] args) {
+            ExecutionEngine.ExecuteMethod(this, functionName, args);
+        }
+
+        public string PropertyValue { get; set; }
+
+        public bool AutoShowInnerView { get; set; }
 
         protected override string JavascriptSource => "/Tests/ReactViewResources/Test/TestApp";
 
@@ -31,20 +43,39 @@ namespace Tests.ReactView {
             return new Properties(this);
         }
 
-        protected override string[] Events => new [] { "event" };
+        protected override string[] Events => new[] { "event" };
 
-        protected override KeyValuePair<string, object>[] PropertiesValues => new[] { new KeyValuePair<string, object>("propertyValue", PropertyValue) };
+        protected override KeyValuePair<string, object>[] PropertiesValues => new[] {
+            new KeyValuePair<string, object>("propertyValue", PropertyValue),
+            new KeyValuePair<string, object>("autoShowInnerView", AutoShowInnerView)
+        };
 
-        public T EvaluateMethodOnRoot<T>(string methodCall, params string[] args) {
-            return ExecutionEngine.EvaluateMethod<T>(this, methodCall, args);
+    }
+
+    public class TestReactView : ReactViewControl.ReactView {
+
+        public TestReactView() : this(new TestReactViewModule()) {
+            EnableDebugMode = true;
         }
 
-        public void ExecuteMethodOnRoot(string methodCall, params string[] args) {
-            ExecutionEngine.ExecuteMethod(this, methodCall, args);
-        }
+        protected TestReactView(TestReactViewModule module) : base(module) { }
 
         protected override ReactViewFactory Factory => new TestReactViewFactory();
 
-        public string PropertyValue { get; set; }
+        protected new TestReactViewModule MainModule { get => (TestReactViewModule) base.MainModule; }
+
+        public event Action<string> Event { add => MainModule.Event += value; remove => MainModule.Event -= value; }
+
+        public string PropertyValue { get => MainModule.PropertyValue; set => MainModule.PropertyValue = value; }
+
+        public bool AutoShowInnerView { get => MainModule.AutoShowInnerView; set => MainModule.AutoShowInnerView = value; }
+
+        public T EvaluateMethod<T>(string functionName, params object[] args) {
+            return MainModule.EvaluateMethod<T>(functionName, args);
+        }
+
+        public void ExecuteMethod(string functionName, params object[] args) {
+            MainModule.ExecuteMethod(functionName, args);
+        }
     }
 }

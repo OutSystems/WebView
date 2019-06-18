@@ -20,6 +20,6 @@ namespace ReactViewControl {
 
         void Bind(IExecutionEngine engine);
 
-        IExecutionEngine ExecutionEngine { get; }
+        IExecutionEngine Engine { get; }
     }
 }

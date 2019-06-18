@@ -10,11 +10,15 @@ using WebViewControl;
 
 namespace ReactViewControl {
 
-    public partial class ReactView : UserControl, IViewModule, IDisposable {
+    public delegate Stream CustomResourceRequestedEventHandler(string url);
 
-        private static readonly Dictionary<Type, ReactViewRender> cachedViews = new Dictionary<Type, ReactViewRender>();
+    public delegate void ExternalResourceRequestedEventHandler(WebView.ResourceHandler resourceHandler);
 
-        private readonly ReactViewRender view;
+    public abstract class ReactView : UserControl, IDisposable {
+
+        private static Dictionary<Type, ReactViewRender> CachedViews { get; } = new Dictionary<Type, ReactViewRender>();
+
+        private ReactViewRender View { get; }
 
         private static ReactViewRender CreateReactViewInstance(ReactViewFactory factory) {
             ReactViewRender InnerCreateView() {
@@ -28,14 +32,14 @@ namespace ReactViewControl {
             if (factory.EnableViewPreload) {
                 var factoryType = factory.GetType();
                 // check if we have a view cached for the current factory
-                if (cachedViews.TryGetValue(factoryType, out var cachedView)) {
-                    cachedViews.Remove(factoryType);
+                if (CachedViews.TryGetValue(factoryType, out var cachedView)) {
+                    CachedViews.Remove(factoryType);
                 }
 
                 // create a new view in the background and put it in the cache
-                Application.Current.Dispatcher.BeginInvoke((Action)(() => {
-                    if (!cachedViews.ContainsKey(factoryType) && !Application.Current.Dispatcher.HasShutdownStarted) {
-                        cachedViews.Add(factoryType, InnerCreateView());
+                Dispatcher.CurrentDispatcher.BeginInvoke((Action)(() => {
+                    if (!CachedViews.ContainsKey(factoryType) && !Dispatcher.CurrentDispatcher.HasShutdownStarted) {
+                        CachedViews.Add(factoryType, InnerCreateView());
                     }
                 }), DispatcherPriority.Background);
 
@@ -47,16 +51,19 @@ namespace ReactViewControl {
             return InnerCreateView();
         }
 
-        public ReactView() {
-            view = CreateReactViewInstance(Factory);
+        protected ReactView(IViewModule mainModule) {
+            View = CreateReactViewInstance(Factory);
             SetResourceReference(StyleProperty, typeof(ReactView)); // force styles to be inherited, must be called after view is created otherwise view might be null
+
+            View.BindModule(mainModule, WebView.MainFrameName);
+            MainModule = mainModule;
 
             IsVisibleChanged += OnIsVisibleChanged;
 
-            Content = view;
+            Content = View;
 
             FocusManager.SetIsFocusScope(this, true);
-            FocusManager.SetFocusedElement(this, view.FocusableElement);
+            FocusManager.SetFocusedElement(this, View.FocusableElement);
         }
 
         protected virtual ReactViewFactory Factory => new ReactViewFactory();
@@ -95,11 +102,11 @@ namespace ReactViewControl {
         }
 
         private void LoadComponent() {
-            if (!view.IsComponentLoaded) {
+            if (!View.IsMainComponentLoaded) {
                 if (EnableHotReload) {
-                    view.EnableHotReload(Source);
+                    View.EnableHotReload(MainModule.Source, MainModule.JavascriptSource);
                 }
-                view.LoadComponent(this);
+                View.LoadComponent(MainModule);
             }
         }
 
@@ -108,91 +115,60 @@ namespace ReactViewControl {
         }
 
         public void Dispose() {
-            view.Dispose();
+            View.Dispose();
             GC.SuppressFinalize(this);
         }
 
         public T WithPlugin<T>() {
-            return view.WithPlugin<T>();
+            return View.WithPlugin<T>();
         }
 
         protected void AddMappings(params SimpleViewModule[] mappings) {
-            view.Plugins = view.Plugins.Concat(mappings).ToArray();
+            View.Plugins = View.Plugins.Concat(mappings).ToArray();
         }
 
-        public bool EnableDebugMode { get => view.EnableDebugMode; set => view.EnableDebugMode = value; }
+        public bool EnableDebugMode { get => View.EnableDebugMode; set => View.EnableDebugMode = value; }
 
         public bool EnableHotReload { get; set; }
 
-        public bool IsReady => view.IsReady;
+        public bool IsReady => View.IsReady;
 
-        public double ZoomPercentage { get => view.ZoomPercentage; set => view.ZoomPercentage = value; }
+        public double ZoomPercentage { get => View.ZoomPercentage; set => View.ZoomPercentage = value; }
 
         public event Action Ready {
-            add { view.Ready += value; }
-            remove { view.Ready -= value; }
+            add { View.Ready += value; }
+            remove { View.Ready -= value; }
         }
 
-        public event Action<UnhandledAsyncExceptionEventArgs> UnhandledAsyncException {
-            add { view.UnhandledAsyncException += value; }
-            remove { view.UnhandledAsyncException -= value; }
+        public event UnhandledAsyncExceptionEventHandler UnhandledAsyncException {
+            add { View.UnhandledAsyncException += value; }
+            remove { View.UnhandledAsyncException -= value; }
         }
 
-        public event Action<string> ResourceLoadFailed {
-            add { view.ResourceLoadFailed += value; }
-            remove { view.ResourceLoadFailed -= value; }
+        public event ResourceLoadFailedEventHandler ResourceLoadFailed {
+            add { View.ResourceLoadFailed += value; }
+            remove { View.ResourceLoadFailed -= value; }
         }
 
-        public event Func<string, Stream> CustomResourceRequested {
-            add { view.CustomResourceRequested += value; }
-            remove { view.CustomResourceRequested -= value; }
+        public event CustomResourceRequestedEventHandler CustomResourceRequested {
+            add { View.CustomResourceRequested += value; }
+            remove { View.CustomResourceRequested -= value; }
+        }
+
+        public event ExternalResourceRequestedEventHandler ExternalResourceRequested {
+            add { View.ExternalResourceRequested += value; }
+            remove { View.ExternalResourceRequested -= value; }
         }
 
         public void ShowDeveloperTools() {
-            view.ShowDeveloperTools();
+            View.ShowDeveloperTools();
         }
 
         public void CloseDeveloperTools() {
-            view.CloseDeveloperTools();
+            View.CloseDeveloperTools();
         }
-
-        string IViewModule.JavascriptSource => JavascriptSource;
-
-        protected virtual string JavascriptSource => null;
-
-        string IViewModule.NativeObjectName => NativeObjectName;
-
-        protected virtual string NativeObjectName => null;
-
-        protected virtual string ModuleName => null;
-
-        string IViewModule.Name => ModuleName;
-
-        string IViewModule.Source => Source;
-
-        protected virtual string Source => null; // used for hot reload
-
-        object IViewModule.CreateNativeObject() => CreateNativeObject();
-
-        protected virtual object CreateNativeObject() {
-            return null;
-        }
-
-        string[] IViewModule.Events => Events;
-
-        protected virtual string[] Events => new string[0];
-
-        KeyValuePair<string, object>[] IViewModule.PropertiesValues => PropertiesValues;
-
-        protected virtual KeyValuePair<string, object>[] PropertiesValues => new KeyValuePair<string, object>[0];
-
-        void IViewModule.Bind(IExecutionEngine engine) {
-            throw new Exception("Cannot bind ReactView");
-        }
-
-        IExecutionEngine IViewModule.ExecutionEngine => ExecutionEngine;
-
-        protected IExecutionEngine ExecutionEngine => view; // ease access in generated code
+        
+        protected IViewModule MainModule { get; }
 
         /// <summary>
         /// Number of preloaded views that are mantained in cache for each view.
@@ -200,5 +176,9 @@ namespace ReactViewControl {
         /// Defaults to 6. 
         /// </summary>
         public static int PreloadedCacheEntriesSize { get; set; } = 6;
+
+        public void AttachInnerView(IViewModule viewModule, string frameName) {
+            View.LoadComponent(viewModule, frameName);
+        }
     }
 }

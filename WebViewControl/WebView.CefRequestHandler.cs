@@ -8,7 +8,7 @@ namespace WebViewControl {
 
         private class CefRequestHandler : IRequestHandler {
 
-            private readonly WebView OwnerWebView;
+            private WebView OwnerWebView { get; }
 
             public CefRequestHandler(WebView webView) {
                 OwnerWebView = webView;
@@ -49,7 +49,7 @@ namespace WebViewControl {
             }
 
             bool IRequestHandler.OnBeforeBrowse(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, bool userGesture, bool isRedirect) {
-                if (OwnerWebView.FilterRequest(request)) {
+                if (OwnerWebView.FilterUrl(request.Url)) {
                     return false;
                 }
                 

@@ -28,6 +28,8 @@ class Task<ResultType> {
 
 const [LibsPath, EnableDebugMode, ModulesObjectName, EventListenerObjectName, ReadyEventName] = Array.from(new URLSearchParams(location.search).keys());
 
+const ExternalLibsPath = LibsPath + "node_modules/";
+
 const Modules: Dictionary<{}> = {};
 window[ModulesObjectName] = Modules;
 
@@ -35,7 +37,7 @@ const StylesheetsLoadTask = new Task();
 const PluginsLoadTask = new Task();
 const BootstrapTask = new Task();
 
-export function showErrorMessage(msg: string): void {
+export async function showErrorMessage(msg: string): Promise<void> {
     const ContainerId = "webview_error";
     let msgContainer = document.getElementById(ContainerId) as HTMLDivElement;
     if (!msgContainer) {
@@ -55,7 +57,9 @@ export function showErrorMessage(msg: string): void {
         style.zIndex = "10000";
         style.height = "auto";
         style.wordWrap = "break-word";
-        document.body.appendChild(msgContainer);
+
+        await waitForDOMReady();
+        document.body.appendChild(msgContainer);   
     }
     msgContainer.innerText = msg;
 }
@@ -64,16 +68,18 @@ function loadRequire(): Promise<void> {
     return new Promise((resolve) => {
         // load require js
         let requireScript = document.createElement("script");
-        requireScript.src = LibsPath + "requirejs/require.js";
+        requireScript.src = ExternalLibsPath + "requirejs/require.js";
         requireScript.addEventListener("load", () => resolve());
-        if (document.head) {
-            document.head.appendChild(requireScript);
+        let head = document.head;
+        if (!head) {
+            throw new Error("Document not ready");
         }
+        head.appendChild(requireScript);
     });
 }
 
 function loadFramework(): void {
-    const RequireCssPath = LibsPath + "require-css/css.min.js";
+    const RequireCssPath = ExternalLibsPath + "require-css/css.min.js";
 
     require.config({
         paths: getRequirePaths(),
@@ -252,7 +258,7 @@ export function loadComponent(
             }
 
             window.dispatchEvent(new Event('viewready'));
-            window[EventListenerObjectName].notify(ReadyEventName);
+            window[EventListenerObjectName].notify(ReadyEventName, window.name);
         } catch (error) {
             handleError(error);
         }
@@ -266,6 +272,7 @@ async function bootstrap() {
     window.addEventListener("dragover", (e) => e.preventDefault());
     window.addEventListener("drop", (e) => e.preventDefault());
 
+    await waitForDOMReady();
     await loadRequire();
     await loadFramework();
 
@@ -315,16 +322,24 @@ function waitForNextPaint() {
 }
 
 function getAllStylesheets(): HTMLLinkElement[] {
-    return document.head ? Array.from(document.head.querySelectorAll("link")) : [];
+    return document.head ? Array.from(document.head.getElementsByTagName("link")) : [];
 }
 
 function getRequirePaths() {
     // load react
     return {
-        "prop-types": LibsPath + "prop-types/prop-types.min",
-        "react": LibsPath + "react/umd/react.production.min",
-        "react-dom": LibsPath + "react-dom/umd/react-dom.production.min",
+        "prop-types": ExternalLibsPath + "prop-types/prop-types.min",
+        "react": ExternalLibsPath + "react/umd/react.production.min",
+        "react-dom": ExternalLibsPath + "react-dom/umd/react-dom.production.min",
+        "ViewFrame": LibsPath + "libs/ViewFrame",
     };
+}
+
+function waitForDOMReady() {
+    if (document.readyState === "loading") {
+        return new Promise((resolve) => document.addEventListener("DOMContentLoaded", resolve, { once: true }));
+    }
+    return Promise.resolve();
 }
 
 bootstrap();

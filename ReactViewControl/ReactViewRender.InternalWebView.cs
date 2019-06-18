@@ -11,10 +11,10 @@ namespace ReactViewControl {
 
             private const string JavascriptExtension = ".js";
 
-            private readonly ReactViewRender owner;
+            private ReactViewRender Owner { get; }
 
             public InternalWebView(ReactViewRender owner, bool preloadBrowser) {
-                this.owner = owner;
+                Owner = owner;
                 IsSecurityDisabled = true; // must be set before InitializeBrowser
 
                 if (preloadBrowser) {

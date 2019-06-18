@@ -6,7 +6,7 @@ namespace WebViewControl {
 
         private class CefMenuHandler : IContextMenuHandler {
 
-            private readonly WebView OwnerWebView;
+            private WebView OwnerWebView { get; }
 
             public CefMenuHandler(WebView webView) {
                 OwnerWebView = webView;

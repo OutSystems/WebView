@@ -1,7 +1,5 @@
-﻿using CefSharp;
-using CefSharp.ModelBinding;
-using CefSharp.Wpf;
-using System;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -13,12 +11,30 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
+using CefSharp;
+using CefSharp.ModelBinding;
+using CefSharp.Wpf;
 
 namespace WebViewControl {
 
+    public delegate void BeforeNavigateEventHandler(WebView.Request request);
+    public delegate void BeforeResourceLoadEventHandler(WebView.ResourceHandler resourceHandler);
+    public delegate void NavigatedEventHandler(string url, string frameName);
+    public delegate void LoadFailedEventHandler(string url, int errorCode, string frameName);
+    public delegate void ResourceLoadFailedEventHandler(string resourceUrl);
+    public delegate void DownloadProgressChangedEventHandler(string resourcePath, long receivedBytes, long totalBytes);
+    public delegate void DownloadStatusChangedEventHandler(string resourcePath);
+    public delegate void JavascriptContextCreatedEventHandler(string frameName);
+    internal delegate void JavascriptContextReleasedEventHandler(string frameName);
+    public delegate void UnhandledAsyncExceptionEventHandler(UnhandledAsyncExceptionEventArgs eventArgs);
+
     public partial class WebView : UserControl, IDisposable {
 
-        private static readonly string[] CustomSchemes = new[] {
+        private const string AboutBlankUrl = "about:blank";
+
+        internal const string MainFrameName = "";
+
+        private static string[] CustomSchemes { get; } = new[] {
             ResourceUrl.LocalScheme,
             ResourceUrl.EmbeddedScheme,
             ResourceUrl.CustomScheme
@@ -32,55 +48,58 @@ namespace WebViewControl {
 
         private static bool subscribedApplicationExit = false;
 
-        private readonly object SyncRoot = new object();
+        private object SyncRoot { get; } = new object();
+
+        private Dictionary<string, JavascriptExecutor> JsExecutors { get; } = new Dictionary<string, JavascriptExecutor>();
+
         private InternalChromiumBrowser chromium;
         private bool isDeveloperToolsOpened = false;
         private Action pendingInitialization;
-        private string htmlToLoad;
-        private JavascriptExecutor jsExecutor;
         private CefLifeSpanHandler lifeSpanHandler;
         private CefResourceHandlerFactory resourceHandlerFactory;
+        private string htmlToLoad;
         private volatile bool isDisposing;
         private volatile int javascriptPendingCalls;
 
-        private readonly DefaultBinder binder = new DefaultBinder(new DefaultFieldNameConverter());
-        private readonly BrowserObjectListener eventsListener = new BrowserObjectListener();
-        private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+        private DefaultBinder Binder { get; } = new DefaultBinder(new DefaultFieldNameConverter());
+        private BrowserObjectListener EventsListener { get; } = new BrowserObjectListener();
+        private CancellationTokenSource AsyncCancellationTokenSource { get; } = new CancellationTokenSource();
 
         public event Action WebViewInitialized;
 
         /// <summary>
         /// NOTE: This event is not executed on the UI thread. Do not use Dipatcher.Invoke (use BeginInvoke) while in the context of this event otherwise it may lead to a dead-lock.
         /// </summary>
-        public event Action<Request> BeforeNavigate;
+        public event BeforeNavigateEventHandler BeforeNavigate;
 
         /// <summary>
         /// NOTE: This event is not executed on the UI thread. Do not use Dipatcher.Invoke (use BeginInvoke) while in the context of this event otherwise it may lead to a dead-lock.
         /// </summary>
-        public event Action<ResourceHandler> BeforeResourceLoad;
+        public event BeforeResourceLoadEventHandler BeforeResourceLoad;
 
-        public event Action<string> Navigated;
-        public event Action<string, int> LoadFailed;
-        public event Action<string> ResourceLoadFailed;
-        public event Action<string, long, long> DownloadProgressChanged;
-        public event Action<string> DownloadCompleted;
-        public event Action<string> DownloadCancelled;
-        public event Action JavascriptContextCreated;
+        public event NavigatedEventHandler Navigated;
+        public event LoadFailedEventHandler LoadFailed;
+        public event ResourceLoadFailedEventHandler ResourceLoadFailed;
+        public event DownloadProgressChangedEventHandler DownloadProgressChanged;
+        public event DownloadStatusChangedEventHandler DownloadCompleted;
+        public event DownloadStatusChangedEventHandler DownloadCancelled;
+        public event JavascriptContextCreatedEventHandler JavascriptContextCreated;
         public event Action TitleChanged;
-        public event Action<UnhandledAsyncExceptionEventArgs> UnhandledAsyncException;
+        public event UnhandledAsyncExceptionEventHandler UnhandledAsyncException;
+
         internal event Action Disposed;
+        internal event JavascriptContextReleasedEventHandler JavascriptContextReleased;
 
         private event Action RenderProcessCrashed;
-        private event Action JavascriptContextReleased;
         private event Action JavascriptCallFinished;
 
         private static int domainId = 1;
 
         // cef maints same zoom level for all browser instances under the same domain
         // having different domains will prevent synced zoom
-        private readonly string CurrentDomainId;
+        private string CurrentDomainId { get; }
 
-        private readonly string DefaultLocalUrl;
+        private string DefaultLocalUrl { get; }
 
         /// <summary>
         /// Executed when a web view is initialized. Can be used to attach or configure the webview before it's ready.
@@ -200,13 +219,15 @@ namespace WebViewControl {
             chromium.DownloadHandler = new CefDownloadHandler(this);
             chromium.CleanupElement = new FrameworkElement(); // prevent chromium to listen to default cleanup element unload events, this will be controlled manually
 
-            jsExecutor = new JavascriptExecutor(this);
-
-            RegisterJavascriptObject(Listener.EventListenerObjName, eventsListener);
+            RegisterJavascriptObject(Listener.EventListenerObjName, EventsListener);
 
             Content = chromium;
 
             GlobalWebViewInitialized?.Invoke(this);
+
+            JavascriptContextCreated += OnJavascriptContextCreated;
+            JavascriptContextReleased += OnJavascriptContextReleased;
+            RenderProcessCrashed += OnRenderProcessCrashed;
 
             FocusManager.SetIsFocusScope(this, true);
             FocusManager.SetFocusedElement(this, FocusableElement);
@@ -240,7 +261,7 @@ namespace WebViewControl {
 
                 disposed = true;
 
-                cancellationTokenSource.Cancel();
+                AsyncCancellationTokenSource.Cancel();
 
                 WebViewInitialized = null;
                 BeforeNavigate = null;
@@ -258,9 +279,12 @@ namespace WebViewControl {
 
                 resourceHandlerFactory.Dispose();
 
-                jsExecutor.Dispose();
+                foreach (var jsExecutor in JsExecutors.Values) {
+                    jsExecutor.Dispose();
+                }
+
                 chromium.Dispose();
-                cancellationTokenSource.Dispose();
+                AsyncCancellationTokenSource.Dispose();
 
                 Disposed?.Invoke();
             }
@@ -310,14 +334,14 @@ namespace WebViewControl {
 
         public string Address {
             get { return chromium.Address; }
-            set { Load(value); }
+            set { LoadUrl(value, MainFrameName); }
         }
 
-        private void Load(string address) {
-            if (address != DefaultLocalUrl) {
+        public void LoadUrl(string address, string frameName) {
+            if (frameName == MainFrameName && address != DefaultLocalUrl) {
                 htmlToLoad = null;
             }
-            if (address.Contains(Uri.SchemeDelimiter) || address == "about:blank" || address.StartsWith("data:")) {
+            if (address.Contains(Uri.SchemeDelimiter) || address == AboutBlankUrl || address.StartsWith("data:")) {
                 var settings = chromium.BrowserSettings;
                 if (settings != null /* TODO uncomment after upgrade to 71+ && !settings.IsDisposed*/) {
                     if (CustomSchemes.Any(s => address.StartsWith(s + Uri.SchemeDelimiter))) {
@@ -328,20 +352,26 @@ namespace WebViewControl {
                     }
                 }
                 // must wait for the browser to be initialized otherwise navigation will be aborted
-                ExecuteWhenInitialized(() => chromium.Load(address));
+                ExecuteWhenInitialized(() => {
+                    if (frameName == MainFrameName) {
+                        chromium.Load(address);
+                    } else {
+                        GetFrame(frameName)?.LoadUrl(address);
+                    }
+                });
             } else {
                 var userAssembly = GetUserCallingMethod().ReflectedType.Assembly;
-                Load(new ResourceUrl(userAssembly, address).WithDomain(CurrentDomainId));
+                LoadUrl(new ResourceUrl(userAssembly, address).WithDomain(CurrentDomainId), frameName);
             }
         }
 
-        public void LoadResource(ResourceUrl resourceUrl) {
-            Address = resourceUrl.WithDomain(CurrentDomainId);
+        public void LoadResource(ResourceUrl resourceUrl, string frameName = MainFrameName) {
+            LoadUrl(resourceUrl.WithDomain(CurrentDomainId), frameName);
         }
 
         public void LoadHtml(string html) {
             htmlToLoad = html;
-            Load(DefaultLocalUrl);
+            LoadUrl(DefaultLocalUrl, MainFrameName);
         }
 
         public bool IsSecurityDisabled {
@@ -398,7 +428,7 @@ namespace WebViewControl {
                 if (bind != null) {
                     bindingOptions.Binder = new LambdaMethodBinder(bind);
                 } else {
-                    bindingOptions.Binder = binder;
+                    bindingOptions.Binder = Binder;
                 }
 
                 if (interceptCall == null) {
@@ -429,32 +459,56 @@ namespace WebViewControl {
             return true;
         }
 
-        public T EvaluateScript<T>(string script) {
-            return jsExecutor.EvaluateScript<T>(script, timeout: default(TimeSpan?));
+        public T EvaluateScript<T>(string script, string frameName = MainFrameName, TimeSpan? timeout = null) {
+            var jsExecutor = GetJavascriptExecutor(frameName);
+            if (jsExecutor != null) {
+                return jsExecutor.EvaluateScript<T>(script, timeout: timeout);
+            }
+            return default(T);
         }
 
-        public T EvaluateScript<T>(string script, TimeSpan? timeout) {
-            return jsExecutor.EvaluateScript<T>(script, timeout: timeout);
-        }
-
-        public void ExecuteScript(string script) {
-            jsExecutor.ExecuteScript(script);
+        public void ExecuteScript(string script, string frameName = MainFrameName) {
+            GetJavascriptExecutor(frameName)?.ExecuteScript(script);
         }
 
         public void ExecuteScriptFunction(string functionName, params string[] args) {
-            jsExecutor.ExecuteScriptFunction(functionName, false, args);
+            ExecuteScriptFunctionInFrame(functionName, MainFrameName, args);
+        }
+
+        public void ExecuteScriptFunctionInFrame(string functionName, string frameName, params string[] args) {
+            GetJavascriptExecutor(frameName)?.ExecuteScriptFunction(functionName, false, args);
         }
 
         public T EvaluateScriptFunction<T>(string functionName, params string[] args) {
-            return jsExecutor.EvaluateScriptFunction<T>(functionName, false, args);
+            return EvaluateScriptFunctionInFrame<T>(functionName, MainFrameName, args);
+        }
+
+        public T EvaluateScriptFunctionInFrame<T>(string functionName, string frameName, params string[] args) {
+            var jsExecutor = GetJavascriptExecutor(frameName);
+            if (jsExecutor != null) {
+                return jsExecutor.EvaluateScriptFunction<T>(functionName, false, args);
+            }
+            return default(T);
         }
 
         internal void ExecuteScriptFunctionWithSerializedParams(string functionName, params object[] args) {
-            jsExecutor.ExecuteScriptFunction(functionName, true, args);
+            ExecuteScriptFunctionWithSerializedParamsInFrame(functionName, MainFrameName, args);
+        }
+
+        internal void ExecuteScriptFunctionWithSerializedParamsInFrame(string functionName, string frameName, params object[] args) {
+            GetJavascriptExecutor(frameName)?.ExecuteScriptFunction(functionName, true, args);
         }
 
         internal T EvaluateScriptFunctionWithSerializedParams<T>(string functionName, params object[] args) {
-            return jsExecutor.EvaluateScriptFunction<T>(functionName, true, args);
+            return EvaluateScriptFunctionWithSerializedParamsInFrame<T>(functionName, MainFrameName, args);
+        }
+
+        internal T EvaluateScriptFunctionWithSerializedParamsInFrame<T>(string functionName, string frameName, params object[] args) {
+            var jsExecutor = GetJavascriptExecutor(frameName);
+            if (jsExecutor != null) {
+                return jsExecutor.EvaluateScriptFunction<T>(functionName, true, args);
+            }
+            return default(T);
         }
 
         public bool CanGoBack {
@@ -489,17 +543,17 @@ namespace WebViewControl {
         }
 
         public Listener AttachListener(string name) {
-            void HandleEvent(Action handler, bool executeInUI) {
+            void HandleEvent(ListenerEventHandler handler, object[] args, bool executeInUI) {
                 if (!isDisposing) {
                     if (executeInUI) {
-                        Dispatcher.Invoke(handler);
+                        Dispatcher.BeginInvoke(handler, new object[] { args });
                     } else {
-                        ExecuteWithAsyncErrorHandling(handler);
+                        ExecuteWithAsyncErrorHandling(handler, new object[] { args });
                     }
                 }
             }
 
-            return new Listener(name, HandleEvent, eventsListener);
+            return new Listener(name, HandleEvent, EventsListener);
         }
 
         private void OnWebViewIsBrowserInitializedChanged(object sender, DependencyPropertyChangedEventArgs e) {
@@ -515,19 +569,28 @@ namespace WebViewControl {
         }
 
         private void OnWebViewFrameLoadEnd(object sender, FrameLoadEndEventArgs e) {
-            htmlToLoad = null;
+            if (e.Frame.IsMain) {
+                htmlToLoad = null;
+            } else {
+                // js context created event is not called for child frames
+                OnJavascriptContextCreated(e.Frame.Name);
+            }
             var navigated = Navigated;
-            if (e.Frame.IsMain && navigated != null) {
-                AsyncExecuteInUI(() => navigated.Invoke(e.Url));
+            if (navigated != null) {
+                var frameName = e.Frame.Name; // store frame name beforehand (cannot do it later, since frame might be disposed)
+                AsyncExecuteInUI(() => navigated(e.Url, frameName));
             }
         }
 
         private void OnWebViewLoadError(object sender, LoadErrorEventArgs e) {
-            htmlToLoad = null;
+            if (e.Frame.IsMain) {
+                htmlToLoad = null;
+            }
             var loadFailed = LoadFailed;
             if (e.ErrorCode != CefErrorCode.Aborted && loadFailed != null) {
+                var frameName = e.Frame.Name; // store frame name beforehand (cannot do it later, since frame might be disposed)
                 // ignore aborts, to prevent situations where we try to load an address inside Load failed handler (and its aborted)
-                AsyncExecuteInUI(() => loadFailed.Invoke(e.FailedUrl, (int)e.ErrorCode));
+                AsyncExecuteInUI(() => loadFailed(e.FailedUrl, (int)e.ErrorCode, frameName));
             }
         }
 
@@ -549,9 +612,9 @@ namespace WebViewControl {
             set { Cef.GetGlobalCookieManager().SetStoragePath(value, true); }
         }
 
-        private bool FilterRequest(IRequest request) {
-            return request.Url.StartsWith(ChromeInternalProtocol, StringComparison.InvariantCultureIgnoreCase) ||
-                   request.Url.Equals(DefaultLocalUrl, StringComparison.InvariantCultureIgnoreCase);
+        private bool FilterUrl(string url) {
+            return url.StartsWith(ChromeInternalProtocol, StringComparison.InvariantCultureIgnoreCase) ||
+                   url.Equals(DefaultLocalUrl, StringComparison.InvariantCultureIgnoreCase);
         }
 
         private static bool IsFrameworkAssemblyName(string name) {
@@ -593,7 +656,7 @@ namespace WebViewControl {
                     }
                 },
                 DispatcherPriority.Normal,
-                cancellationTokenSource.Token);
+                AsyncCancellationTokenSource.Token);
         }
 
         [DebuggerNonUserCode]
@@ -602,6 +665,15 @@ namespace WebViewControl {
                 action();
             } catch (Exception e) {
                 ForwardUnhandledAsyncException(e);
+            }
+        }
+
+        [DebuggerNonUserCode]
+        private void ExecuteWithAsyncErrorHandling(Delegate method, params object[] args) {
+            try {
+                method.DynamicInvoke(args);
+            } catch (Exception e) {
+                ForwardUnhandledAsyncException(e.InnerException);
             }
         }
 
@@ -665,7 +737,7 @@ namespace WebViewControl {
         }
 
         private void OnHostWindowClosed(object sender, EventArgs e) {
-            ((Window) sender).Closed -= OnHostWindowClosed;
+            ((Window)sender).Closed -= OnHostWindowClosed;
             Dispose();
         }
 
@@ -683,5 +755,60 @@ namespace WebViewControl {
         }
 
         protected virtual bool UseSharedDomain => false;
+
+        public string[] GetFrameNames() {
+            var browser = chromium.GetBrowser();
+            return browser?.GetFrameNames().Where(n => n != MainFrameName).ToArray() ?? new string[0];
+        }
+
+        internal bool HasFrame(string name) {
+            return GetFrame(name) != null;
+        }
+
+        private IFrame GetFrame(string frameName) {
+            return chromium.GetBrowser()?.GetFrame(frameName);
+        }
+
+        private JavascriptExecutor GetJavascriptExecutor(string frameName) {
+            lock(JsExecutors) {
+                if (!JsExecutors.TryGetValue(frameName, out var jsExecutor)) {
+                    jsExecutor = new JavascriptExecutor(this, GetFrame(frameName));
+                    JsExecutors.Add(frameName, jsExecutor);
+                }
+                return jsExecutor;
+            }
+        }
+
+        private void OnJavascriptContextCreated(string frameName) {
+            lock (JsExecutors) {
+                if (frameName == MainFrameName) {
+                    // when a new main frame in created, dispose all running executors -> since they should not be valid anymore
+                    // all child iframes were gone
+                    DisposeJavascriptExecutors(JsExecutors.Where(e => !e.Value.IsValid).Select(e => e.Key).ToArray());
+                }
+
+                var jsExecutor = GetJavascriptExecutor(frameName);
+                jsExecutor.StartFlush(GetFrame(frameName));
+            }
+        }
+
+        private void OnJavascriptContextReleased(string frameName) {
+            lock (JsExecutors) {
+                DisposeJavascriptExecutors(new[] { frameName });
+            }
+        }
+
+        private void OnRenderProcessCrashed() {
+            lock (JsExecutors) {
+                DisposeJavascriptExecutors(JsExecutors.Keys);
+            }
+        }
+
+        private void DisposeJavascriptExecutors(IEnumerable<string> executorsKeys) {
+            foreach (var executorKey in executorsKeys) {
+                JsExecutors[executorKey].Dispose();
+                JsExecutors.Remove(executorKey);
+            }
+        }
     }
 }

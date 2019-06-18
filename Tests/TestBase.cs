@@ -10,6 +10,7 @@ namespace Tests {
 
     [TestFixture]
     [Apartment(ApartmentState.STA)]
+    [SingleThreaded]
     public abstract class TestBase<T> where T : class, IDisposable, new() {
 
         protected virtual TimeSpan DefaultTimeout => TimeSpan.FromSeconds(5);
@@ -22,6 +23,7 @@ namespace Tests {
         [OneTimeSetUp]
         protected void OneTimeSetUp() {
             if (Application.Current == null) {
+                DispatcherSynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext());
                 new Application();
                 Application.Current.ShutdownMode = ShutdownMode.OnExplicitShutdown;
             }
@@ -70,18 +72,19 @@ namespace Tests {
 
         [TearDown]
         protected void TearDown() {
-            if (!ReuseView) {
-                if (view != null) {
-                    view.Dispose();
-                    view = null;
-                }
-                window.Content = null;
+            if (Debugger.IsAttached && TestContext.CurrentContext.Result.FailCount > 0) {
+                ShowDebugConsole();
+                WaitFor(() => false, TimeSpan.MaxValue);
+                return;
             }
+            if (view != null) {
+                view.Dispose();
+                view = null;
+            }
+            window.Content = null;
         }
 
-        protected virtual bool ReuseView {
-            get { return true; }
-        }
+        protected abstract void ShowDebugConsole();
 
         protected T TargetView {
             get { return view; }
@@ -104,13 +107,14 @@ namespace Tests {
 
         [DebuggerNonUserCode]
         [SecurityPermissionAttribute(SecurityAction.Demand, Flags = SecurityPermissionFlag.UnmanagedCode)]
-        private static void DoEvents() {
-            var frame = new DispatcherFrame();
-            Dispatcher.CurrentDispatcher.BeginInvoke(DispatcherPriority.Background, new DispatcherOperationCallback(_ => frame.Continue = false), frame);
-            Dispatcher.PushFrame(frame);
+        protected static void DoEvents() {
+            Dispatcher.CurrentDispatcher.Invoke(
+                DispatcherPriority.Background,
+                new ThreadStart(delegate { }));
+            Thread.Sleep(1);
         }
 
-        protected bool FailOnAsyncExceptions { get; set; } = true;
+        protected bool FailOnAsyncExceptions { get; set; } = !Debugger.IsAttached;
 
         protected void OnUnhandledAsyncException(WebViewControl.UnhandledAsyncExceptionEventArgs e) {
             if (FailOnAsyncExceptions) {

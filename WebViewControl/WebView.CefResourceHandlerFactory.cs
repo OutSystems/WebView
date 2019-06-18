@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 
 namespace WebViewControl {
 
@@ -11,7 +12,7 @@ namespace WebViewControl {
 
         protected class CefResourceHandlerFactory : IResourceHandlerFactory, ISchemeHandlerFactory, IDisposable {
 
-            private readonly WebView OwnerWebView;
+            private WebView OwnerWebView { get; }
 
             private Dictionary<string, Assembly> assemblies;
             private bool newAssembliesLoaded = true;
@@ -34,10 +35,10 @@ namespace WebViewControl {
 
             private IResourceHandler GetResourceHandler(IRequest request) {
                 if (request.Url == OwnerWebView.DefaultLocalUrl) {
-                    return OwnerWebView.htmlToLoad != null ? ResourceHandler.FromString(OwnerWebView.htmlToLoad) : null;
+                    return OwnerWebView.htmlToLoad != null ? CefSharp.ResourceHandler.FromString(OwnerWebView.htmlToLoad) : null;
                 }
 
-                if (OwnerWebView.FilterRequest(request)) {
+                if (OwnerWebView.FilterUrl(request.Url)) {
                     return null;
                 }
 
@@ -47,29 +48,42 @@ namespace WebViewControl {
             }
 
             protected void HandleRequest(ResourceHandler resourceHandler) {
-                if (Uri.TryCreate(resourceHandler.Url, UriKind.Absolute, out var url) && url.Scheme == ResourceUrl.EmbeddedScheme) {
-                    var urlWithoutQuery = new UriBuilder(url);
-                    if (url.Query != "") {
-                        urlWithoutQuery.Query = "";
-                    }
-                    OwnerWebView.ExecuteWithAsyncErrorHandling(() => LoadEmbeddedResource(resourceHandler, urlWithoutQuery.Uri));
-                }
-
-                if (OwnerWebView.BeforeResourceLoad != null) {
-                    OwnerWebView.ExecuteWithAsyncErrorHandling(() => OwnerWebView.BeforeResourceLoad(resourceHandler));
-                }
-
-                if (resourceHandler.Handled) {
-                    return;
-                }
-
-                if (!OwnerWebView.IgnoreMissingResources && url != null && url.Scheme == ResourceUrl.EmbeddedScheme) {
-                    if (OwnerWebView.ResourceLoadFailed != null) {
-                        OwnerWebView.ResourceLoadFailed(resourceHandler.Url);
-                    } else {
-                        OwnerWebView.ExecuteWithAsyncErrorHandling(() => throw new InvalidOperationException("Resource not found: " + resourceHandler.Url));
+                void TriggerBeforeResourceLoadEvent() {
+                    var beforeResourceLoad = OwnerWebView.BeforeResourceLoad;
+                    if (beforeResourceLoad != null) {
+                        OwnerWebView.ExecuteWithAsyncErrorHandling(() => beforeResourceLoad(resourceHandler));
                     }
                 }
+
+                if (Uri.TryCreate(resourceHandler.Url, UriKind.Absolute, out var url)) {
+                    if (url.Scheme == ResourceUrl.EmbeddedScheme) {
+                        resourceHandler.BeginAsyncResponse(() => { 
+                            var urlWithoutQuery = new UriBuilder(url);
+                            if (url.Query != "") {
+                                urlWithoutQuery.Query = "";
+                            }
+
+                            OwnerWebView.ExecuteWithAsyncErrorHandling(() => LoadEmbeddedResource(resourceHandler, urlWithoutQuery.Uri));
+
+                            TriggerBeforeResourceLoadEvent();
+
+                            if (resourceHandler.Handled || OwnerWebView.IgnoreMissingResources) {
+                                return;
+                            }
+
+                            var resourceLoadFailed = OwnerWebView.ResourceLoadFailed;
+                            if (resourceLoadFailed != null) {
+                                resourceLoadFailed(url.ToString());
+                            } else {
+                                OwnerWebView.ExecuteWithAsyncErrorHandling(() => throw new InvalidOperationException("Resource not found: " + url));
+                            }
+                        });
+
+                        return;
+                    }
+                }
+
+                TriggerBeforeResourceLoadEvent();
             }
 
             protected void LoadEmbeddedResource(ResourceHandler resourceHandler, Uri url) {

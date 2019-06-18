@@ -11,7 +11,7 @@ namespace WebViewControl {
 
     public static class JavascriptSerializer {
 
-        public static readonly object Undefined = new object();
+        public static object Undefined { get; } = new object();
 
         public static string Serialize(object o, SerializationHandler handleComplexType = null) {
             if (o == null) return "null";

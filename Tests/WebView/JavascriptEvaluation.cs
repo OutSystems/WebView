@@ -85,7 +85,7 @@ namespace Tests.WebView {
         public void EvaluationTimeoutIsThrown() {
             var exception = Assert.Throws<JavascriptException>(
                 () => TargetView.EvaluateScript<int>("var start = new Date().getTime(); while((new Date().getTime() - start) < 150);",
-                TimeSpan.FromMilliseconds(50)));
+                timeout: TimeSpan.FromMilliseconds(50)));
             Assert.True(exception.Message.Contains("Timeout"));
         }
 

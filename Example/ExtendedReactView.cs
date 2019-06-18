@@ -1,29 +1,16 @@
-﻿using ReactViewControl;
-using System;
-using WebViewControl;
+﻿using System;
+using ReactViewControl;
 
 namespace Example {
 
-    public class ExtendedReactView : ReactView {
+    public abstract class ExtendedReactView : ReactView {
 
-        private class ViewFactory : ReactViewFactory {
+        protected override ReactViewFactory Factory => new ExtendedReactViewFactory();
 
-            public override ResourceUrl DefaultStyleSheet => new ResourceUrl(typeof(ReactViewExample).Assembly, "ExampleView", "DefaultStyleSheet.css");
-
-            public override IViewModule[] Plugins {
-                get {
-                    return new[]{
-                        new Plugin()
-                    };
-                }
-            }
-
-            public override bool ShowDeveloperTools => false;
-        }
-
-        protected override ReactViewFactory Factory => new ViewFactory();
-
-        public ExtendedReactView() {
+        public ExtendedReactView(IViewModule mainModule) : base(mainModule) {
+#if DEBUG
+            EnableHotReload = true;
+#endif
             WithPlugin<Plugin>().NotifyPluginLoaded += OnNotifyPluginLoaded;
         }
 

@@ -135,7 +135,7 @@
     <Compile Include="WebView.CefDownloadHandler.cs" />
     <Compile Include="WebView.CefLifeSpanHandler.cs" />
     <Compile Include="WebView.CefRequestHandler.cs" />
-    <Compile Include="WebView.CefResourceHandler.cs" />
+    <Compile Include="WebView.CefAsyncResourceHandler.cs" />
     <Compile Include="WebView.CefDialogHandler.cs" />
     <Compile Include="WebView.CefMenuHandler.cs" />
     <Compile Include="WebView.CefRenderProcessMessageHandler.cs" />

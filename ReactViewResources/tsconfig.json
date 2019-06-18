@@ -4,9 +4,9 @@
         "module": "es6",
         "target": "es2017",
         "sourceMap": false,
-        "allowJs": true,
         "moduleResolution": "node",
         "rootDir": ".",
+        "jsx": "react",
         "forceConsistentCasingInFileNames": true,
         "noImplicitReturns": true,
         "noImplicitThis": true,
@@ -17,6 +17,7 @@
     },
     "compileOnSave": true,
     "exclude": [
+        "libs",
         "node_modules"
     ]
 }
