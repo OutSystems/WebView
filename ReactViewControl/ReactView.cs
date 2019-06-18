@@ -104,7 +104,7 @@ namespace ReactViewControl {
         private void LoadComponent() {
             if (!View.IsMainComponentLoaded) {
                 if (EnableHotReload) {
-                    View.EnableHotReload(MainModule.Source);
+                    View.EnableHotReload(MainModule.Source, MainModule.JavascriptSource);
                 }
                 View.LoadComponent(MainModule);
             }

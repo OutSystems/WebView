@@ -317,23 +317,26 @@ namespace ReactViewControl {
             }
         }
 
-        public void EnableHotReload(string baseLocation) {
-            if (string.IsNullOrEmpty(baseLocation)) {
+        public void EnableHotReload(string mainModuleFullPath, string mainModuleResourcePath) {
+            if (string.IsNullOrEmpty(mainModuleFullPath)) {
                 throw new InvalidOperationException("Hot reload does not work in release mode");
             }
 
-            baseLocation = Path.GetDirectoryName(baseLocation);
+            var basePath = Path.GetDirectoryName(mainModuleFullPath);
+            var mainModuleResourcePathParts = ResourceUrl.GetEmbeddedResourcePath(new Uri(ToFullUrl(VirtualPathUtility.GetDirectory(mainModuleResourcePath))));
 
-            if (!Directory.Exists(baseLocation)) {
+            var relativePath = string.Join(Path.DirectorySeparatorChar.ToString(), mainModuleResourcePathParts);
+
+            if (!Directory.Exists(basePath) || !basePath.EndsWith(relativePath)) {
                 return;
             }
 
             if (fileSystemWatcher != null) {
-                fileSystemWatcher.Path = baseLocation;
+                fileSystemWatcher.Path = basePath;
                 return;
             }
 
-            fileSystemWatcher = new FileSystemWatcher(baseLocation);
+            fileSystemWatcher = new FileSystemWatcher(basePath);
             fileSystemWatcher.IncludeSubdirectories = true;
             fileSystemWatcher.NotifyFilter = NotifyFilters.LastWrite;
             fileSystemWatcher.EnableRaisingEvents = true;
@@ -359,12 +362,15 @@ namespace ReactViewControl {
             WebView.BeforeResourceLoad += (WebView.ResourceHandler resourceHandler) => {
                 if (filesChanged) {
                     var url = new Uri(resourceHandler.Url);
-                    var path = Path.Combine(ResourceUrl.GetEmbeddedResourcePath(url).Skip(1).ToArray()); // skip first part (namespace)
+                    var resourcePath = ResourceUrl.GetEmbeddedResourcePath(url);
+                    var path = Path.Combine(resourcePath.Skip(mainModuleResourcePathParts.Length).ToArray());
                     if (fileExtensionsToWatch.Any(e => path.EndsWith(e))) {
                         path = Path.Combine(fileSystemWatcher.Path, path);
                         var file = new FileInfo(path);
                         if (file.Exists) {
                             resourceHandler.RespondWith(path);
+                        } else {
+                            System.Diagnostics.Debug.WriteLine("File not found: " + file.FullName + " (" + resourceHandler.Url + ")");
                         }
                     }
                 }
