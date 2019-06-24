@@ -70,6 +70,9 @@
   <ItemGroup>
     <None Include="readme.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="contentFiles\webpack.config.js" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy "$(ProjectDir)declarations" "$(ProjectDir)contentFiles\node_modules\@types\" /s /y

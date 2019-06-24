@@ -21,6 +21,10 @@
     
   </PropertyGroup>
 
+  <Target Name="GenerateBundle">
+    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(MSBuildThisFileDirectory)..\tools\node_modules\webpack\bin\webpack&quot;" />
+  </Target>
+
   <Target Name="CleanLegacyJSFiles">
     <ItemGroup>
       <JSFilesToDelete Include="**\*.js" Exclude="node_modules\**\*.js"/>

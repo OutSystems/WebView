@@ -9,5 +9,11 @@
   "license": "ISC",
   "devDependencies": {
     "@types/react-dom": "16.8.0"
+  },
+  "dependencies": {
+    "css-loader": "^2.1.1",
+    "style-loader": "^0.23.1",
+    "ts-loader": "^6.0.3",
+    "webpack": "^4.34.0"
   }
 }
