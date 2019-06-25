@@ -114,13 +114,21 @@ namespace ReactViewControl {
             remove { WebView.ResourceLoadFailed -= value; }
         }
 
+        /// <summary>
+        /// Handle embedded resource requests. You can use this event to change the resource being loaded.
+        /// </summary>
+        public event ResourceRequestedEventHandler EmbeddedResourceRequested;
+
+        /// <summary>
+        /// Handle custom resource requests. Use this event to load the resource based on the url.
+        /// </summary>
         public event CustomResourceRequestedEventHandler CustomResourceRequested;
 
         /// <summary>
         /// Handle external resource requests. 
         /// Call <see cref="WebView.ResourceHandler.BeginAsyncResponse"/> to handle the request in an async way.
         /// </summary>
-        public event ExternalResourceRequestedEventHandler ExternalResourceRequested;
+        public event ResourceRequestedEventHandler ExternalResourceRequested;
 
         public void LoadComponent(IViewModule component) {
             LoadComponent(component, WebView.MainFrameName);
@@ -394,26 +402,38 @@ namespace ReactViewControl {
         }
 
         private void OnWebViewBeforeResourceLoad(WebView.ResourceHandler resourceHandler) {
-            if (resourceHandler.Url.StartsWith(ResourceUrl.CustomScheme + Uri.SchemeDelimiter)) {
-                var customResourceRequested = CustomResourceRequested;
-                if (customResourceRequested != null) {
-                    resourceHandler.BeginAsyncResponse(() => {
-                        var url = resourceHandler.Url;
-                        var response = customResourceRequested(url);
+            var url = resourceHandler.Url;
+            var scheme = url.Substring(0, Math.Max(0, url.IndexOf(Uri.SchemeDelimiter)));
 
-                        if (response != null) {
-                            string extension = null;
-                            if (Uri.TryCreate(url, UriKind.Absolute, out var uri)) {
-                                var path = uri.AbsolutePath;
-                                extension = Path.GetExtension(path).TrimStart('.');
+            switch (scheme.ToLowerInvariant()) {
+                case ResourceUrl.CustomScheme:
+                    var customResourceRequestedHandlers = CustomResourceRequested?.GetInvocationList().ToArray();
+                    if (customResourceRequestedHandlers?.Any() == true) {
+                        resourceHandler.BeginAsyncResponse(() => {
+                            var response = customResourceRequestedHandlers.Cast<CustomResourceRequestedEventHandler>().Select(h => h(url)).FirstOrDefault(r => r != null);
+
+                            if (response != null) {
+                                string extension = null;
+                                if (Uri.TryCreate(url, UriKind.Absolute, out var uri)) {
+                                    var path = uri.AbsolutePath;
+                                    extension = Path.GetExtension(path).TrimStart('.');
+                                }
+
+                                resourceHandler.RespondWith(response, extension);
                             }
+                        });
+                    }
+                    break;
 
-                            resourceHandler.RespondWith(response, extension);
-                        }
-                    });
-                }
-            } else if (resourceHandler.Url.StartsWith(Uri.UriSchemeHttp) || resourceHandler.Url.StartsWith(Uri.UriSchemeHttps)) {
-                ExternalResourceRequested?.Invoke(resourceHandler);
+                case ResourceUrl.EmbeddedScheme:
+                    // webview already started BeginAsyncResponse
+                    EmbeddedResourceRequested?.Invoke(resourceHandler);
+                    break;
+
+                case "http":
+                case "https":
+                    ExternalResourceRequested?.Invoke(resourceHandler);
+                    break;
             }
         }
 

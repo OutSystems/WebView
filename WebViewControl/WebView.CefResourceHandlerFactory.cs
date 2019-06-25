@@ -55,32 +55,30 @@ namespace WebViewControl {
                     }
                 }
 
-                if (Uri.TryCreate(resourceHandler.Url, UriKind.Absolute, out var url)) {
-                    if (url.Scheme == ResourceUrl.EmbeddedScheme) {
-                        resourceHandler.BeginAsyncResponse(() => { 
-                            var urlWithoutQuery = new UriBuilder(url);
-                            if (url.Query != "") {
-                                urlWithoutQuery.Query = "";
-                            }
+                if (Uri.TryCreate(resourceHandler.Url, UriKind.Absolute, out var url) && url.Scheme == ResourceUrl.EmbeddedScheme) {
+                    resourceHandler.BeginAsyncResponse(() => {
+                        var urlWithoutQuery = new UriBuilder(url);
+                        if (url.Query != "") {
+                            urlWithoutQuery.Query = "";
+                        }
 
-                            OwnerWebView.ExecuteWithAsyncErrorHandling(() => LoadEmbeddedResource(resourceHandler, urlWithoutQuery.Uri));
+                        OwnerWebView.ExecuteWithAsyncErrorHandling(() => LoadEmbeddedResource(resourceHandler, urlWithoutQuery.Uri));
 
-                            TriggerBeforeResourceLoadEvent();
+                        TriggerBeforeResourceLoadEvent();
 
-                            if (resourceHandler.Handled || OwnerWebView.IgnoreMissingResources) {
-                                return;
-                            }
+                        if (resourceHandler.Handled || OwnerWebView.IgnoreMissingResources) {
+                            return;
+                        }
 
-                            var resourceLoadFailed = OwnerWebView.ResourceLoadFailed;
-                            if (resourceLoadFailed != null) {
-                                resourceLoadFailed(url.ToString());
-                            } else {
-                                OwnerWebView.ExecuteWithAsyncErrorHandling(() => throw new InvalidOperationException("Resource not found: " + url));
-                            }
-                        });
+                        var resourceLoadFailed = OwnerWebView.ResourceLoadFailed;
+                        if (resourceLoadFailed != null) {
+                            resourceLoadFailed(url.ToString());
+                        } else {
+                            OwnerWebView.ExecuteWithAsyncErrorHandling(() => throw new InvalidOperationException("Resource not found: " + url));
+                        }
+                    });
 
-                        return;
-                    }
+                    return;
                 }
 
                 TriggerBeforeResourceLoadEvent();

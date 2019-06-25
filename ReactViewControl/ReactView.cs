@@ -10,9 +10,9 @@ using WebViewControl;
 
 namespace ReactViewControl {
 
-    public delegate Stream CustomResourceRequestedEventHandler(string url);
+    public delegate void ResourceRequestedEventHandler(WebView.ResourceHandler resourceHandler);
 
-    public delegate void ExternalResourceRequestedEventHandler(WebView.ResourceHandler resourceHandler);
+    public delegate Stream CustomResourceRequestedEventHandler(string url);
 
     public abstract class ReactView : UserControl, IDisposable {
 
@@ -150,12 +150,17 @@ namespace ReactViewControl {
             remove { View.ResourceLoadFailed -= value; }
         }
 
+        public event ResourceRequestedEventHandler EmbeddedResourceRequested {
+            add { View.EmbeddedResourceRequested += value; }
+            remove { View.EmbeddedResourceRequested -= value; }
+        }
+
         public event CustomResourceRequestedEventHandler CustomResourceRequested {
             add { View.CustomResourceRequested += value; }
             remove { View.CustomResourceRequested -= value; }
         }
 
-        public event ExternalResourceRequestedEventHandler ExternalResourceRequested {
+        public event ResourceRequestedEventHandler ExternalResourceRequested {
             add { View.ExternalResourceRequested += value; }
             remove { View.ExternalResourceRequested -= value; }
         }
