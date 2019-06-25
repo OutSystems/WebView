@@ -6,9 +6,6 @@
     <None Include="ts2lang.json">
       <Visible>True</Visible>
     </None>
-    <None Include="webpack.config.js">
-      <Visible>True</Visible>
-    </None>
   </ItemGroup>
   <PropertyGroup>
     <ViewGeneratorNodeJsExe>node</ViewGeneratorNodeJsExe>

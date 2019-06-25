@@ -16,6 +16,7 @@
 	"compileOnSave": true,
 	"exclude": [
 		"node_modules",
-        "dist"
+        "dist",
+        "webpack.config.js"
 	]
 }

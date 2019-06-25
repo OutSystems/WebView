@@ -46,6 +46,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="tools\webpack.config.js" />
     <None Include="build\ViewGeneratorCore.props">
       <SubType>Designer</SubType>
     </None>
