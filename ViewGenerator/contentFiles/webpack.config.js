@@ -1,15 +1,17 @@
-﻿const fs = require('fs');
+﻿const glob = require('glob');
+const path = require('path');
+
 const entryMap = {};
 
-fs.readdirSync('.')
-    .filter(file => file.match(/.*\.view.tsx$/))
-    .forEach(f => { entryMap[f.replace(/\.view.tsx$/, '')] = ['./' + f]; });
+glob.sync("**/*.view.tsx").forEach(f => {
+    entryMap[f.replace(/^.*[\\\/]/, '').replace(/\.view.tsx$/, '')] = ['./' + f];
+});
 
 module.exports = {
-    mode: "development",
     entry: entryMap,
     output: {
-        filename: "dummybundle.js"
+        path: path.join(__dirname, '/Generated'),
+        filename: "[name].js"
     },
     resolve: {
         extensions: [".ts", ".tsx", ".js"]

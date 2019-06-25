@@ -22,7 +22,7 @@
   </PropertyGroup>
 
   <Target Name="GenerateBundle">
-    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(MSBuildThisFileDirectory)..\tools\node_modules\webpack\bin\webpack&quot;" />
+    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ProjectDir)node_modules\webpack\bin\webpack.js&quot; --mode production" />
   </Target>
 
   <Target Name="CleanLegacyJSFiles">
@@ -33,7 +33,7 @@
     <Delete Files="@(JSFilesToDelete)"/>
   </Target>
   
-  <Target Name="IncludeGeneratedResources" DependsOnTargets="FindConfigFiles;CompileTypeScriptWithTSConfig">
+  <Target Name="IncludeGeneratedResources" DependsOnTargets="FindConfigFiles;CompileTypeScriptWithTSConfig;GenerateBundle">
     <ItemGroup> 
       <EmbeddedResource Include="**\*.js" />
       <EmbeddedResource Include="**\*.css" Exclude="**\*.min.css" />
