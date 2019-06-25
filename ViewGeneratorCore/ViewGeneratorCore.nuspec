@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>ViewGeneratorCore</id>
-    <version>1.0.162</version>
+    <version>1.0.163</version>
     <authors>jmn</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <developmentDependency>true</developmentDependency>
@@ -13,6 +13,7 @@
     <file src="build\ViewGeneratorCore.props" target="build\ViewGeneratorCore.props" />
 
     <file src="tools\dist\ViewGenerator.js" target="tools\ViewGenerator.js" />
+    <file src="tools\webpack.config.js" target="tools\webpack.config.js"/>
     <file src="tools\node_modules\**" target="tools\node_modules\" />
   </files>
 </package>
