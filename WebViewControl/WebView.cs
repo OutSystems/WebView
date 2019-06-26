@@ -180,7 +180,7 @@ namespace WebViewControl {
 #endif
 
             if (UseSharedDomain) {
-                CurrentDomainId = "";
+                CurrentDomainId = string.Empty;
             } else {
                 CurrentDomainId = domainId.ToString();
                 domainId++;

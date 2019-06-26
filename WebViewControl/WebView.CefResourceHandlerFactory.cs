@@ -58,8 +58,8 @@ namespace WebViewControl {
                 if (Uri.TryCreate(resourceHandler.Url, UriKind.Absolute, out var url) && url.Scheme == ResourceUrl.EmbeddedScheme) {
                     resourceHandler.BeginAsyncResponse(() => {
                         var urlWithoutQuery = new UriBuilder(url);
-                        if (url.Query != "") {
-                            urlWithoutQuery.Query = "";
+                        if (!string.IsNullOrEmpty(url.Query)) {
+                            urlWithoutQuery.Query = string.Empty;
                         }
 
                         OwnerWebView.ExecuteWithAsyncErrorHandling(() => LoadEmbeddedResource(resourceHandler, urlWithoutQuery.Uri));
