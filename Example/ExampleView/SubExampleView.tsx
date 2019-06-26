@@ -1,5 +1,5 @@
 ﻿import * as React from "react";
-import "css!./SubExampleView.css";
+import "./SubExampleView.css";
 
 export interface ISubExampleViewProperties {
     click(): void;
