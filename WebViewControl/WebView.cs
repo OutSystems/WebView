@@ -800,11 +800,11 @@ namespace WebViewControl {
 
         private void OnRenderProcessCrashed() {
             lock (JsExecutors) {
-                DisposeJavascriptExecutors(JsExecutors.Keys);
+                DisposeJavascriptExecutors(JsExecutors.Keys.ToArray());
             }
         }
 
-        private void DisposeJavascriptExecutors(IEnumerable<string> executorsKeys) {
+        private void DisposeJavascriptExecutors(string[] executorsKeys) {
             foreach (var executorKey in executorsKeys) {
                 JsExecutors[executorKey].Dispose();
                 JsExecutors.Remove(executorKey);
