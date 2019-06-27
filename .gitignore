@@ -28,3 +28,4 @@ ViewGeneratorCore/tools/node_modules/
 ViewGenerator/contentFiles/node_modules/
 Tests/TestResult.xml
 ViewGenerator/declarations/
+ReactViewResources/ReactViewResources.js
