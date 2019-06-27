@@ -4,39 +4,11 @@
       IncludeGeneratedResources;
       $(PrepareResourceNamesDependsOn)
     </PrepareResourceNamesDependsOn>
-
-    <!-- If don't exist, create so that the targets won't fail -->
-    <FindConfigFiles>
-      $(FindConfigFiles)
-    </FindConfigFiles>
-    
-    <CompileTypeScriptWithTSConfig>
-      $(CompileTypeScriptWithTSConfig)
-    </CompileTypeScriptWithTSConfig>
-
-    <CompileTypeScriptDependsOn>
-      CleanLegacyJSFiles;
-      $(CompileTypeScriptDependsOn);
-    </CompileTypeScriptDependsOn>
-    
   </PropertyGroup>
-
-  <Target Name="GenerateBundle">
-    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ProjectDir)node_modules\webpack\bin\webpack.js&quot; --mode production" />
-  </Target>
-
-  <Target Name="CleanLegacyJSFiles">
-    <ItemGroup>
-      <JSFilesToDelete Include="**\*.js" Exclude="node_modules\**\*.js"/>
-    </ItemGroup>
-    <Message Text="Deleting old files: @(JSFilesToDelete)" Importance="high" />
-    <Delete Files="@(JSFilesToDelete)"/>
-  </Target>
   
-  <Target Name="IncludeGeneratedResources" DependsOnTargets="FindConfigFiles;CompileTypeScriptWithTSConfig;GenerateBundle">
+  <Target Name="IncludeGeneratedResources" DependsOnTargets="GenerateBundle">
     <ItemGroup> 
       <EmbeddedResource Include="**\*.js" />
-      <EmbeddedResource Include="**\*.css" Exclude="**\*.min.css" />
     </ItemGroup>
   </Target>
   

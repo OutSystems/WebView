@@ -2,7 +2,6 @@
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="..\packages\ViewGenerator.1.0.127\build\ViewGenerator.props" Condition="Exists('..\packages\ViewGenerator.1.0.127\build\ViewGenerator.props')" />
   <Import Project="..\packages\ViewGeneratorCore.1.0.163\build\ViewGeneratorCore.props" Condition="Exists('..\packages\ViewGeneratorCore.1.0.163\build\ViewGeneratorCore.props')" />
-  <Import Project="..\packages\Microsoft.TypeScript.MSBuild.3.3.1\build\Microsoft.TypeScript.MSBuild.props" Condition="Exists('..\packages\Microsoft.TypeScript.MSBuild.3.3.1\build\Microsoft.TypeScript.MSBuild.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -125,9 +124,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="ExampleView\ExampleView.tsx" />
-    <TypeScriptCompile Include="ExampleView\Plugin.ts" />
-    <TypeScriptCompile Include="ExampleView\SubExampleView.tsx" />
+    <None Include="ExampleView\ExampleView.tsx" />
+    <None Include="ExampleView\Plugin.ts" />
+    <None Include="ExampleView\SubExampleView.tsx" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ReactViewControl\ReactViewControl.csproj">
@@ -145,15 +144,12 @@
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\Delegate.SassBuilder.1.4.0\build\Delegate.SassBuilder.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Delegate.SassBuilder.1.4.0\build\Delegate.SassBuilder.targets'))" />
-    <Error Condition="!Exists('..\packages\Microsoft.TypeScript.MSBuild.3.3.1\build\Microsoft.TypeScript.MSBuild.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.TypeScript.MSBuild.3.3.1\build\Microsoft.TypeScript.MSBuild.props'))" />
-    <Error Condition="!Exists('..\packages\Microsoft.TypeScript.MSBuild.3.3.1\build\Microsoft.TypeScript.MSBuild.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.TypeScript.MSBuild.3.3.1\build\Microsoft.TypeScript.MSBuild.targets'))" />
     <Error Condition="!Exists('..\packages\ViewGeneratorCore.1.0.163\build\ViewGeneratorCore.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ViewGeneratorCore.1.0.163\build\ViewGeneratorCore.props'))" />
     <Error Condition="!Exists('..\packages\ViewGeneratorCore.1.0.163\build\ViewGeneratorCore.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ViewGeneratorCore.1.0.163\build\ViewGeneratorCore.targets'))" />
     <Error Condition="!Exists('..\packages\ViewGenerator.1.0.127\build\ViewGenerator.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ViewGenerator.1.0.127\build\ViewGenerator.props'))" />
     <Error Condition="!Exists('..\packages\ViewGenerator.1.0.127\build\ViewGenerator.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ViewGenerator.1.0.127\build\ViewGenerator.targets'))" />
   </Target>
   <Import Project="..\packages\Delegate.SassBuilder.1.4.0\build\Delegate.SassBuilder.targets" Condition="Exists('..\packages\Delegate.SassBuilder.1.4.0\build\Delegate.SassBuilder.targets')" />
-  <Import Project="..\packages\Microsoft.TypeScript.MSBuild.3.3.1\build\Microsoft.TypeScript.MSBuild.targets" Condition="Exists('..\packages\Microsoft.TypeScript.MSBuild.3.3.1\build\Microsoft.TypeScript.MSBuild.targets')" />
   <Import Project="..\packages\ViewGeneratorCore.1.0.163\build\ViewGeneratorCore.targets" Condition="Exists('..\packages\ViewGeneratorCore.1.0.163\build\ViewGeneratorCore.targets')" />
   <Import Project="..\packages\ViewGenerator.1.0.127\build\ViewGenerator.targets" Condition="Exists('..\packages\ViewGenerator.1.0.127\build\ViewGenerator.targets')" />
 </Project>

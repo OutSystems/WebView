@@ -7,8 +7,4 @@
       <Visible>True</Visible>
     </None>
   </ItemGroup>
-  <PropertyGroup>
-    <ViewGeneratorNodeJsExe>node</ViewGeneratorNodeJsExe>
-    <TypeScriptBuildMode>true</TypeScriptBuildMode>
-  </PropertyGroup>
 </Project>

@@ -1,12 +1,18 @@
 ﻿<Project>
   <PropertyGroup>
 
+    <CompileDependsOn>
+      GenerateBundle;
+      $(CompileDependsOn);
+    </CompileDependsOn>
+      
     <BuildDependsOn>
       GenerateView;
       $(BuildDependsOn)
     </BuildDependsOn>
 
     <CleanDependsOn>
+      CleanLegacyJSFiles;
       CleanGenerated;
       $(CleanDependsOn);
     </CleanDependsOn>
@@ -15,7 +21,28 @@
     <TransformDuringBuild>
       $(TransformDuringBuild)
     </TransformDuringBuild>
+
   </PropertyGroup>
+
+  <Target Name="CleanLegacyJSFiles" >
+    <ItemGroup>
+      <JSFilesToDelete Include="**\*.js" Exclude="node_modules\**\*.js"/>
+    </ItemGroup>
+    <Message Text="Deleting old files: @(JSFilesToDelete)" Importance="high" />
+    <Delete Files="@(JSFilesToDelete)"/>
+  </Target>
+    
+  <Target Name="GenerateBundle">
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <WebpackBuildMode>development</WebpackBuildMode>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <WebpackBuildMode>production</WebpackBuildMode>
+    </PropertyGroup>
+
+      <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(MSBuildThisFileDirectory)..\tools\node_modules\webpack\bin\webpack.js&quot; --config &quot;$(MSBuildThisFileDirectory)..\tools\webpack.config.js&quot; --mode $(WebpackBuildMode)" />
+  </Target>
   
   <Target Name="GenerateView" BeforeTargets="TransformDuringBuild;PrepareForBuild;CoreCompile" DependsOnTargets="CleanGenerated">
     <Message Importance="Normal" Text="Generating View files" />
