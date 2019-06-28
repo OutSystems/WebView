@@ -7,9 +7,9 @@ namespace WebViewControl {
     public class ResourceUrl {
 
         public const string LocalScheme = "local";
+        public const string CustomScheme = "custom";
 
         internal const string EmbeddedScheme = "embedded";
-        internal const string CustomScheme = "custom";
         internal const string PathSeparator = "/";
 
         private const string AssemblyPathSeparator = ";";
