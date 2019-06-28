@@ -46,7 +46,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="tools\webpack.config.js" />
     <None Include="build\ViewGeneratorCore.props">
       <SubType>Designer</SubType>
     </None>
@@ -55,20 +54,16 @@
     </None>
     <Content Include="tools\tsconfig.json" />
     <None Include="debug-generator.bat" />
+    <Content Include="tools\webpack\tsconfig.json" />
     <None Include="ViewGeneratorCore.nuspec">
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="tools\src\ViewGenerator.ts" />
+    <TypeScriptCompile Include="tools\webpack\webpack.config.ts" />
   </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.TypeScript.MSBuild">
-      <Version>3.3.1</Version>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-      <PrivateAssets>all</PrivateAssets>
-    </PackageReference>
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>npm ci --prefix "$(ProjectDir)tools" "$(ProjectDir)tools"</PreBuildEvent>

@@ -17,6 +17,6 @@
 	"exclude": [
         "node_modules",
         "dist",
-        "webpack.config.js"
+        "webpack"
 	]
 }

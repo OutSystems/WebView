@@ -1,7 +1,7 @@
-﻿import * as path from "path";
-import * as webpack from "webpack";
+﻿import * as Path from "path";
+import * as Webpack from "webpack";
 
-const config: webpack.Configuration = {
+const config: Webpack.Configuration = {
     target: "node",
 
     entry: {
@@ -14,7 +14,7 @@ const config: webpack.Configuration = {
     },
 
     output: {
-        path: path.resolve("."),
+        path: Path.resolve("."),
         filename: "ReactViewResources.js"
     },
 

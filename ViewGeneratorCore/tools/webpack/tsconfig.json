@@ -1,0 +1,13 @@
+﻿{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es5",
+    "esModuleInterop": true
+  },
+  "compileOnSave": true,
+  "exclude": [
+    "dist",
+    "src",
+    "node_modules"
+  ]
+}
