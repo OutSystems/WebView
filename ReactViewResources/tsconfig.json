@@ -18,6 +18,7 @@
     "compileOnSave": true,
     "exclude": [
         "libs",
+        "webpack",
         "node_modules"
     ]
 }

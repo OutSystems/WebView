@@ -1,20 +1,20 @@
-﻿const path = require('path');
+﻿import * as path from "path";
+import * as webpack from "webpack";
 
-module.exports = {
-
-    target: 'node',
+const config: webpack.Configuration = {
+    target: "node",
 
     entry: {
-        'react-view-resources': [
-            './node_modules/react/umd/react.production.min.js',
-            './node_modules/react-dom/umd/react-dom.production.min.js',
-            './node_modules/prop-types/prop-types.min.js',
-            './libs/ViewFrame.tsx'
+        "react-view-resources": [
+            "./node_modules/react/umd/react.production.min.js",
+            "./node_modules/react-dom/umd/react-dom.production.min.js",
+            "./node_modules/prop-types/prop-types.min.js",
+            "./libs/ViewFrame.tsx"
         ]
     },
 
     output: {
-        path: path.resolve('.'),
+        path: path.resolve("."),
         filename: "ReactViewResources.js"
     },
 
@@ -38,3 +38,5 @@ module.exports = {
         ]
     }
 };
+
+export default config;

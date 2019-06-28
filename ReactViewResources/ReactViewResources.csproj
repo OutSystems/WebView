@@ -62,22 +62,17 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="node_modules\require-css\css.min.js" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="node_modules\requirejs\require.js" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="index.html" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="Loader.ts" />
-    <TypeScriptCompile Include="libs\ViewFrame.tsx" />
+    <None Include="libs\ViewFrame.tsx" />
+    <TypeScriptCompile Include="webpack\webpack.config.ts" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ReactViewResources.js" />
     <Content Include="tsconfig.json" />
-    <None Include="webpack.config.js" />
+    <Content Include="webpack\tsconfig.json" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.TypeScript.MSBuild">
@@ -93,7 +88,7 @@
   <PropertyGroup>
     <PreBuildEvent>npm ci</PreBuildEvent>
   </PropertyGroup>
-  <Target Name="GenerateBundle" BeforeTargets="AfterBuild" >
-    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ProjectDir)node_modules\webpack\bin\webpack.js&quot; --mode production" />
+  <Target Name="GenerateBundle" BeforeTargets="AfterBuild">
+    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ProjectDir)node_modules\webpack\bin\webpack.js&quot; --config &quot;$(ProjectDir)webpack\webpack.config.js&quot; --mode production" />
   </Target>
 </Project>

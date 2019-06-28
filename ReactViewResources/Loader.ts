@@ -79,18 +79,21 @@ function loadRequire(): Promise<void> {
 }
 
 function loadFramework(): void {
-    const RequireCssPath = ExternalLibsPath + "require-css/css.min.js";
 
-    require.config({
-        paths: getRequirePaths(),
-        map: {
-            "*": {
-                "css": RequireCssPath
-            }
-        }
-    });
+    // TODO mal
 
-    require(["react", "react-dom", RequireCssPath]); // preload react and require-css
+    //const RequireCssPath = ExternalLibsPath + "require-css/css.min.js";
+
+    //require.config({
+    //    paths: getRequirePaths(),
+    //    map: {
+    //        "*": {
+    //            "css": RequireCssPath
+    //        }
+    //    }
+    //});
+
+    //require(["react", "react-dom", RequireCssPath]); // preload react and require-css
 }
 
 export function loadStyleSheet(stylesheet: string): void {
@@ -98,7 +101,9 @@ export function loadStyleSheet(stylesheet: string): void {
         try {
             await BootstrapTask.promise;
 
-            await new Promise((resolve) => require(["css!" + stylesheet], resolve));
+            // TODO mal
+
+            // await new Promise((resolve) => require(["css!" + stylesheet], resolve));
 
             if (document.head) {
                 // mark default stylesheet as sticky to prevent it from being removed and added again later
@@ -124,9 +129,12 @@ export function loadPlugins(plugins: string[][], mappings: Dictionary<string>): 
 
             if (mappings) {
                 let paths = Object.assign(getRequirePaths(), mappings);
-                require.config({
-                    paths: paths
-                });
+
+                // TODO mal
+                
+                //require.config({
+                //    paths: paths
+                //});
             }
 
             if (plugins && plugins.length > 0) {
@@ -137,14 +145,16 @@ export function loadPlugins(plugins: string[][], mappings: Dictionary<string>): 
                     const NativeObjectName = m[1];
                     pluginsPromises.push(new Promise<void>((resolve, reject) => {
                         CefSharp.BindObjectAsync(NativeObjectName, NativeObjectName).then(() => {
-                            require([ModuleName], (Module: any) => {
-                                if (Module) {
-                                    Modules[ModuleName] = Module.default;
-                                    resolve();
-                                } else {
-                                    reject(`Failed to load '${ModuleName}' (might not be a module)`);
-                                }
-                            });
+                            // TODO mal
+
+                            //require([ModuleName], (Module: any) => {
+                            //    if (Module) {
+                            //        Modules[ModuleName] = Module.default;
+                            //        resolve();
+                            //    } else {
+                            //        reject(`Failed to load '${ModuleName}' (might not be a module)`);
+                            //    }
+                            //});
                         });
                     }));
                 });
@@ -208,21 +218,25 @@ export function loadComponent(
                 paths = Object.assign(paths, mappings);
             }
 
-            require.config({
-                paths: paths,
-                baseUrl: baseUrl,
-                urlArgs: cacheInvalidationSuffix
-            });
+            // TODO mal
+
+            //require.config({
+            //    paths: paths,
+            //    baseUrl: baseUrl,
+            //    urlArgs: cacheInvalidationSuffix
+            //});
 
             // load component module
             const [React, ReactDOM, Component] = await new Promise<[React, ReactDOM, any]>((resolve, reject) => {
-                require(["react", "react-dom", componentSource], (React: React, ReactDOM: ReactDOM, UserComponentModule: any) => {
-                    if (UserComponentModule.default) {
-                        resolve([React, ReactDOM, UserComponentModule.default]);
-                    } else {
-                        reject(`Component module ('${componentSource}') does not have a default export.`);
-                    }
-                });
+                // TODO mal
+
+                //require(["react", "react-dom", componentSource], (React: React, ReactDOM: ReactDOM, UserComponentModule: any) => {
+                //    if (UserComponentModule.default) {
+                //        resolve([React, ReactDOM, UserComponentModule.default]);
+                //    } else {
+                //        reject(`Component module ('${componentSource}') does not have a default export.`);
+                //    }
+                //});
             });
 
             // create proxy for properties obj to delay its methods execution until native object is ready
