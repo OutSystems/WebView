@@ -345,9 +345,7 @@ export function transform(module: Units.TsModule, context: Object): string {
     let fileExtensionLen = fullPath.length - fullPath.lastIndexOf(".");
     let filenameWithoutExtension = fullPath.slice(fullPath.lastIndexOf("/") + 1, -fileExtensionLen);
 
-    let javascriptFullPath = fullPath.slice(0, -fileExtensionLen) + JsExtension; // replace the tsx/ts extension with js extension
-
-    let javascriptRelativePath = javascriptFullPath.substr(baseDir.length + 1); // remove the base dir
+    let javascriptRelativePath = combinePath(context["$output"], filenameWithoutExtension) + JsExtension;
 
     if (javascriptDistPath.endsWith(JsExtension)) {
         // dist path has extension... then its a complete filename, use as the output
@@ -357,7 +355,7 @@ export function transform(module: Units.TsModule, context: Object): string {
         javascriptRelativePath = combinePath(javascriptDistPath, javascriptRelativePath);
     }
 
-    javascriptFullPath = combinePath(baseDir, javascriptRelativePath); // add the base dir
+    let javascriptFullPath = combinePath(baseDir, javascriptRelativePath); // add the base dir
     javascriptRelativePath = "/" + combinePath(namespace, javascriptRelativePath); // add the namespace
 
     let output = normalizePath(context["$output"]);
