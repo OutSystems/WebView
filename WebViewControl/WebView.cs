@@ -660,12 +660,16 @@ namespace WebViewControl {
                 AsyncCancellationTokenSource.Token);
         }
 
-        [DebuggerNonUserCode]
         private void ExecuteWithAsyncErrorHandling(Action action) {
+            ExecuteWithAsyncErrorHandlingOnFrame(action, null);
+        }
+
+        [DebuggerNonUserCode]
+        private void ExecuteWithAsyncErrorHandlingOnFrame(Action action, string frameName) {
             try {
                 action();
             } catch (Exception e) {
-                ForwardUnhandledAsyncException(e);
+                ForwardUnhandledAsyncException(e, frameName);
             }
         }
 
@@ -678,7 +682,7 @@ namespace WebViewControl {
             }
         }
 
-        private void ForwardUnhandledAsyncException(Exception e) {
+        private void ForwardUnhandledAsyncException(Exception e, string frameName = null) {
             if (isDisposing) {
                 return;
             }
@@ -687,7 +691,7 @@ namespace WebViewControl {
 
             var unhandledAsyncException = UnhandledAsyncException;
             if (unhandledAsyncException != null) {
-                var eventArgs = new UnhandledAsyncExceptionEventArgs(e);
+                var eventArgs = new UnhandledAsyncExceptionEventArgs(e, frameName);
                 unhandledAsyncException(eventArgs);
                 handled = eventArgs.Handled;
             }
