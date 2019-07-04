@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -692,10 +693,11 @@ namespace WebViewControl {
             }
 
             if (!handled) {
+                var exceptionInfo = ExceptionDispatchInfo.Capture(e);
                 // don't use invoke async, as it won't forward the exception to the dispatcher unhandled exception event
                 Dispatcher.BeginInvoke((Action)(() => {
                     if (!isDisposing) {
-                        throw e;
+                        exceptionInfo?.Throw();
                     }
                 }));
             }
