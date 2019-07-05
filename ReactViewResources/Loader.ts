@@ -4,9 +4,9 @@
 
 type Dictionary<T> = { [key: string]: T };
 
-// TODO missing typings
-type React = any;
-type ReactDOM = any;
+const ReactLib: string = "React";
+const ReactDOMLib: string = "ReactDOM";
+const ModuleLib: string = "Bundle";
 
 class Task<ResultType> {
 
@@ -64,36 +64,25 @@ export async function showErrorMessage(msg: string): Promise<void> {
     msgContainer.innerText = msg;
 }
 
-function loadRequire(): Promise<void> {
+function loadScript(scriptSrc: string): Promise<void> {
     return new Promise((resolve) => {
-        // load require js
-        let requireScript = document.createElement("script");
-        requireScript.src = ExternalLibsPath + "requirejs/require.js";
-        requireScript.addEventListener("load", () => resolve());
+        // load react view resources
+        let script = document.createElement("script");
+        script.src = scriptSrc;
+        script.addEventListener("load", () => resolve());
         let head = document.head;
         if (!head) {
             throw new Error("Document not ready");
         }
-        head.appendChild(requireScript);
+        head.appendChild(script);
     });
 }
 
-function loadFramework(): void {
-
-    // TODO mal
-
-    //const RequireCssPath = ExternalLibsPath + "require-css/css.min.js";
-
-    //require.config({
-    //    paths: getRequirePaths(),
-    //    map: {
-    //        "*": {
-    //            "css": RequireCssPath
-    //        }
-    //    }
-    //});
-
-    //require(["react", "react-dom", RequireCssPath]); // preload react and require-css
+async function loadFramework(): Promise<void> {
+    /* React */ await loadScript(ExternalLibsPath + "react/umd/react.production.min.js");
+    /* ReactDOM */ await loadScript(ExternalLibsPath + "react-dom/umd/react-dom.production.min.js");
+    /* Prop-Types */ await loadScript(ExternalLibsPath + "prop-types/prop-types.min.js");
+    /* React View Resources */ await loadScript(LibsPath + "ReactViewResources.js");
 }
 
 export function loadStyleSheet(stylesheet: string): void {
@@ -102,7 +91,6 @@ export function loadStyleSheet(stylesheet: string): void {
             await BootstrapTask.promise;
 
             // TODO mal
-
             // await new Promise((resolve) => require(["css!" + stylesheet], resolve));
 
             if (document.head) {
@@ -122,20 +110,10 @@ export function loadStyleSheet(stylesheet: string): void {
     innerLoad();
 }
 
-export function loadPlugins(plugins: string[][], mappings: Dictionary<string>): void {
+export function loadPlugins(plugins: string[][], baseUrls: Dictionary<string>, mappings: Dictionary<string>): void {
     async function innerLoad() {
         try {
             await BootstrapTask.promise;
-
-            if (mappings) {
-                let paths = Object.assign(getRequirePaths(), mappings);
-
-                // TODO mal
-                
-                //require.config({
-                //    paths: paths
-                //});
-            }
 
             if (plugins && plugins.length > 0) {
                 // load plugin modules
@@ -144,17 +122,22 @@ export function loadPlugins(plugins: string[][], mappings: Dictionary<string>): 
                     const ModuleName = m[0];
                     const NativeObjectName = m[1];
                     pluginsPromises.push(new Promise<void>((resolve, reject) => {
-                        CefSharp.BindObjectAsync(NativeObjectName, NativeObjectName).then(() => {
-                            // TODO mal
+                        CefSharp.BindObjectAsync(NativeObjectName, NativeObjectName).then(async () => {
 
-                            //require([ModuleName], (Module: any) => {
-                            //    if (Module) {
-                            //        Modules[ModuleName] = Module.default;
-                            //        resolve();
-                            //    } else {
-                            //        reject(`Failed to load '${ModuleName}' (might not be a module)`);
-                            //    }
-                            //});
+                            if (ModuleName) {
+                                // load plugin
+                                let bundleScript = document.createElement("script");
+                                bundleScript.src = baseUrls[ModuleName] + ModuleName + ".js";
+                                bundleScript.addEventListener("load", () => resolve());
+                                let head = document.head;
+                                if (!head) {
+                                    throw new Error("Document not ready");
+                                }
+                                head.appendChild(bundleScript);
+
+                            } else {
+                                reject(`Failed to load '${ModuleName}' (might not be a module)`);
+                            }
                         });
                     }));
                 });
@@ -213,31 +196,22 @@ export function loadComponent(
             }
             await Promise.all(promisesToWaitFor);
 
-            let paths = getRequirePaths();
-            if (mappings) {
-                paths = Object.assign(paths, mappings);
-            }
-
-            // TODO mal
-
-            //require.config({
-            //    paths: paths,
-            //    baseUrl: baseUrl,
-            //    urlArgs: cacheInvalidationSuffix
-            //});
-
             // load component module
-            const [React, ReactDOM, Component] = await new Promise<[React, ReactDOM, any]>((resolve, reject) => {
-                // TODO mal
+            await new Promise((resolve) => {
 
-                //require(["react", "react-dom", componentSource], (React: React, ReactDOM: ReactDOM, UserComponentModule: any) => {
-                //    if (UserComponentModule.default) {
-                //        resolve([React, ReactDOM, UserComponentModule.default]);
-                //    } else {
-                //        reject(`Component module ('${componentSource}') does not have a default export.`);
-                //    }
-                //});
+                let bundleScript = document.createElement("script");
+                bundleScript.src = baseUrl + componentName + ".js"; 
+                bundleScript.addEventListener("load", () => resolve());
+                let head = document.head;
+                if (!head) {
+                    throw new Error("Document not ready");
+                }
+                head.appendChild(bundleScript);
             });
+
+            const Component = window[ModuleLib].default;
+            const React = window[ReactLib];
+            const ReactDOM = window[ReactDOMLib];
 
             // create proxy for properties obj to delay its methods execution until native object is ready
             const Properties = createPropertiesProxy(componentNativeObject, componentNativeObjectName);
@@ -287,7 +261,6 @@ async function bootstrap() {
     window.addEventListener("drop", (e) => e.preventDefault());
 
     await waitForDOMReady();
-    await loadRequire();
     await loadFramework();
 
     // bind event listener object ahead-of-time
@@ -337,16 +310,6 @@ function waitForNextPaint() {
 
 function getAllStylesheets(): HTMLLinkElement[] {
     return document.head ? Array.from(document.head.getElementsByTagName("link")) : [];
-}
-
-function getRequirePaths() {
-    // load react
-    return {
-        "prop-types": ExternalLibsPath + "prop-types/prop-types.min",
-        "react": ExternalLibsPath + "react/umd/react.production.min",
-        "react-dom": ExternalLibsPath + "react-dom/umd/react-dom.production.min",
-        "ViewFrame": LibsPath + "libs/ViewFrame",
-    };
 }
 
 function waitForDOMReady() {

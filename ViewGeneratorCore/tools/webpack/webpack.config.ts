@@ -39,21 +39,23 @@ require(Path.resolve('./ts2lang.json')).tasks.forEach(t =>
     getConfiguration(t.input, t.output)
 );
 
-const config: Webpack.Configuration = {
-    target: 'node',
-
+var standardConfig: Webpack.Configuration = {
     entry: entryMap,
 
     externals: {
-        'react': 'react',
-        'react-dom': 'react-dom',
+        'react': 'React',
+        'react-dom': 'ReactDOM',
         'ViewFrame': 'ViewFrame'
     },
 
     output: {
         path: Path.resolve('.'),
         filename: getOutputFileName,
-        chunkFilename: "Generated/[name].js"
+        chunkFilename: "Generated/[name].js",
+        library: "Bundle",
+        libraryTarget: 'umd',
+        umdNamedDefine: true,
+        globalObject: 'window'
     },
 
     optimization: {
@@ -76,6 +78,16 @@ const config: Webpack.Configuration = {
             { test: /\.tsx?$/, loader: "ts-loader" }
         ]
     }
+};
+
+const config = (_, argv) => {
+    if (argv.mode === "development") {
+        standardConfig.devtool = "inline-source-map";
+        standardConfig.optimization = {
+            minimize: false,
+        }
+    }
+    return standardConfig;
 };
 
 export default config;

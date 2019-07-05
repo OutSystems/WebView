@@ -195,6 +195,7 @@ namespace ReactViewControl {
             var pluginsWithNativeObject = Plugins.Where(p => !string.IsNullOrEmpty(p.NativeObjectName)).ToArray();
             var loadArgs = new[] {
                 JavascriptSerializer.Serialize(pluginsWithNativeObject.Select(m => new[] { m.Name, GetNativeObjectFullName(m.NativeObjectName, frameName) })), // plugins
+                JavascriptSerializer.Serialize(Plugins.Select(m => new KeyValuePair<string, object>(m.Name, ToFullUrl(VirtualPathUtility.GetDirectory(NormalizeUrl(m.JavascriptSource)))))),
                 GetMappings()
             };
 

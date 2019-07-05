@@ -71,6 +71,9 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="ReactViewResources.js" />
+    <EmbeddedResource Include="node_modules\prop-types\prop-types.min.js" />
+    <EmbeddedResource Include="node_modules\react-dom\umd\react-dom.production.min.js" />
+    <EmbeddedResource Include="node_modules\react\umd\react.production.min.js" />
     <Content Include="tsconfig.json" />
     <Content Include="webpack\tsconfig.json" />
   </ItemGroup>
@@ -89,6 +92,12 @@
     <PreBuildEvent>npm ci</PreBuildEvent>
   </PropertyGroup>
   <Target Name="GenerateBundle" BeforeTargets="AfterBuild">
-    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ProjectDir)node_modules\webpack\bin\webpack.js&quot; --config &quot;$(ProjectDir)webpack\webpack.config.js&quot; --mode production" />
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <WebpackBuildMode>development</WebpackBuildMode>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <WebpackBuildMode>production</WebpackBuildMode>
+    </PropertyGroup>
+    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ProjectDir)node_modules\webpack\bin\webpack.js&quot; --config &quot;$(ProjectDir)webpack\webpack.config.js&quot; --mode $(WebpackBuildMode)" />
   </Target>
 </Project>
