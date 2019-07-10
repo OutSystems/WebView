@@ -3,8 +3,7 @@
   "main": "index.js",
   "devDependencies": {
     "@types/react-dom": "16.8.2",
-    "@types/webpack": "4.4.34",
-    "@types/node": "12.0.10"
+    "@types/webpack": "4.4.34"
   },
   "dependencies": {
     "react": "16.8.1",

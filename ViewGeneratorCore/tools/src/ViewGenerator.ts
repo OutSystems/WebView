@@ -39,6 +39,7 @@ class Generator {
         module: Units.TsModule,
         private namespace: string,
         private relativePath: string,
+        private originalSourceFolder: string,
         private fullPath: string,
         private filename: string,
         private preamble: string,
@@ -250,6 +251,7 @@ class Generator {
             `    ${f(this.generateComponentBody(generatePropertyEvent, generateProperty, generateBehaviorMethod))}\n` +
             `    \n` +
             `    protected override string JavascriptSource => \"${this.relativePath}\";\n` +
+            `    protected override string OriginalSourceFolder => \"${this.originalSourceFolder}\";\n` +
             `    protected override string NativeObjectName => \"${this.propsInterfaceCoreName}\";\n` +
             `    protected override string ModuleName => \"${this.filename}\";\n` +
             `    protected override object CreateNativeObject() => new ${PropertiesClassName}(this);\n` +
@@ -345,7 +347,8 @@ export function transform(module: Units.TsModule, context: Object): string {
     let fileExtensionLen = fullPath.length - fullPath.lastIndexOf(".");
     let filenameWithoutExtension = fullPath.slice(fullPath.lastIndexOf("/") + 1, -fileExtensionLen);
 
-    let javascriptRelativePath = combinePath(context["$output"], filenameWithoutExtension) + JsExtension;
+    let output = normalizePath(context["$output"]);
+    let javascriptRelativePath = combinePath(output, filenameWithoutExtension) + JsExtension;
 
     if (javascriptDistPath.endsWith(JsExtension)) {
         // dist path has extension... then its a complete filename, use as the output
@@ -358,14 +361,16 @@ export function transform(module: Units.TsModule, context: Object): string {
     let javascriptFullPath = combinePath(baseDir, javascriptRelativePath); // add the base dir
     javascriptRelativePath = "/" + combinePath(namespace, javascriptRelativePath); // add the namespace
 
-    let output = normalizePath(context["$output"]);
     output = combinePath(output, filenameWithoutExtension + ".Generated.cs");
     context["$output"] = output;
+
+    let originalSourceFolder = "/" + combinePath(namespace, filenameWithoutExtension) + "/";
     
     let generator = new Generator(
         module,
         namespace,
         javascriptRelativePath,
+        originalSourceFolder,
         javascriptFullPath,
         filenameWithoutExtension,
         context["preamble"] || "",

@@ -137,6 +137,7 @@ namespace ReactViewControl {
         private void InternalLoadComponent(IViewModule component, string frameName) {
             var source = NormalizeUrl(component.JavascriptSource);
             var baseUrl = ToFullUrl(VirtualPathUtility.GetDirectory(source));
+            var originalSourceFolder = ToFullUrl(NormalizeUrl(component.OriginalSourceFolder));
             var urlSuffix = cacheInvalidationTimestamp != null ? "t=" + cacheInvalidationTimestamp : null;
 
             var nativeObjectMethodsMap =
@@ -170,7 +171,8 @@ namespace ReactViewControl {
                 JavascriptSerializer.Serialize(Plugins?.Length > 0),
                 componentSerialization,
                 JavascriptSerializer.Serialize(componentHash),
-                GetMappings()
+                GetMappings(),
+                JavascriptSerializer.Serialize(originalSourceFolder)
             };
 
             RegisterNativeObject(component, frameName);

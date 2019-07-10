@@ -164,7 +164,8 @@ export function loadComponent(
     hasPlugins: boolean,
     componentNativeObject: Dictionary<any>,
     componentHash: string,
-    mappings: Dictionary<string>): void {
+    mappings: Dictionary<string>,
+    originalSourceFolder: string): void {
 
     function getComponentCacheKey(propertiesHash: string) {
         return componentSource + "|" + propertiesHash;
@@ -173,7 +174,7 @@ export function loadComponent(
     async function innerLoad() {
         try {
             // force images and other resources load from the appropriate path
-            (document.getElementById("webview_base") as HTMLBaseElement).href = baseUrl;
+            (document.getElementById("webview_base") as HTMLBaseElement).href = originalSourceFolder;
 
             const RootElement = document.getElementById("webview_root") as HTMLDivElement;
 
