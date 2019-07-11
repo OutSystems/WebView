@@ -1,11 +1,11 @@
-﻿using CefSharp;
-using System;
+﻿using System;
+using Xilium.CefGlue;
 
 namespace WebViewControl {
 
     partial class WebView {
 
-        private class CefRenderProcessMessageHandler : IRenderProcessMessageHandler {
+        private class CefRenderProcessMessageHandler : Xilium.CefGlue.CefRenderProcessHandler {
 
             private WebView OwnerWebView { get; }
 
@@ -13,11 +13,11 @@ namespace WebViewControl {
                 OwnerWebView = webView;
             }
 
-            private static bool IgnoreEvent(IFrame frame) {
+            private static bool IgnoreEvent(CefFrame frame) {
                 return frame.Url.StartsWith(ChromeInternalProtocol, StringComparison.InvariantCultureIgnoreCase);
             }
 
-            public void OnContextCreated(IWebBrowser browserControl, IBrowser browser, IFrame frame) {
+            protected override void OnContextCreated(CefBrowser browser, CefFrame frame, CefV8Context context) {
                 if (!IgnoreEvent(frame)) {
                     var javascriptContextCreated = OwnerWebView.JavascriptContextCreated;
                     if (javascriptContextCreated != null) {
@@ -27,7 +27,7 @@ namespace WebViewControl {
                 }
             }
 
-            public void OnContextReleased(IWebBrowser browserControl, IBrowser browser, IFrame frame) {
+            protected override void OnContextReleased(CefBrowser browser, CefFrame frame, CefV8Context context) {
                 if (!IgnoreEvent(frame)) {
                     var javascriptContextReleased = OwnerWebView.JavascriptContextReleased;
                     if (javascriptContextReleased != null) {
@@ -37,9 +37,7 @@ namespace WebViewControl {
                 }
             }
 
-            public void OnFocusedNodeChanged(IWebBrowser browserControl, IBrowser browser, IFrame frame, IDomNode node) { }
-
-            public void OnUncaughtException(IWebBrowser browserControl, IBrowser browser, IFrame frame, CefSharp.JavascriptException exception) {
+            protected override void OnUncaughtException(CefBrowser browser, CefFrame frame, CefV8Context context, CefV8Exception exception, CefV8StackTrace stackTrace) {
                 if (JavascriptExecutor.IsInternalException(exception.Message)) {
                     // ignore internal exceptions, they will be handled by the EvaluateScript caller
                     return;

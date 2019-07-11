@@ -9,7 +9,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using CefSharp;
+using Xilium.CefGlue;
 
 namespace WebViewControl {
 
@@ -62,7 +62,7 @@ namespace WebViewControl {
             private CancellationTokenSource FlushTaskCancelationToken { get; } = new CancellationTokenSource();
             private ManualResetEvent StoppedFlushHandle { get; } = new ManualResetEvent(false);
 
-            private IFrame frame;
+            private CefFrame frame;
             private volatile bool isFlushRunning;
 
             private WebView OwnerWebView { get; }
@@ -70,7 +70,7 @@ namespace WebViewControl {
 #if DEBUG
             private int Id { get; }
 #endif
-            public JavascriptExecutor(WebView owner, IFrame frame = null) {
+            public JavascriptExecutor(WebView owner, CefFrame frame = null) {
                 OwnerWebView = owner;
 #if DEBUG
                 Id = GetHashCode();
@@ -82,7 +82,7 @@ namespace WebViewControl {
 
             public bool IsValid => frame == null || frame.IsValid; // consider valid when not bound (yet) or frame is valid
 
-            public void StartFlush(IFrame frame) {
+            public void StartFlush(CefFrame frame) {
                 lock (FlushTaskCancelationToken) {
                     if (this.frame != null || FlushTaskCancelationToken.IsCancellationRequested) {
                         return;
@@ -155,7 +155,7 @@ namespace WebViewControl {
                     var script = string.Join(";" + Environment.NewLine, scriptsToExecute.Select(s => s.Script));
                     if (frame.IsValid) {
                         var frameName = frame.Name;
-                        var task = frame.EvaluateScriptAsync(
+                        var task = frame.EvaluateScript(
                             WrapScriptWithErrorHandling(script),
                             timeout: OwnerWebView.DefaultScriptsExecutionTimeout);
                         task.Wait(FlushTaskCancelationToken.Token);

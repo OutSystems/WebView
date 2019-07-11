@@ -1,10 +1,10 @@
-﻿using CefSharp;
+﻿using Xilium.CefGlue;
 
 namespace WebViewControl {
 
     partial class WebView {
 
-        private class CefMenuHandler : IContextMenuHandler {
+        private class CefMenuHandler : Xilium.CefGlue.Common.Handlers.ContextMenuHandler {
 
             private WebView OwnerWebView { get; }
 
@@ -12,20 +12,10 @@ namespace WebViewControl {
                 OwnerWebView = webView;
             }
 
-            public void OnBeforeContextMenu(IWebBrowser browserControl, IBrowser browser, IFrame frame, IContextMenuParams parameters, IMenuModel model) {
+            protected override void OnBeforeContextMenu(CefBrowser browser, CefFrame frame, CefContextMenuParams state, CefMenuModel model) {
                 if (OwnerWebView.DisableBuiltinContextMenus) {
                     model.Clear();
                 }
-            }
-
-            public bool OnContextMenuCommand(IWebBrowser browserControl, IBrowser browser, IFrame frame, IContextMenuParams parameters, CefMenuCommand commandId, CefEventFlags eventFlags) {
-                return false;
-            }
-
-            public void OnContextMenuDismissed(IWebBrowser browserControl, IBrowser browser, IFrame frame) { }
-
-            public bool RunContextMenu(IWebBrowser browserControl, IBrowser browser, IFrame frame, IContextMenuParams parameters, IMenuModel model, IRunContextMenuCallback callback) {
-                return false;
             }
         }
     }

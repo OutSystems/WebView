@@ -1,14 +1,14 @@
-﻿using System;
-using CefSharp;
+﻿//using System;
+//using CefSharp;
 
-namespace WebViewControl {
+//namespace WebViewControl {
 
-    partial class WebView {
-        private class CefSchemeHandlerFactory : ISchemeHandlerFactory {
+//    partial class WebView {
+//        private class CefSchemeHandlerFactory : ISchemeHandlerFactory {
 
-            public IResourceHandler Create(IBrowser browser, IFrame frame, string schemeName, IRequest request) {
-                return null;
-            }
-        }
-    }
-}
+//            public IResourceHandler Create(IBrowser browser, IFrame frame, string schemeName, IRequest request) {
+//                return null;
+//            }
+//        }
+//    }
+//}

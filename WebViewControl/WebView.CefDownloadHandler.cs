@@ -1,10 +1,12 @@
-﻿using CefSharp;
+﻿using Xilium.CefGlue;
 
-namespace WebViewControl {
-    
+namespace WebViewControl
+{
+
     partial class WebView {
 
-        private class CefDownloadHandler : IDownloadHandler {
+        private class CefDownloadHandler : Xilium.CefGlue.Common.Handlers.DownloadHandler
+        {
 
             private WebView OwnerWebView { get; }
 
@@ -12,21 +14,17 @@ namespace WebViewControl {
                 OwnerWebView = owner;
             }
 
-            void IDownloadHandler.OnBeforeDownload(IWebBrowser chromiumWebBrowser, IBrowser browser, DownloadItem downloadItem, IBeforeDownloadCallback callback) {
-                if (!callback.IsDisposed) {
-                    using (callback) {
-                        callback.Continue(downloadItem.SuggestedFileName, showDialog: true);
-                    }
-                }
+            protected override void OnBeforeDownload(CefBrowser browser, CefDownloadItem downloadItem, string suggestedName, CefBeforeDownloadCallback callback) {
+                callback.Continue(downloadItem.SuggestedFileName, showDialog: true);
             }
 
-            void IDownloadHandler.OnDownloadUpdated(IWebBrowser chromiumWebBrowser, IBrowser browser, DownloadItem downloadItem, IDownloadItemCallback callback) {
+            protected override void OnDownloadUpdated(CefBrowser browser, CefDownloadItem downloadItem, CefDownloadItemCallback callback) {
                 if (downloadItem.IsComplete) {
                     var downloadCompleted = OwnerWebView.DownloadCompleted;
                     if (downloadCompleted != null) {
                         OwnerWebView.AsyncExecuteInUI(() => downloadCompleted(downloadItem.FullPath));
                     }
-                } else if (downloadItem.IsCancelled) {
+                } else if (downloadItem.IsCanceled) {
                     var downloadCancelled = OwnerWebView.DownloadCancelled;
                     if (downloadCancelled != null) {
                         OwnerWebView.AsyncExecuteInUI(() => downloadCancelled(downloadItem.FullPath));

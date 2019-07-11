@@ -13,8 +13,8 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Threading;
 using CefSharp;
-using CefSharp.ModelBinding;
-using CefSharp.Wpf;
+using Xilium.CefGlue;
+using Xilium.CefGlue.Common.Events;
 
 namespace WebViewControl {
 
@@ -62,7 +62,6 @@ namespace WebViewControl {
         private volatile bool isDisposing;
         private volatile int javascriptPendingCalls;
 
-        private DefaultBinder Binder { get; } = new DefaultBinder(new DefaultFieldNameConverter());
         private BrowserObjectListener EventsListener { get; } = new BrowserObjectListener();
         private CancellationTokenSource AsyncCancellationTokenSource { get; } = new CancellationTokenSource();
 
@@ -109,38 +108,34 @@ namespace WebViewControl {
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void InitializeCef() {
-            if (!Cef.IsInitialized) {
-                var cefSettings = new CefSettings();
-                cefSettings.LogSeverity = string.IsNullOrWhiteSpace(LogFile) ? LogSeverity.Disable : (EnableErrorLogOnly ? LogSeverity.Error : LogSeverity.Verbose);
-                cefSettings.LogFile = LogFile;
-                cefSettings.UncaughtExceptionStackSize = 100; // enable stack capture
-                cefSettings.CachePath = CachePath; // enable cache for external resources to speedup loading
-                cefSettings.WindowlessRenderingEnabled = true;
+            var cefSettings = new CefSettings();
+            cefSettings.LogSeverity = string.IsNullOrWhiteSpace(LogFile) ? CefLogSeverity.Disable : (EnableErrorLogOnly ? CefLogSeverity.Error : CefLogSeverity.Verbose);
+            cefSettings.LogFile = LogFile;
+            cefSettings.UncaughtExceptionStackSize = 100; // enable stack capture
+            cefSettings.CachePath = CachePath; // enable cache for external resources to speedup loading
+            cefSettings.WindowlessRenderingEnabled = true;
 
-                if (DisableGPU) {
-                    cefSettings.CefCommandLineArgs.Add("disable-gpu", "1"); // Disable GPU acceleration
-                    cefSettings.CefCommandLineArgs.Add("disable-gpu-vsync", "1"); //Disable GPU vsync
-                }
+            // TODO
+            //if (DisableGPU) {
+            //    cefSettings.CefCommandLineArgs.Add("disable-gpu", "1"); // Disable GPU acceleration
+            //    cefSettings.CefCommandLineArgs.Add("disable-gpu-vsync", "1"); //Disable GPU vsync
+            //}
 
-                CefSharpSettings.ConcurrentTaskExecution = true;
-                CefSharpSettings.LegacyJavascriptBindingEnabled = true;
-                CefSharpSettings.SubprocessExitIfParentProcessClosed = true;
+            // TODO
+            //foreach (var scheme in CustomSchemes) {
+            //    cefSettings.RegisterScheme(new CefCustomScheme() {
+            //        SchemeName = scheme,
+            //        SchemeHandlerFactory = new CefSchemeHandlerFactory()
+            //    });
+            //}
 
-                foreach (var scheme in CustomSchemes) {
-                    cefSettings.RegisterScheme(new CefCustomScheme() {
-                        SchemeName = scheme,
-                        SchemeHandlerFactory = new CefSchemeHandlerFactory()
-                    });
-                }
+            cefSettings.BrowserSubprocessPath = CefLoader.GetBrowserSubProcessPath();
 
-                cefSettings.BrowserSubprocessPath = CefLoader.GetBrowserSubProcessPath();
+            CefRuntime.Initialize( cefSettings, performDependencyCheck: false, browserProcessHandler: null);
 
-                Cef.Initialize(cefSettings, performDependencyCheck: false, browserProcessHandler: null);
-
-                if (Application.Current != null) {
-                    Application.Current.Exit += OnApplicationExit;
-                    subscribedApplicationExit = true;
-                }
+            if (Application.Current != null) {
+                Application.Current.Exit += OnApplicationExit;
+                subscribedApplicationExit = true;
             }
         }
 
@@ -149,11 +144,7 @@ namespace WebViewControl {
         /// </summary>
         [DebuggerNonUserCode]
         public static void Cleanup() {
-            if (!Cef.IsInitialized) {
-                return;
-            }
-
-            Cef.Shutdown(); // must shutdown cef to free cache files (so that cleanup is able to delete files)
+            CefRuntime.Shutdown(); // must shutdown cef to free cache files (so that cleanup is able to delete files)
 
             if (PersistCache) {
                 return;
@@ -207,7 +198,7 @@ namespace WebViewControl {
 
             chromium = new InternalChromiumBrowser();
             chromium.IsBrowserInitializedChanged += OnWebViewIsBrowserInitializedChanged;
-            chromium.FrameLoadEnd += OnWebViewFrameLoadEnd;
+            chromium.LoadEnd += OnWebViewLoadEnd;
             chromium.LoadError += OnWebViewLoadError;
             chromium.TitleChanged += OnWebViewTitleChanged;
             chromium.PreviewKeyDown += OnPreviewKeyDown;
@@ -215,10 +206,10 @@ namespace WebViewControl {
             chromium.ResourceHandlerFactory = resourceHandlerFactory;
             chromium.LifeSpanHandler = lifeSpanHandler;
             chromium.RenderProcessMessageHandler = new CefRenderProcessMessageHandler(this);
-            chromium.MenuHandler = new CefMenuHandler(this);
+            chromium.ContextMenuHandler = new CefMenuHandler(this);
             chromium.DialogHandler = new CefDialogHandler(this);
             chromium.DownloadHandler = new CefDownloadHandler(this);
-            chromium.CleanupElement = new FrameworkElement(); // prevent chromium to listen to default cleanup element unload events, this will be controlled manually
+            // TODO cefglue chromium.CleanupElement = new FrameworkElement(); // prevent chromium to listen to default cleanup element unload events, this will be controlled manually
 
             RegisterJavascriptObject(Listener.EventListenerObjName, EventsListener);
 
@@ -319,14 +310,14 @@ namespace WebViewControl {
 
         public void ShowDeveloperTools() {
             ExecuteWhenInitialized(() => {
-                chromium.ShowDevTools();
+                chromium.ShowDeveloperTools();
                 isDeveloperToolsOpened = true;
             });
         }
 
         public void CloseDeveloperTools() {
             if (isDeveloperToolsOpened) {
-                chromium.CloseDevTools();
+                chromium.CloseDeveloperTools();
                 isDeveloperToolsOpened = false;
             }
         }
@@ -334,7 +325,7 @@ namespace WebViewControl {
         public bool AllowDeveloperTools { get; set; }
 
         public string Address {
-            get { return chromium.Address; }
+            get { return null; /* TODO return chromium.Address; */ }
             set { LoadUrl(value, MainFrameName); }
         }
 
@@ -521,16 +512,16 @@ namespace WebViewControl {
         }
 
         public void GoBack() {
-            chromium.Back();
+            chromium.GoBack();
         }
 
         public void GoForward() {
-            chromium.Forward();
+            chromium.GoForward();
         }
 
         public void Reload(bool ignoreCache = false) {
             if (chromium.IsBrowserInitialized && !chromium.IsLoading) {
-                chromium.Reload(ignoreCache);
+                chromium.Refresh(/* TODO ignoreCache */);
             }
         }
 
@@ -569,7 +560,7 @@ namespace WebViewControl {
             }
         }
 
-        private void OnWebViewFrameLoadEnd(object sender, FrameLoadEndEventArgs e) {
+        private void OnWebViewLoadEnd(object sender, LoadEndEventArgs e) {
             if (e.Frame.IsMain) {
                 htmlToLoad = null;
             } else {
@@ -578,8 +569,10 @@ namespace WebViewControl {
             }
             var navigated = Navigated;
             if (navigated != null) {
-                var frameName = e.Frame.Name; // store frame name beforehand (cannot do it later, since frame might be disposed)
-                AsyncExecuteInUI(() => navigated(e.Url, frameName));
+                // store frame name and url beforehand (cannot do it later, since frame might be disposed)
+                var url = e.Frame.Url;
+                var frameName = e.Frame.Name; 
+                AsyncExecuteInUI(() => navigated(url, frameName));
             }
         }
 
@@ -595,22 +588,22 @@ namespace WebViewControl {
             }
         }
 
-        private void OnWebViewTitleChanged(object sender, DependencyPropertyChangedEventArgs e) {
+        private void OnWebViewTitleChanged(object sender, string title) {
             TitleChanged?.Invoke();
         }
 
         public static void SetCookie(string url, string domain, string name, string value, DateTime expires) {
-            var cookie = new Cookie() {
+            var cookie = new CefCookie() {
                 Domain = domain,
                 Name = name,
                 Value = value,
                 Expires = expires
             };
-            Cef.GetGlobalCookieManager().SetCookieAsync(url, cookie);
+            // TODO CefRuntime.GetGlobalCookieManager().SetCookieAsync(url, cookie);
         }
 
         public static string CookiesPath {
-            set { Cef.GetGlobalCookieManager().SetStoragePath(value, true); }
+            set { /* TODO Cef.GetGlobalCookieManager().SetStoragePath(value, true); */ }
         }
 
         private bool FilterUrl(string url) {

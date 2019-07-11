@@ -1,18 +1,19 @@
 ﻿using System.Windows;
 using System.Windows.Input;
-using CefSharp.Wpf;
+using Xilium.CefGlue.WPF;
 
 namespace WebViewControl {
 
-    internal class InternalChromiumBrowser : ChromiumWebBrowser {
+    internal class InternalChromiumBrowser : WpfCefBrowser {
 
-        protected override void OnMouseUp(MouseButtonEventArgs e) {
-            base.OnMouseUp(e);
-            e.Handled = false; // let the mouse event be fired
-        }
+        // TODO
+        //protected override void OnMouseUp(MouseButtonEventArgs e) {
+        //    base.OnMouseUp(e);
+        //    e.Handled = false; // let the mouse event be fired
+        //}
 
         internal void CreateBrowser() {
-            CreateOffscreenBrowser(new Size(200, 200));
+            // TODO CreateOffscreenBrowser(new Size(200, 200));
         }
     }
 }

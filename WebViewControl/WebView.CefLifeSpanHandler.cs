@@ -1,12 +1,14 @@
 ﻿using System;
 using System.Diagnostics;
-using CefSharp;
+using Xilium.CefGlue;
 
 namespace WebViewControl {
 
-    partial class WebView {
+    partial class WebView
+    {
 
-        private class CefLifeSpanHandler : ILifeSpanHandler {
+        private class CefLifeSpanHandler : Xilium.CefGlue.Common.Handlers.LifeSpanHandler
+        {
 
             private WebView OwnerWebView { get; }
 
@@ -16,11 +18,7 @@ namespace WebViewControl {
 
             public event Action</*url*/string> PopupOpening;
 
-            void ILifeSpanHandler.OnBeforeClose(IWebBrowser browserControl, IBrowser browser) { }
-            
-            bool ILifeSpanHandler.OnBeforePopup(IWebBrowser browserControl, IBrowser browser, IFrame frame, string targetUrl, string targetFrameName, WindowOpenDisposition targetDisposition, bool userGesture, IPopupFeatures popupFeatures, IWindowInfo windowInfo, IBrowserSettings browserSettings, ref bool noJavascriptAccess, out IWebBrowser newBrowser) {
-                newBrowser = null;
-
+            protected override bool OnBeforePopup(CefBrowser browser, CefFrame frame, string targetUrl, string targetFrameName, CefWindowOpenDisposition targetDisposition, bool userGesture, CefPopupFeatures popupFeatures, CefWindowInfo windowInfo, ref CefClient client, CefBrowserSettings settings, ref bool noJavascriptAccess) {
                 if (targetUrl.StartsWith(ChromeInternalProtocol, StringComparison.InvariantCultureIgnoreCase)) {
                     return false;
                 }
@@ -34,7 +32,7 @@ namespace WebViewControl {
                 } else {
                     return false; // if the url is not well formed let's use the browser to handle the things
                 }
-                
+
                 try {
                     if (PopupOpening != null) {
                         PopupOpening(targetUrl);
@@ -54,13 +52,6 @@ namespace WebViewControl {
                 }
 
                 return true;
-            }
-
-            void ILifeSpanHandler.OnAfterCreated(IWebBrowser browserControl, IBrowser browser) {
-            }
-
-            bool ILifeSpanHandler.DoClose(IWebBrowser browserControl, IBrowser browser) {
-                return false;
             }
         }
     }

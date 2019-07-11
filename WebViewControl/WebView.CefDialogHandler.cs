@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
-using CefSharp;
+﻿using Xilium.CefGlue;
 
-namespace WebViewControl {
+namespace WebViewControl
+{
 
     partial class WebView {
-        private class CefDialogHandler : IDialogHandler {
+        private class CefDialogHandler : Xilium.CefGlue.Common.Handlers.DialogHandler {
 
             private WebView OwnerWebView { get; }
 
@@ -12,7 +12,7 @@ namespace WebViewControl {
                 OwnerWebView = webView;
             }
 
-            bool IDialogHandler.OnFileDialog(IWebBrowser browserControl, IBrowser browser, CefFileDialogMode mode, CefFileDialogFlags flags, string title, string defaultFilePath, List<string> acceptFilters, int selectedAcceptFilter, IFileDialogCallback callback) {
+            protected override bool OnFileDialog(CefBrowser browser, CefFileDialogMode mode, string title, string defaultFilePath, string[] acceptFilters, int selectedAcceptFilter, CefFileDialogCallback callback) {
                 if (OwnerWebView.DisableFileDialogs) {
                     return true;
                 }
