@@ -7,6 +7,7 @@ type Dictionary<T> = { [key: string]: T };
 const ReactLib: string = "React";
 const ReactDOMLib: string = "ReactDOM";
 const ModuleLib: string = "Bundle";
+const JsExtension: string = ".js";
 
 class Task<ResultType> {
 
@@ -123,11 +124,10 @@ export function loadPlugins(plugins: string[][], baseUrls: Dictionary<string>, m
                     const NativeObjectName = m[1];
                     pluginsPromises.push(new Promise<void>((resolve, reject) => {
                         CefSharp.BindObjectAsync(NativeObjectName, NativeObjectName).then(async () => {
-
                             if (ModuleName) {
                                 // load plugin
                                 let bundleScript = document.createElement("script");
-                                bundleScript.src = baseUrls[ModuleName] + ModuleName + ".js";
+                                bundleScript.src = baseUrls[ModuleName] + ModuleName + JsExtension;
                                 bundleScript.addEventListener("load", () => resolve());
                                 let head = document.head;
                                 if (!head) {
@@ -198,17 +198,7 @@ export function loadComponent(
             await Promise.all(promisesToWaitFor);
 
             // load component module
-            await new Promise((resolve) => {
-
-                let bundleScript = document.createElement("script");
-                bundleScript.src = baseUrl + componentName + ".js"; 
-                bundleScript.addEventListener("load", () => resolve());
-                let head = document.head;
-                if (!head) {
-                    throw new Error("Document not ready");
-                }
-                head.appendChild(bundleScript);
-            });
+            await loadScript(baseUrl + componentName + JsExtension);
 
             const Component = window[ModuleLib].default;
             const React = window[ReactLib];

@@ -1,6 +1,7 @@
-﻿import * as Glob from "glob";
-import * as Path from "path";
-import * as Webpack from "webpack";
+﻿import Glob from "glob";
+import Path from "path";
+import Webpack from "webpack";
+import ManifestPlugin, { FileDescriptor } from "webpack-manifest-plugin";
 
 const entryMap: {
     [entry: string]: string
@@ -19,17 +20,45 @@ function getConfiguration(input: string, output: string): void {
         // Exclude node_modules files
         if (!f.includes("node_modules")) {
 
-            let entryName: string = Path.parse(f).name;
+            let entryName: string = Path.parse(f).name.replace(".view", "");
             entryMap[entryName] = './' + f;
             outputMap[entryName] = output;
         }
     });
 }
 
+/*
+ * Generate a manifest for the output.
+ * */
+function generateManifest(seed: object, files: ManifestPlugin.FileDescriptor[]) {
+    let entries = [];
+
+    files.forEach(f => (f.chunk["_groups"] || []).forEach(g => {
+        if (entries.indexOf(g) < 0) {
+            entries.push(g);
+        }
+    }));
+
+    let entryArrayManifest = entries.reduce((acc, entry) => {
+        let name: string = (entry.options || {}).name || (entry.runtimeChunk || {}).name;
+        let files: string[] = [];
+        if (entry.chunks) {
+            entry.chunks.forEach(c => {
+                if (c.files) {
+                    files = files.concat(c.files);
+                }
+            });
+        }
+        return name ? { ...acc, [name]: files } : acc;
+    }, seed);
+
+    return entryArrayManifest;
+}
+
 // 🔨 Webpack allows strings and functions as its output configurations,
 // however, webpack typings only allow strings at the moment. 🔨
 let getOutputFileName: any = (chunkData) => {
-    return Path.join(outputMap[chunkData.chunk.name], "[name].js");
+    return outputMap[chunkData.chunk.name] + "[name].js";
 }
 
 /** 
@@ -60,7 +89,14 @@ var standardConfig: Webpack.Configuration = {
 
     optimization: {
         splitChunks: {
-            chunks: 'all'
+            automaticNameDelimiter: '_',
+            chunks: 'all',
+            minSize: 1,
+            cacheGroups: {
+                vendors: {
+                    test: /[\\/](node_modules)[\\/]/
+                },
+            }
         }
     },
 
@@ -77,15 +113,19 @@ var standardConfig: Webpack.Configuration = {
             { test: /\.css?$/, loader: "style-loader!css-loader" },
             { test: /\.tsx?$/, loader: "ts-loader" }
         ]
-    }
+    },
+
+    plugins: [
+        new ManifestPlugin({
+            fileName: "manifest.json",
+            generate: generateManifest
+        })
+    ]
 };
 
 const config = (_, argv) => {
     if (argv.mode === "development") {
         standardConfig.devtool = "inline-source-map";
-        standardConfig.optimization = {
-            minimize: false,
-        }
     }
     return standardConfig;
 };
