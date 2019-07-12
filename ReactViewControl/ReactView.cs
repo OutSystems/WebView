@@ -22,7 +22,7 @@ namespace ReactViewControl {
 
         private static ReactViewRender CreateReactViewInstance(ReactViewFactory factory) {
             ReactViewRender InnerCreateView() {
-                var view = new ReactViewRender(factory.DefaultStyleSheet, factory.Plugins, factory.EnableViewPreload, factory.EnableDebugMode);
+                var view = new ReactViewRender(factory.DefaultStyleSheet, factory.InitializePlugins(), factory.EnableViewPreload, factory.EnableDebugMode);
                 if (factory.ShowDeveloperTools) {
                     view.ShowDeveloperTools();
                 }
@@ -124,7 +124,7 @@ namespace ReactViewControl {
         }
 
         protected void AddMappings(params SimpleViewModule[] mappings) {
-            View.Plugins = View.Plugins.Concat(mappings).ToArray();
+            View.AddPlugins(mappings);
         }
 
         public bool EnableDebugMode { get => View.EnableDebugMode; set => View.EnableDebugMode = value; }

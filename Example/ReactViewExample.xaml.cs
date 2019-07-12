@@ -12,6 +12,8 @@ namespace Example {
         public ReactViewExample() {
             InitializeComponent();
 
+            exampleView.WithPlugin<ViewPlugin>().NotifyViewLoaded += OnNotifyViewLoaded;
+
             var subView = new SubExampleViewModule();
             subView.ConstantMessage = "This is a sub view";
             subView.GetTime += OnSubViewGetTime;
@@ -37,6 +39,10 @@ namespace Example {
 
         private string OnSubViewGetTime() {
             return DateTime.Now.AddHours(1).ToShortTimeString();
+        }
+
+        private void OnNotifyViewLoaded(string viewName) {
+            Console.WriteLine("On view loaded: " + viewName);
         }
     }
 }

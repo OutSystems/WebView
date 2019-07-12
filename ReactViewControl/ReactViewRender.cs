@@ -34,9 +34,9 @@ namespace ReactViewControl {
         private bool enableDebugMode = false;
         private LoadStatus status;
         private ResourceUrl defaultStyleSheet;
-        private IViewModule[] plugins;
         private FileSystemWatcher fileSystemWatcher;
         private string cacheInvalidationTimestamp;
+        private List<IViewModule> plugins = new List<IViewModule>();
 
         public ReactViewRender(ResourceUrl defaultStyleSheet, IViewModule[] plugins, bool preloadWebView, bool enableDebugMode) {
             UserCallingAssembly = WebView.GetUserCallingMethod().ReflectedType.Assembly;
@@ -47,7 +47,7 @@ namespace ReactViewControl {
             };
 
             DefaultStyleSheet = defaultStyleSheet;
-            Plugins = plugins;
+            AddPlugins(plugins);
             EnableDebugMode = enableDebugMode;
 
             var loadedListener = WebView.AttachListener(ComponentLoadedEventName);
@@ -246,20 +246,21 @@ namespace ReactViewControl {
         }
 
         public IViewModule[] Plugins {
-            get { return plugins; }
-            internal set {
-                if (IsMainComponentLoaded) {
-                    throw new InvalidOperationException($"Cannot set {nameof(Plugins)} after component has been loaded");
-                }
-                var invalidPlugins = value.Where(p => string.IsNullOrEmpty(p.JavascriptSource) || string.IsNullOrEmpty(p.Name));
-                if (invalidPlugins.Any()) {
-                    var pluginName = invalidPlugins.First().Name + "|" + invalidPlugins.First().GetType().Name;
-                    throw new ArgumentException($"Plugin '{pluginName}' is invalid");
-                }
-                plugins = value;
-                foreach(var plugin in plugins) {
-                    BindModule(plugin, WebView.MainFrameName);
-                }
+            get { return plugins.ToArray(); }
+        }
+
+        public void AddPlugins(params IViewModule[] plugins) {
+            if (IsMainComponentLoaded) {
+                throw new InvalidOperationException($"Cannot set {nameof(Plugins)} after component has been loaded");
+            }
+            var invalidPlugins = plugins.Where(p => string.IsNullOrEmpty(p.JavascriptSource) || string.IsNullOrEmpty(p.Name));
+            if (invalidPlugins.Any()) {
+                var pluginName = invalidPlugins.First().Name + "|" + invalidPlugins.First().GetType().Name;
+                throw new ArgumentException($"Plugin '{pluginName}' is invalid");
+            }
+            this.plugins.AddRange(plugins);
+            foreach (var plugin in plugins) {
+                BindModule(plugin, WebView.MainFrameName);
             }
         }
 

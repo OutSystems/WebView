@@ -126,7 +126,7 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="ExampleView\ExampleView.tsx" />
-    <TypeScriptCompile Include="ExampleView\Plugin.ts" />
+    <TypeScriptCompile Include="ExampleView\ViewPlugin.ts" />
     <TypeScriptCompile Include="ExampleView\SubExampleView.tsx" />
   </ItemGroup>
   <ItemGroup>
