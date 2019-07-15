@@ -80,9 +80,14 @@ function loadScript(scriptSrc: string): Promise<void> {
 }
 
 async function loadFramework(): Promise<void> {
-    /* React */ await loadScript(ExternalLibsPath + "react/umd/react.production.min.js");
-    /* ReactDOM */ await loadScript(ExternalLibsPath + "react-dom/umd/react-dom.production.min.js");
-    /* Prop-Types */ await loadScript(ExternalLibsPath + "prop-types/prop-types.min.js");
+    let frameworkPromises: Promise<void>[] = [];
+    frameworkPromises.push(
+        /* React */ loadScript(ExternalLibsPath + "react/umd/react.production.min.js"),
+        /* ReactDOM */ loadScript(ExternalLibsPath + "react-dom/umd/react-dom.production.min.js"),
+        /* Prop-Types */ loadScript(ExternalLibsPath + "prop-types/prop-types.min.js")
+    );
+    await Promise.all(frameworkPromises);
+
     /* React View Resources */ await loadScript(LibsPath + "ReactViewResources.js");
 }
 
@@ -111,7 +116,7 @@ export function loadStyleSheet(stylesheet: string): void {
     innerLoad();
 }
 
-export function loadPlugins(plugins: string[][], baseUrls: Dictionary<string>, mappings: Dictionary<string>): void {
+export function loadPlugins(plugins: string[][]): void {
     async function innerLoad() {
         try {
             await BootstrapTask.promise;
@@ -120,20 +125,25 @@ export function loadPlugins(plugins: string[][], baseUrls: Dictionary<string>, m
                 // load plugin modules
                 let pluginsPromises: Promise<void>[] = [];
                 plugins.forEach(m => {
-                    const ModuleName = m[0];
-                    const NativeObjectName = m[1];
+                    const ModuleName: string = m[0];
+                    const NativeObjectName: string = m[1];
+                    const MainModule: string = m[2];
+
+                    let externalSources: string[] = m.length > 2 ? m.slice(3) : [];
+
                     pluginsPromises.push(new Promise<void>((resolve, reject) => {
                         CefSharp.BindObjectAsync(NativeObjectName, NativeObjectName).then(async () => {
                             if (ModuleName) {
-                                // load plugin
-                                let bundleScript = document.createElement("script");
-                                bundleScript.src = baseUrls[ModuleName] + ModuleName + JsExtension;
-                                bundleScript.addEventListener("load", () => resolve());
-                                let head = document.head;
-                                if (!head) {
-                                    throw new Error("Document not ready");
-                                }
-                                head.appendChild(bundleScript);
+
+                                // External sources
+                                let loadExternalSourcesPromises: Promise<void>[] = [];
+                                externalSources.forEach(s => {
+                                    loadExternalSourcesPromises.push(loadScript(s));
+                                });
+                                await Promise.all(loadExternalSourcesPromises);
+
+                                // Main module
+                                loadScript(MainModule).then(() => resolve());
 
                             } else {
                                 reject(`Failed to load '${ModuleName}' (might not be a module)`);

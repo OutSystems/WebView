@@ -147,18 +147,19 @@ namespace ReactViewControl {
                 .Select(p => new KeyValuePair<string, object>(JavascriptSerializer.GetJavascriptName(p.Key), p.Value));
             var componentSerialization = JavascriptSerializer.Serialize(nativeObjectMethodsMap);
             var componentHash = ComputeHash(componentSerialization);
-            
+
             // loadComponent arguments:
+            //
             // componentName: string,
             // componentSource: string,
             // componentNativeObjectName: string,
-            // baseUrl: string,
-            // cacheInvalidationSuffix: string,
             // hasStyleSheet: boolean,
             // hasPlugins: boolean,
             // componentNativeObject: Dictionary<any>,
             // hash: string,
-            // mappings: Dictionary<string>
+            // componentSourceURL: string,
+            // originalSourceFolder: string,
+            // componentExternalSources: string[]
 
             var loadArgs = new [] {
                 JavascriptSerializer.Serialize(component.Name),
@@ -188,16 +189,14 @@ namespace ReactViewControl {
             ExecuteLoaderFunction("loadStyleSheet", frameName, loadArg);
         }
 
-        private string GetMappings() {
-            return JavascriptSerializer.Serialize(Plugins.Select(m => new KeyValuePair<string, object>(m.Name, NormalizeUrl(ToFullUrl(m.MainSource)))));
-        }
-
         private void InternalLoadPlugins(string frameName) {
             var pluginsWithNativeObject = Plugins.Where(p => !string.IsNullOrEmpty(p.NativeObjectName)).ToArray();
             var loadArgs = new[] {
-                JavascriptSerializer.Serialize(pluginsWithNativeObject.Select(m => new[] { m.Name, GetNativeObjectFullName(m.NativeObjectName, frameName) })), // plugins
-                JavascriptSerializer.Serialize(Plugins.Select(m => new KeyValuePair<string, object>(m.Name, ToFullUrl(VirtualPathUtility.GetDirectory(NormalizeUrl(m.MainSource)))))),
-                GetMappings()
+                JavascriptSerializer.Serialize(pluginsWithNativeObject.Select(m => new [] {
+                    m.Name,
+                    GetNativeObjectFullName(m.NativeObjectName, frameName),
+                    ToFullUrl(m.MainSource.Replace("\\", ResourceUrl.PathSeparator)),
+                }.Concat(m.ExternalSources.Select(s => ToFullUrl(s.Replace("\\", ResourceUrl.PathSeparator))))))
             };
 
             foreach (var module in pluginsWithNativeObject) {

@@ -261,7 +261,7 @@ class Generator {
             `    protected override object CreateNativeObject() => new ${PropertiesClassName}(this);\n` +
             `    protected override string[] Events => ${this.propsInterface ? `new string[] { ${this.propsInterface.functions.map(p => `"${p.name}"`).join(",")} }` : ``};\n` +
             `    protected override string[] ExternalSources => ${this.output ? `new string[] {\n` +
-            `       ${this.output.map(o => `"${o}"`).join(",\n\t\t")}\n` +
+            `        ${this.output.map(o => `"${o}"`).join(",\n\t\t")}\n` +
             `    }` : ``};\n` +
             `    protected override ${keyValuePairType}[] PropertiesValues {\n` +
             `        get { \n` +
@@ -376,7 +376,7 @@ export function transform(module: Units.TsModule, context: Object): string {
     let extSources: string[] = getExternalSources(filenameWithoutExtension,
         namespace,
         combinePath(baseDir, ManifestFileName),
-        file => file !== javascriptRelativePath); // exclude the main module entrypoint
+        file => !javascriptRelativePath.endsWith(file)); // exclude the main module entrypoint
 
     let javascriptFullPath = combinePath(baseDir, javascriptRelativePath); // add the base dir
     javascriptRelativePath = "/" + combinePath(namespace, javascriptRelativePath); // add the namespace
