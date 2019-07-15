@@ -32,7 +32,7 @@
     <Delete Files="@(JSFilesToDelete)"/>
   </Target>
     
-  <Target Name="GenerateBundle">
+  <Target Name="GenerateBundle" DependsOnTargets="Delegate_SassCompile">
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
       <WebpackBuildMode>development</WebpackBuildMode>
     </PropertyGroup>
@@ -44,7 +44,7 @@
       <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(MSBuildThisFileDirectory)..\tools\node_modules\webpack\bin\webpack.js&quot; --config &quot;$(MSBuildThisFileDirectory)..\tools\webpack.config.js&quot; --mode $(WebpackBuildMode)" />
   </Target>
   
-  <Target Name="GenerateView" BeforeTargets="TransformDuringBuild;PrepareForBuild;CoreCompile" DependsOnTargets="CleanGenerated">
+  <Target Name="GenerateView" BeforeTargets="TransformDuringBuild;PrepareForBuild;CoreCompile" DependsOnTargets="CleanGenerated;GenerateBundle">
     <Message Importance="Normal" Text="Generating View files" />
     <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(MSBuildThisFileDirectory)..\tools\node_modules\@outsystems\ts2lang\ts2lang-main.js&quot; -f &quot;$(MSBuildProjectDirectory)\ts2lang.json&quot; -t &quot;$(MSBuildThisFileDirectory)..\tools\ViewGenerator.js&quot;" />
   </Target>

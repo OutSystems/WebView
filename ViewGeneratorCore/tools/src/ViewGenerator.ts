@@ -1,5 +1,6 @@
 ﻿import * as Types from "@outsystems/ts2lang/ts-types";
 import * as Units from "@outsystems/ts2lang/ts-units";
+import * as Path from "path";
 
 const GeneratedFilesHeader = "/*** Auto-generated ***/";
 
@@ -9,6 +10,8 @@ const BaseModuleAliasName = "BaseModule";
 const PropertiesClassName = "Properties";
 const PropertiesInterfaceSuffix = "Properties";
 const BehaviorsInterfaceSuffix = "Behaviors";
+
+const ManifestFileName = "manifest.json";
 
 function f(input: string) {
     if (!input) {
@@ -46,6 +49,7 @@ class Generator {
         private baseComponentClass: string,
         private baseModuleClass: string,
         private baseComponentInterface: string,
+        private output: string[],
         private isModule: boolean) {
 
         this.component = module.classes.filter(c => c.isPublic)[0];
@@ -250,12 +254,15 @@ class Generator {
             `    \n` +
             `    ${f(this.generateComponentBody(generatePropertyEvent, generateProperty, generateBehaviorMethod))}\n` +
             `    \n` +
-            `    protected override string JavascriptSource => \"${this.relativePath}\";\n` +
+            `    protected override string MainSource => \"${this.relativePath}\";\n` +
             `    protected override string OriginalSourceFolder => \"${this.originalSourceFolder}\";\n` +
             `    protected override string NativeObjectName => \"${this.propsInterfaceCoreName}\";\n` +
             `    protected override string ModuleName => \"${this.filename}\";\n` +
             `    protected override object CreateNativeObject() => new ${PropertiesClassName}(this);\n` +
             `    protected override string[] Events => ${this.propsInterface ? `new string[] { ${this.propsInterface.functions.map(p => `"${p.name}"`).join(",")} }` : ``};\n` +
+            `    protected override string[] ExternalSources => ${this.output ? `new string[] {\n` +
+            `       ${this.output.map(o => `"${o}"`).join(",\n\t\t")}\n` +
+            `    }` : ``};\n` +
             `    protected override ${keyValuePairType}[] PropertiesValues {\n` +
             `        get { \n` +
             `            return new ${keyValuePairType}[] {\n` +
@@ -336,6 +343,14 @@ function combinePath(path: string, rest: string) {
     return path + (path.endsWith("/") ? "" : "/") + (rest.startsWith("/") ? rest.substr(1) : rest);
 }
 
+function getExternalSources(entrypoint: string, namespace: string, manifestPath: string, entryFilter: (string) => boolean) {
+    var jsonObject = require(Path.resolve(manifestPath));
+    if (jsonObject.hasOwnProperty(entrypoint)) {
+        return jsonObject[entrypoint].filter(entryFilter).map(outputPath => "/" + namespace + "/" + outputPath);
+    }
+    return [];
+}
+
 export function transform(module: Units.TsModule, context: Object): string {
     debugger; // left on purpose to ease debugging
     const JsExtension = ".js";
@@ -358,13 +373,19 @@ export function transform(module: Units.TsModule, context: Object): string {
         javascriptRelativePath = combinePath(javascriptDistPath, javascriptRelativePath);
     }
 
+    let extSources: string[] = getExternalSources(filenameWithoutExtension,
+        namespace,
+        combinePath(baseDir, ManifestFileName),
+        file => file !== javascriptRelativePath); // exclude the main module entrypoint
+
     let javascriptFullPath = combinePath(baseDir, javascriptRelativePath); // add the base dir
     javascriptRelativePath = "/" + combinePath(namespace, javascriptRelativePath); // add the namespace
 
     output = combinePath(output, filenameWithoutExtension + ".Generated.cs");
     context["$output"] = output;
 
-    let originalSourceFolder = "/" + combinePath(namespace, filenameWithoutExtension) + "/";
+    let sourceFolderName = fullPath.slice(baseDir.length + 1, fullPath.lastIndexOf("/"));
+    let originalSourceFolder = "/" + combinePath(namespace, sourceFolderName) + "/";
     
     let generator = new Generator(
         module,
@@ -377,6 +398,7 @@ export function transform(module: Units.TsModule, context: Object): string {
         context["baseComponentClass"],
         context["baseModuleClass"],
         context["baseComponentInterface"],
+        extSources,
         context["isModule"]
     );
 

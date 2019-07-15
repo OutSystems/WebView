@@ -1,7 +1,7 @@
 ﻿import Glob from "glob";
 import Path from "path";
-import Webpack from "webpack";
-import ManifestPlugin, { FileDescriptor } from "webpack-manifest-plugin";
+import Webpack, { Module } from "webpack";
+import ManifestPlugin, { Chunk } from "webpack-manifest-plugin";
 
 const entryMap: {
     [entry: string]: string
@@ -20,7 +20,7 @@ function getConfiguration(input: string, output: string): void {
         // Exclude node_modules files
         if (!f.includes("node_modules")) {
 
-            let entryName: string = Path.parse(f).name.replace(".view", "");
+            let entryName: string = Path.parse(f).name;
             entryMap[entryName] = './' + f;
             outputMap[entryName] = output;
         }
@@ -53,6 +53,14 @@ function generateManifest(seed: object, files: ManifestPlugin.FileDescriptor[]) 
     }, seed);
 
     return entryArrayManifest;
+}
+
+/*
+ * Generate a name for a chunk.
+ * */
+function generateChunkName(_module: Module, chunks: Chunk[], cacheGroupKey: string) {
+    const allChunksNames = chunks.map(item => item.name.replace(".view", "").replace(".", "_")).join('_');
+    return cacheGroupKey === "default" ? allChunksNames : cacheGroupKey + "_" + allChunksNames;
 }
 
 // 🔨 Webpack allows strings and functions as its output configurations,
@@ -89,9 +97,9 @@ var standardConfig: Webpack.Configuration = {
 
     optimization: {
         splitChunks: {
-            automaticNameDelimiter: '_',
             chunks: 'all',
             minSize: 1,
+            name: generateChunkName,
             cacheGroups: {
                 vendors: {
                     test: /[\\/](node_modules)[\\/]/
@@ -122,6 +130,10 @@ var standardConfig: Webpack.Configuration = {
         })
     ]
 };
+
+// Current webpack typings do not recognize automaticNameMaxLength option.
+// Default is 30 characters, so we need to increase this value.
+(standardConfig.optimization.splitChunks as any).automaticNameMaxLength = 100;
 
 const config = (_, argv) => {
     if (argv.mode === "development") {

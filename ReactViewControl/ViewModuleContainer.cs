@@ -7,7 +7,7 @@ namespace ReactViewControl {
 
         private IExecutionEngine engine;
 
-        protected virtual string JavascriptSource => null;
+        protected virtual string MainSource => null;
         protected virtual string OriginalSourceFolder => null;
         protected virtual string NativeObjectName => null;
         protected virtual string ModuleName => null;
@@ -17,9 +17,11 @@ namespace ReactViewControl {
 
         protected virtual string[] Events => new string[0];
 
+        protected virtual string[] ExternalSources => new string[0];
+
         protected virtual KeyValuePair<string, object>[] PropertiesValues => new KeyValuePair<string, object>[0];
 
-        string IViewModule.JavascriptSource => JavascriptSource;
+        string IViewModule.MainSource => MainSource;
 
         string IViewModule.OriginalSourceFolder => OriginalSourceFolder;
 
@@ -32,6 +34,8 @@ namespace ReactViewControl {
         object IViewModule.CreateNativeObject() => CreateNativeObject();
 
         string[] IViewModule.Events => Events;
+
+        string[] IViewModule.ExternalSources => ExternalSources;
 
         KeyValuePair<string, object>[] IViewModule.PropertiesValues => PropertiesValues;
 

@@ -4,7 +4,7 @@ namespace ReactViewControl {
 
     public interface IViewModule {
 
-        string JavascriptSource { get; }
+        string MainSource { get; }
 
         string OriginalSourceFolder { get; }
 
@@ -13,6 +13,8 @@ namespace ReactViewControl {
         string Name { get; }
 
         string Source { get; }
+
+        string[] ExternalSources { get; }
 
         object CreateNativeObject();
 

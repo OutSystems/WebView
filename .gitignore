@@ -29,3 +29,4 @@ ViewGenerator/contentFiles/node_modules/
 Tests/TestResult.xml
 ViewGenerator/declarations/
 ReactViewResources/ReactViewResources.js
+manifest.json

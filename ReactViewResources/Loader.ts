@@ -157,15 +157,14 @@ export function loadComponent(
     componentName: string,
     componentSource: string,
     componentNativeObjectName: string,
-    baseUrl: string,
-    cacheInvalidationSuffix: string,
     maxPreRenderedCacheEntries: number,
     hasStyleSheet: boolean,
     hasPlugins: boolean,
     componentNativeObject: Dictionary<any>,
     componentHash: string,
-    mappings: Dictionary<string>,
-    originalSourceFolder: string): void {
+    componentSourceURL: string,
+    originalSourceFolder: string,
+    componentExternalSources: string[]): void {
 
     function getComponentCacheKey(propertiesHash: string) {
         return componentSource + "|" + propertiesHash;
@@ -197,8 +196,15 @@ export function loadComponent(
             }
             await Promise.all(promisesToWaitFor);
 
-            // load component module
-            await loadScript(baseUrl + componentName + JsExtension);
+            // load component module external sources
+            let loadExternalSourcesPromises: Promise<void>[] = [];
+            componentExternalSources.forEach(s => {
+                loadExternalSourcesPromises.push(loadScript(s));            
+            });
+            await Promise.all(loadExternalSourcesPromises);
+
+            // main component script should be the last to be loaded, otherwise errors might occur
+            await loadScript(componentSourceURL);
 
             const Component = window[ModuleLib].default;
             const React = window[ReactLib];
