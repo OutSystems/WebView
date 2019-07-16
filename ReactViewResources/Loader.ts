@@ -95,9 +95,6 @@ export function loadStyleSheet(stylesheet: string): void {
         try {
             await BootstrapTask.promise;
 
-            // TODO mal
-            // await new Promise((resolve) => require(["css!" + stylesheet], resolve));
-
             if (document.head) {
                 // mark default stylesheet as sticky to prevent it from being removed and added again later
                 let linkElement = getAllStylesheets().find(l => l.href === stylesheet);
