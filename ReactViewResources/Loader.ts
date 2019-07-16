@@ -80,15 +80,14 @@ function loadScript(scriptSrc: string): Promise<void> {
 }
 
 async function loadFramework(): Promise<void> {
-    let frameworkPromises: Promise<void>[] = [];
-    frameworkPromises.push(
-        /* React */ loadScript(ExternalLibsPath + "react/umd/react.production.min.js"),
-        /* ReactDOM */ loadScript(ExternalLibsPath + "react-dom/umd/react-dom.production.min.js"),
-        /* Prop-Types */ loadScript(ExternalLibsPath + "prop-types/prop-types.min.js")
-    );
-    await Promise.all(frameworkPromises);
+    let frameworkPromises: Promise<void>[] = [
+        loadScript(ExternalLibsPath + "react/umd/react.production.min.js"), /* React */ 
+        loadScript(ExternalLibsPath + "react-dom/umd/react-dom.production.min.js"), /* ReactDOM */ 
+        loadScript(ExternalLibsPath + "prop-types/prop-types.min.js") /* Prop-Types */
+    ];
 
-    /* React View Resources */ await loadScript(LibsPath + "ReactViewResources.js");
+    await Promise.all(frameworkPromises);
+    await loadScript(LibsPath + "ReactViewResources.js"); /* React View Resources */ 
 }
 
 export function loadStyleSheet(stylesheet: string): void {
@@ -129,20 +128,20 @@ export function loadPlugins(plugins: string[][]): void {
                     const NativeObjectName: string = m[1];
                     const MainModule: string = m[2];
 
-                    let externalSources: string[] = m.length > 2 ? m.slice(3) : [];
+                    let pluginScripts: string[] = m.length > 2 ? m.slice(3) : [];
 
                     pluginsPromises.push(new Promise<void>((resolve, reject) => {
                         CefSharp.BindObjectAsync(NativeObjectName, NativeObjectName).then(async () => {
                             if (ModuleName) {
 
-                                // External sources
-                                let loadExternalSourcesPromises: Promise<void>[] = [];
-                                externalSources.forEach(s => {
-                                    loadExternalSourcesPromises.push(loadScript(s));
+                                // plugin script sources
+                                let pluginScriptsPromises: Promise<void>[] = [];
+                                pluginScripts.forEach(s => {
+                                    pluginScriptsPromises.push(loadScript(s));
                                 });
-                                await Promise.all(loadExternalSourcesPromises);
+                                await Promise.all(pluginScriptsPromises);
 
-                                // Main module
+                                // main script module
                                 loadScript(MainModule).then(() => resolve());
 
                             } else {
@@ -172,9 +171,8 @@ export function loadComponent(
     hasPlugins: boolean,
     componentNativeObject: Dictionary<any>,
     componentHash: string,
-    componentSourceURL: string,
     originalSourceFolder: string,
-    componentExternalSources: string[]): void {
+    componentPluginScripts: string[]): void {
 
     function getComponentCacheKey(propertiesHash: string) {
         return componentSource + "|" + propertiesHash;
@@ -206,15 +204,15 @@ export function loadComponent(
             }
             await Promise.all(promisesToWaitFor);
 
-            // load component module external sources
-            let loadExternalSourcesPromises: Promise<void>[] = [];
-            componentExternalSources.forEach(s => {
-                loadExternalSourcesPromises.push(loadScript(s));            
+            // load component module plugin scripts
+            let loadComponentPluginScriptsPromises: Promise<void>[] = [];
+            componentPluginScripts.forEach(s => {
+                loadComponentPluginScriptsPromises.push(loadScript(s));            
             });
-            await Promise.all(loadExternalSourcesPromises);
+            await Promise.all(loadComponentPluginScriptsPromises);
 
             // main component script should be the last to be loaded, otherwise errors might occur
-            await loadScript(componentSourceURL);
+            await loadScript(componentSource);
 
             const Component = window[ModuleLib].default;
             const React = window[ReactLib];

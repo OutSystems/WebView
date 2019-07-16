@@ -135,10 +135,9 @@ namespace ReactViewControl {
         }
 
         private void InternalLoadComponent(IViewModule component, string frameName) {
-            var source = NormalizeUrl(component.MainSource);
-            var sourceURL = ToFullUrl(component.MainSource.Replace("\\", ResourceUrl.PathSeparator));
+            var source = ToFullUrl(NormalizeUrl(component.MainSource));
             var originalSourceFolder = ToFullUrl(NormalizeUrl(component.OriginalSourceFolder));
-            var externalScripts = component.ExternalSources.Select(s => ToFullUrl(s.Replace("\\", ResourceUrl.PathSeparator))).ToArray();
+            var externalScripts = component.ExternalSources.Select(s => ToFullUrl(NormalizeUrl(s))).ToArray();
 
             var nativeObjectMethodsMap =
                 component.Events.Select(g => new KeyValuePair<string, object>(g, JavascriptSerializer.Undefined))
@@ -170,7 +169,6 @@ namespace ReactViewControl {
                 JavascriptSerializer.Serialize(Plugins?.Length > 0),
                 componentSerialization,
                 JavascriptSerializer.Serialize(componentHash),
-                JavascriptSerializer.Serialize(sourceURL),
                 JavascriptSerializer.Serialize(originalSourceFolder),
                 JavascriptSerializer.Serialize(externalScripts)
             };
@@ -195,8 +193,8 @@ namespace ReactViewControl {
                 JavascriptSerializer.Serialize(pluginsWithNativeObject.Select(m => new [] {
                     m.Name,
                     GetNativeObjectFullName(m.NativeObjectName, frameName),
-                    ToFullUrl(m.MainSource.Replace("\\", ResourceUrl.PathSeparator)),
-                }.Concat(m.ExternalSources.Select(s => ToFullUrl(s.Replace("\\", ResourceUrl.PathSeparator))))))
+                    ToFullUrl(NormalizeUrl(m.MainSource)),
+                }.Concat(m.ExternalSources.Select(s => ToFullUrl(NormalizeUrl(s))))))
             };
 
             foreach (var module in pluginsWithNativeObject) {
@@ -385,12 +383,6 @@ namespace ReactViewControl {
         }
         
         private static string NormalizeUrl(string url) {
-            const string JsExtension = ".js";
-
-            if (url.EndsWith(JsExtension)) {
-                url = url.Substring(0, url.Length - JsExtension.Length); // prevents modules from being loaded twice (once with extension and other without)
-            }
-
             return url.Replace("\\", ResourceUrl.PathSeparator);
         }
 
