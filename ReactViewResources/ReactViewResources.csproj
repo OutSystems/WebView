@@ -91,7 +91,13 @@
   <PropertyGroup>
     <PreBuildEvent>npm ci</PreBuildEvent>
   </PropertyGroup>
-  <Target Name="GenerateBundle" BeforeTargets="AfterBuild">
+  <PropertyGroup>
+    <BuildDependsOn>
+      $(BuildDependsOn);
+      GenerateBundle;
+    </BuildDependsOn>
+  </PropertyGroup>
+  <Target Name="GenerateBundle" DependsOnTargets="CompileTypeScript">
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
       <WebpackBuildMode>development</WebpackBuildMode>
     </PropertyGroup>
