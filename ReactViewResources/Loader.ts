@@ -7,7 +7,6 @@ type Dictionary<T> = { [key: string]: T };
 const ReactLib: string = "React";
 const ReactDOMLib: string = "ReactDOM";
 const ModuleLib: string = "Bundle";
-const JsExtension: string = ".js";
 
 class Task<ResultType> {
 
