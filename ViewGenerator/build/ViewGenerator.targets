@@ -9,6 +9,7 @@
   <Target Name="IncludeGeneratedResources" DependsOnTargets="GenerateBundle">
     <ItemGroup> 
       <EmbeddedResource Include="**\*.js" />
+      <EmbeddedResource Include="**\*.css" Exclude="**\*.min.css" />
     </ItemGroup>
   </Target>
   
