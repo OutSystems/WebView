@@ -408,45 +408,46 @@ namespace WebViewControl {
         /// <param name="executeCallsInUI"></param>
         /// <returns>True if the object was registered or false if the object was already registered before</returns>
         public bool RegisterJavascriptObject(string name, object objectToBind, Func<Func<object>, object> interceptCall = null, Func<object, Type, object> bind = null, bool executeCallsInUI = false) {
-            if (chromium.JavascriptObjectRepository.IsBound(name)) {
-                return false;
-            }
+            // TODO jmn
+            //if (chromium.JavascriptObjectRepository.IsBound(name)) {
+            //    return false;
+            //}
 
-            if (executeCallsInUI) {
-                return RegisterJavascriptObject(name, objectToBind, target => Dispatcher.Invoke(target), bind, false);
+            //if (executeCallsInUI) {
+            //    return RegisterJavascriptObject(name, objectToBind, target => Dispatcher.Invoke(target), bind, false);
 
-            } else {
-                var bindingOptions = new BindingOptions();
-                if (bind != null) {
-                    bindingOptions.Binder = new LambdaMethodBinder(bind);
-                } else {
-                    bindingOptions.Binder = Binder;
-                }
+            //} else {
+            //    var bindingOptions = new BindingOptions();
+            //    if (bind != null) {
+            //        bindingOptions.Binder = new LambdaMethodBinder(bind);
+            //    } else {
+            //        bindingOptions.Binder = Binder;
+            //    }
 
-                if (interceptCall == null) {
-                    interceptCall = target => target();
-                }
+            //    if (interceptCall == null) {
+            //        interceptCall = target => target();
+            //    }
 
-                object WrapCall(Func<object> target) {
-                    if (isDisposing) {
-                        return null;
-                    }
-                    try {
-                        javascriptPendingCalls++;
-                        if (isDisposing) {
-                            // check again, to avoid concurrency problems with dispose
-                            return null;
-                        }
-                        return interceptCall(target);
-                    } finally {
-                        javascriptPendingCalls--;
-                        JavascriptCallFinished?.Invoke();
-                    }
-                }
+            //    object WrapCall(Func<object> target) {
+            //        if (isDisposing) {
+            //            return null;
+            //        }
+            //        try {
+            //            javascriptPendingCalls++;
+            //            if (isDisposing) {
+            //                // check again, to avoid concurrency problems with dispose
+            //                return null;
+            //            }
+            //            return interceptCall(target);
+            //        } finally {
+            //            javascriptPendingCalls--;
+            //            JavascriptCallFinished?.Invoke();
+            //        }
+            //    }
 
-                bindingOptions.MethodInterceptor = new LambdaMethodInterceptor(WrapCall);
-                chromium.JavascriptObjectRepository.Register(name, objectToBind, true, bindingOptions);
-            }
+            //    bindingOptions.MethodInterceptor = new LambdaMethodInterceptor(WrapCall);
+            //    chromium.JavascriptObjectRepository.Register(name, objectToBind, true, bindingOptions);
+            //}
 
             return true;
         }
@@ -521,7 +522,7 @@ namespace WebViewControl {
 
         public void Reload(bool ignoreCache = false) {
             if (chromium.IsBrowserInitialized && !chromium.IsLoading) {
-                chromium.Refresh(/* TODO ignoreCache */);
+                chromium.Reload(ignoreCache);
             }
         }
 
@@ -764,7 +765,7 @@ namespace WebViewControl {
             return GetFrame(name) != null;
         }
 
-        private IFrame GetFrame(string frameName) {
+        private CefFrame GetFrame(string frameName) {
             return chromium.GetBrowser()?.GetFrame(frameName);
         }
 

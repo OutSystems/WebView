@@ -1,51 +1,54 @@
-﻿//using System.IO;
-//using System.Text;
-//using Xilium.CefGlue;
+﻿using System.IO;
+using System.Text;
+using Xilium.CefGlue;
+using Xilium.CefGlue.Common.Handlers;
 
-//namespace WebViewControl {
+namespace WebViewControl {
 
-//    partial class WebView {
+    partial class WebView {
 
-//        internal class CefAsyncResourceHandler : Xilium.CefGlue.CefResourceHandler {
+        internal class CefAsyncResourceHandler : DefaultResourceHandler {
 
-//            private ICallback responseCallback;
-//            private string redirectUrl;
+            private CefCallback responseCallback;
 
-//            protected override bool ProcessRequest(CefRequest request, CefCallback callback) {
-//                if (Stream == null && string.IsNullOrEmpty(redirectUrl)) {
-//                    responseCallback = callback;
-//                } else {
-//                    callback.Continue();
-//                }
-//                return true;
-//            }
+            protected override bool ProcessRequest(CefRequest request, CefCallback callback) {
+                if (Response == null && string.IsNullOrEmpty(RedirectUrl)) {
+                    responseCallback = callback;
+                } else {
+                    callback.Continue();
+                }
+                return true;
+            }
 
-//            public void SetResponse(Stream response, string mimeType = CefSharp.ResourceHandler.DefaultMimeType, bool autoDisposeStream = false) {
-//                Stream = response;
-//                MimeType = mimeType;
-//                AutoDisposeStream = autoDisposeStream;
-//            }
+            public void SetResponse(string response) {
+                Response = GetMemoryStream(response, Encoding.UTF8, false);
+            }
 
-//            public void SetResponse(string response) {
-//                SetResponse(CefSharp.ResourceHandler.GetMemoryStream(response, Encoding.UTF8, false), autoDisposeStream: true);
-//            }
+            public void RedirectTo(string targetUrl) {
+                RedirectUrl = targetUrl;
+            }
 
-//            public void RedirectTo(string targetUrl) {
-//                redirectUrl = targetUrl;
-//            }
+            public void Continue() {
+                responseCallback?.Continue();
+            }
 
-//            public void Continue() {
-//                responseCallback?.Continue();
-//            }
+            private static MemoryStream GetMemoryStream(string text, Encoding encoding, bool includePreamble = true) {
+                if (includePreamble) {
+                    var preamble = encoding.GetPreamble();
+                    var bytes = encoding.GetBytes(text);
 
-//            public override Stream GetResponse(IResponse response, out long responseLength, out string redirectUrl) {
-//                if (!string.IsNullOrEmpty(this.redirectUrl)) {
-//                    responseLength = 0;
-//                    redirectUrl = this.redirectUrl;
-//                    return null;
-//                }
-//                return base.GetResponse(response, out responseLength, out redirectUrl);
-//            }
-//        }
-//    }
-//}
+                    var memoryStream = new MemoryStream(preamble.Length + bytes.Length);
+
+                    memoryStream.Write(preamble, 0, preamble.Length);
+                    memoryStream.Write(bytes, 0, bytes.Length);
+
+                    memoryStream.Position = 0;
+
+                    return memoryStream;
+                }
+
+                return new MemoryStream(encoding.GetBytes(text));
+            }
+        }
+    }
+}

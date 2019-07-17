@@ -1,18 +1,18 @@
-﻿using System;
-using CefSharp.ModelBinding;
+﻿//using System;
+//using CefSharp.ModelBinding;
 
-namespace WebViewControl {
+//namespace WebViewControl {
 
-    internal class LambdaMethodInterceptor : IMethodInterceptor {
+//    internal class LambdaMethodInterceptor : IMethodInterceptor {
 
-        private Func<Func<object>, object> InterceptCall { get; }
+//        private Func<Func<object>, object> InterceptCall { get; }
 
-        public LambdaMethodInterceptor(Func<Func<object>, object> interceptCall) {
-            InterceptCall = interceptCall;
-        }
+//        public LambdaMethodInterceptor(Func<Func<object>, object> interceptCall) {
+//            InterceptCall = interceptCall;
+//        }
 
-        object IMethodInterceptor.Intercept(Func<object> originalMethod, string methodName) {
-            return InterceptCall(originalMethod);
-        }
-    }
-}
+//        object IMethodInterceptor.Intercept(Func<object> originalMethod, string methodName) {
+//            return InterceptCall(originalMethod);
+//        }
+//    }
+//}

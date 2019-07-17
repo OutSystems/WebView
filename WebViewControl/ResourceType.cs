@@ -1,11 +1,13 @@
-﻿namespace WebViewControl {
+﻿using Xilium.CefGlue;
+
+namespace WebViewControl {
 
     public enum ResourceType {
-        Stylesheet = CefSharp.ResourceType.Stylesheet,
-        Script = CefSharp.ResourceType.Script,
-        Image = CefSharp.ResourceType.Image,
-        FontResource = CefSharp.ResourceType.FontResource,
-        Xhr = CefSharp.ResourceType.Xhr,
-        ServiceWorker = CefSharp.ResourceType.ServiceWorker
+        Stylesheet = CefResourceType.Stylesheet,
+        Script = CefResourceType.Script,
+        Image = CefResourceType.Image,
+        FontResource = CefResourceType.FontResource,
+        Xhr = CefResourceType.Xhr,
+        ServiceWorker = CefResourceType.ServiceWorker
     }
 }

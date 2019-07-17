@@ -1,4 +1,4 @@
-﻿using CefSharp;
+﻿using Xilium.CefGlue;
 
 namespace WebViewControl {
 
@@ -6,10 +6,10 @@ namespace WebViewControl {
 
         public class Request {
 
-            private IRequest CefRequest { get; }
+            private CefRequest CefRequest { get; }
             private string UrlOverride { get; }
 
-            internal Request(IRequest request, string urlOverride) {
+            internal Request(CefRequest request, string urlOverride) {
                 CefRequest = request;
                 UrlOverride = urlOverride;
             }

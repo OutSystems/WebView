@@ -10,12 +10,13 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>WebViewControl</RootNamespace>
     <AssemblyName>WebViewControl</AssemblyName>
-    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
     <CefSharpAnyCpuSupport>true</CefSharpAnyCpuSupport>
     <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -130,6 +131,7 @@
     <Compile Include="InternalChromiumBrowser.cs" />
     <Compile Include="JavascriptSerializationHelper.cs" />
     <Compile Include="BrowserObjectListener.cs" />
+    <Compile Include="JavascriptStackFrame.cs" />
     <Compile Include="LambdaMethodBinder.cs" />
     <Compile Include="LambdaMethodInterceptor.cs" />
     <Compile Include="Listener.cs" />

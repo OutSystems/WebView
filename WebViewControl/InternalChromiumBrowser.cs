@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Input;
+using Xilium.CefGlue;
 using Xilium.CefGlue.WPF;
 
 namespace WebViewControl {
@@ -15,5 +16,7 @@ namespace WebViewControl {
         internal void CreateBrowser() {
             // TODO CreateOffscreenBrowser(new Size(200, 200));
         }
+
+        internal CefBrowser GetBrowser() => UnderlyingBrowser;
     }
 }

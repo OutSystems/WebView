@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Threading.Tasks;
-using CefSharp;
+using Xilium.CefGlue;
 
 namespace WebViewControl {
 
@@ -11,7 +11,7 @@ namespace WebViewControl {
 
             private bool isAsync;
 
-            internal ResourceHandler(IRequest request, string urlOverride)
+            internal ResourceHandler(CefRequest request, string urlOverride)
                 : base(request, urlOverride) {
             }
 
