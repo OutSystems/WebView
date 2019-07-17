@@ -6,5 +6,10 @@
     <None Include="ts2lang.json">
       <Visible>True</Visible>
     </None>
+    <Content Include="**\*.ts" />
+    <Content Include="**\*.tsx" />
   </ItemGroup>
+  <PropertyGroup>
+    <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
+  </PropertyGroup>
 </Project>
