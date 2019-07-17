@@ -135,9 +135,10 @@ namespace ReactViewControl {
         }
 
         private void InternalLoadComponent(IViewModule component, string frameName) {
-            var source = ToFullUrl(NormalizeUrl(component.MainSource));
+            var mainSource = ToFullUrl(NormalizeUrl(component.MainJsSource));
+            var dependencySources = component.DependencyJsSources.Select(s => ToFullUrl(NormalizeUrl(s))).ToArray();
+            var cssSources = component.CssSources.Select(s => ToFullUrl(NormalizeUrl(s))).ToArray();
             var originalSourceFolder = ToFullUrl(NormalizeUrl(component.OriginalSourceFolder));
-            var externalScripts = component.ExternalSources.Select(s => ToFullUrl(NormalizeUrl(s))).ToArray();
 
             var nativeObjectMethodsMap =
                 component.Events.Select(g => new KeyValuePair<string, object>(g, JavascriptSerializer.Undefined))
@@ -151,26 +152,27 @@ namespace ReactViewControl {
             //
             // componentName: string,
             // componentSource: string,
+            // dependencySources: string[],
+            // cssSources: string[],
+            // originalSourceFolder: string,
             // componentNativeObjectName: string,
             // hasStyleSheet: boolean,
             // hasPlugins: boolean,
             // componentNativeObject: Dictionary<any>,
-            // hash: string,
-            // componentSourceURL: string,
-            // originalSourceFolder: string,
-            // componentExternalSources: string[]
+            // hash: string
 
             var loadArgs = new [] {
                 JavascriptSerializer.Serialize(component.Name),
-                JavascriptSerializer.Serialize(source),
+                JavascriptSerializer.Serialize(mainSource),
+                JavascriptSerializer.Serialize(dependencySources),
+                JavascriptSerializer.Serialize(cssSources),
+                JavascriptSerializer.Serialize(originalSourceFolder),
                 JavascriptSerializer.Serialize(GetNativeObjectFullName(component.NativeObjectName, frameName)),
                 JavascriptSerializer.Serialize(ReactView.PreloadedCacheEntriesSize),
                 JavascriptSerializer.Serialize(DefaultStyleSheet != null),
                 JavascriptSerializer.Serialize(Plugins?.Length > 0),
                 componentSerialization,
-                JavascriptSerializer.Serialize(componentHash),
-                JavascriptSerializer.Serialize(originalSourceFolder),
-                JavascriptSerializer.Serialize(externalScripts)
+                JavascriptSerializer.Serialize(componentHash)
             };
 
             RegisterNativeObject(component, frameName);
@@ -193,8 +195,8 @@ namespace ReactViewControl {
                 JavascriptSerializer.Serialize(pluginsWithNativeObject.Select(m => new [] {
                     m.Name,
                     GetNativeObjectFullName(m.NativeObjectName, frameName),
-                    ToFullUrl(NormalizeUrl(m.MainSource)),
-                }.Concat(m.ExternalSources.Select(s => ToFullUrl(NormalizeUrl(s))))))
+                    ToFullUrl(NormalizeUrl(m.MainJsSource)),
+                }.Concat(m.DependencyJsSources.Select(s => ToFullUrl(NormalizeUrl(s))))))
             };
 
             foreach (var module in pluginsWithNativeObject) {
@@ -242,7 +244,7 @@ namespace ReactViewControl {
                 if (IsMainComponentLoaded) {
                     throw new InvalidOperationException($"Cannot set {nameof(Plugins)} after component has been loaded");
                 }
-                var invalidPlugins = value.Where(p => string.IsNullOrEmpty(p.MainSource) || string.IsNullOrEmpty(p.Name));
+                var invalidPlugins = value.Where(p => string.IsNullOrEmpty(p.MainJsSource) || string.IsNullOrEmpty(p.Name));
                 if (invalidPlugins.Any()) {
                     var pluginName = invalidPlugins.First().Name + "|" + invalidPlugins.First().GetType().Name;
                     throw new ArgumentException($"Plugin '{pluginName}' is invalid");

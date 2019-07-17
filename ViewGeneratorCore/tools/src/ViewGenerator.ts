@@ -49,7 +49,8 @@ class Generator {
         private baseComponentClass: string,
         private baseModuleClass: string,
         private baseComponentInterface: string,
-        private output: string[],
+        private jsSources: string[],
+        private cssSources: string[],
         private isModule: boolean) {
 
         this.component = module.classes.filter(c => c.isPublic)[0];
@@ -254,14 +255,17 @@ class Generator {
             `    \n` +
             `    ${f(this.generateComponentBody(generatePropertyEvent, generateProperty, generateBehaviorMethod))}\n` +
             `    \n` +
-            `    protected override string MainSource => \"${this.relativePath}\";\n` +
+            `    protected override string MainJsSource => \"${this.relativePath}\";\n` +
             `    protected override string OriginalSourceFolder => \"${this.originalSourceFolder}\";\n` +
             `    protected override string NativeObjectName => \"${this.propsInterfaceCoreName}\";\n` +
             `    protected override string ModuleName => \"${this.filename}\";\n` +
             `    protected override object CreateNativeObject() => new ${PropertiesClassName}(this);\n` +
             `    protected override string[] Events => ${this.propsInterface ? `new string[] { ${this.propsInterface.functions.map(p => `"${p.name}"`).join(",")} }` : ``};\n` +
-            `    protected override string[] ExternalSources => ${this.output ? `new string[] {\n` +
-            `        ${this.output.map(o => `"${o}"`).join(",\n\t\t")}\n` +
+            `    protected override string[] DependencyJsSources => ${this.jsSources ? `new string[] {\n` +
+            `        ${this.jsSources.map(o => `"${o}"`).join(",\n\t\t")}\n` +
+            `    }` : ``};\n` +
+            `    protected override string[] CssSources => ${this.cssSources ? `new string[] {\n` +
+            `        ${this.cssSources.map(o => `"${o}"`).join(",\n\t\t")}\n` +
             `    }` : ``};\n` +
             `    protected override ${keyValuePairType}[] PropertiesValues {\n` +
             `        get { \n` +
@@ -343,7 +347,7 @@ function combinePath(path: string, rest: string) {
     return path + (path.endsWith("/") ? "" : "/") + (rest.startsWith("/") ? rest.substr(1) : rest);
 }
 
-function getExternalSources(entrypoint: string, namespace: string, manifestPath: string, entryFilter: (string) => boolean) {
+function getAllSources(entrypoint: string, namespace: string, manifestPath: string, entryFilter: (string) => boolean) {
     var jsonObject = require(Path.resolve(manifestPath));
     if (jsonObject.hasOwnProperty(entrypoint)) {
         return jsonObject[entrypoint].filter(entryFilter).map(outputPath => "/" + namespace + "/" + outputPath);
@@ -354,6 +358,7 @@ function getExternalSources(entrypoint: string, namespace: string, manifestPath:
 export function transform(module: Units.TsModule, context: Object): string {
     debugger; // left on purpose to ease debugging
     const JsExtension = ".js";
+    const CssExtension = ".css";
     let namespace = context["namespace"];
     let baseDir = normalizePath(context["$baseDir"]);
     let fullPath = normalizePath(context["$fullpath"]);
@@ -373,7 +378,7 @@ export function transform(module: Units.TsModule, context: Object): string {
         javascriptRelativePath = combinePath(javascriptDistPath, javascriptRelativePath);
     }
 
-    let extSources: string[] = getExternalSources(filenameWithoutExtension,
+    let allSources: string[] = getAllSources(filenameWithoutExtension,
         namespace,
         combinePath(baseDir, ManifestFileName),
         file => !javascriptRelativePath.endsWith(file)); // exclude the main module entrypoint
@@ -398,7 +403,8 @@ export function transform(module: Units.TsModule, context: Object): string {
         context["baseComponentClass"],
         context["baseModuleClass"],
         context["baseComponentInterface"],
-        extSources,
+        allSources.filter(s => s.endsWith(JsExtension)),
+        allSources.filter(s => s.endsWith(CssExtension)),
         context["isModule"]
     );
 

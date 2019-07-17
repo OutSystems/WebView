@@ -33,7 +33,7 @@ namespace Tests.ReactView {
 
         public bool AutoShowInnerView { get; set; }
 
-        protected override string MainSource => "/Tests/ReactViewResources/Test/TestApp";
+        protected override string MainJsSource => "/Tests/ReactViewResources/Test/TestApp";
 
         protected override string NativeObjectName => nameof(TestReactView);
 

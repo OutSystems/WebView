@@ -12,7 +12,7 @@ namespace ReactViewControl {
             source = url.ToString();
         }
 
-        protected override string MainSource => source;
+        protected override string MainJsSource => source;
 
         protected override string ModuleName => moduleName;
     }

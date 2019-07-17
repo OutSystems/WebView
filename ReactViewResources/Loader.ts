@@ -78,6 +78,24 @@ function loadScript(scriptSrc: string): Promise<void> {
     });
 }
 
+function loadLinkStyleSheet(stylesheet: string, markAsSticky: boolean): Promise<void> {
+    return new Promise((resolve) => {
+        let link = document.createElement("link");
+        link.type = "text/css";
+        link.rel = "stylesheet";
+        link.href = stylesheet;
+        link.addEventListener("load", () => resolve());
+        let head = document.head;
+        if (!head) {
+            throw new Error("Document not ready");
+        }
+        if (markAsSticky) {
+            link.dataset.sticky = "true";
+        }
+        head.appendChild(link);
+    });
+}
+
 async function loadFramework(): Promise<void> {
     let frameworkPromises: Promise<void>[] = [
         loadScript(ExternalLibsPath + "react/umd/react.production.min.js"), /* React */ 
@@ -93,27 +111,7 @@ export function loadStyleSheet(stylesheet: string): void {
     async function innerLoad() {
         try {
             await BootstrapTask.promise;
-
-            await new Promise(async (resolve) => {
-                let link = document.createElement("link");
-                link.type = "text/css";
-                link.rel = "stylesheet";
-                link.href = stylesheet;
-                link.addEventListener("load", () => resolve());
-                let head = document.head;
-                if (!head) {
-                    throw new Error("Document not ready");
-                }
-                head.appendChild(link);
-            });
-
-            if (document.head) {
-                // mark default stylesheet as sticky to prevent it from being removed and added again later
-                let linkElement = getAllStylesheets().find(l => l.href === stylesheet);
-                if (linkElement) {
-                    linkElement.dataset.sticky = "true";
-                }
-            }
+            await loadLinkStyleSheet(stylesheet, true);
 
             StylesheetsLoadTask.setResult();
         } catch (error) {
@@ -135,23 +133,23 @@ export function loadPlugins(plugins: string[][]): void {
                 plugins.forEach(m => {
                     const ModuleName: string = m[0];
                     const NativeObjectName: string = m[1];
-                    const MainModule: string = m[2];
+                    const MainJsSource: string = m[2];
 
-                    let pluginScripts: string[] = m.length > 2 ? m.slice(3) : [];
+                    let dependencyJsSources: string[] = m.length > 2 ? m.slice(3) : [];
 
                     pluginsPromises.push(new Promise<void>((resolve, reject) => {
                         CefSharp.BindObjectAsync(NativeObjectName, NativeObjectName).then(async () => {
                             if (ModuleName) {
 
-                                // plugin script sources
-                                let pluginScriptsPromises: Promise<void>[] = [];
-                                pluginScripts.forEach(s => {
-                                    pluginScriptsPromises.push(loadScript(s));
+                                // plugin dependency js sources
+                                let dependencySourcesPromises: Promise<void>[] = [];
+                                dependencyJsSources.forEach(s => {
+                                    dependencySourcesPromises.push(loadScript(s));
                                 });
-                                await Promise.all(pluginScriptsPromises);
+                                await Promise.all(dependencySourcesPromises);
 
-                                // main script module
-                                loadScript(MainModule).then(() => resolve());
+                                // plugin main js source
+                                loadScript(MainJsSource).then(() => resolve());
 
                             } else {
                                 reject(`Failed to load '${ModuleName}' (might not be a module)`);
@@ -174,14 +172,15 @@ export function loadPlugins(plugins: string[][]): void {
 export function loadComponent(
     componentName: string,
     componentSource: string,
+    dependencySources: string[],
+    cssSources: string[],
+    originalSourceFolder: string,
     componentNativeObjectName: string,
     maxPreRenderedCacheEntries: number,
     hasStyleSheet: boolean,
     hasPlugins: boolean,
     componentNativeObject: Dictionary<any>,
-    componentHash: string,
-    originalSourceFolder: string,
-    componentPluginScripts: string[]): void {
+    componentHash: string): void {
 
     function getComponentCacheKey(propertiesHash: string) {
         return componentSource + "|" + propertiesHash;
@@ -213,12 +212,15 @@ export function loadComponent(
             }
             await Promise.all(promisesToWaitFor);
 
-            // load component module plugin scripts
-            let loadComponentPluginScriptsPromises: Promise<void>[] = [];
-            componentPluginScripts.forEach(s => {
-                loadComponentPluginScriptsPromises.push(loadScript(s));            
-            });
-            await Promise.all(loadComponentPluginScriptsPromises);
+            // load component css sources
+            let loadCssSourcesPromises: Promise<void>[] = [];
+            cssSources.forEach(s => loadCssSourcesPromises.push(loadLinkStyleSheet(s, false)));
+            await Promise.all(loadCssSourcesPromises);
+
+            // load component dependencies js sources
+            let loadDependencySourcesPromises: Promise<void>[] = [];
+            dependencySources.forEach(s => loadDependencySourcesPromises.push(loadScript(s)));     
+            await Promise.all(loadDependencySourcesPromises);
 
             // main component script should be the last to be loaded, otherwise errors might occur
             await loadScript(componentSource);

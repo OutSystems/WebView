@@ -1,5 +1,6 @@
 ﻿import Glob from "glob";
 import Path from "path";
+import MiniCssExtractPlugin from "mini-css-extract-plugin";
 import Webpack, { Module } from "webpack";
 import ManifestPlugin, { Chunk } from "webpack-manifest-plugin";
 
@@ -118,12 +119,30 @@ var standardConfig: Webpack.Configuration = {
 
     module: {
         rules: [
-            { test: /\.css?$/, loader: "style-loader!css-loader" },
-            { test: /\.tsx?$/, loader: "ts-loader" }
+            {
+                test: /\.css?$/,
+                use: [
+                    {
+                        loader: MiniCssExtractPlugin.loader,
+                        options: {
+                            hmr: false
+                        }
+                    },
+                    'css-loader'
+                ]
+            },
+            {
+                test: /\.tsx?$/,
+                loader: "ts-loader"
+            }
         ]
     },
 
     plugins: [
+        new MiniCssExtractPlugin({
+            filename: 'Generated/[name].css',
+            chunkFilename: 'Generated/[name].css'
+        }),
         new ManifestPlugin({
             fileName: "manifest.json",
             generate: generateManifest
@@ -138,6 +157,9 @@ var standardConfig: Webpack.Configuration = {
 const config = (_, argv) => {
     if (argv.mode === "development") {
         standardConfig.devtool = "inline-source-map";
+
+        // enable css hot module replacement in development mode
+        standardConfig.module.rules[0].use[0].options.hmr = true;
     }
     return standardConfig;
 };
