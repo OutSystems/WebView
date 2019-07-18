@@ -2,6 +2,7 @@
 import * as ReactDOM from "react-dom";
 import "css!./ExampleView.css";
 import ViewFrame from "ViewFrame";
+import * as ViewPlugin from "./ViewPlugin";
 
 export interface ISomeType {
     name: string;
@@ -40,6 +41,10 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
 
     callMe(): void {
         alert("React View says: clicked on a WPF button");
+    }
+
+    componentDidMount(): void {
+        ViewPlugin.notifyViewLoaded("ExampleView");
     }
 
     render() {

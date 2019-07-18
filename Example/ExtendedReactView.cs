@@ -11,11 +11,6 @@ namespace Example {
 #if DEBUG
             EnableHotReload = true;
 #endif
-            WithPlugin<Plugin>().NotifyPluginLoaded += OnNotifyPluginLoaded;
-        }
-
-        private void OnNotifyPluginLoaded() {
-            Console.WriteLine("On plugin loaded");
         }
     }
 }
