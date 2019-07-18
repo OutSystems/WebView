@@ -8,6 +8,7 @@
     </None>
     <Content Include="**\*.ts" />
     <Content Include="**\*.tsx" />
+    <Content Include="**\*.scss" />
   </ItemGroup>
   <PropertyGroup>
     <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>

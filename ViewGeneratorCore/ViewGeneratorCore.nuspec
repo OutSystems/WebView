@@ -13,7 +13,8 @@
     <file src="build\ViewGeneratorCore.props" target="build\ViewGeneratorCore.props" />
 
     <file src="tools\dist\ViewGenerator.js" target="tools\ViewGenerator.js" />
-    <file src="tools\webpack\webpack.config.js" target="tools\webpack.config.js"/>
+    <file src="tools\webpack\webpack_global.config.js" target="tools\webpack_global.config.js"/>
+    <file src="tools\webpack\webpack_custom.config.js" target="tools\webpack_custom.config.js"/>
     <file src="tools\node_modules\**" target="tools\node_modules\" />
   </files>
 </package>

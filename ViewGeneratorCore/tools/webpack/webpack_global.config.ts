@@ -120,7 +120,7 @@ var standardConfig: Webpack.Configuration = {
     module: {
         rules: [
             {
-                test: /\.css?$/,
+                test: /\.(sa|sc|c)ss$/,
                 use: [
                     {
                         loader: MiniCssExtractPlugin.loader,
@@ -128,7 +128,8 @@ var standardConfig: Webpack.Configuration = {
                             hmr: false
                         }
                     },
-                    'css-loader'
+                    'css-loader',
+                    'sass-loader'
                 ]
             },
             {
@@ -157,9 +158,6 @@ var standardConfig: Webpack.Configuration = {
 const config = (_, argv) => {
     if (argv.mode === "development") {
         standardConfig.devtool = "inline-source-map";
-
-        // enable css hot module replacement in development mode
-        standardConfig.module.rules[0].use[0].options.hmr = true;
     }
     return standardConfig;
 };

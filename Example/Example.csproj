@@ -108,7 +108,7 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <None Include="ExampleView\DefaultStyleSheet.scss" />
+    <DefaultStyleSheet Include="ExampleView\DefaultStyleSheet.scss" />
     <None Include="ExampleView\SubExampleView.scss" />
     <None Include="ExampleView\ExampleView.scss" />
     <None Include="packages.config">
@@ -143,13 +143,11 @@
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
-    <Error Condition="!Exists('..\packages\Delegate.SassBuilder.1.4.0\build\Delegate.SassBuilder.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Delegate.SassBuilder.1.4.0\build\Delegate.SassBuilder.targets'))" />
     <Error Condition="!Exists('..\packages\ViewGeneratorCore.1.0.163\build\ViewGeneratorCore.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ViewGeneratorCore.1.0.163\build\ViewGeneratorCore.props'))" />
     <Error Condition="!Exists('..\packages\ViewGeneratorCore.1.0.163\build\ViewGeneratorCore.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ViewGeneratorCore.1.0.163\build\ViewGeneratorCore.targets'))" />
     <Error Condition="!Exists('..\packages\ViewGenerator.1.0.127\build\ViewGenerator.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ViewGenerator.1.0.127\build\ViewGenerator.props'))" />
     <Error Condition="!Exists('..\packages\ViewGenerator.1.0.127\build\ViewGenerator.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ViewGenerator.1.0.127\build\ViewGenerator.targets'))" />
   </Target>
-  <Import Project="..\packages\Delegate.SassBuilder.1.4.0\build\Delegate.SassBuilder.targets" Condition="Exists('..\packages\Delegate.SassBuilder.1.4.0\build\Delegate.SassBuilder.targets')" />
   <Import Project="..\packages\ViewGeneratorCore.1.0.163\build\ViewGeneratorCore.targets" Condition="Exists('..\packages\ViewGeneratorCore.1.0.163\build\ViewGeneratorCore.targets')" />
   <Import Project="..\packages\ViewGenerator.1.0.127\build\ViewGenerator.targets" Condition="Exists('..\packages\ViewGenerator.1.0.127\build\ViewGenerator.targets')" />
 </Project>

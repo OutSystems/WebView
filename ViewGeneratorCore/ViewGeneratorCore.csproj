@@ -61,7 +61,8 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="tools\src\ViewGenerator.ts" />
-    <TypeScriptCompile Include="tools\webpack\webpack.config.ts" />
+    <TypeScriptCompile Include="tools\webpack\webpack_global.config.ts" />
+    <TypeScriptCompile Include="tools\webpack\webpack_custom.config.ts" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
