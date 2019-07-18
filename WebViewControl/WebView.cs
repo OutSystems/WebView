@@ -15,6 +15,7 @@ using System.Windows.Threading;
 using CefSharp;
 using Xilium.CefGlue;
 using Xilium.CefGlue.Common.Events;
+using Xilium.CefGlue.WPF;
 
 namespace WebViewControl {
 
@@ -57,7 +58,7 @@ namespace WebViewControl {
         private bool isDeveloperToolsOpened = false;
         private Action pendingInitialization;
         private CefLifeSpanHandler lifeSpanHandler;
-        private CefResourceHandlerFactory resourceHandlerFactory;
+        // TODO private CefResourceHandlerFactory resourceHandlerFactory;
         private string htmlToLoad;
         private volatile bool isDisposing;
         private volatile int javascriptPendingCalls;
@@ -113,7 +114,6 @@ namespace WebViewControl {
             cefSettings.LogFile = LogFile;
             cefSettings.UncaughtExceptionStackSize = 100; // enable stack capture
             cefSettings.CachePath = CachePath; // enable cache for external resources to speedup loading
-            cefSettings.WindowlessRenderingEnabled = true;
 
             // TODO
             //if (DisableGPU) {
@@ -129,9 +129,10 @@ namespace WebViewControl {
             //    });
             //}
 
-            cefSettings.BrowserSubprocessPath = CefLoader.GetBrowserSubProcessPath();
+            //cefSettings.BrowserSubprocessPath = CefLoader.GetBrowserSubProcessPath();
 
-            CefRuntime.Initialize( cefSettings, performDependencyCheck: false, browserProcessHandler: null);
+            //CefRuntime.Initialize( cefSettings, performDependencyCheck: false, browserProcessHandler: null);
+            CefGlueLoader.Initialize(new string[0], cefSettings);
 
             if (Application.Current != null) {
                 Application.Current.Exit += OnApplicationExit;
@@ -194,18 +195,18 @@ namespace WebViewControl {
             }
 
             lifeSpanHandler = new CefLifeSpanHandler(this);
-            resourceHandlerFactory = new CefResourceHandlerFactory(this);
+            // TODO resourceHandlerFactory = new CefResourceHandlerFactory(this);
 
             chromium = new InternalChromiumBrowser();
-            chromium.IsBrowserInitializedChanged += OnWebViewIsBrowserInitializedChanged;
+            // TODO chromium.IsBrowserInitializedChanged += OnWebViewIsBrowserInitializedChanged;
             chromium.LoadEnd += OnWebViewLoadEnd;
             chromium.LoadError += OnWebViewLoadError;
             chromium.TitleChanged += OnWebViewTitleChanged;
             chromium.PreviewKeyDown += OnPreviewKeyDown;
             chromium.RequestHandler = new CefRequestHandler(this);
-            chromium.ResourceHandlerFactory = resourceHandlerFactory;
+            // TODO chromium.ResourceHandlerFactory = resourceHandlerFactory;
             chromium.LifeSpanHandler = lifeSpanHandler;
-            chromium.RenderProcessMessageHandler = new CefRenderProcessMessageHandler(this);
+            // TODO chromium.RenderProcessMessageHandler = new CefRenderProcessMessageHandler(this);
             chromium.ContextMenuHandler = new CefMenuHandler(this);
             chromium.DialogHandler = new CefDialogHandler(this);
             chromium.DownloadHandler = new CefDownloadHandler(this);
@@ -269,7 +270,7 @@ namespace WebViewControl {
                 RenderProcessCrashed = null;
                 JavascriptContextReleased = null;
 
-                resourceHandlerFactory.Dispose();
+                // TODO resourceHandlerFactory.Dispose();
 
                 foreach (var jsExecutor in JsExecutors.Values) {
                     jsExecutor.Dispose();
@@ -325,7 +326,7 @@ namespace WebViewControl {
         public bool AllowDeveloperTools { get; set; }
 
         public string Address {
-            get { return null; /* TODO return chromium.Address; */ }
+            get { return chromium.Address; }
             set { LoadUrl(value, MainFrameName); }
         }
 
@@ -334,23 +335,24 @@ namespace WebViewControl {
                 htmlToLoad = null;
             }
             if (address.Contains(Uri.SchemeDelimiter) || address == AboutBlankUrl || address.StartsWith("data:")) {
-                var settings = chromium.BrowserSettings;
-                if (settings != null /* TODO uncomment after upgrade to 71+ && !settings.IsDisposed*/) {
-                    if (CustomSchemes.Any(s => address.StartsWith(s + Uri.SchemeDelimiter))) {
-                        // custom schemes -> turn off security ... to enable full access without problems to local resources
-                        IsSecurityDisabled = true;
-                    } else {
-                        IsSecurityDisabled = false;
-                    }
-                }
+                // TODO var settings = chromium.BrowserSettings;
+                //if (settings != null /* TODO uncomment after upgrade to 71+ && !settings.IsDisposed*/) {
+                //    if (CustomSchemes.Any(s => address.StartsWith(s + Uri.SchemeDelimiter))) {
+                //        // custom schemes -> turn off security ... to enable full access without problems to local resources
+                //        IsSecurityDisabled = true;
+                //    } else {
+                //        IsSecurityDisabled = false;
+                //    }
+                //}
+                chromium.Address = address;
                 // must wait for the browser to be initialized otherwise navigation will be aborted
-                ExecuteWhenInitialized(() => {
+                /*ExecuteWhenInitialized(() => {
                     if (frameName == MainFrameName) {
-                        chromium.Load(address);
+                        
                     } else {
                         GetFrame(frameName)?.LoadUrl(address);
                     }
-                });
+                });*/
             } else {
                 var userAssembly = GetUserCallingMethod().ReflectedType.Assembly;
                 LoadUrl(new ResourceUrl(userAssembly, address).WithDomain(CurrentDomainId), frameName);
@@ -368,11 +370,12 @@ namespace WebViewControl {
 
         public bool IsSecurityDisabled {
             set {
-                var settings = chromium.BrowserSettings;
-                if (settings == null /* TODO uncomment after upgrade to 71+ || settings.IsDisposed*/) {
-                    throw new InvalidOperationException("Cannot change webview settings after initialized");
-                }
-                settings.WebSecurity = (value ? CefState.Disabled : CefState.Enabled);
+                // TODO
+                //var settings = chromium.BrowserSettings;
+                //if (settings == null /* TODO uncomment after upgrade to 71+ || settings.IsDisposed*/) {
+                //    throw new InvalidOperationException("Cannot change webview settings after initialized");
+                //}
+                //settings.WebSecurity = (value ? CefState.Disabled : CefState.Enabled);
             }
         }
 
@@ -391,7 +394,7 @@ namespace WebViewControl {
         }
 
         public bool IsJavascriptEngineInitialized {
-            get { return chromium.CanExecuteJavascriptInMainFrame; }
+            get { return true; } // TODO chromium.CanExecuteJavascriptInMainFrame; }
         }
 
         public ProxyAuthentication ProxyAuthentication { get; set; }
@@ -741,14 +744,15 @@ namespace WebViewControl {
             Dispose();
         }
 
-        protected void RegisterProtocolHandler(string protocol, CefResourceHandlerFactory handler) {
-            if (chromium.RequestContext == null) {
-                chromium.RequestContext = new RequestContext(new RequestContextSettings() {
-                    CachePath = CachePath
-                });
-            }
-            chromium.RequestContext.RegisterSchemeHandlerFactory(protocol, "", handler);
-        }
+        // TODO
+        //protected void RegisterProtocolHandler(string protocol, CefResourceHandlerFactory handler) {
+        //    if (chromium.RequestContext == null) {
+        //        chromium.RequestContext = new RequestContext(new RequestContextSettings() {
+        //            CachePath = CachePath
+        //        });
+        //    }
+        //    chromium.RequestContext.RegisterSchemeHandlerFactory(protocol, "", handler);
+        //}
 
         protected virtual string GetRequestUrl(string url, ResourceType resourceType) {
             return url;

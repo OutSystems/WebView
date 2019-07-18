@@ -2,6 +2,7 @@
 using System.IO;
 using System.Threading.Tasks;
 using Xilium.CefGlue;
+using Xilium.CefGlue.Common.Handlers;
 
 namespace WebViewControl {
 
@@ -44,7 +45,7 @@ namespace WebViewControl {
                 if (Handler == null) {
                     Handler = CreateCefResourceHandler();
                 }
-                Handler.SetResponse(fileStream, CefSharp.ResourceHandler.GetMimeType(Path.GetExtension(filename)), autoDisposeStream: true);
+                Handler.SetResponse(fileStream, ResourcesManager.GetMimeType(filename) /* TODO, autoDisposeStream: true*/);
                 Continue();
             }
 
@@ -60,7 +61,7 @@ namespace WebViewControl {
                 if (Handler == null) {
                     Handler = CreateCefResourceHandler();
                 }
-                Handler.SetResponse(stream, string.IsNullOrEmpty(extension) ? CefSharp.ResourceHandler.DefaultMimeType : CefSharp.ResourceHandler.GetMimeType(extension));
+                Handler.SetResponse(stream, ResourcesManager.GetExtensionMimeType(extension));
                 Continue();
             }
 
@@ -76,7 +77,7 @@ namespace WebViewControl {
 
             public bool Handled => Handler != null;
 
-            public Stream Response => (Handler as CefSharp.ResourceHandler)?.Stream;
+            public Stream Response => (Handler as DefaultResourceHandler)?.Response;
         }
     }
 }

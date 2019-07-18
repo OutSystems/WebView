@@ -42,7 +42,7 @@ namespace WebViewControl {
                     // ignore internal exceptions, they will be handled by the EvaluateScript caller
                     return;
                 }
-                var javascriptException = new JavascriptException(exception.Message, exception.StackTrace);
+                var javascriptException = new JavascriptException(exception.Message/*, TODO exception.StackTrace */);
                 OwnerWebView.ForwardUnhandledAsyncException(javascriptException, frame.Name);
             }
         }

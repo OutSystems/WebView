@@ -20,8 +20,14 @@ namespace WebViewControl {
                 return true;
             }
 
-            public void SetResponse(string response) {
+            public void SetResponse(string response, string mimeType = null) {
                 Response = GetMemoryStream(response, Encoding.UTF8, false);
+                MimeType = mimeType;
+            }
+
+            public void SetResponse(Stream response, string mimeType = null) {
+                Response = response;
+                MimeType = mimeType;
             }
 
             public void RedirectTo(string targetUrl) {
