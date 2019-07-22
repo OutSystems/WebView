@@ -367,7 +367,7 @@ namespace ReactViewControl {
                     //}
                 }
             };
-            WebView.BeforeResourceLoad += (WebView.ResourceHandler resourceHandler) => {
+            WebView.BeforeResourceLoad += (ResourceHandler resourceHandler) => {
                 if (filesChanged) {
                     var url = new Uri(resourceHandler.Url);
                     var resourcePath = ResourceUrl.GetEmbeddedResourcePath(url);
@@ -401,7 +401,7 @@ namespace ReactViewControl {
             return url.Replace("\\", ResourceUrl.PathSeparator);
         }
 
-        private void OnWebViewBeforeResourceLoad(WebView.ResourceHandler resourceHandler) {
+        private void OnWebViewBeforeResourceLoad(ResourceHandler resourceHandler) {
             var url = resourceHandler.Url;
             var scheme = url.Substring(0, Math.Max(0, url.IndexOf(Uri.SchemeDelimiter)));
 

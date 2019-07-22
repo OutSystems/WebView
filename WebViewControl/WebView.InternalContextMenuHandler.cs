@@ -1,14 +1,15 @@
 ﻿using Xilium.CefGlue;
+using Xilium.CefGlue.Common.Handlers;
 
 namespace WebViewControl {
 
     partial class WebView {
-
-        private class CefMenuHandler : Xilium.CefGlue.Common.Handlers.ContextMenuHandler {
+        
+        private class InternalContextMenuHandler : ContextMenuHandler {
 
             private WebView OwnerWebView { get; }
 
-            public CefMenuHandler(WebView webView) {
+            public InternalContextMenuHandler(WebView webView) {
                 OwnerWebView = webView;
             }
 

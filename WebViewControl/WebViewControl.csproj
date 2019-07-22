@@ -128,7 +128,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CefLoader.cs" />
-    <Compile Include="InternalChromiumBrowser.cs" />
+    <Compile Include="ResourcesProvider.cs" />
+    <Compile Include="UrlHelper.cs" />
+    <Compile Include="ChromiumBrowser.cs" />
     <Compile Include="JavascriptSerializationHelper.cs" />
     <Compile Include="BrowserObjectListener.cs" />
     <Compile Include="JavascriptStackFrame.cs" />
@@ -142,19 +144,18 @@
     <Compile Include="ResourceType.cs" />
     <Compile Include="ResourceUrl.cs" />
     <Compile Include="UnhandledAsyncExceptionEventArgs.cs" />
-    <Compile Include="WebView.CefDownloadHandler.cs" />
-    <Compile Include="WebView.CefLifeSpanHandler.cs" />
-    <Compile Include="WebView.CefRequestHandler.cs" />
-    <Compile Include="WebView.CefAsyncResourceHandler.cs" />
-    <Compile Include="WebView.CefDialogHandler.cs" />
-    <Compile Include="WebView.CefMenuHandler.cs" />
-    <Compile Include="WebView.CefRenderProcessMessageHandler.cs" />
-    <Compile Include="WebView.CefResourceHandlerFactory.cs" />
-    <Compile Include="WebView.CefSchemeResourceHandler.cs" />
+    <Compile Include="WebView.InternalDownloadHandler.cs" />
+    <Compile Include="WebView.InternalLifeSpanHandler.cs" />
+    <Compile Include="WebView.InternalRequestHandler.cs" />
+    <Compile Include="AsyncResourceHandler.cs" />
+    <Compile Include="WebView.InternalDialogHandler.cs" />
+    <Compile Include="WebView.InternalContextMenuHandler.cs" />
+    <Compile Include="WebView.InternalResourceHandler.cs" />
+    <Compile Include="SchemeHandlerFactory.cs" />
     <Compile Include="WebView.cs" />
     <Compile Include="WebView.JavascriptException.cs" />
     <Compile Include="WebView.JavascriptExecutor.cs" />
-    <Compile Include="WebView.Request.cs" />
+    <Compile Include="Request.cs" />
     <Compile Include="WebView.ResourceHandler.cs" />
     <Compile Include="ResourcesManager.cs" />
   </ItemGroup>

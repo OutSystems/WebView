@@ -1,16 +1,15 @@
 ﻿using Xilium.CefGlue;
+using Xilium.CefGlue.Common.Handlers;
 
-namespace WebViewControl
-{
+namespace WebViewControl {
 
     partial class WebView {
 
-        private class CefDownloadHandler : Xilium.CefGlue.Common.Handlers.DownloadHandler
-        {
+        private class InternalDownloadHandler : DownloadHandler {
 
             private WebView OwnerWebView { get; }
 
-            public CefDownloadHandler(WebView owner) {
+            public InternalDownloadHandler(WebView owner) {
                 OwnerWebView = owner;
             }
 

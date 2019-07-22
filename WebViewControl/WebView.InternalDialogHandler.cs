@@ -1,14 +1,14 @@
 ﻿using Xilium.CefGlue;
+using Xilium.CefGlue.Common.Handlers;
 
-namespace WebViewControl
-{
+namespace WebViewControl {
 
     partial class WebView {
-        private class CefDialogHandler : Xilium.CefGlue.Common.Handlers.DialogHandler {
+        private class InternalDialogHandler : DialogHandler {
 
             private WebView OwnerWebView { get; }
 
-            public CefDialogHandler(WebView webView) {
+            public InternalDialogHandler(WebView webView) {
                 OwnerWebView = webView;
             }
 

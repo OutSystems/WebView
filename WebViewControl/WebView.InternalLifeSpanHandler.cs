@@ -1,25 +1,22 @@
 ﻿using System;
 using System.Diagnostics;
 using Xilium.CefGlue;
+using Xilium.CefGlue.Common.Handlers;
 
 namespace WebViewControl {
 
-    partial class WebView
-    {
+    partial class WebView {
 
-        private class CefLifeSpanHandler : Xilium.CefGlue.Common.Handlers.LifeSpanHandler
-        {
+        private class InternalLifeSpanHandler : LifeSpanHandler {
 
             private WebView OwnerWebView { get; }
 
-            public CefLifeSpanHandler(WebView webView) {
+            public InternalLifeSpanHandler(WebView webView) {
                 OwnerWebView = webView;
             }
 
-            public event Action</*url*/string> PopupOpening;
-
             protected override bool OnBeforePopup(CefBrowser browser, CefFrame frame, string targetUrl, string targetFrameName, CefWindowOpenDisposition targetDisposition, bool userGesture, CefPopupFeatures popupFeatures, CefWindowInfo windowInfo, ref CefClient client, CefBrowserSettings settings, ref bool noJavascriptAccess) {
-                if (targetUrl.StartsWith(ChromeInternalProtocol, StringComparison.InvariantCultureIgnoreCase)) {
+                if (UrlHelper.IsChromeInternalUrl(targetUrl)) {
                     return false;
                 }
 
@@ -34,8 +31,9 @@ namespace WebViewControl {
                 }
 
                 try {
-                    if (PopupOpening != null) {
-                        PopupOpening(targetUrl);
+                    var popupOpening = OwnerWebView.PopupOpening;
+                    if (popupOpening != null) {
+                        popupOpening(targetUrl);
                     } else {
                         // if we are opening a popup then this should go to the default browser
                         Process.Start(targetUrl);
