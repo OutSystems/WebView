@@ -132,13 +132,16 @@ export function loadPlugins(plugins: string[][]): void {
                 let pluginsPromises: Promise<void>[] = [];
                 plugins.forEach(m => {
                     const ModuleName: string = m[0];
-                    const NativeObjectName: string = m[1];
-                    const MainJsSource: string = m[2];
+                    const NativeObjectFullName: string = m[1]; // fullname with frame name included
+                    const NativeObjectName = m[2]; // name without frame name
+                    const MainJsSource: string = m[3];
 
                     let dependencyJsSources: string[] = m.length > 2 ? m.slice(3) : [];
 
                     pluginsPromises.push(new Promise<void>((resolve, reject) => {
-                        CefSharp.BindObjectAsync(NativeObjectName, NativeObjectName).then(async () => {
+                        CefSharp.BindObjectAsync(NativeObjectFullName, NativeObjectFullName).then(async () => {
+                            window[NativeObjectName] = window[NativeObjectFullName]; // create alias to the original name, since views are not aware of the fullname
+
                             if (ModuleName) {
 
                                 // plugin dependency js sources

@@ -154,6 +154,7 @@ namespace WebViewControl {
                 if (scriptsToExecute.Count > 0) {
                     var script = string.Join(";" + Environment.NewLine, scriptsToExecute.Select(s => s.Script));
                     if (frame.IsValid) {
+                        var frameName = frame.Name;
                         var task = frame.EvaluateScriptAsync(
                             WrapScriptWithErrorHandling(script),
                             timeout: OwnerWebView.DefaultScriptsExecutionTimeout);
@@ -161,7 +162,7 @@ namespace WebViewControl {
                         var response = task.Result;
                         if (!response.Success) {
                             var evaluatedScriptFunctions = scriptsToExecute.Select(s => s.FunctionName);
-                            OwnerWebView.ExecuteWithAsyncErrorHandling(() => throw ParseResponseException(response, evaluatedScriptFunctions));
+                            OwnerWebView.ExecuteWithAsyncErrorHandlingOnFrame(() => throw ParseResponseException(response, evaluatedScriptFunctions), frameName);
                         }
                     }
                 }

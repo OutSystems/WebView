@@ -45,7 +45,7 @@ namespace WebViewControl {
                     return;
                 }
                 var javascriptException = new JavascriptException(exception.Message, exception.StackTrace);
-                OwnerWebView.ForwardUnhandledAsyncException(javascriptException);
+                OwnerWebView.ForwardUnhandledAsyncException(javascriptException, frame.Name);
             }
         }
     }

@@ -10,9 +10,9 @@ using WebViewControl;
 
 namespace ReactViewControl {
 
-    public delegate Stream CustomResourceRequestedEventHandler(string url);
+    public delegate void ResourceRequestedEventHandler(WebView.ResourceHandler resourceHandler);
 
-    public delegate void ExternalResourceRequestedEventHandler(WebView.ResourceHandler resourceHandler);
+    public delegate Stream CustomResourceRequestedEventHandler(string url);
 
     public abstract class ReactView : UserControl, IDisposable {
 
@@ -22,7 +22,7 @@ namespace ReactViewControl {
 
         private static ReactViewRender CreateReactViewInstance(ReactViewFactory factory) {
             ReactViewRender InnerCreateView() {
-                var view = new ReactViewRender(factory.DefaultStyleSheet, factory.Plugins, factory.EnableViewPreload, factory.EnableDebugMode);
+                var view = new ReactViewRender(factory.DefaultStyleSheet, factory.InitializePlugins(), factory.EnableViewPreload, factory.EnableDebugMode);
                 if (factory.ShowDeveloperTools) {
                     view.ShowDeveloperTools();
                 }
@@ -119,8 +119,8 @@ namespace ReactViewControl {
             GC.SuppressFinalize(this);
         }
 
-        public T WithPlugin<T>() {
-            return View.WithPlugin<T>();
+        public T WithPlugin<T>(string frameName = WebView.MainFrameName) {
+            return View.WithPlugin<T>(frameName);
         }
 
         public bool EnableDebugMode { get => View.EnableDebugMode; set => View.EnableDebugMode = value; }
@@ -146,12 +146,17 @@ namespace ReactViewControl {
             remove { View.ResourceLoadFailed -= value; }
         }
 
+        public event ResourceRequestedEventHandler EmbeddedResourceRequested {
+            add { View.EmbeddedResourceRequested += value; }
+            remove { View.EmbeddedResourceRequested -= value; }
+        }
+
         public event CustomResourceRequestedEventHandler CustomResourceRequested {
             add { View.CustomResourceRequested += value; }
             remove { View.CustomResourceRequested -= value; }
         }
 
-        public event ExternalResourceRequestedEventHandler ExternalResourceRequested {
+        public event ResourceRequestedEventHandler ExternalResourceRequested {
             add { View.ExternalResourceRequested += value; }
             remove { View.ExternalResourceRequested -= value; }
         }
@@ -174,6 +179,8 @@ namespace ReactViewControl {
         public static int PreloadedCacheEntriesSize { get; set; } = 6;
 
         public void AttachInnerView(IViewModule viewModule, string frameName) {
+            View.ClearPlugins(frameName);
+            View.AddPlugins(frameName, Factory.InitializePlugins());
             View.LoadComponent(viewModule, frameName);
         }
     }

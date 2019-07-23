@@ -7,7 +7,8 @@ namespace Tests.ReactView {
     public class PluginModulesLoadTests : ReactViewTestBase {
 
         private class ViewFactoryWithPlugin : TestReactViewFactory {
-            public override IViewModule[] Plugins => new[] { new PluginModule() };
+
+            public override IViewModule[] InitializePlugins() => new[] { new PluginModule() };
         }
 
         private class ReactViewWithPlugin : TestReactView {

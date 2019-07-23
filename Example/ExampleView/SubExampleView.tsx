@@ -1,5 +1,6 @@
 ﻿import * as React from "react";
-import "./SubExampleView.css";
+import * as ViewPlugin from "./ViewPlugin";
+import "./SubExampleView.scss";
 
 export interface ISubExampleViewProperties {
     click(): void;
@@ -33,6 +34,10 @@ export default class SubExampleView extends React.Component<ISubExampleViewPrope
                 dotNetCallCount: s.dotNetCallCount + 1
             };
         });
+    }
+
+    componentDidMount(): void {
+        ViewPlugin.notifyViewLoaded("SubExampleView");
     }
 
     render() {

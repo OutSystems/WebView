@@ -1,6 +1,7 @@
 ﻿import * as React from "react";
 import ViewFrame from "ViewFrame";
-import "./ExampleView.css";
+import * as ViewPlugin from "./ViewPlugin";
+import "./ExampleView.scss";
 
 export interface ISomeType {
     name: string;
@@ -39,6 +40,10 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
 
     callMe(): void {
         alert("React View says: clicked on a WPF button");
+    }
+
+    componentDidMount(): void {
+        ViewPlugin.notifyViewLoaded("ExampleView");
     }
 
     render() {

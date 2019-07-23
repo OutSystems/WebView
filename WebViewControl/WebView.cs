@@ -6,6 +6,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Windows;
 using System.Windows.Controls;
@@ -180,7 +181,7 @@ namespace WebViewControl {
 #endif
 
             if (UseSharedDomain) {
-                CurrentDomainId = "";
+                CurrentDomainId = string.Empty;
             } else {
                 CurrentDomainId = domainId.ToString();
                 domainId++;
@@ -659,12 +660,16 @@ namespace WebViewControl {
                 AsyncCancellationTokenSource.Token);
         }
 
-        [DebuggerNonUserCode]
         private void ExecuteWithAsyncErrorHandling(Action action) {
+            ExecuteWithAsyncErrorHandlingOnFrame(action, null);
+        }
+
+        [DebuggerNonUserCode]
+        private void ExecuteWithAsyncErrorHandlingOnFrame(Action action, string frameName) {
             try {
                 action();
             } catch (Exception e) {
-                ForwardUnhandledAsyncException(e);
+                ForwardUnhandledAsyncException(e, frameName);
             }
         }
 
@@ -677,7 +682,7 @@ namespace WebViewControl {
             }
         }
 
-        private void ForwardUnhandledAsyncException(Exception e) {
+        private void ForwardUnhandledAsyncException(Exception e, string frameName = null) {
             if (isDisposing) {
                 return;
             }
@@ -686,16 +691,17 @@ namespace WebViewControl {
 
             var unhandledAsyncException = UnhandledAsyncException;
             if (unhandledAsyncException != null) {
-                var eventArgs = new UnhandledAsyncExceptionEventArgs(e);
+                var eventArgs = new UnhandledAsyncExceptionEventArgs(e, frameName);
                 unhandledAsyncException(eventArgs);
                 handled = eventArgs.Handled;
             }
 
             if (!handled) {
+                var exceptionInfo = ExceptionDispatchInfo.Capture(e);
                 // don't use invoke async, as it won't forward the exception to the dispatcher unhandled exception event
                 Dispatcher.BeginInvoke((Action)(() => {
                     if (!isDisposing) {
-                        throw e;
+                        exceptionInfo?.Throw();
                     }
                 }));
             }
@@ -800,11 +806,11 @@ namespace WebViewControl {
 
         private void OnRenderProcessCrashed() {
             lock (JsExecutors) {
-                DisposeJavascriptExecutors(JsExecutors.Keys);
+                DisposeJavascriptExecutors(JsExecutors.Keys.ToArray());
             }
         }
 
-        private void DisposeJavascriptExecutors(IEnumerable<string> executorsKeys) {
+        private void DisposeJavascriptExecutors(string[] executorsKeys) {
             foreach (var executorKey in executorsKeys) {
                 JsExecutors[executorKey].Dispose();
                 JsExecutors.Remove(executorKey);

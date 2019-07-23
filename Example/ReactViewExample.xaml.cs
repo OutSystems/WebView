@@ -17,6 +17,9 @@ namespace Example {
             subView.GetTime += OnSubViewGetTime;
             exampleView.AttachInnerView(subView, "test");
             subView.CallMe();
+
+            exampleView.WithPlugin<ViewPlugin>("").NotifyViewLoaded += OnNotifyViewLoaded;
+            exampleView.WithPlugin<ViewPlugin>("test").NotifyViewLoaded += OnSubViewNotifyViewLoaded;
         }
 
         private void OnExampleViewClick(SomeType arg) {
@@ -37,6 +40,14 @@ namespace Example {
 
         private string OnSubViewGetTime() {
             return DateTime.Now.AddHours(1).ToShortTimeString();
+        }
+
+        private void OnNotifyViewLoaded(string viewName) {
+            Console.WriteLine("On view loaded: " + viewName);
+        }
+
+        private void OnSubViewNotifyViewLoaded(string viewName) {
+            Console.WriteLine("On sub view loaded: " + viewName);
         }
     }
 }
