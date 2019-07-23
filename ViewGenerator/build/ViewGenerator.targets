@@ -21,9 +21,9 @@
 
   </PropertyGroup>
 
-    <Target Name="LinkNodeModules">
-        <Exec Command="mklink /D &quot;$(ProjectDir)node_modules\webview.framework&quot; &quot;$(ProjectDir)$(FrameworkRelativePath)node_modules&quot;" Condition="'$(FrameworkRelativePath)' != ''" />
-    </Target>
+  <Target Name="LinkNodeModules">
+    <Exec Command="mklink /D &quot;$(ProjectDir)node_modules\webview.framework&quot; &quot;$(ProjectDir)$(FrameworkRelativePath)node_modules&quot;" Condition="'$(FrameworkRelativePath)' != ''" />
+  </Target>
   
   <Target Name="CleanLegacyJSFiles" >
     <ItemGroup>
@@ -42,10 +42,6 @@
   </Target>
 
   <Target Name="GenerateDefaultStyleSheet" DependsOnTargets="LinkNodeModules" Inputs="@(DefaultStyleSheet)" Outputs="%(DefaultStyleSheet.Filename).css" >
-    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(MSBuildThisFileDirectory)..\tools\node_modules\webpack\bin\webpack.js&quot; --config &quot;$(MSBuildThisFileDirectory)..\tools\webpack_custom.config.js&quot; --mode $(WebpackBuildMode) --entryPath &quot;%(DefaultStyleSheet.Identity)&quot;" />
-  </Target>    
-
-  <Target Name="GenerateBundle" DependsOnTargets="LinkNodeModules">
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
       <WebpackBuildMode>development</WebpackBuildMode>
     </PropertyGroup>
@@ -53,7 +49,11 @@
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
       <WebpackBuildMode>production</WebpackBuildMode>
     </PropertyGroup>
-    
+
+    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(MSBuildThisFileDirectory)..\tools\node_modules\webpack\bin\webpack.js&quot; --config &quot;$(MSBuildThisFileDirectory)..\tools\webpack_custom.config.js&quot; --mode $(WebpackBuildMode) --entryPath &quot;%(DefaultStyleSheet.Identity)&quot;" />
+  </Target>    
+
+  <Target Name="GenerateBundle" DependsOnTargets="GenerateDefaultStyleSheet">    
     <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(MSBuildThisFileDirectory)..\tools\node_modules\webpack\bin\webpack.js&quot; --config &quot;$(MSBuildThisFileDirectory)..\tools\webpack_global.config.js&quot; --mode $(WebpackBuildMode)" />
   </Target>
 
