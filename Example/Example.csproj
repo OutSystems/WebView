@@ -125,7 +125,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="ExampleView\ExampleView.tsx" />
-    <None Include="ExampleView\Plugin.ts" />
+    <None Include="ExampleView\ViewPlugin.ts" />
     <None Include="ExampleView\SubExampleView.tsx" />
   </ItemGroup>
   <ItemGroup>

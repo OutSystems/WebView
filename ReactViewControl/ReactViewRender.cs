@@ -210,7 +210,7 @@ namespace ReactViewControl {
                 JavascriptSerializer.Serialize(pluginsWithNativeObject.Select(m => new [] {
                     m.Name,
                     GetNativeObjectFullName(m.NativeObjectName, frameName),
-                    m.NativeObjectName
+                    m.NativeObjectName,
                     ToFullUrl(NormalizeUrl(m.MainJsSource)),
                 }.Concat(m.DependencyJsSources.Select(s => ToFullUrl(NormalizeUrl(s))))))
             };
@@ -257,7 +257,7 @@ namespace ReactViewControl {
             if (frameName == WebView.MainFrameName && IsMainComponentLoaded) {
                 throw new InvalidOperationException($"Cannot add plugins after component has been loaded");
             }
-            var invalidPlugins = plugins.Where(p => string.IsNullOrEmpty(p.JavascriptSource) || string.IsNullOrEmpty(p.Name));
+            var invalidPlugins = plugins.Where(p => string.IsNullOrEmpty(p.MainJsSource) || string.IsNullOrEmpty(p.Name));
             if (invalidPlugins.Any()) {
                 var pluginName = invalidPlugins.First().Name + "|" + invalidPlugins.First().GetType().Name;
                 throw new ArgumentException($"Plugin '{pluginName}' is invalid");
