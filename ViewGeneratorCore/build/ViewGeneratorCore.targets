@@ -1,20 +1,12 @@
 ﻿<Project>
   <PropertyGroup>
 
-    <CompileDependsOn>
-      GenerateDefaultStyleSheet;
-      GenerateBundle;
-      $(CompileDependsOn);
-    </CompileDependsOn>
-      
     <BuildDependsOn>
       GenerateView;
       $(BuildDependsOn)
     </BuildDependsOn>
 
     <CleanDependsOn>
-      CleanLegacyJSFiles;
-      CleanLegacyCSSFiles;
       CleanGenerated;
       $(CleanDependsOn);
     </CleanDependsOn>
@@ -26,38 +18,6 @@
 
   </PropertyGroup>
 
-  <Target Name="CleanLegacyJSFiles" >
-    <ItemGroup>
-      <JSFilesToDelete Include="**\*.js" Exclude="node_modules\**\*.js"/>
-    </ItemGroup>
-    <Message Text="Deleting old files: @(JSFilesToDelete)" Importance="high" />
-    <Delete Files="@(JSFilesToDelete)"/>
-  </Target>
-
-  <Target Name="CleanLegacyCSSFiles" >
-    <ItemGroup>
-      <CSSFilesToDelete Include="**\*.css" Exclude="node_modules\**\*.css;**\*.min.css"/>
-    </ItemGroup>
-    <Message Text="Deleting old files: @(CSSFilesToDelete)" Importance="high" />
-    <Delete Files="@(CSSFilesToDelete)"/>
-  </Target>
-
-  <Target Name="GenerateDefaultStyleSheet" Inputs="@(DefaultStyleSheet)" Outputs="%(DefaultStyleSheet.Filename).css" >
-    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(MSBuildThisFileDirectory)..\tools\node_modules\webpack\bin\webpack.js&quot; --config &quot;$(MSBuildThisFileDirectory)..\tools\webpack_custom.config.js&quot; --mode $(WebpackBuildMode) --entryPath &quot;%(DefaultStyleSheet.Identity)&quot;" />
-  </Target>    
-
-  <Target Name="GenerateBundle">
-    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-      <WebpackBuildMode>development</WebpackBuildMode>
-    </PropertyGroup>
-
-    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-      <WebpackBuildMode>production</WebpackBuildMode>
-    </PropertyGroup>
-    
-    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(MSBuildThisFileDirectory)..\tools\node_modules\webpack\bin\webpack.js&quot; --config &quot;$(MSBuildThisFileDirectory)..\tools\webpack_global.config.js&quot; --mode $(WebpackBuildMode)" />
-  </Target>
-  
   <Target Name="GenerateView" BeforeTargets="TransformDuringBuild;PrepareForBuild;CoreCompile" DependsOnTargets="CleanGenerated;GenerateBundle">
     <Message Importance="Normal" Text="Generating View files" />
     <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(MSBuildThisFileDirectory)..\tools\node_modules\@outsystems\ts2lang\ts2lang-main.js&quot; -f &quot;$(MSBuildProjectDirectory)\ts2lang.json&quot; -t &quot;$(MSBuildThisFileDirectory)..\tools\ViewGenerator.js&quot;" />

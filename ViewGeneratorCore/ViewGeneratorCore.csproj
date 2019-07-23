@@ -54,15 +54,12 @@
     </None>
     <Content Include="tools\tsconfig.json" />
     <None Include="debug-generator.bat" />
-    <Content Include="tools\webpack\tsconfig.json" />
     <None Include="ViewGeneratorCore.nuspec">
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="tools\src\ViewGenerator.ts" />
-    <TypeScriptCompile Include="tools\webpack\webpack_global.config.ts" />
-    <TypeScriptCompile Include="tools\webpack\webpack_custom.config.ts" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

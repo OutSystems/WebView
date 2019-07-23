@@ -10,7 +10,7 @@
     <description>Description</description>
     <copyright>Copyright ©  2018</copyright>
     <dependencies>
-      <dependency id="WebViewControl" version="1.67.54" />
+      <dependency id="WebViewControl" version="1.67.71" />
     </dependencies>
   </metadata>
 </package>
