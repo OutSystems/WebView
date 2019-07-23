@@ -55,7 +55,12 @@ const config = (_, argv) => {
                                 hmr: false
                             }
                         },
-                        'css-loader',
+                        {
+                            loader: "css-loader",
+                            options: {
+                                url: false
+                            }
+                        },
                         'sass-loader'
                     ]
                 }

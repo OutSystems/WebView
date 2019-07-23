@@ -1,8 +1,9 @@
 ﻿import Glob from "glob";
 import Path from "path";
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
-import Webpack, { Module } from "webpack";
-import ManifestPlugin, { Chunk } from "webpack-manifest-plugin";
+import Webpack from "webpack";
+import ManifestPlugin from "webpack-manifest-plugin";
+import { existsSync } from "fs";
 
 const entryMap: {
     [entry: string]: string
@@ -11,6 +12,12 @@ const entryMap: {
 const outputMap: {
     [entry: string]: string
 } = {};
+
+const aliasMap: {
+    [key: string]: string
+} = {};
+
+const externalsObjElement: Webpack.ExternalsObjectElement = {};
 
 /** 
  *  Build entry and output mappings for webpack config
@@ -22,7 +29,7 @@ function getConfiguration(input: string, output: string): void {
         if (!f.includes("node_modules")) {
 
             let entryName: string = Path.parse(f).name;
-            entryMap[entryName] = './' + f;
+            entryMap[entryName] = "./" + f;
             outputMap[entryName] = output;
         }
     });
@@ -56,14 +63,6 @@ function generateManifest(seed: object, files: ManifestPlugin.FileDescriptor[]) 
     return entryArrayManifest;
 }
 
-/*
- * Generate a name for a chunk.
- * */
-function generateChunkName(_module: Module, chunks: Chunk[], cacheGroupKey: string) {
-    const allChunksNames = chunks.map(item => item.name.replace(".view", "").replace(".", "_")).join('_');
-    return cacheGroupKey === "default" ? allChunksNames : cacheGroupKey + "_" + allChunksNames;
-}
-
 // 🔨 Webpack allows strings and functions as its output configurations,
 // however, webpack typings only allow strings at the moment. 🔨
 let getOutputFileName: any = (chunkData) => {
@@ -73,34 +72,56 @@ let getOutputFileName: any = (chunkData) => {
 /** 
  *  Get input and output entries from ts2lang file
  * */
-require(Path.resolve('./ts2lang.json')).tasks.forEach(t =>
+require(Path.resolve("./ts2lang.json")).tasks.forEach(t =>
     getConfiguration(t.input, t.output)
 );
+
+/** 
+ *  Get aliases and externals from a configuration file, if exists
+ * */
+var webpackOutputConfigFile = Path.resolve("./webpack-output-config.json");
+if (existsSync(webpackOutputConfigFile)) {
+    var outputConfig = require(webpackOutputConfigFile);
+
+    var allAliases = outputConfig.alias;
+    Object.keys(allAliases).forEach(key => aliasMap[key] = Path.resolve(".", allAliases[key]));
+
+    var allExternals = outputConfig.externals;
+    Object.keys(allExternals).forEach(key => {
+
+        var record: Record<string, string> = {};
+        record["commonjs"] = allExternals[key];
+        record["commonjs2"] = allExternals[key];
+        record["root"] = "_";
+
+        externalsObjElement[key] = record;
+    });
+}
 
 var standardConfig: Webpack.Configuration = {
     entry: entryMap,
 
     externals: {
-        'react': 'React',
-        'react-dom': 'ReactDOM',
-        'ViewFrame': 'ViewFrame'
+        "react": "React",
+        "react-dom": "ReactDOM",
+        "prop-types": "PropTypes",
+        "ViewFrame": "ViewFrame"
     },
 
     output: {
-        path: Path.resolve('.'),
+        path: Path.resolve("."),
         filename: getOutputFileName,
-        chunkFilename: "Generated/[name].js",
+        chunkFilename: "Generated/chunk_[chunkhash:8].js",
         library: "Bundle",
-        libraryTarget: 'umd',
+        libraryTarget: "umd",
         umdNamedDefine: true,
-        globalObject: 'window'
+        globalObject: "window"
     },
 
     optimization: {
         splitChunks: {
-            chunks: 'all',
+            chunks: "all",
             minSize: 1,
-            name: generateChunkName,
             cacheGroups: {
                 vendors: {
                     test: /[\\/](node_modules)[\\/]/
@@ -110,7 +131,7 @@ var standardConfig: Webpack.Configuration = {
     },
 
     resolveLoader: {
-        modules: [Path.join(__dirname, '/node_modules')],
+        modules: [Path.join(__dirname, "/node_modules")],
     },
 
     resolve: {
@@ -128,8 +149,13 @@ var standardConfig: Webpack.Configuration = {
                             hmr: false
                         }
                     },
-                    'css-loader',
-                    'sass-loader'
+                    {
+                        loader: "css-loader",
+                        options: {
+                            url: false
+                        }
+                    },
+                    "sass-loader"
                 ]
             },
             {
@@ -141,8 +167,8 @@ var standardConfig: Webpack.Configuration = {
 
     plugins: [
         new MiniCssExtractPlugin({
-            filename: 'Generated/[name].css',
-            chunkFilename: 'Generated/[name].css'
+            filename: "Generated/[name].css",
+            chunkFilename: "Generated/chunk_[chunkhash:8].css"
         }),
         new ManifestPlugin({
             fileName: "manifest.json",
@@ -153,12 +179,19 @@ var standardConfig: Webpack.Configuration = {
 
 // Current webpack typings do not recognize automaticNameMaxLength option.
 // Default is 30 characters, so we need to increase this value.
-(standardConfig.optimization.splitChunks as any).automaticNameMaxLength = 100;
+(standardConfig.optimization.splitChunks as any).automaticNameMaxLength = 250;
 
 const config = (_, argv) => {
     if (argv.mode === "development") {
         standardConfig.devtool = "inline-source-map";
     }
+
+    if (Object.keys(aliasMap).length > 0) {
+        standardConfig.resolve.alias = aliasMap;
+    }
+
+    Object.keys(externalsObjElement).forEach(key => standardConfig.externals[key] = externalsObjElement[key]);
+
     return standardConfig;
 };
 
