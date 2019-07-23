@@ -134,9 +134,11 @@ export function loadPlugins(plugins: string[][], mappings: Dictionary<string>): 
                 let pluginsPromises: Promise<void>[] = [];
                 plugins.forEach(m => {
                     const ModuleName = m[0];
-                    const NativeObjectName = m[1];
+                    const NativeObjectFullName = m[1]; // fullname with frame name included
+                    const NativeObjectName = m[2]; // name without frame name
                     pluginsPromises.push(new Promise<void>((resolve, reject) => {
-                        CefSharp.BindObjectAsync(NativeObjectName, NativeObjectName).then(() => {
+                        CefSharp.BindObjectAsync(NativeObjectFullName, NativeObjectFullName).then(() => {
+                            window[NativeObjectName] = window[NativeObjectFullName]; // create alias to the original name, since views are not aware of the fullname
                             require([ModuleName], (Module: any) => {
                                 if (Module) {
                                     Modules[ModuleName] = Module.default;
@@ -203,13 +205,7 @@ export function loadComponent(
             }
             await Promise.all(promisesToWaitFor);
 
-            let paths = getRequirePaths();
-            if (mappings) {
-                paths = Object.assign(paths, mappings);
-            }
-
             require.config({
-                paths: paths,
                 baseUrl: baseUrl,
                 urlArgs: cacheInvalidationSuffix
             });

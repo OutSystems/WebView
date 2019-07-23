@@ -7,7 +7,7 @@ namespace ReactViewControl {
 
         public virtual ResourceUrl DefaultStyleSheet => null;
 
-        public virtual IViewModule[] Plugins => new IViewModule[0];
+        public virtual IViewModule[] InitializePlugins() => new IViewModule[0];
 
         public virtual bool ShowDeveloperTools => false;
 

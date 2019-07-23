@@ -22,7 +22,7 @@ namespace ReactViewControl {
 
         private static ReactViewRender CreateReactViewInstance(ReactViewFactory factory) {
             ReactViewRender InnerCreateView() {
-                var view = new ReactViewRender(factory.DefaultStyleSheet, factory.Plugins, factory.EnableViewPreload, factory.EnableDebugMode);
+                var view = new ReactViewRender(factory.DefaultStyleSheet, factory.InitializePlugins(), factory.EnableViewPreload, factory.EnableDebugMode);
                 if (factory.ShowDeveloperTools) {
                     view.ShowDeveloperTools();
                 }
@@ -119,12 +119,12 @@ namespace ReactViewControl {
             GC.SuppressFinalize(this);
         }
 
-        public T WithPlugin<T>() {
-            return View.WithPlugin<T>();
+        public T WithPlugin<T>(string frameName = WebView.MainFrameName) {
+            return View.WithPlugin<T>(frameName);
         }
 
         protected void AddMappings(params SimpleViewModule[] mappings) {
-            View.Plugins = View.Plugins.Concat(mappings).ToArray();
+            View.AddPlugins(WebView.MainFrameName, mappings);
         }
 
         public bool EnableDebugMode { get => View.EnableDebugMode; set => View.EnableDebugMode = value; }
@@ -183,6 +183,8 @@ namespace ReactViewControl {
         public static int PreloadedCacheEntriesSize { get; set; } = 6;
 
         public void AttachInnerView(IViewModule viewModule, string frameName) {
+            View.ClearPlugins(frameName);
+            View.AddPlugins(frameName, Factory.InitializePlugins());
             View.LoadComponent(viewModule, frameName);
         }
     }

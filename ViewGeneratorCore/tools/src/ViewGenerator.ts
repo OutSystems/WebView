@@ -227,7 +227,7 @@ class Generator {
 
         const generateComponentClass = () => {
             return (
-                `public partial class ${this.componentName} : ${BaseComponentAliasName} {\n` +
+                `public partial class ${this.componentName} : ${BaseComponentAliasName}, I${this.moduleName} {\n` +
                 `\n` +
                 `    public ${this.componentName}() : base(new ${this.moduleName}()) {\n` +
                 `        ${partialInitializeMethodName}();\n` +

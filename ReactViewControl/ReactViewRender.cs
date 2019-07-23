@@ -27,6 +27,7 @@ namespace ReactViewControl {
 
         private Dictionary<string, IViewModule> FrameToComponentMap { get; } = new Dictionary<string, IViewModule>();
         private Dictionary<string, ExecutionEngine> FrameToExecutionEngineMap { get; } = new Dictionary<string, ExecutionEngine>();
+        private Dictionary<string, IViewModule[]> FrameToPluginsMap { get; } = new Dictionary<string, IViewModule[]>();
 
         private WebView WebView { get; }
         private Assembly UserCallingAssembly { get; }
@@ -34,7 +35,6 @@ namespace ReactViewControl {
         private bool enableDebugMode = false;
         private LoadStatus status;
         private ResourceUrl defaultStyleSheet;
-        private IViewModule[] plugins;
         private FileSystemWatcher fileSystemWatcher;
         private string cacheInvalidationTimestamp;
 
@@ -47,7 +47,7 @@ namespace ReactViewControl {
             };
 
             DefaultStyleSheet = defaultStyleSheet;
-            Plugins = plugins;
+            AddPlugins(WebView.MainFrameName, plugins);
             EnableDebugMode = enableDebugMode;
 
             var loadedListener = WebView.AttachListener(ComponentLoadedEventName);
@@ -154,7 +154,7 @@ namespace ReactViewControl {
                 .Select(p => new KeyValuePair<string, object>(JavascriptSerializer.GetJavascriptName(p.Key), p.Value));
             var componentSerialization = JavascriptSerializer.Serialize(nativeObjectMethodsMap);
             var componentHash = ComputeHash(componentSerialization);
-            
+
             // loadComponent arguments:
             // componentName: string,
             // componentSource: string,
@@ -164,8 +164,7 @@ namespace ReactViewControl {
             // hasStyleSheet: boolean,
             // hasPlugins: boolean,
             // componentNativeObject: Dictionary<any>,
-            // hash: string,
-            // mappings: Dictionary<string>
+            // hash: string
 
             var loadArgs = new [] {
                 JavascriptSerializer.Serialize(component.Name),
@@ -175,10 +174,9 @@ namespace ReactViewControl {
                 JavascriptSerializer.Serialize(urlSuffix),
                 JavascriptSerializer.Serialize(ReactView.PreloadedCacheEntriesSize),
                 JavascriptSerializer.Serialize(DefaultStyleSheet != null),
-                JavascriptSerializer.Serialize(Plugins?.Length > 0),
+                JavascriptSerializer.Serialize(GetPlugins(frameName).Length > 0),
                 componentSerialization,
-                JavascriptSerializer.Serialize(componentHash),
-                GetMappings()
+                JavascriptSerializer.Serialize(componentHash)
             };
 
             RegisterNativeObject(component, frameName);
@@ -191,19 +189,22 @@ namespace ReactViewControl {
         }
 
         private void InternalLoadDefaultStyleSheet(string frameName) {
-            var loadArg = JavascriptSerializer.Serialize(DefaultStyleSheet != null ? NormalizeUrl(ToFullUrl(DefaultStyleSheet.ToString())) : null);
-            ExecuteLoaderFunction("loadStyleSheet", frameName, loadArg);
-        }
-
-        private string GetMappings() {
-            return JavascriptSerializer.Serialize(Plugins.Select(m => new KeyValuePair<string, object>(m.Name, NormalizeUrl(ToFullUrl(m.JavascriptSource)))));
+            if (DefaultStyleSheet != null) {
+                var loadArg = JavascriptSerializer.Serialize(NormalizeUrl(ToFullUrl(DefaultStyleSheet.ToString())));
+                ExecuteLoaderFunction("loadStyleSheet", frameName, loadArg);
+            }
         }
 
         private void InternalLoadPlugins(string frameName) {
-            var pluginsWithNativeObject = Plugins.Where(p => !string.IsNullOrEmpty(p.NativeObjectName)).ToArray();
+            var plugins = GetPlugins(frameName);
+            if (plugins.Length == 0) {
+                return;
+            }
+
+            var pluginsWithNativeObject = plugins.Where(p => !string.IsNullOrEmpty(p.NativeObjectName)).ToArray();
             var loadArgs = new[] {
-                JavascriptSerializer.Serialize(pluginsWithNativeObject.Select(m => new[] { m.Name, GetNativeObjectFullName(m.NativeObjectName, frameName) })), // plugins
-                GetMappings()
+                JavascriptSerializer.Serialize(pluginsWithNativeObject.Select(m => new[] { m.Name, GetNativeObjectFullName(m.NativeObjectName, frameName), m.NativeObjectName })), // plugins
+                JavascriptSerializer.Serialize(plugins.Select(m => new KeyValuePair<string, object>(m.Name, NormalizeUrl(ToFullUrl(m.JavascriptSource))))), // mappings
             };
 
             foreach (var module in pluginsWithNativeObject) {
@@ -220,15 +221,14 @@ namespace ReactViewControl {
                 // not a component, maybe its an iframe with an external url, bail out
                 return;
             }
+
             if (frameName == WebView.MainFrameName) {
                 status = LoadStatus.PageLoaded;
             }
-            if (DefaultStyleSheet != null) {
-                InternalLoadDefaultStyleSheet(frameName);
-            }
-            if (Plugins?.Length > 0) {
-                InternalLoadPlugins(frameName);
-            }
+            
+            InternalLoadDefaultStyleSheet(frameName);
+            InternalLoadPlugins(frameName);
+
             if (FrameToComponentMap.TryGetValue(frameName, out var component)) { 
                 InternalLoadComponent(component, frameName);
             }
@@ -245,22 +245,25 @@ namespace ReactViewControl {
             }
         }
 
-        public IViewModule[] Plugins {
-            get { return plugins; }
-            internal set {
-                if (IsMainComponentLoaded) {
-                    throw new InvalidOperationException($"Cannot set {nameof(Plugins)} after component has been loaded");
-                }
-                var invalidPlugins = value.Where(p => string.IsNullOrEmpty(p.JavascriptSource) || string.IsNullOrEmpty(p.Name));
-                if (invalidPlugins.Any()) {
-                    var pluginName = invalidPlugins.First().Name + "|" + invalidPlugins.First().GetType().Name;
-                    throw new ArgumentException($"Plugin '{pluginName}' is invalid");
-                }
-                plugins = value;
-                foreach(var plugin in plugins) {
-                    BindModule(plugin, WebView.MainFrameName);
-                }
+        public void AddPlugins(string frameName, params IViewModule[] plugins) {
+            if (frameName == WebView.MainFrameName && IsMainComponentLoaded) {
+                throw new InvalidOperationException($"Cannot add plugins after component has been loaded");
             }
+            var invalidPlugins = plugins.Where(p => string.IsNullOrEmpty(p.JavascriptSource) || string.IsNullOrEmpty(p.Name));
+            if (invalidPlugins.Any()) {
+                var pluginName = invalidPlugins.First().Name + "|" + invalidPlugins.First().GetType().Name;
+                throw new ArgumentException($"Plugin '{pluginName}' is invalid");
+            }
+
+            FrameToPluginsMap[frameName] = GetPlugins(frameName).Concat(plugins).ToArray();
+
+            foreach (var plugin in plugins) {
+                BindModule(plugin, WebView.MainFrameName);
+            }
+        }
+
+        public void ClearPlugins(string frameName) {
+            FrameToPluginsMap.Remove(frameName);
         }
 
         internal void BindModule(IViewModule module, string frameName) {
@@ -274,8 +277,12 @@ namespace ReactViewControl {
             module.Bind(engine);
         }
 
-        public T WithPlugin<T>() {
-            return Plugins.OfType<T>().First();
+        public T WithPlugin<T>(string frameName = WebView.MainFrameName) {
+            var plugin = GetPlugins(frameName).OfType<T>().FirstOrDefault();
+            if (plugin == null) {
+                throw new InvalidOperationException($"Plugin {typeof(T).Name} not found in {frameName}");
+            }
+            return plugin;
         }
 
         public bool IsReady => status == LoadStatus.Ready;
@@ -455,6 +462,11 @@ namespace ReactViewControl {
 
         private static string GetNativeObjectFullName(string name, string frameName) {
             return (frameName == WebView.MainFrameName ? frameName : frameName + "$") + name;
+        }
+
+        private IViewModule[] GetPlugins(string frameName) {
+            FrameToPluginsMap.TryGetValue(frameName, out var plugins);
+            return plugins ?? new IViewModule[0];
         }
     }
 }
