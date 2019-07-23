@@ -123,10 +123,6 @@ namespace ReactViewControl {
             return View.WithPlugin<T>();
         }
 
-        protected void AddMappings(params SimpleViewModule[] mappings) {
-            View.Plugins = View.Plugins.Concat(mappings).ToArray();
-        }
-
         public bool EnableDebugMode { get => View.EnableDebugMode; set => View.EnableDebugMode = value; }
 
         public bool EnableHotReload { get; set; }
