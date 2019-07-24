@@ -171,11 +171,11 @@ namespace ReactViewControl {
 
             var loadArgs = new [] {
                 JavascriptSerializer.Serialize(component.Name),
+                JavascriptSerializer.Serialize(GetNativeObjectFullName(component.NativeObjectName, frameName)),
                 JavascriptSerializer.Serialize(mainSource),
                 JavascriptSerializer.Serialize(dependencySources),
                 JavascriptSerializer.Serialize(cssSources),
                 JavascriptSerializer.Serialize(originalSourceFolder),
-                JavascriptSerializer.Serialize(GetNativeObjectFullName(component.NativeObjectName, frameName)),
                 JavascriptSerializer.Serialize(ReactView.PreloadedCacheEntriesSize),
                 JavascriptSerializer.Serialize(DefaultStyleSheet != null),
                 JavascriptSerializer.Serialize(GetPlugins(frameName).Length > 0),
@@ -195,7 +195,7 @@ namespace ReactViewControl {
         private void InternalLoadDefaultStyleSheet(string frameName) {
             if (DefaultStyleSheet != null) {
                 var loadArg = JavascriptSerializer.Serialize(NormalizeUrl(ToFullUrl(DefaultStyleSheet.ToString())));
-                ExecuteLoaderFunction("loadStyleSheet", frameName, loadArg);
+                ExecuteLoaderFunction("loadDefaultStyleSheet", frameName, loadArg);
             }
         }
 
@@ -205,9 +205,8 @@ namespace ReactViewControl {
                 return;
             }
 
-            var pluginsWithNativeObject = plugins.Where(p => !string.IsNullOrEmpty(p.NativeObjectName)).ToArray();
             var loadArgs = new[] {
-                JavascriptSerializer.Serialize(pluginsWithNativeObject.Select(m => new [] {
+                JavascriptSerializer.Serialize(plugins.Select(m => new [] {
                     m.Name,
                     GetNativeObjectFullName(m.NativeObjectName, frameName),
                     m.NativeObjectName,
@@ -215,7 +214,7 @@ namespace ReactViewControl {
                 }.Concat(m.DependencyJsSources.Select(s => ToFullUrl(NormalizeUrl(s))))))
             };
 
-            foreach (var module in pluginsWithNativeObject) {
+            foreach (var module in plugins) {
                 RegisterNativeObject(module, frameName);
             }
 
@@ -257,7 +256,7 @@ namespace ReactViewControl {
             if (frameName == WebView.MainFrameName && IsMainComponentLoaded) {
                 throw new InvalidOperationException($"Cannot add plugins after component has been loaded");
             }
-            var invalidPlugins = plugins.Where(p => string.IsNullOrEmpty(p.MainJsSource) || string.IsNullOrEmpty(p.Name));
+            var invalidPlugins = plugins.Where(p => string.IsNullOrEmpty(p.MainJsSource) || string.IsNullOrEmpty(p.Name) || string.IsNullOrEmpty(p.NativeObjectName));
             if (invalidPlugins.Any()) {
                 var pluginName = invalidPlugins.First().Name + "|" + invalidPlugins.First().GetType().Name;
                 throw new ArgumentException($"Plugin '{pluginName}' is invalid");

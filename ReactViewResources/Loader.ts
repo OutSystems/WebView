@@ -78,7 +78,7 @@ function loadScript(scriptSrc: string): Promise<void> {
     });
 }
 
-function loadLinkStyleSheet(stylesheet: string, markAsSticky: boolean): Promise<void> {
+function loadStyleSheet(stylesheet: string, markAsSticky: boolean): Promise<void> {
     return new Promise((resolve) => {
         let link = document.createElement("link");
         link.type = "text/css";
@@ -107,11 +107,11 @@ async function loadFramework(): Promise<void> {
     await loadScript(LibsPath + "ReactViewResources.js"); /* React View Resources */ 
 }
 
-export function loadStyleSheet(stylesheet: string): void {
+export function loadDefaultStyleSheet(stylesheet: string): void {
     async function innerLoad() {
         try {
             await BootstrapTask.promise;
-            await loadLinkStyleSheet(stylesheet, true);
+            await loadStyleSheet(stylesheet, true);
 
             StylesheetsLoadTask.setResult();
         } catch (error) {
@@ -138,22 +138,23 @@ export function loadPlugins(plugins: string[][]): void {
 
                     let dependencyJsSources: string[] = m.length > 2 ? m.slice(3) : [];
 
+                    // plugin dependency js sources
+                    let dependencySourcesPromises: Promise<void>[] = [];
+                    dependencyJsSources.forEach(s => {
+                        dependencySourcesPromises.push(loadScript(s));
+                    });
+
                     pluginsPromises.push(new Promise<void>((resolve, reject) => {
                         CefSharp.BindObjectAsync(NativeObjectFullName, NativeObjectFullName).then(async () => {
                             window[NativeObjectName] = window[NativeObjectFullName]; // create alias to the original name, since views are not aware of the fullname
 
-                            if (ModuleName) {
-
-                                // plugin dependency js sources
-                                let dependencySourcesPromises: Promise<void>[] = [];
-                                dependencyJsSources.forEach(s => {
-                                    dependencySourcesPromises.push(loadScript(s));
-                                });
+                            if (ModuleName) {  
                                 await Promise.all(dependencySourcesPromises);
 
                                 // plugin main js source
-                                loadScript(MainJsSource).then(() => resolve());
+                                await loadScript(MainJsSource);
 
+                                resolve();
                             } else {
                                 reject(`Failed to load '${ModuleName}' (might not be a module)`);
                             }
@@ -174,11 +175,11 @@ export function loadPlugins(plugins: string[][]): void {
 
 export function loadComponent(
     componentName: string,
+    componentNativeObjectName: string,
     componentSource: string,
     dependencySources: string[],
     cssSources: string[],
     originalSourceFolder: string,
-    componentNativeObjectName: string,
     maxPreRenderedCacheEntries: number,
     hasStyleSheet: boolean,
     hasPlugins: boolean,
@@ -215,15 +216,11 @@ export function loadComponent(
             }
             await Promise.all(promisesToWaitFor);
 
-            // load component css sources
-            let loadCssSourcesPromises: Promise<void>[] = [];
-            cssSources.forEach(s => loadCssSourcesPromises.push(loadLinkStyleSheet(s, false)));
-            await Promise.all(loadCssSourcesPromises);
-
-            // load component dependencies js sources
-            let loadDependencySourcesPromises: Promise<void>[] = [];
-            dependencySources.forEach(s => loadDependencySourcesPromises.push(loadScript(s)));     
-            await Promise.all(loadDependencySourcesPromises);
+            // load component dependencies js sources and css sources
+            let loadDependencyPromises: Promise<void>[] = [];
+            dependencySources.forEach(s => loadDependencyPromises.push(loadScript(s)));
+            cssSources.forEach(s => loadDependencyPromises.push(loadStyleSheet(s, false)));
+            await Promise.all(loadDependencyPromises);
 
             // main component script should be the last to be loaded, otherwise errors might occur
             await loadScript(componentSource);

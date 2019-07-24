@@ -22,6 +22,10 @@
 
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(WebpackConfigFileName)' == ''">
+    <WebpackConfigFileName>webpack_global</WebpackConfigFileName>
+  </PropertyGroup>
+
   <Target Name="LinkNodeModules" Condition="'$(FrameworkRelativePath)' != '' And !Exists('$(ProjectDir)node_modules\webview.framework')" >
     <Exec Command="mklink /D &quot;$(ProjectDir)node_modules\webview.framework&quot; &quot;$(ProjectDir)$(FrameworkRelativePath)node_modules&quot;" />
   </Target>

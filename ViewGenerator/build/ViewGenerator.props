@@ -6,13 +6,9 @@
     <None Include="ts2lang.json">
       <Visible>True</Visible>
     </None>
-    <Content Include="**\*.ts" />
-    <Content Include="**\*.tsx" />
-    <Content Include="**\*.scss" />
   </ItemGroup>
   <PropertyGroup>
     <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
     <ViewGeneratorNodeJsExe>node</ViewGeneratorNodeJsExe>
-    <WebpackConfigFileName>webpack_global</WebpackConfigFileName>
   </PropertyGroup>
 </Project>
