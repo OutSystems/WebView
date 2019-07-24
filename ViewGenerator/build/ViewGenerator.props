@@ -13,5 +13,6 @@
   <PropertyGroup>
     <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
     <ViewGeneratorNodeJsExe>node</ViewGeneratorNodeJsExe>
+    <WebpackConfigFileName>webpack_global</WebpackConfigFileName>
   </PropertyGroup>
 </Project>

@@ -5,6 +5,7 @@
       LinkNodeModules;
       GenerateDefaultStyleSheet;
       GenerateBundle;
+      UnlinkNodeModules;
       $(CompileDependsOn);
     </CompileDependsOn>
 
@@ -21,8 +22,8 @@
 
   </PropertyGroup>
 
-  <Target Name="LinkNodeModules">
-    <Exec Command="mklink /D &quot;$(ProjectDir)node_modules\webview.framework&quot; &quot;$(ProjectDir)$(FrameworkRelativePath)node_modules&quot;" Condition="'$(FrameworkRelativePath)' != ''" />
+  <Target Name="LinkNodeModules" Condition="'$(FrameworkRelativePath)' != '' And !Exists('$(ProjectDir)node_modules\webview.framework')" >
+    <Exec Command="mklink /D &quot;$(ProjectDir)node_modules\webview.framework&quot; &quot;$(ProjectDir)$(FrameworkRelativePath)node_modules&quot;" />
   </Target>
   
   <Target Name="CleanLegacyJSFiles" >
@@ -54,7 +55,11 @@
   </Target>    
 
   <Target Name="GenerateBundle" DependsOnTargets="GenerateDefaultStyleSheet">    
-    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(MSBuildThisFileDirectory)..\tools\node_modules\webpack\bin\webpack.js&quot; --config &quot;$(MSBuildThisFileDirectory)..\tools\webpack_global.config.js&quot; --mode $(WebpackBuildMode)" />
+    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(MSBuildThisFileDirectory)..\tools\node_modules\webpack\bin\webpack.js&quot; --config &quot;$(MSBuildThisFileDirectory)..\tools\$(WebpackConfigFileName).config.js&quot; --mode $(WebpackBuildMode)" />
+  </Target>
+
+  <Target Name="UnlinkNodeModules" Condition="Exists('$(ProjectDir)node_modules\webview.framework')" DependsOnTargets="GenerateBundle">
+    <RemoveDir Directories="$(ProjectDir)node_modules\webview.framework" />
   </Target>
 
   <Target Name="IncludeGeneratedResources" DependsOnTargets="GenerateBundle">

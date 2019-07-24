@@ -1,6 +1,6 @@
 ﻿import MiniCssExtractPlugin from "mini-css-extract-plugin";
 import Path from "path";
-import Webpack from "webpack";
+import Webpack, { Compiler } from "webpack";
 
 const OutputFolder: string = "Generated";
 
@@ -12,7 +12,7 @@ class MiniCssExtractPluginCleanup {
         this.patterns = patterns;
     }
 
-    apply(compiler) {
+    apply(compiler: Compiler) {
         compiler.hooks.emit.tapAsync("MiniCssExtractPluginCleanup", (compilation, callback) => {
             Object.keys(compilation.assets)
                 .filter(asset => this.patterns.some(p => p.test(asset)))
