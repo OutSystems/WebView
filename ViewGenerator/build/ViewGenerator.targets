@@ -5,7 +5,6 @@
       LinkNodeModules;
       GenerateDefaultStyleSheet;
       GenerateBundle;
-      UnlinkNodeModules;
       $(CompileDependsOn);
     </CompileDependsOn>
 
@@ -22,11 +21,9 @@
 
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(WebpackConfigFileName)' == ''">
-    <WebpackConfigFileName>webpack_global</WebpackConfigFileName>
-  </PropertyGroup>
-
-  <Target Name="LinkNodeModules" Condition="'$(FrameworkRelativePath)' != '' And !Exists('$(ProjectDir)node_modules\webview.framework')" >
+  <Target Name="LinkNodeModules" Condition="'$(FrameworkRelativePath)' != ''" >
+    <CallTarget Targets="UnlinkNodeModules" Condition="Exists('$(ProjectDir)node_modules\webview.framework')" />
+      
     <Exec Command="mklink /D &quot;$(ProjectDir)node_modules\webview.framework&quot; &quot;$(ProjectDir)$(FrameworkRelativePath)node_modules&quot;" />
   </Target>
   
@@ -46,7 +43,7 @@
     <Delete Files="@(CSSFilesToDelete)"/>
   </Target>
 
-  <Target Name="GenerateDefaultStyleSheet" DependsOnTargets="LinkNodeModules" Inputs="@(DefaultStyleSheet)" Outputs="%(DefaultStyleSheet.Filename).css" >
+  <Target Name="DefineWebpackBuildMode">
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
       <WebpackBuildMode>development</WebpackBuildMode>
     </PropertyGroup>
@@ -54,15 +51,26 @@
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
       <WebpackBuildMode>production</WebpackBuildMode>
     </PropertyGroup>
+  </Target>
 
+  <Target Name="GenerateDefaultStyleSheet" DependsOnTargets="LinkNodeModules" Inputs="@(DefaultStyleSheet)" Outputs="%(DefaultStyleSheet.Filename).css" >
+    <CallTarget Targets="DefineWebpackBuildMode" />
     <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(MSBuildThisFileDirectory)..\tools\node_modules\webpack\bin\webpack.js&quot; --config &quot;$(MSBuildThisFileDirectory)..\tools\webpack_custom.config.js&quot; --mode $(WebpackBuildMode) --entryPath &quot;%(DefaultStyleSheet.Identity)&quot;" />
   </Target>    
 
-  <Target Name="GenerateBundle" DependsOnTargets="GenerateDefaultStyleSheet">    
+  <Target Name="GenerateBundle" DependsOnTargets="GenerateDefaultStyleSheet">
+    <PropertyGroup Condition="'$(WebpackConfigFileName)' == ''">
+      <WebpackConfigFileName>webpack_global</WebpackConfigFileName>
+    </PropertyGroup>
+
+    <CallTarget Targets="DefineWebpackBuildMode" />
+      
     <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(MSBuildThisFileDirectory)..\tools\node_modules\webpack\bin\webpack.js&quot; --config &quot;$(MSBuildThisFileDirectory)..\tools\$(WebpackConfigFileName).config.js&quot; --mode $(WebpackBuildMode)" />
+    
+    <CallTarget Targets="UnlinkNodeModules" Condition="Exists('$(ProjectDir)node_modules\webview.framework')" />
   </Target>
 
-  <Target Name="UnlinkNodeModules" Condition="Exists('$(ProjectDir)node_modules\webview.framework')" DependsOnTargets="GenerateBundle">
+  <Target Name="UnlinkNodeModules">
     <RemoveDir Directories="$(ProjectDir)node_modules\webview.framework" />
   </Target>
 
