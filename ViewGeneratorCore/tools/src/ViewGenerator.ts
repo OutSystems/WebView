@@ -359,6 +359,12 @@ export function transform(module: Units.TsModule, context: Object): string {
     debugger; // left on purpose to ease debugging
     const JsExtension = ".js";
     const CssExtension = ".css";
+
+    let emitComponent = context["emitComponent"] !== false;
+    let emitComponentInterface = context["emitComponentInterface"] !== false;
+    let emitComponentAdapter = context["emitComponentAdapter"] === true;
+    let emitViewObjects = context["emitViewObjects"] !== false;
+
     let namespace = context["namespace"];
     let baseDir = normalizePath(context["$baseDir"]);
     let fullPath = normalizePath(context["$fullpath"]);
@@ -378,10 +384,12 @@ export function transform(module: Units.TsModule, context: Object): string {
         javascriptRelativePath = combinePath(javascriptDistPath, javascriptRelativePath);
     }
 
-    let allSources: string[] = getAllSources(filenameWithoutExtension,
-        namespace,
-        combinePath(baseDir, ManifestFileName),
-        file => !javascriptRelativePath.endsWith(file)); // exclude the main module entrypoint
+    let allSources: string[] = emitComponent ? 
+        getAllSources(filenameWithoutExtension,
+            namespace,
+            combinePath(baseDir, ManifestFileName),
+            file => !javascriptRelativePath.endsWith(file)) : // exclude the main module entrypoint
+        []; 
 
     let javascriptFullPath = combinePath(baseDir, javascriptRelativePath); // add the base dir
     javascriptRelativePath = "/" + combinePath(namespace, javascriptRelativePath); // add the namespace
@@ -407,11 +415,6 @@ export function transform(module: Units.TsModule, context: Object): string {
         allSources.filter(s => s.endsWith(CssExtension)),
         context["isModule"]
     );
-
-    let emitComponent = context["emitComponent"] !== false;
-    let emitComponentInterface = context["emitComponentInterface"] !== false;
-    let emitComponentAdapter = context["emitComponentAdapter"] === true;
-    let emitViewObjects = context["emitViewObjects"] !== false;
 
     return generator.generateComponent(emitComponent, emitComponentInterface, emitComponentAdapter, emitViewObjects);
 }
