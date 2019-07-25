@@ -3,12 +3,12 @@ import Glob from "glob";
 import Path from "path";
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
 import Webpack, { Compiler } from "webpack";
-import ManifestPlugin from "webpack-manifest-plugin";
 
 const DtsExtension = ".d.ts";
 
 const entriesArr: string[] = [];
 
+let outputFileName: string = "Generated/Framework.js";
 
 class DtsGeneratorPlugin {
 
@@ -61,44 +61,20 @@ function getConfiguration(input: string): void {
     });
 }
 
-/*
- * Generate a manifest for the output.
- * */
-function generateManifest(seed: object, files: ManifestPlugin.FileDescriptor[]) {
-    let entries = [];
-
-    files.forEach(f => {
-        if (f.chunk) {
-            (f.chunk["_groups"] || []).forEach(g => {
-                if (entries.indexOf(g) < 0) {
-                    entries.push(g);
-                }
-            });
-        }
-    });
-
-    let entryArrayManifest = entries.reduce((acc, entry) => {
-        let name: string = (entry.options || {}).name || (entry.runtimeChunk || {}).name;
-        let files: string[] = [];
-        if (entry.chunks) {
-            entry.chunks.forEach(c => {
-                if (c.files) {
-                    files = files.concat(c.files);
-                }
-            });
-        }
-        return name ? { ...acc, [name]: files } : acc;
-    }, seed);
-
-    return entryArrayManifest;
-}
 
 /** 
  *  Get input and output entries from ts2lang file
  * */
-require(Path.resolve("./ts2lang.json")).tasks.forEach(t =>
-    getConfiguration(t.input)
-);
+require(Path.resolve("./ts2lang.json")).tasks.forEach(t => {
+    getConfiguration(t.input);
+
+    var params = t.parameters
+    if (params) {
+        outputFileName = params.javascriptDistPath;
+    }
+});
+
+let dtsFileName = outputFileName.substring(0, outputFileName.lastIndexOf(".")) + DtsExtension;
 
 var standardConfig: Webpack.Configuration = {
     entry: {
@@ -114,7 +90,7 @@ var standardConfig: Webpack.Configuration = {
 
     output: {
         path: Path.resolve("."),
-        filename: "Generated/Framework.js",
+        filename: outputFileName,
         library: "Bundle",
         libraryTarget: "umd",
         umdNamedDefine: true,
@@ -161,17 +137,13 @@ var standardConfig: Webpack.Configuration = {
             filename: "Generated/[name].css",
             chunkFilename: "Generated/chunk_[chunkhash:8].css"
         }),
-        new ManifestPlugin({
-            fileName: "manifest.json",
-            generate: generateManifest
-        }),
         new DtsGeneratorPlugin({
             name: "",
             project: Path.resolve("."),
-            out: "Generated/Framework.d.ts"
+            out: dtsFileName
         }),
         new DtsCleanupPlugin(
-            ["Generated/Framework.d.ts", "Framework.d.ts"],
+            [dtsFileName],
             [/\.d.ts$/]
         )
     ]
