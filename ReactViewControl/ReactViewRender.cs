@@ -206,12 +206,13 @@ namespace ReactViewControl {
             }
 
             var loadArgs = new[] {
-                JavascriptSerializer.Serialize(plugins.Select(m => new [] {
+                JavascriptSerializer.Serialize(plugins.Select(m => new object[] {
                     m.Name,
                     GetNativeObjectFullName(m.NativeObjectName, frameName),
                     m.NativeObjectName,
                     ToFullUrl(NormalizeUrl(m.MainJsSource)),
-                }.Concat(m.DependencyJsSources.Select(s => ToFullUrl(NormalizeUrl(s))))))
+                    m.DependencyJsSources.Select(s => ToFullUrl(NormalizeUrl(s)))
+                }))
             };
 
             foreach (var module in plugins) {

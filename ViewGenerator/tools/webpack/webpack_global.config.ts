@@ -90,18 +90,22 @@ if (existsSync(webpackOutputConfigFile)) {
     var outputConfig = require(webpackOutputConfigFile);
 
     var allAliases = outputConfig.alias;
-    Object.keys(allAliases).forEach(key => aliasMap[key] = Path.resolve(".", allAliases[key]));
+    if (allAliases) {
+        Object.keys(allAliases).forEach(key => aliasMap[key] = Path.resolve(".", allAliases[key]));
+    }
 
     var allExternals = outputConfig.externals;
-    Object.keys(allExternals).forEach(key => {
+    if (allExternals) {
+        Object.keys(allExternals).forEach(key => {
 
-        var record: Record<string, string> = {};
-        record["commonjs"] = allExternals[key];
-        record["commonjs2"] = allExternals[key];
-        record["root"] = "_";
+            var record: Record<string, string> = {};
+            record["commonjs"] = allExternals[key];
+            record["commonjs2"] = allExternals[key];
+            record["root"] = allExternals[key];
 
-        externalsObjElement[key] = record;
-    });
+            externalsObjElement[key] = record;
+        });
+    }
 }
 
 var standardConfig: Webpack.Configuration = {

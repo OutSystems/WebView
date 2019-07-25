@@ -122,7 +122,7 @@ export function loadDefaultStyleSheet(stylesheet: string): void {
     innerLoad();
 }
 
-export function loadPlugins(plugins: string[][]): void {
+export function loadPlugins(plugins: any[][]): void {
     async function innerLoad() {
         try {
             await BootstrapTask.promise;
@@ -133,14 +133,13 @@ export function loadPlugins(plugins: string[][]): void {
                 plugins.forEach(m => {
                     const ModuleName: string = m[0];
                     const NativeObjectFullName: string = m[1]; // fullname with frame name included
-                    const NativeObjectName = m[2]; // name without frame name
+                    const NativeObjectName: string = m[2]; // name without frame name
                     const MainJsSource: string = m[3];
-
-                    let dependencyJsSources: string[] = m.length > 2 ? m.slice(3) : [];
+                    const DependencySources: string[] = m[4];
 
                     // plugin dependency js sources
                     let dependencySourcesPromises: Promise<void>[] = [];
-                    dependencyJsSources.forEach(s => {
+                    DependencySources.forEach(s => {
                         dependencySourcesPromises.push(loadScript(s));
                     });
 

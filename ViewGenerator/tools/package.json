@@ -9,8 +9,8 @@
   "license": "ISC",
   "devDependencies": {
     "@types/dts-generator": "^2.1.4",
-    "@types/webpack": "4.4.34",
-    "@types/webpack-manifest-plugin": "2.0.0"
+    "@types/webpack": "^4.4.34",
+    "@types/webpack-manifest-plugin": "^2.0.0"
   },
   "dependencies": {
     "css-loader": "^2.1.1",

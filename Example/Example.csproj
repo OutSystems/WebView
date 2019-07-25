@@ -118,6 +118,7 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+    <None Include="webpack-output-config.json" />
     <Resource Include="ExampleView\beach.jpg" />
   </ItemGroup>
   <ItemGroup>
