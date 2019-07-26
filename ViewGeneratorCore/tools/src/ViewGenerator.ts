@@ -1,6 +1,7 @@
 ﻿import * as Types from "@outsystems/ts2lang/ts-types";
 import * as Units from "@outsystems/ts2lang/ts-units";
 import * as Path from "path";
+import { existsSync } from "fs";
 
 const GeneratedFilesHeader = "/*** Auto-generated ***/";
 
@@ -348,9 +349,12 @@ function combinePath(path: string, rest: string) {
 }
 
 function getAllSources(entrypoint: string, namespace: string, manifestPath: string, entryFilter: (string) => boolean) {
-    var jsonObject = require(Path.resolve(manifestPath));
-    if (jsonObject.hasOwnProperty(entrypoint)) {
-        return jsonObject[entrypoint].filter(entryFilter).map(outputPath => "/" + namespace + "/" + outputPath);
+    let fullPath: string = Path.resolve(manifestPath);
+    if (existsSync(fullPath)) {
+        var jsonObject = require(fullPath);
+        if (jsonObject.hasOwnProperty(entrypoint)) {
+            return jsonObject[entrypoint].filter(entryFilter).map(outputPath => "/" + namespace + "/" + outputPath);
+        }
     }
     return [];
 }

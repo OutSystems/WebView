@@ -9,6 +9,7 @@ const DtsExtension = ".d.ts";
 const entriesArr: string[] = [];
 
 let outputFileName: string = "Generated/Framework.js";
+let dtsFileName: string = "@types/Framework.d.ts";
 
 class DtsGeneratorPlugin {
 
@@ -68,13 +69,11 @@ function getConfiguration(input: string): void {
 require(Path.resolve("./ts2lang.json")).tasks.forEach(t => {
     getConfiguration(t.input);
 
-    var params = t.parameters
+    var params = t.parameters;
     if (params) {
         outputFileName = params.javascriptDistPath;
     }
 });
-
-let dtsFileName = outputFileName.substring(0, outputFileName.lastIndexOf(".")) + DtsExtension;
 
 var standardConfig: Webpack.Configuration = {
     entry: {

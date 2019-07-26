@@ -54,7 +54,7 @@
     <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(MSBuildThisFileDirectory)..\tools\node_modules\webpack\bin\webpack.js&quot; --config &quot;$(MSBuildThisFileDirectory)..\tools\webpack_custom.config.js&quot; --mode $(WebpackBuildMode) --entryPath &quot;%(DefaultStyleSheet.Identity)&quot;" />
   </Target>    
 
-  <Target Name="GenerateBundle" DependsOnTargets="GenerateDefaultStyleSheet">
+  <Target Name="GenerateBundle" BeforeTargets="GenerateView" DependsOnTargets="GenerateDefaultStyleSheet">
     <PropertyGroup Condition="'$(WebpackConfigFileName)' == ''">
       <WebpackConfigFileName>webpack_global</WebpackConfigFileName>
     </PropertyGroup>
