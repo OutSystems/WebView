@@ -21,6 +21,8 @@ namespace ReactViewControl {
         }
 
         internal const string ModulesObjectName = "__Modules__";
+
+        private const string ViewInitializedEventName = "ViewInitialized";
         private const string ComponentLoadedEventName = "ComponentLoaded";
 
         private static Assembly ResourcesAssembly { get; } = typeof(ReactViewResources.Resources).Assembly;
@@ -54,6 +56,8 @@ namespace ReactViewControl {
             loadedListener.Handler += OnReady;
             loadedListener.UIHandler += OnReadyUIHandler;
 
+            WebView.AttachListener(ViewInitializedEventName).Handler += OnViewInitialized;
+
             WebView.Navigated += OnWebViewNavigated;
             WebView.Disposed += OnWebViewDisposed;
             WebView.BeforeResourceLoad += OnWebViewBeforeResourceLoad;
@@ -65,6 +69,7 @@ namespace ReactViewControl {
                 enableDebugMode ? "1" : "0",
                 ModulesObjectName,
                 Listener.EventListenerObjName,
+                ViewInitializedEventName,
                 ComponentLoadedEventName
             };
 
@@ -137,7 +142,7 @@ namespace ReactViewControl {
         public void LoadComponent(IViewModule component, string frameName) {
             FrameToComponentMap[frameName] = component;
             BindModule(component, frameName);
-            if (status >= LoadStatus.PageLoaded && WebView.HasFrame(frameName)) {
+            if (status >= LoadStatus.PageLoaded) {
                 InternalLoadComponent(component, frameName);
             }
         }
@@ -164,6 +169,7 @@ namespace ReactViewControl {
             // hasStyleSheet: boolean,
             // hasPlugins: boolean,
             // componentNativeObject: Dictionary<any>,
+            // containerName: string
             // hash: string
 
             var loadArgs = new [] {
@@ -176,12 +182,13 @@ namespace ReactViewControl {
                 JavascriptSerializer.Serialize(DefaultStyleSheet != null),
                 JavascriptSerializer.Serialize(GetPlugins(frameName).Length > 0),
                 componentSerialization,
-                JavascriptSerializer.Serialize(componentHash)
+                JavascriptSerializer.Serialize(frameName),
+                JavascriptSerializer.Serialize(componentHash),
             };
 
             RegisterNativeObject(component, frameName);
 
-            ExecuteLoaderFunction("loadComponent", frameName, loadArgs);
+            ExecuteLoaderFunction("loadComponent", loadArgs);
 
             if (frameName == WebView.MainFrameName) {
                 IsMainComponentLoaded = true;
@@ -191,7 +198,7 @@ namespace ReactViewControl {
         private void InternalLoadDefaultStyleSheet(string frameName) {
             if (DefaultStyleSheet != null) {
                 var loadArg = JavascriptSerializer.Serialize(NormalizeUrl(ToFullUrl(DefaultStyleSheet.ToString())));
-                ExecuteLoaderFunction("loadStyleSheet", frameName, loadArg);
+                ExecuteLoaderFunction("loadStyleSheet", loadArg);
             }
         }
 
@@ -211,7 +218,7 @@ namespace ReactViewControl {
                 RegisterNativeObject(module, frameName);
             }
 
-            ExecuteLoaderFunction("loadPlugins", frameName, loadArgs);
+            ExecuteLoaderFunction("loadPlugins", loadArgs);
         }
 
         public bool IsMainComponentLoaded { get; private set; }
@@ -222,18 +229,28 @@ namespace ReactViewControl {
                 return;
             }
 
-            if (frameName == WebView.MainFrameName) {
-                status = LoadStatus.PageLoaded;
-            }
-            
-            InternalLoadDefaultStyleSheet(frameName);
-            InternalLoadPlugins(frameName);
+            LoadComponent(frameName);
+        }
 
-            if (FrameToComponentMap.TryGetValue(frameName, out var component)) { 
+        private void OnViewInitialized(params object[] args) {
+            var frameName = (string) args.FirstOrDefault();
+            if (FrameToComponentMap.TryGetValue(frameName, out var component)) {
                 InternalLoadComponent(component, frameName);
             }
         }
 
+        private void LoadComponent(string frameName) {
+            if (frameName == WebView.MainFrameName) {
+                status = LoadStatus.PageLoaded;
+            }
+
+            InternalLoadDefaultStyleSheet(frameName);
+            InternalLoadPlugins(frameName);
+
+            if (FrameToComponentMap.TryGetValue(frameName, out var component)) {
+                InternalLoadComponent(component, frameName);
+            }
+        }
         
         public ResourceUrl DefaultStyleSheet {
             get { return defaultStyleSheet; }
@@ -392,10 +409,10 @@ namespace ReactViewControl {
             };
         }
 
-        private void ExecuteLoaderFunction(string functionName, string frameName, params string[] args) {
+        private void ExecuteLoaderFunction(string functionName, params string[] args) {
             // using setimeout we make sure the function is already defined
             var loaderUrl = new ResourceUrl(ResourcesAssembly, ReactViewResources.Resources.LoaderUrl);
-            WebView.ExecuteScript($"import('{loaderUrl}').then(m => m.{functionName}({string.Join(",", args)}))", frameName);
+            WebView.ExecuteScript($"import('{loaderUrl}').then(m => m.{functionName}({string.Join(",", args)}))");
         }
         
         private static string NormalizeUrl(string url) {

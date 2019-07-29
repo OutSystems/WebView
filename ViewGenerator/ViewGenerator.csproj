@@ -70,6 +70,11 @@
   <ItemGroup>
     <None Include="readme.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <TypeScriptCompile Include="..\ReactViewResources\libs\ViewFrame.d.ts">
+      <Link>declarations\ViewFrame.d.ts</Link>
+    </TypeScriptCompile>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy "$(ProjectDir)declarations" "$(ProjectDir)contentFiles\node_modules\@types\" /s /y

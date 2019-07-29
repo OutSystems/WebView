@@ -1,4 +1,6 @@
-﻿declare const CefSharp: {
+﻿import "./ViewFrame.js";
+
+declare const CefSharp: {
     BindObjectAsync(objName1: string, objName2: string): Promise<void>
 };
 
@@ -26,7 +28,7 @@ class Task<ResultType> {
     }
 }
 
-const [LibsPath, EnableDebugMode, ModulesObjectName, EventListenerObjectName, ReadyEventName] = Array.from(new URLSearchParams(location.search).keys());
+const [LibsPath, EnableDebugMode, ModulesObjectName, EventListenerObjectName, ViewInitializedEventName, ComponentLoadedEventName] = Array.from(new URLSearchParams(location.search).keys());
 
 const ExternalLibsPath = LibsPath + "node_modules/";
 
@@ -36,6 +38,8 @@ window[ModulesObjectName] = Modules;
 const StylesheetsLoadTask = new Task();
 const PluginsLoadTask = new Task();
 const BootstrapTask = new Task();
+
+const Views: { [name: string]: HTMLElement } = {};
 
 export async function showErrorMessage(msg: string): Promise<void> {
     const ContainerId = "webview_error";
@@ -162,6 +166,22 @@ export function loadPlugins(plugins: string[][], mappings: Dictionary<string>): 
     innerLoad();
 }
 
+function getViewRootElement(viewName: string): HTMLElement {
+    if (viewName) {
+        return Views[viewName];
+    }
+    return document.getElementById("webview_root") as HTMLElement;
+}
+
+export function addViewElement(viewName: string, element: HTMLElement) {
+    Views[viewName] = element;
+    fireNativeNotification(ViewInitializedEventName, viewName);
+}
+
+export function removeViewElement(viewName: string) {
+    delete Views[viewName];
+}
+
 export function loadComponent(
     componentName: string,
     componentSource: string,
@@ -172,8 +192,8 @@ export function loadComponent(
     hasStyleSheet: boolean,
     hasPlugins: boolean,
     componentNativeObject: Dictionary<any>,
-    componentHash: string,
-    mappings: Dictionary<string>): void {
+    containerName: string,
+    componentHash: string): void {
 
     function getComponentCacheKey(propertiesHash: string) {
         return componentSource + "|" + propertiesHash;
@@ -181,10 +201,11 @@ export function loadComponent(
 
     async function innerLoad() {
         try {
+            let baseElement = document.getElementById("webview_base") as HTMLBaseElement;
             // force images and other resources load from the appropriate path
-            (document.getElementById("webview_base") as HTMLBaseElement).href = baseUrl;
+            baseElement.href = baseUrl;
 
-            const RootElement = document.getElementById("webview_root") as HTMLDivElement;
+            const RootElement = getViewRootElement(containerName);
 
             if (hasStyleSheet) {
                 // wait for the stylesheet to load before first render
@@ -254,7 +275,8 @@ export function loadComponent(
             }
 
             window.dispatchEvent(new Event('viewready'));
-            window[EventListenerObjectName].notify(ReadyEventName, window.name);
+
+            fireNativeNotification(ComponentLoadedEventName, window.name);
         } catch (error) {
             handleError(error);
         }
@@ -327,7 +349,6 @@ function getRequirePaths() {
         "prop-types": ExternalLibsPath + "prop-types/prop-types.min",
         "react": ExternalLibsPath + "react/umd/react.production.min",
         "react-dom": ExternalLibsPath + "react-dom/umd/react-dom.production.min",
-        "ViewFrame": LibsPath + "libs/ViewFrame",
     };
 }
 
@@ -336,6 +357,10 @@ function waitForDOMReady() {
         return new Promise((resolve) => document.addEventListener("DOMContentLoaded", resolve, { once: true }));
     }
     return Promise.resolve();
+}
+
+function fireNativeNotification(eventName: string, ...args: string[]) {
+    window[EventListenerObjectName].notify(eventName, ...args);
 }
 
 bootstrap();

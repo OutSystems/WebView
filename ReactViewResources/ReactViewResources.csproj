@@ -77,24 +77,22 @@
     <EmbeddedResource Include="node_modules\react\umd\react.production.min.js" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="libs\ViewFrame.d.ts" />
     <TypeScriptCompile Include="Loader.ts" />
-    <TypeScriptCompile Include="libs\ViewFrame.tsx" />
+    <TypeScriptCompile Include="ViewFrame.tsx" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="tsconfig.json" />
-    <EmbeddedResource Include="libs\ViewFrame.js">
+    <EmbeddedResource Include="ViewFrame.js">
       <DependentUpon>ViewFrame.tsx</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.TypeScript.MSBuild">
-      <Version>3.4.5</Version>
+      <Version>3.6.0</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="libs\tsconfig.json" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

@@ -1,7 +1,6 @@
 ﻿import * as React from "react";
 import * as ReactDOM from "react-dom";
 import "css!./ExampleView.css";
-import ViewFrame from "ViewFrame";
 import * as ViewPlugin from "./ViewPlugin";
 
 export interface ISomeType {
@@ -58,7 +57,7 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
                 <br />
                 <button onClick={() => this.props.click(null)}>Click me!</button>
                 <br />
-                <ViewFrame name="test" />
+                {React.createElement("view-frame", { id: "test" })}
             </div>
         );
     }
