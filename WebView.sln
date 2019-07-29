@@ -8,9 +8,6 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{96A418C6-2CDE-45D3-AA5C-225149F00395}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ViewGenerator", "ViewGenerator\ViewGenerator.csproj", "{7217988C-8461-4505-A7A8-99FC75C35A6B}"
-	ProjectSection(ProjectDependencies) = postProject
-		{22DEE138-81D6-486A-B50A-DC1B87399835} = {22DEE138-81D6-486A-B50A-DC1B87399835}
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReactViewResources", "ReactViewResources\ReactViewResources.csproj", "{22DEE138-81D6-486A-B50A-DC1B87399835}"
 EndProject

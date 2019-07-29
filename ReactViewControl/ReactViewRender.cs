@@ -148,9 +148,10 @@ namespace ReactViewControl {
         }
 
         private void InternalLoadComponent(IViewModule component, string frameName) {
-            var source = NormalizeUrl(component.JavascriptSource);
-            var baseUrl = ToFullUrl(VirtualPathUtility.GetDirectory(source));
-            var urlSuffix = cacheInvalidationTimestamp != null ? "t=" + cacheInvalidationTimestamp : null;
+            var mainSource = ToFullUrl(NormalizeUrl(component.MainJsSource));
+            var dependencySources = component.DependencyJsSources.Select(s => ToFullUrl(NormalizeUrl(s))).ToArray();
+            var cssSources = component.CssSources.Select(s => ToFullUrl(NormalizeUrl(s))).ToArray();
+            var originalSourceFolder = ToFullUrl(NormalizeUrl(component.OriginalSourceFolder));
 
             var nativeObjectMethodsMap =
                 component.Events.Select(g => new KeyValuePair<string, object>(g, JavascriptSerializer.Undefined))
@@ -161,23 +162,27 @@ namespace ReactViewControl {
             var componentHash = ComputeHash(componentSerialization);
 
             // loadComponent arguments:
+            //
             // componentName: string,
-            // componentSource: string,
             // componentNativeObjectName: string,
-            // baseUrl: string,
-            // cacheInvalidationSuffix: string,
+            // componentSource: string,
+            // dependencySources: string[],
+            // cssSources: string[],
+            // originalSourceFolder: string,
+            // maxPreRenderedCacheEntries: number,
             // hasStyleSheet: boolean,
             // hasPlugins: boolean,
             // componentNativeObject: Dictionary<any>,
             // containerName: string
-            // hash: string
+            // componentHash: string
 
             var loadArgs = new [] {
                 JavascriptSerializer.Serialize(component.Name),
-                JavascriptSerializer.Serialize(source),
                 JavascriptSerializer.Serialize(GetNativeObjectFullName(component.NativeObjectName, frameName)),
-                JavascriptSerializer.Serialize(baseUrl),
-                JavascriptSerializer.Serialize(urlSuffix),
+                JavascriptSerializer.Serialize(mainSource),
+                JavascriptSerializer.Serialize(dependencySources),
+                JavascriptSerializer.Serialize(cssSources),
+                JavascriptSerializer.Serialize(originalSourceFolder),
                 JavascriptSerializer.Serialize(ReactView.PreloadedCacheEntriesSize),
                 JavascriptSerializer.Serialize(DefaultStyleSheet != null),
                 JavascriptSerializer.Serialize(GetPlugins(frameName).Length > 0),
@@ -195,10 +200,9 @@ namespace ReactViewControl {
             }
         }
 
-        private void InternalLoadDefaultStyleSheet(string frameName) {
+        private void InternalLoadDefaultStyleSheet() {
             if (DefaultStyleSheet != null) {
-                var loadArg = JavascriptSerializer.Serialize(NormalizeUrl(ToFullUrl(DefaultStyleSheet.ToString())));
-                ExecuteLoaderFunction("loadStyleSheet", loadArg);
+                ExecuteLoaderFunction("loadDefaultStyleSheet", JavascriptSerializer.Serialize(NormalizeUrl(ToFullUrl(DefaultStyleSheet.ToString()))));
             }
         }
 
@@ -208,13 +212,17 @@ namespace ReactViewControl {
                 return;
             }
 
-            var pluginsWithNativeObject = plugins.Where(p => !string.IsNullOrEmpty(p.NativeObjectName)).ToArray();
             var loadArgs = new[] {
-                JavascriptSerializer.Serialize(pluginsWithNativeObject.Select(m => new[] { m.Name, GetNativeObjectFullName(m.NativeObjectName, frameName), m.NativeObjectName })), // plugins
-                JavascriptSerializer.Serialize(plugins.Select(m => new KeyValuePair<string, object>(m.Name, NormalizeUrl(ToFullUrl(m.JavascriptSource))))), // mappings
+                JavascriptSerializer.Serialize(plugins.Select(m => new object[] {
+                    m.Name,
+                    GetNativeObjectFullName(m.NativeObjectName, frameName),
+                    m.NativeObjectName,
+                    ToFullUrl(NormalizeUrl(m.MainJsSource)),
+                    m.DependencyJsSources.Select(s => ToFullUrl(NormalizeUrl(s)))
+                }))
             };
 
-            foreach (var module in pluginsWithNativeObject) {
+            foreach (var module in plugins) {
                 RegisterNativeObject(module, frameName);
             }
 
@@ -243,15 +251,15 @@ namespace ReactViewControl {
             if (frameName == WebView.MainFrameName) {
                 status = LoadStatus.PageLoaded;
             }
-
-            InternalLoadDefaultStyleSheet(frameName);
+            
+            InternalLoadDefaultStyleSheet();
             InternalLoadPlugins(frameName);
 
-            if (FrameToComponentMap.TryGetValue(frameName, out var component)) {
+            if (FrameToComponentMap.TryGetValue(frameName, out var component)) { 
                 InternalLoadComponent(component, frameName);
             }
         }
-        
+
         public ResourceUrl DefaultStyleSheet {
             get { return defaultStyleSheet; }
             private set {
@@ -266,7 +274,7 @@ namespace ReactViewControl {
             if (frameName == WebView.MainFrameName && IsMainComponentLoaded) {
                 throw new InvalidOperationException($"Cannot add plugins after component has been loaded");
             }
-            var invalidPlugins = plugins.Where(p => string.IsNullOrEmpty(p.JavascriptSource) || string.IsNullOrEmpty(p.Name));
+            var invalidPlugins = plugins.Where(p => string.IsNullOrEmpty(p.MainJsSource) || string.IsNullOrEmpty(p.Name) || string.IsNullOrEmpty(p.NativeObjectName));
             if (invalidPlugins.Any()) {
                 var pluginName = invalidPlugins.First().Name + "|" + invalidPlugins.First().GetType().Name;
                 throw new ArgumentException($"Plugin '{pluginName}' is invalid");
@@ -336,7 +344,7 @@ namespace ReactViewControl {
 
         private void ShowErrorMessage(string msg) {
             msg = msg.Replace("\"", "\\\"");
-            ExecuteLoaderFunction("showErrorMessage", WebView.MainFrameName, JavascriptSerializer.Serialize(msg));
+            ExecuteLoaderFunction("showErrorMessage", JavascriptSerializer.Serialize(msg));
         }
         
         private string ToFullUrl(string url) {
@@ -416,12 +424,6 @@ namespace ReactViewControl {
         }
         
         private static string NormalizeUrl(string url) {
-            const string JsExtension = ".js";
-
-            if (url.EndsWith(JsExtension)) {
-                url = url.Substring(0, url.Length - JsExtension.Length); // prevents modules from being loaded twice (once with extension and other without)
-            }
-
             return url.Replace("\\", ResourceUrl.PathSeparator);
         }
 

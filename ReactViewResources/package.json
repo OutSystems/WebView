@@ -5,11 +5,8 @@
     "@types/react-dom": "16.8.2"
   },
   "dependencies": {
-    "@types/requirejs": "^2.1.31",
     "react": "16.8.1",
-    "react-dom": "16.8.1",
-    "require-css": "0.1.10",
-    "requirejs": "2.3.6"
+    "react-dom": "16.8.1"
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

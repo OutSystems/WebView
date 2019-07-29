@@ -1,6 +1,6 @@
 ﻿import * as Loader from "./Loader.js";
 
-export class ViewFrame extends HTMLElement {
+class ViewFrame extends HTMLElement {
 
     private shadowRootElement : ShadowRoot;
 

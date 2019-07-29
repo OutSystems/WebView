@@ -14,6 +14,7 @@
     <Deterministic>true</Deterministic>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <ViewGeneratorNodeJsExe>node</ViewGeneratorNodeJsExe>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -61,24 +62,17 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="node_modules\prop-types\prop-types.min.js" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="node_modules\require-css\css.min.js" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="node_modules\requirejs\require.js" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="index.html" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="Loader.ts" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="node_modules\prop-types\prop-types.min.js" />
     <EmbeddedResource Include="node_modules\react-dom\umd\react-dom.production.min.js" />
     <EmbeddedResource Include="node_modules\react\umd\react.production.min.js" />
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="libs\ViewFrame.d.ts" />
-    <TypeScriptCompile Include="Loader.ts" />
     <TypeScriptCompile Include="ViewFrame.tsx" />
   </ItemGroup>
   <ItemGroup>
@@ -94,6 +88,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>npm ci</PreBuildEvent>

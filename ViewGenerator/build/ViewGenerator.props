@@ -8,6 +8,7 @@
     </None>
   </ItemGroup>
   <PropertyGroup>
-    <TypeScriptBuildMode>true</TypeScriptBuildMode>
+    <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
+    <ViewGeneratorNodeJsExe>node</ViewGeneratorNodeJsExe>
   </PropertyGroup>
 </Project>

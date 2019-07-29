@@ -1,7 +1,6 @@
 ﻿import * as React from "react";
-import * as ReactDOM from "react-dom";
-import "css!./ExampleView.css";
 import * as ViewPlugin from "./ViewPlugin";
+import "./ExampleView.scss";
 
 export interface ISomeType {
     name: string;

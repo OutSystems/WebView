@@ -104,7 +104,7 @@ namespace ReactViewControl {
         private void LoadComponent() {
             if (!View.IsMainComponentLoaded) {
                 if (EnableHotReload) {
-                    View.EnableHotReload(MainModule.Source, MainModule.JavascriptSource);
+                    View.EnableHotReload(MainModule.Source, MainModule.MainJsSource);
                 }
                 View.LoadComponent(MainModule);
             }
@@ -121,10 +121,6 @@ namespace ReactViewControl {
 
         public T WithPlugin<T>(string frameName = WebView.MainFrameName) {
             return View.WithPlugin<T>(frameName);
-        }
-
-        protected void AddMappings(params SimpleViewModule[] mappings) {
-            View.AddPlugins(WebView.MainFrameName, mappings);
         }
 
         public bool EnableDebugMode { get => View.EnableDebugMode; set => View.EnableDebugMode = value; }

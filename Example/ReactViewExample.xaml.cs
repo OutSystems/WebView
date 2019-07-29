@@ -19,7 +19,7 @@ namespace Example {
             subView.CallMe();
 
             exampleView.WithPlugin<ViewPlugin>("").NotifyViewLoaded += OnNotifyViewLoaded;
-            exampleView.WithPlugin<ViewPlugin>("test").NotifyViewLoaded += OnSubViewNotifyViewLoaded;
+            //exampleView.WithPlugin<ViewPlugin>("test").NotifyViewLoaded += OnSubViewNotifyViewLoaded;
         }
 
         private void OnExampleViewClick(SomeType arg) {

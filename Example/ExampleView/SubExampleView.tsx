@@ -1,6 +1,6 @@
 ﻿import * as React from "react";
-import "css!./SubExampleView.css";
 import * as ViewPlugin from "./ViewPlugin";
+import "./SubExampleView.scss";
 
 export interface ISubExampleViewProperties {
     click(): void;
