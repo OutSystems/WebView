@@ -6,6 +6,8 @@ declare const CefSharp: {
 
 type Dictionary<T> = { [key: string]: T };
 
+type ViewData = { root: HTMLElement, stylesheetsContainer: HTMLElement };
+
 const ReactLib: string = "React";
 const ReactDOMLib: string = "ReactDOM";
 const ModuleLib: string = "Bundle";
@@ -39,7 +41,7 @@ const StylesheetsLoadTask = new Task();
 const PluginsLoadTask = new Task();
 const BootstrapTask = new Task();
 
-const Views: { [name: string]: HTMLElement } = {};
+const Views: { [name: string]: ViewData } = {};
 
 export async function showErrorMessage(msg: string): Promise<void> {
     const ContainerId = "webview_error";
@@ -82,21 +84,17 @@ function loadScript(scriptSrc: string): Promise<void> {
     });
 }
 
-function loadStyleSheet(stylesheet: string, markAsSticky: boolean): Promise<void> {
+function loadStyleSheet(stylesheet: string, containerElement: HTMLElement, markAsSticky: boolean): Promise<void> {
     return new Promise((resolve) => {
         let link = document.createElement("link");
         link.type = "text/css";
         link.rel = "stylesheet";
         link.href = stylesheet;
         link.addEventListener("load", () => resolve());
-        let head = document.head;
-        if (!head) {
-            throw new Error("Document not ready");
-            }
         if (markAsSticky) {
             link.dataset.sticky = "true";
         }
-        head.appendChild(link);
+        containerElement.appendChild(link);
     });
 }
 
@@ -114,7 +112,7 @@ export function loadDefaultStyleSheet(stylesheet: string): void {
     async function innerLoad() {
         try {
             await BootstrapTask.promise;
-            await loadStyleSheet(stylesheet, true);
+            await loadStyleSheet(stylesheet, document.head, true);
 
             StylesheetsLoadTask.setResult();
         } catch (error) {
@@ -175,15 +173,8 @@ export function loadPlugins(plugins: any[][]): void {
     innerLoad();
 }
 
-function getViewRootElement(viewName: string): HTMLElement {
-    if (viewName) {
-        return Views[viewName];
-    }
-    return document.getElementById("webview_root") as HTMLElement;
-}
-
-export function addViewElement(viewName: string, element: HTMLElement) {
-    Views[viewName] = element;
+export function addViewElement(viewName: string, root: HTMLElement, stylesheetsContainer: HTMLElement) {
+    Views[viewName] = { root, stylesheetsContainer }
     fireNativeNotification(ViewInitializedEventName, viewName);
 }
 
@@ -215,7 +206,8 @@ export function loadComponent(
             // force images and other resources load from the appropriate path
             baseElement.href = originalSourceFolder;
 
-            const RootElement = getViewRootElement(containerName);
+            const RootElementData = Views[containerName];
+            const RootElement = RootElementData.root;
 
             if (hasStyleSheet) {
                 // wait for the stylesheet to load before first render
@@ -239,13 +231,13 @@ export function loadComponent(
             // load component dependencies js sources and css sources
             let loadDependencyPromises: Promise<void>[] = [];
             dependencySources.forEach(s => loadDependencyPromises.push(loadScript(s)));
-            cssSources.forEach(s => loadDependencyPromises.push(loadStyleSheet(s, false)));
+            cssSources.forEach(s => loadDependencyPromises.push(loadStyleSheet(s, RootElementData.stylesheetsContainer, false)));
             await Promise.all(loadDependencyPromises);
 
             // main component script should be the last to be loaded, otherwise errors might occur
             await loadScript(componentSource);
 
-            const Component = window[ModuleLib].default;
+            const Component = window[ModuleLib][componentName].default;
             const React = window[ReactLib];
             const ReactDOM = window[ReactDOMLib];
 
@@ -298,6 +290,13 @@ async function bootstrap() {
     window.addEventListener("drop", (e) => e.preventDefault());
 
     await waitForDOMReady();
+
+    // add main view
+    Views[""] = {
+        root: document.getElementById("webview_root") as HTMLElement,
+        stylesheetsContainer: document.head
+    };
+
     await loadFramework();
 
     // bind event listener object ahead-of-time
@@ -346,6 +345,7 @@ function waitForNextPaint() {
 }
 
 function getAllStylesheets(): HTMLLinkElement[] {
+    // TODO
     return document.head ? Array.from(document.head.getElementsByTagName("link")) : [];
 }
 
