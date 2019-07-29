@@ -1,12 +1,11 @@
-﻿import "./ViewFrame.js";
+﻿import * as Common from "./LoaderCommon";
+import "./ViewFrame";
 
 declare const CefSharp: {
     BindObjectAsync(objName1: string, objName2: string): Promise<void>
 };
 
 type Dictionary<T> = { [key: string]: T };
-
-type ViewData = { root: HTMLElement, stylesheetsContainer: HTMLElement };
 
 const ReactLib: string = "React";
 const ReactDOMLib: string = "ReactDOM";
@@ -40,8 +39,6 @@ window[ModulesObjectName] = Modules;
 const StylesheetsLoadTask = new Task();
 const PluginsLoadTask = new Task();
 const BootstrapTask = new Task();
-
-const Views: { [name: string]: ViewData } = {};
 
 export async function showErrorMessage(msg: string): Promise<void> {
     const ContainerId = "webview_error";
@@ -148,17 +145,17 @@ export function loadPlugins(plugins: any[][]): void {
                         CefSharp.BindObjectAsync(NativeObjectFullName, NativeObjectFullName).then(async () => {
                             window[NativeObjectName] = window[NativeObjectFullName]; // create alias to the original name, since views are not aware of the fullname
 
-                            if (ModuleName) {  
+                            if (ModuleName) {
                                 await Promise.all(dependencySourcesPromises);
 
                                 // plugin main js source
                                 await loadScript(MainJsSource);
 
-                                    resolve();
-                                } else {
-                                    reject(`Failed to load '${ModuleName}' (might not be a module)`);
-                                }
-                            });
+                                resolve();
+                            } else {
+                                reject(`Failed to load '${ModuleName}' (might not be a module)`);
+                            }
+                        });
                     }));
                 });
                 await Promise.all(pluginsPromises);
@@ -171,15 +168,6 @@ export function loadPlugins(plugins: any[][]): void {
     }
 
     innerLoad();
-}
-
-export function addViewElement(viewName: string, root: HTMLElement, stylesheetsContainer: HTMLElement) {
-    Views[viewName] = { root, stylesheetsContainer }
-    fireNativeNotification(ViewInitializedEventName, viewName);
-}
-
-export function removeViewElement(viewName: string) {
-    delete Views[viewName];
 }
 
 export function loadComponent(
@@ -206,7 +194,7 @@ export function loadComponent(
             // force images and other resources load from the appropriate path
             baseElement.href = originalSourceFolder;
 
-            const RootElementData = Views[containerName];
+            const RootElementData = Common.getViewElement(containerName);
             const RootElement = RootElementData.root;
 
             if (hasStyleSheet) {
@@ -256,7 +244,7 @@ export function loadComponent(
                 // cache view html for further use
                 const ElementHtml = RootElement.innerHTML;
                 // get all stylesheets except the stick ones (which will be loaded by the time the html gets rendered) otherwise we could be loading them twice
-                const Stylesheets = getAllStylesheets().filter(l => l.dataset.sticky !== "true").map(l => l.outerHTML).join("");
+                const Stylesheets = Common.getStylesheets(RootElementData.stylesheetsContainer).filter(l => l.dataset.sticky !== "true").map(l => l.outerHTML).join("");
 
                 localStorage.setItem(ComponentCacheKey, Stylesheets + ElementHtml); // insert html into the cache
 
@@ -292,10 +280,8 @@ async function bootstrap() {
     await waitForDOMReady();
 
     // add main view
-    Views[""] = {
-        root: document.getElementById("webview_root") as HTMLElement,
-        stylesheetsContainer: document.head
-    };
+    Common.addViewElement("", document.getElementById(Common.WebViewRootId) as HTMLElement, document.head);
+    Common.addViewAddedEventListener((viewName) => fireNativeNotification(ViewInitializedEventName, viewName));
 
     await loadFramework();
 
@@ -342,11 +328,6 @@ function waitForNextPaint() {
             setTimeout(resolve);
         });
     });
-}
-
-function getAllStylesheets(): HTMLLinkElement[] {
-    // TODO
-    return document.head ? Array.from(document.head.getElementsByTagName("link")) : [];
 }
 
 function waitForDOMReady() {

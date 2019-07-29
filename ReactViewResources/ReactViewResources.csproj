@@ -73,9 +73,13 @@
     <EmbeddedResource Include="node_modules\react\umd\react.production.min.js" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="LoaderCommon.ts" />
     <TypeScriptCompile Include="ViewFrame.ts" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="LoaderCommon.js">
+      <DependentUpon>LoaderCommon.ts</DependentUpon>
+    </EmbeddedResource>
     <Content Include="tsconfig.json" />
     <EmbeddedResource Include="ViewFrame.js">
       <DependentUpon>ViewFrame.ts</DependentUpon>

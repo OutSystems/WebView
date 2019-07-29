@@ -1,4 +1,4 @@
-﻿import * as Loader from "./Loader.js";
+﻿import * as Common from "./LoaderCommon";
 
 class ViewFrame extends HTMLElement {
 
@@ -7,17 +7,26 @@ class ViewFrame extends HTMLElement {
 
     constructor() {
         super();
-        let root = this.attachShadow({ mode: "closed"  });
+        let root = this.attachShadow({ mode: "closed" });
+
+        // get sticky stylesheets
+        let mainView = Common.getViewElement("");
+        let stylesheets = Common.getStylesheets(mainView.stylesheetsContainer).filter(s => s.dataset.sticky === "true");
 
         this.headElement = document.createElement("head");
-        root.appendChild(this.headElement);
 
+        // reset inherited css properties
         let style = document.createElement("style");
-        style.textContent = ":host { all: initial; display: block; background: white; }"; // reset inherited css properties
+        style.textContent = ":host { all: initial; display: block; background: white; }";
         this.headElement.appendChild(style);
 
+        // import sticky stylesheets into this view
+        stylesheets.forEach(s => this.headElement.appendChild(document.importNode(s, false)));
+        root.appendChild(this.headElement);
+
+        // create root container
         this.rootElement = document.createElement("div");
-        this.rootElement.id = "webview_root";
+        this.rootElement.id = Common.WebViewRootId;
 
         let body = document.createElement("body");
         body.appendChild(this.rootElement);
@@ -26,11 +35,11 @@ class ViewFrame extends HTMLElement {
     }
 
     public connectedCallback() {
-        Loader.addViewElement(this.id, this.rootElement, this.headElement);
+        Common.addViewElement(this.id, this.rootElement, this.headElement);
     }
 
     public disconnectedCallback() {
-        Loader.removeViewElement(this.id);
+        Common.removeViewElement(this.id);
     }
 }
 
