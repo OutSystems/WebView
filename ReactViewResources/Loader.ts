@@ -9,7 +9,7 @@ type Dictionary<T> = { [key: string]: T };
 
 const ReactLib: string = "React";
 const ReactDOMLib: string = "ReactDOM";
-const ModuleLib: string = "Bundle";
+const Bundles: string = "Bundle";
 
 class Task<ResultType> {
 
@@ -172,16 +172,17 @@ export function loadPlugins(plugins: any[][]): void {
 
 export function loadComponent(
     componentName: string,
+    componentInstanceName: string,
     componentNativeObjectName: string,
     componentSource: string,
+    originalSourceFolder: string,
     dependencySources: string[],
     cssSources: string[],
-    originalSourceFolder: string,
     maxPreRenderedCacheEntries: number,
     hasStyleSheet: boolean,
     hasPlugins: boolean,
     componentNativeObject: Dictionary<any>,
-    containerName: string,
+    frameName: string,
     componentHash: string): void {
 
     function getComponentCacheKey(propertiesHash: string) {
@@ -190,11 +191,13 @@ export function loadComponent(
 
     async function innerLoad() {
         try {
-            let baseElement = document.getElementById("webview_base") as HTMLBaseElement;
-            // force images and other resources load from the appropriate path
-            baseElement.href = originalSourceFolder;
+            if (frameName === "") {
+                // loading main view
+                // force images and other resources load from the appropriate path
+                (document.getElementById("webview_base") as HTMLBaseElement).href = originalSourceFolder;
+            }
 
-            const RootElementData = Common.getViewElement(containerName);
+            const RootElementData = Common.getViewElement(frameName);
             const RootElement = RootElementData.root;
 
             if (hasStyleSheet) {
@@ -225,7 +228,7 @@ export function loadComponent(
             // main component script should be the last to be loaded, otherwise errors might occur
             await loadScript(componentSource);
 
-            const Component = window[ModuleLib][componentName].default;
+            const Component = window[Bundles][componentName].default;
             const React = window[ReactLib];
             const ReactDOM = window[ReactDOMLib];
 
@@ -235,7 +238,7 @@ export function loadComponent(
             // render component
             await new Promise((resolve) => {
                 const Root = React.createElement(Component, Properties);
-                Modules[componentName] = ReactDOM.hydrate(Root, RootElement, resolve);
+                Modules[componentInstanceName] = ReactDOM.hydrate(Root, RootElement, resolve);
             });
 
             await waitForNextPaint();
@@ -263,7 +266,7 @@ export function loadComponent(
 
             window.dispatchEvent(new Event('viewready'));
 
-            fireNativeNotification(ComponentLoadedEventName, window.name);
+            fireNativeNotification(ComponentLoadedEventName, frameName);
         } catch (error) {
             handleError(error);
         }

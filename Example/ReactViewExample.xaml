@@ -7,8 +7,13 @@
         mc:Ignorable="d"
         Title="ReactViewExample" Height="450" Width="800">
     <DockPanel>
-        <Button DockPanel.Dock="Bottom" Click="OnWPFButtonClick">WPF button</Button>
-        <Button DockPanel.Dock="Bottom" Click="OnShowDevTools">Show dev tools</Button>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="Actions">
+                <MenuItem Header="Call Main View" Click="OnCallMainViewMenuItemClick"></MenuItem>
+                <MenuItem Header="Call Inner View" Click="OnCallInnerViewMenuItemClick"></MenuItem>
+                <MenuItem Header="Show dev tools" Click="OnShowDevTools"></MenuItem>
+            </MenuItem>
+        </Menu>
 
         <local:ExampleView x:Name="exampleView" Click="OnExampleViewClick" GetTime="OnExampleViewGetTime" ConstantMessage="This is an example" Image="Beach" />
     </DockPanel>

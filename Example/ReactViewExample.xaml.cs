@@ -1,7 +1,5 @@
-﻿using ReactViewControl;
-using System;
+﻿using System;
 using System.Windows;
-using WebViewControl;
 
 namespace Example {
     /// <summary>
@@ -9,25 +7,31 @@ namespace Example {
     /// </summary>
     public partial class ReactViewExample : Window {
 
+        private SubExampleViewModule subView;
+
         public ReactViewExample() {
             InitializeComponent();
 
-            var subView = new SubExampleViewModule();
+            subView = new SubExampleViewModule();
             subView.ConstantMessage = "This is a sub view";
             subView.GetTime += OnSubViewGetTime;
             exampleView.AttachInnerView(subView, "test");
             subView.CallMe();
 
             exampleView.WithPlugin<ViewPlugin>("").NotifyViewLoaded += OnNotifyViewLoaded;
-            //exampleView.WithPlugin<ViewPlugin>("test").NotifyViewLoaded += OnSubViewNotifyViewLoaded;
+            exampleView.WithPlugin<ViewPlugin>("test").NotifyViewLoaded += OnSubViewNotifyViewLoaded;
         }
 
         private void OnExampleViewClick(SomeType arg) {
             MessageBox.Show("Clicked on a button inside the React view", ".Net Says");
         }
 
-        private void OnWPFButtonClick(object sender, RoutedEventArgs e) {
+        private void OnCallMainViewMenuItemClick(object sender, RoutedEventArgs e) {
             exampleView.CallMe();
+        }
+
+        private void OnCallInnerViewMenuItemClick(object sender, RoutedEventArgs e) {
+            subView.CallMe();
         }
 
         private void OnShowDevTools(object sender, RoutedEventArgs e) {

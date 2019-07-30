@@ -164,6 +164,7 @@ namespace ReactViewControl {
             // loadComponent arguments:
             //
             // componentName: string,
+            // componentInstanceName: string,
             // componentNativeObjectName: string,
             // componentSource: string,
             // dependencySources: string[],
@@ -173,16 +174,17 @@ namespace ReactViewControl {
             // hasStyleSheet: boolean,
             // hasPlugins: boolean,
             // componentNativeObject: Dictionary<any>,
-            // containerName: string
+            // frameName: string
             // componentHash: string
 
             var loadArgs = new [] {
                 JavascriptSerializer.Serialize(component.Name),
-                JavascriptSerializer.Serialize(GetNativeObjectFullName(component.NativeObjectName, frameName)),
+                JavascriptSerializer.Serialize(component.GetModuleInstanceName(frameName)),
+                JavascriptSerializer.Serialize(component.GetNativeObjectFullName(frameName)),
                 JavascriptSerializer.Serialize(mainSource),
+                JavascriptSerializer.Serialize(originalSourceFolder),
                 JavascriptSerializer.Serialize(dependencySources),
                 JavascriptSerializer.Serialize(cssSources),
-                JavascriptSerializer.Serialize(originalSourceFolder),
                 JavascriptSerializer.Serialize(ReactView.PreloadedCacheEntriesSize),
                 JavascriptSerializer.Serialize(DefaultStyleSheet != null),
                 JavascriptSerializer.Serialize(GetPlugins(frameName).Length > 0),
@@ -215,7 +217,7 @@ namespace ReactViewControl {
             var loadArgs = new[] {
                 JavascriptSerializer.Serialize(plugins.Select(m => new object[] {
                     m.Name,
-                    GetNativeObjectFullName(m.NativeObjectName, frameName),
+                    m.GetNativeObjectFullName(frameName),
                     m.NativeObjectName,
                     ToFullUrl(NormalizeUrl(m.MainJsSource)),
                     m.DependencyJsSources.Select(s => ToFullUrl(NormalizeUrl(s)))
@@ -476,11 +478,7 @@ namespace ReactViewControl {
         }
 
         private void RegisterNativeObject(IViewModule module, string frameName) {
-            WebView.RegisterJavascriptObject(GetNativeObjectFullName(module.NativeObjectName, frameName), module.CreateNativeObject(), executeCallsInUI: false);
-        }
-
-        private static string GetNativeObjectFullName(string name, string frameName) {
-            return (frameName == WebView.MainFrameName ? frameName : frameName + "$") + name;
+            WebView.RegisterJavascriptObject(module.GetNativeObjectFullName(frameName), module.CreateNativeObject(), executeCallsInUI: false);
         }
 
         private IViewModule[] GetPlugins(string frameName) {
