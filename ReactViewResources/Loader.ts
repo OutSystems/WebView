@@ -97,13 +97,9 @@ function loadStyleSheet(stylesheet: string, markAsSticky: boolean): Promise<void
 }
 
 async function loadFramework(): Promise<void> {
-    let frameworkPromises: Promise<void>[] = [
-        loadScript(ExternalLibsPath + "react/umd/react.production.min.js"), /* React */ 
-        loadScript(ExternalLibsPath + "react-dom/umd/react-dom.production.min.js"), /* ReactDOM */ 
-        loadScript(ExternalLibsPath + "prop-types/prop-types.min.js") /* Prop-Types */
-    ];
-
-    await Promise.all(frameworkPromises);
+    await loadScript(ExternalLibsPath + "prop-types/prop-types.min.js"); /* Prop-Types */
+    await loadScript(ExternalLibsPath + "react/umd/react.production.min.js"); /* React */
+    await loadScript(ExternalLibsPath + "react-dom/umd/react-dom.production.min.js"); /* ReactDOM */
     await loadScript(LibsPath + "ReactViewResources.js"); /* React View Resources */ 
 }
 
