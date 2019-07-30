@@ -85,22 +85,25 @@ require(Path.resolve("./ts2lang.json")).tasks.forEach(t =>
 /** 
  *  Get aliases and externals from a configuration file, if exists
  * */
-var webpackOutputConfigFile = Path.resolve("./webpack-output-config.json");
+let webpackOutputConfigFile = Path.resolve("./webpack-output-config.json");
 if (existsSync(webpackOutputConfigFile)) {
-    var outputConfig = require(webpackOutputConfigFile);
+    let outputConfig = require(webpackOutputConfigFile);
 
-    var allAliases = outputConfig.alias;
+    let allAliases = outputConfig.alias;
     if (allAliases) {
         Object.keys(allAliases).forEach(key => aliasMap[key] = Path.resolve(".", allAliases[key]));
     }
 
-    var allExternals = outputConfig.externals;
+    let allExternals = outputConfig.externals;
     if (allExternals) {
         Object.keys(allExternals).forEach(key => {
 
-            var record: Record<string, string> = {};
-            record["commonjs"] = allExternals[key];
-            record["commonjs2"] = allExternals[key];
+            let library: string[] = allExternals[key];
+            let entry: string = library[library.length - 1];
+            let record: Record<string, string> = {};
+
+            record["commonjs"] = entry;
+            record["commonjs2"] = entry;
             record["root"] = allExternals[key];
 
             externalsObjElement[key] = record;
@@ -108,7 +111,7 @@ if (existsSync(webpackOutputConfigFile)) {
     }
 }
 
-var standardConfig: Webpack.Configuration = {
+let standardConfig: Webpack.Configuration = {
     entry: entryMap,
 
     externals: {
