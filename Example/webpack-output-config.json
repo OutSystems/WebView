@@ -1,5 +1,5 @@
 ﻿{
   "externals": {
-    "./ViewPlugin": "ViewPlugin"
+    "./ViewPlugin": [ "Bundle", "ViewPlugin" ]
   }
 }

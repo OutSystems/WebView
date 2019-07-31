@@ -7,6 +7,8 @@ declare const CefSharp: {
 
 type Dictionary<T> = { [key: string]: T };
 
+let rootContext: React.Context<string>;
+
 const ReactLib: string = "React";
 const ReactDOMLib: string = "ReactDOM";
 const Bundles: string = "Bundle";
@@ -136,11 +138,9 @@ export function loadPlugins(plugins: any[][]): void {
                     DependencySources.forEach(s => {
                         dependencySourcesPromises.push(loadScript(s));
                     });
-
+                    
                     pluginsPromises.push(new Promise<void>((resolve, reject) => {
                         CefSharp.BindObjectAsync(NativeObjectFullName, NativeObjectFullName).then(async () => {
-                            window[NativeObjectName] = window[NativeObjectFullName]; // create alias to the original name, since views are not aware of the fullname
-
                             if (ModuleName) {
                                 await Promise.all(dependencySourcesPromises);
 
@@ -227,14 +227,22 @@ export function loadComponent(
             const Component = window[Bundles][componentName].default;
             const React = window[ReactLib];
             const ReactDOM = window[ReactDOMLib];
-
+            
             // create proxy for properties obj to delay its methods execution until native object is ready
             const Properties = createPropertiesProxy(componentNativeObject, componentNativeObjectName);
 
             // render component
             await new Promise((resolve) => {
-                const Root = React.createElement(Component, Properties);
-                Modules[componentInstanceName] = ReactDOM.hydrate(Root, RootElement, resolve);
+                if (!rootContext) {
+                    rootContext = React.createContext("");
+                }
+                Component.contextType = rootContext;
+                const RootRef = React.createRef();
+                const Root = React.createElement(rootContext.Provider, { value: frameName }, React.createElement(Component, { ref: RootRef, ...Properties }));
+                ReactDOM.hydrate(Root, RootElement, () => {
+                    Modules[componentInstanceName] = RootRef.current;
+                    resolve();
+                });
             });
 
             await waitForNextPaint();
