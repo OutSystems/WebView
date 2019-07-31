@@ -8,7 +8,6 @@ namespace ReactViewControl {
         private IExecutionEngine engine;
 
         protected virtual string MainJsSource => null;
-        protected virtual string OriginalSourceFolder => null;
         protected virtual string NativeObjectName => null;
         protected virtual string ModuleName => null;
         protected virtual string Source => null;
@@ -24,8 +23,6 @@ namespace ReactViewControl {
         protected virtual KeyValuePair<string, object>[] PropertiesValues => new KeyValuePair<string, object>[0];
 
         string IViewModule.MainJsSource => MainJsSource;
-
-        string IViewModule.OriginalSourceFolder => OriginalSourceFolder;
 
         string IViewModule.NativeObjectName => NativeObjectName;
 

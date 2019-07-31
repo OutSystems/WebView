@@ -125,7 +125,7 @@ let standardConfig: Webpack.Configuration = {
         path: Path.resolve("."),
         filename: getOutputFileName,
         chunkFilename: "Generated/chunk_[chunkhash:8].js",
-        library: "Bundle",
+        library: "Views",
         libraryTarget: "umd",
         umdNamedDefine: true,
         globalObject: "window"
@@ -162,14 +162,42 @@ let standardConfig: Webpack.Configuration = {
                             hmr: false
                         }
                     },
+                    "css-loader",
                     {
-                        loader: "css-loader",
+                        loader: "resolve-url-loader",
                         options: {
-                            url: false
+                            keepQuery: true
                         }
                     },
-                    "sass-loader"
+                    {
+                        loader: "sass-loader",
+                        options: {
+                            sourceMap: true,
+                            sourceMapContents: false
+                        }
+                    }
                 ]
+            },
+            {
+                test: /\.(png|jpg|jpeg|bmp|gif|woff|woff2|ico|svg)$/,
+                use: [
+                    {
+                        loader: 'file-loader',
+                        options: {
+                            emitFile: false,
+                            name: '[path][name].[ext]',
+                            publicPath: (url: string, _, __) => {
+
+                                // relative paths starting with ".." are replaced by "_"
+                                if (url.startsWith("_")) {
+                                    return url.substring(1);
+                                }
+
+                                return `/${Path.basename(Path.resolve("."))}/${url}`;
+                            }
+                        },
+                    },
+                ],
             },
             {
                 test: /\.tsx?$/,

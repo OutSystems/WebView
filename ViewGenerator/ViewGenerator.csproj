@@ -50,7 +50,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="tools\webpack\webpack_framework.config.ts" />
+    <TypeScriptCompile Include="tools\webpack\webpack_plugins.config.ts" />
     <None Include="build\ViewGenerator.props" />
     <None Include="contentFiles\ts2lang.json" />
     <None Include="contentFiles\tsconfig.json" />
@@ -73,8 +73,8 @@
     <None Include="readme.txt" />
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="tools\webpack\webpack_custom.config.ts" />
-    <TypeScriptCompile Include="tools\webpack\webpack_global.config.ts" />
+    <TypeScriptCompile Include="tools\webpack\webpack_stylesheets.config.ts" />
+    <TypeScriptCompile Include="tools\webpack\webpack_views.config.ts" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

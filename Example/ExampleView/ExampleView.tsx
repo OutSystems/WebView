@@ -2,6 +2,7 @@
 import ViewFrame from "ViewFrame";
 import * as ViewPlugin from "./ViewPlugin";
 import "./ExampleView.scss";
+import * as Image from "./beach.jpg";
 
 export interface ISomeType {
     name: string;
@@ -53,7 +54,7 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
                 <br />
                 Current time: {this.state.time}<br />
                 <br />
-                {this.props.image === ImageKind.Beach ? <img className="image" src="beach.jpg" /> : null}
+                {this.props.image === ImageKind.Beach ? <img className="image" src={Image} /> : null}
                 <br />
                 <button onClick={() => this.props.click(null)}>Click me!</button>
                 <br />

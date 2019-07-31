@@ -43,7 +43,6 @@ class Generator {
         module: Units.TsModule,
         private namespace: string,
         private relativePath: string,
-        private originalSourceFolder: string,
         private fullPath: string,
         private filename: string,
         private preamble: string,
@@ -257,7 +256,6 @@ class Generator {
             `    ${f(this.generateComponentBody(generatePropertyEvent, generateProperty, generateBehaviorMethod))}\n` +
             `    \n` +
             `    protected override string MainJsSource => \"${this.relativePath}\";\n` +
-            `    protected override string OriginalSourceFolder => \"${this.originalSourceFolder}\";\n` +
             `    protected override string NativeObjectName => \"${this.propsInterfaceCoreName}\";\n` +
             `    protected override string ModuleName => \"${this.filename}\";\n` +
             `    protected override object CreateNativeObject() => new ${PropertiesClassName}(this);\n` +
@@ -400,15 +398,11 @@ export function transform(module: Units.TsModule, context: Object): string {
 
     output = combinePath(output, filenameWithoutExtension + ".Generated.cs");
     context["$output"] = output;
-
-    let sourceFolderName = fullPath.slice(baseDir.length + 1, fullPath.lastIndexOf("/"));
-    let originalSourceFolder = "/" + combinePath(namespace, sourceFolderName) + "/";
     
     let generator = new Generator(
         module,
         namespace,
         javascriptRelativePath,
-        originalSourceFolder,
         javascriptFullPath,
         filenameWithoutExtension,
         context["preamble"] || "",

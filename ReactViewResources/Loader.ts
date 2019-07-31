@@ -6,7 +6,7 @@ type Dictionary<T> = { [key: string]: T };
 
 const ReactLib: string = "React";
 const ReactDOMLib: string = "ReactDOM";
-const ModuleLib: string = "Bundle";
+const ModuleLib: string = "Views";
 
 class Task<ResultType> {
 
@@ -174,7 +174,7 @@ export function loadComponent(
     componentSource: string,
     dependencySources: string[],
     cssSources: string[],
-    originalSourceFolder: string,
+    baseUrl: string,
     maxPreRenderedCacheEntries: number,
     hasStyleSheet: boolean,
     hasPlugins: boolean,
@@ -188,7 +188,7 @@ export function loadComponent(
     async function innerLoad() {
         try {
             // force images and other resources load from the appropriate path
-            (document.getElementById("webview_base") as HTMLBaseElement).href = originalSourceFolder;
+            (document.getElementById("webview_base") as HTMLBaseElement).href = baseUrl;
 
             const RootElement = document.getElementById("webview_root") as HTMLDivElement;
 
