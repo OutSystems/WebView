@@ -54,7 +54,6 @@ namespace ReactViewControl {
 
                 var loadArgs = new[] {
                     JavascriptSerializer.Serialize(component.Name),
-                    JavascriptSerializer.Serialize(component.GetModuleInstanceName(frameName)),
                     JavascriptSerializer.Serialize(component.GetNativeObjectFullName(frameName)),
                     JavascriptSerializer.Serialize(mainSource),
                     JavascriptSerializer.Serialize(originalSourceFolder),
@@ -88,9 +87,8 @@ namespace ReactViewControl {
                 var loadArgs = new[] {
                     JavascriptSerializer.Serialize(plugins.Select(m => new object[] {
                         m.Name, // plugin name
-                        m.GetModuleInstanceName(frameName), // module instance name
                         ViewRender.ToFullUrl(NormalizeUrl(m.MainJsSource)), // plugin source
-                        m.GetNativeObjectFullName(frameName),
+                        m.GetNativeObjectFullName(frameName), // native object name
                         m.DependencyJsSources.Select(s => ViewRender.ToFullUrl(NormalizeUrl(s))) // plugin dependencies
                     })),
                     JavascriptSerializer.Serialize(frameName),

@@ -1,7 +1,5 @@
 ﻿import * as Common from "./LoaderCommon";
-import { Task } from "./LoaderCommon";
-import * as PluginsProvider from "./PluginsProvider";
-import { PluginsContext } from "./PluginsProvider";
+import { Task, PluginsContext } from "./LoaderCommon";
 import "./ViewFrame";
 
 declare const CefSharp: {
@@ -23,7 +21,7 @@ const [
 
 const externalLibsPath = libsPath + "node_modules/";
 
-const modules: Dictionary<{}> = (() => window[modulesObjectName] = {})();
+const modules: Dictionary<Dictionary<any>> = (() => window[modulesObjectName] = {})();
 
 const bootstrapTask = new Task();
 const stylesheetsLoadTask = new Task();
@@ -116,13 +114,14 @@ export function loadPlugins(plugins: any[][], frameName: string, forMainFrame: b
             pluginsLoadTasks[frameName] = loadTask;
 
             if (plugins && plugins.length > 0) {
+                const pluginsInstances = (modules[frameName] = modules[frameName] || {});
+
                 // load plugin modules
                 const pluginsPromises = plugins.map(async m => {
                     const moduleName: string = m[0];
-                    const moduleInstanceName: string = m[1];
-                    const mainJsSource: string = m[2];
-                    const nativeObjectFullName: string = m[3]; // fullname with frame name included
-                    const dependencySources: string[] = m[4];
+                    const mainJsSource: string = m[1];
+                    const nativeObjectFullName: string = m[2]; // fullname with frame name included
+                    const dependencySources: string[] = m[3];
 
                     if (forMainFrame) {
                         // only load plugins sources once (in the main frame)
@@ -142,7 +141,7 @@ export function loadPlugins(plugins: any[][], frameName: string, forMainFrame: b
 
                     await CefSharp.BindObjectAsync(nativeObjectFullName, nativeObjectFullName);
 
-                    PluginsProvider.registerPlugin(frameName, module.default, moduleInstanceName, window[nativeObjectFullName]);
+                    pluginsInstances[moduleName] = new module.default(window[nativeObjectFullName]);
                 });
 
                 await Promise.all(pluginsPromises);
@@ -159,7 +158,6 @@ export function loadPlugins(plugins: any[][], frameName: string, forMainFrame: b
 
 export function loadComponent(
     componentName: string,
-    componentInstanceName: string,
     componentNativeObjectName: string,
     componentSource: string,
     originalSourceFolder: string,
@@ -230,11 +228,14 @@ export function loadComponent(
                 }
                 Component.contextType = rootContext;
 
+                const frameModules = modules[frameName] || {};
+                const context = new PluginsContext(Object.values(frameModules));
+
                 const rootRef = React.createRef();
-                const root = React.createElement(rootContext.Provider, { value: new PluginsContext(frameName, modules) }, React.createElement(Component, { ref: rootRef, ...properties }));
+                const root = React.createElement(rootContext.Provider, { value: context }, React.createElement(Component, { ref: rootRef, ...properties }));
 
                 ReactDOM.hydrate(root, rootElement, () => {
-                    modules[componentInstanceName] = rootRef.current;
+                    modules[frameName] = Object.assign(modules[frameName] || {}, { [componentName]: rootRef.current });
                     resolve();
                 });
             });
@@ -282,10 +283,11 @@ async function bootstrap() {
 
     // add main view
     Common.addViewElement("", document.getElementById(Common.webViewRootId) as HTMLElement, document.head);
-    Common.addViewAddedEventListener((viewName) => fireNativeNotification(viewInitializedEventName, viewName));
-    Common.addViewRemovedEventListener((viewName) => {
-        delete pluginsLoadTasks[viewName];
-        PluginsProvider.unRegisterPlugins(viewName);
+
+    Common.addViewAddedEventListener((frameName) => fireNativeNotification(viewInitializedEventName, frameName));
+    Common.addViewRemovedEventListener((frameName) => {
+        delete modules[frameName]; // delete registered frame modules
+        delete pluginsLoadTasks[frameName];
     });
 
     await loadFramework();

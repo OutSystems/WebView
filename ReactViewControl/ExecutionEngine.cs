@@ -20,7 +20,7 @@ namespace ReactViewControl {
         private ConcurrentQueue<Tuple<string, object[]>> PendingScripts { get; } = new ConcurrentQueue<Tuple<string, object[]>>();
 
         private string FormatMethodInvocation(IViewModule module, string methodCall) {
-            return ReactViewRender.ModulesObjectName + "[\"" + module.GetModuleInstanceName(FrameName) + "\"]." + methodCall;
+            return ReactViewRender.ModulesObjectName + "[\"" + FrameName + "\"][\"" + module.Name + "\"]." + methodCall;
         }
 
         public void ExecuteMethod(IViewModule module, string methodCall, params object[] args) {

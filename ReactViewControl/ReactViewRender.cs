@@ -172,7 +172,7 @@ namespace ReactViewControl {
         public void LoadComponent(IViewModule component, string frameName) {
             FrameToComponentMap[frameName] = component;
             BindModule(component, frameName);
-            if (status >= LoadStatus.PageLoaded) {
+            if (frameName == WebView.MainFrameName && status >= LoadStatus.PageLoaded) {
                 Load(component, frameName, loadComponentOnly: true);
             }
         }
@@ -203,13 +203,15 @@ namespace ReactViewControl {
                 }
             }
 
-            if (frameName == WebView.MainFrameName) {
-                status = LoadStatus.ComponentLoading;
+            if (component != null) {
+                if (frameName == WebView.MainFrameName) {
+                    status = LoadStatus.ComponentLoading;
+                }
+
+                RegisterNativeObject(component, frameName);
+
+                Loader.LoadComponent(component, frameName, DefaultStyleSheet != null, plugins.Length > 0);
             }
-
-            RegisterNativeObject(component, frameName);
-
-            Loader.LoadComponent(component, frameName, DefaultStyleSheet != null, plugins.Length > 0);
         }
 
         /// <summary>
@@ -227,9 +229,8 @@ namespace ReactViewControl {
                 status = LoadStatus.PageLoaded;
             }
 
-            if (FrameToComponentMap.TryGetValue(frameName, out var component)) {
-                Load(component, frameName, loadComponentOnly: false);
-            }
+            FrameToComponentMap.TryGetValue(frameName, out var component);
+            Load(component, frameName, loadComponentOnly: false);
         }
 
         /// <summary>
@@ -238,9 +239,8 @@ namespace ReactViewControl {
         /// <param name="args"></param>
         private void OnViewInitialized(params object[] args) {
             var frameName = (string)args.FirstOrDefault();
-            if (FrameToComponentMap.TryGetValue(frameName, out var component)) {
-                Load(component, frameName, loadComponentOnly: false);
-            }
+            FrameToComponentMap.TryGetValue(frameName, out var component);
+            Load(component, frameName, loadComponentOnly: false);
         }
 
         /// <summary>

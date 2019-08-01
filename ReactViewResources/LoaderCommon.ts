@@ -1,14 +1,15 @@
 ﻿/// <reference path="Dictionary.d.ts"/>
 
-export type ViewData = { root: HTMLElement, stylesheetsContainer: HTMLElement };
-
 type Listener = (viewName: string) => void;
-
-export const webViewRootId = "webview_root";
 
 const views: Dictionary<ViewData> = {};
 const viewAddListeners: Listener[] = [];
 const viewRemoveListeners: Listener[] = [];
+
+export const webViewRootId = "webview_root";
+
+export type ViewData = { root: HTMLElement, stylesheetsContainer: HTMLElement };
+export interface Type<T> extends Function { new(...args: any[]): T; }
 
 export class Task<ResultType> {
 
@@ -25,6 +26,20 @@ export class Task<ResultType> {
 
     public get promise() {
         return this.taskPromise;
+    }
+}
+
+export class PluginsContext {
+
+    private pluginInstances: Dictionary<any> = {};
+
+    constructor(plugins: any[]) {
+        this.pluginInstances = {};
+        plugins.forEach(p => this.pluginInstances[p.constructor.name] = p);
+    }
+
+    public getPluginInstance<T>(_class: Type<T>) {
+        return this.pluginInstances[_class.name];
     }
 }
 
