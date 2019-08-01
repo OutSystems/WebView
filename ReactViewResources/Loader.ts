@@ -10,27 +10,33 @@ declare const CefSharp: {
 
 let rootContext: React.Context<string>;
 
-const ReactLib: string = "React";
-const ReactDOMLib: string = "ReactDOM";
-const Bundles: string = "Bundle";
+const reactLib: string = "React";
+const reactDOMLib: string = "ReactDOM";
+const bundlesName: string = "Bundle";
 
-const [LibsPath, EnableDebugMode, ModulesObjectName, EventListenerObjectName, ViewInitializedEventName, ComponentLoadedEventName] = Array.from(new URLSearchParams(location.search).keys());
+const [
+    libsPath,
+    enableDebugMode,
+    modulesObjectName,
+    eventListenerObjectName,
+    viewInitializedEventName,
+    componentLoadedEventName
+] = Array.from(new URLSearchParams(location.search).keys());
 
-const ExternalLibsPath = LibsPath + "node_modules/";
+const externalLibsPath = libsPath + "node_modules/";
 
-const Modules: Dictionary<{}> = {};
-window[ModulesObjectName] = Modules;
+const modules: Dictionary<{}> = (() => window[modulesObjectName] = {})();
 
-const BootstrapTask = new Task();
-const StylesheetsLoadTask = new Task();
-const PluginsLoadTasks: Dictionary<Task<any>> = {};
+const bootstrapTask = new Task();
+const stylesheetsLoadTask = new Task();
+const pluginsLoadTasks: Dictionary<Task<any>> = {};
 
 export async function showErrorMessage(msg: string): Promise<void> {
-    const ContainerId = "webview_error";
-    let msgContainer = document.getElementById(ContainerId) as HTMLDivElement;
+    const containerId = "webview_error";
+    let msgContainer = document.getElementById(containerId) as HTMLDivElement;
     if (!msgContainer) {
         msgContainer = document.createElement("div");
-        msgContainer.id = ContainerId;
+        msgContainer.id = containerId;
         let style = msgContainer.style;
         style.backgroundColor = "#f45642";
         style.color = "white";
@@ -81,18 +87,18 @@ function loadStyleSheet(stylesheet: string, containerElement: HTMLElement, markA
 }
 
 async function loadFramework(): Promise<void> {
-    await loadScript(ExternalLibsPath + "prop-types/prop-types.min.js"); /* Prop-Types */
-    await loadScript(ExternalLibsPath + "react/umd/react.production.min.js"); /* React */ 
-    await loadScript(ExternalLibsPath + "react-dom/umd/react-dom.production.min.js"); /* ReactDOM */
+    await loadScript(externalLibsPath + "prop-types/prop-types.min.js"); /* Prop-Types */
+    await loadScript(externalLibsPath + "react/umd/react.production.min.js"); /* React */ 
+    await loadScript(externalLibsPath + "react-dom/umd/react-dom.production.min.js"); /* ReactDOM */
 }
 
 export function loadDefaultStyleSheet(stylesheet: string): void {
     async function innerLoad() {
         try {
-            await BootstrapTask.promise;
+            await bootstrapTask.promise;
             await loadStyleSheet(stylesheet, document.head, true);
 
-            StylesheetsLoadTask.setResult();
+            stylesheetsLoadTask.setResult();
         } catch (error) {
             handleError(error);
         }
@@ -104,46 +110,46 @@ export function loadDefaultStyleSheet(stylesheet: string): void {
 export function loadPlugins(plugins: any[][], frameName: string): void {
     async function innerLoad() {
         try {
-            await BootstrapTask.promise;
+            await bootstrapTask.promise;
 
-            const LoadTask = new Task();
-            PluginsLoadTasks[frameName] = LoadTask;
+            const loadTask = new Task();
+            pluginsLoadTasks[frameName] = loadTask;
 
             if (plugins && plugins.length > 0) {
                 // load plugin modules
                 let pluginsPromises: Promise<void>[] = plugins.map(async m => {
-                    const ModuleName: string = m[0];
-                    const ModuleInstanceName: string = m[1];
-                    const MainJsSource: string = m[2];
-                    const NativeObjectFullName: string = m[3]; // fullname with frame name included
-                    const DependencySources: string[] = m[4];
+                    const moduleName: string = m[0];
+                    const moduleInstanceName: string = m[1];
+                    const mainJsSource: string = m[2];
+                    const nativeObjectFullName: string = m[3]; // fullname with frame name included
+                    const dependencySources: string[] = m[4];
 
                     if (frameName === "") {
                         // only load plugins sources once (in the main frame)
 
                         // load plugin dependency js sources
                         let dependencySourcesPromises: Promise<void>[] = [];
-                        DependencySources.forEach(s => dependencySourcesPromises.push(loadScript(s)));
+                        dependencySources.forEach(s => dependencySourcesPromises.push(loadScript(s)));
                         await Promise.all(dependencySourcesPromises);
 
                         // plugin main js source
-                        await loadScript(MainJsSource);    
+                        await loadScript(mainJsSource);    
                     }
 
-                    const Module = window[Bundles][ModuleName];
-                    if (!Module || !Module.default) {
-                        throw new Error(`Failed to load '${ModuleName}' (might not be a module with a default export)`);
+                    const module = window[bundlesName][moduleName];
+                    if (!module || !module.default) {
+                        throw new Error(`Failed to load '${moduleName}' (might not be a module with a default export)`);
                     }
 
-                    await CefSharp.BindObjectAsync(NativeObjectFullName, NativeObjectFullName);
+                    await CefSharp.BindObjectAsync(nativeObjectFullName, nativeObjectFullName);
 
-                    PluginsProvider.registerPlugin(frameName, Module.default, ModuleInstanceName, window[NativeObjectFullName]);
+                    PluginsProvider.registerPlugin(frameName, module.default, moduleInstanceName, window[nativeObjectFullName]);
                 });
 
                 await Promise.all(pluginsPromises);
             }
 
-            LoadTask.setResult();
+            loadTask.setResult();
         } catch (error) {
             handleError(error);
         }
@@ -179,67 +185,70 @@ export function loadComponent(
                 (document.getElementById("webview_base") as HTMLBaseElement).href = originalSourceFolder;
             }
 
-            const RootElementData = Common.getViewElement(frameName);
-            const RootElement = RootElementData.root;
+            const rootElementData = Common.getViewElement(frameName);
+            const rootElement = rootElementData.root;
 
             if (hasStyleSheet) {
                 // wait for the stylesheet to load before first render
-                await StylesheetsLoadTask.promise;
+                await stylesheetsLoadTask.promise;
             }
 
-            const ComponentCacheKey = getComponentCacheKey(componentHash);
-            const CachedElementHtml = localStorage.getItem(ComponentCacheKey);
-            if (CachedElementHtml) {
+            const componentCacheKey = getComponentCacheKey(componentHash);
+            const cachedElementHtml = localStorage.getItem(componentCacheKey);
+            if (cachedElementHtml) {
                 // render cached component html to reduce time to first render
-                RootElement.innerHTML = CachedElementHtml;
+                rootElement.innerHTML = cachedElementHtml;
                 await waitForNextPaint();
             }
 
-            let promisesToWaitFor = [BootstrapTask.promise];
+            let promisesToWaitFor = [bootstrapTask.promise];
             if (hasPlugins) {
-                promisesToWaitFor.push(PluginsLoadTasks[frameName].promise);
+                promisesToWaitFor.push(pluginsLoadTasks[frameName].promise);
             }
             await Promise.all(promisesToWaitFor);
 
             // load component dependencies js sources and css sources
             let loadDependencyPromises: Promise<void>[] = [];
             dependencySources.forEach(s => loadDependencyPromises.push(loadScript(s)));
-            cssSources.forEach(s => loadDependencyPromises.push(loadStyleSheet(s, RootElementData.stylesheetsContainer, false)));
+            cssSources.forEach(s => loadDependencyPromises.push(loadStyleSheet(s, rootElementData.stylesheetsContainer, false)));
             await Promise.all(loadDependencyPromises);
 
             // main component script should be the last to be loaded, otherwise errors might occur
             await loadScript(componentSource);
 
-            const Component = window[Bundles][componentName].default;
-            const React = window[ReactLib];
-            const ReactDOM = window[ReactDOMLib];
+            const Component = window[bundlesName][componentName].default;
+            const React = window[reactLib];
+            const ReactDOM = window[reactDOMLib];
             
             // create proxy for properties obj to delay its methods execution until native object is ready
-            const Properties = createPropertiesProxy(componentNativeObject, componentNativeObjectName);
+            const properties = createPropertiesProxy(componentNativeObject, componentNativeObjectName);
 
             // render component
             await new Promise((resolve) => {
+                // create context
                 if (!rootContext) {
                     rootContext = React.createContext(null);
                 }
                 Component.contextType = rootContext;
-                const RootRef = React.createRef();
-                const Root = React.createElement(rootContext.Provider, { value: new PluginsContext(frameName, Modules) }, React.createElement(Component, { ref: RootRef, ...Properties }));
-                ReactDOM.hydrate(Root, RootElement, () => {
-                    Modules[componentInstanceName] = RootRef.current;
+
+                const rootRef = React.createRef();
+                const root = React.createElement(rootContext.Provider, { value: new PluginsContext(frameName, modules) }, React.createElement(Component, { ref: rootRef, ...properties }));
+
+                ReactDOM.hydrate(root, rootElement, () => {
+                    modules[componentInstanceName] = rootRef.current;
                     resolve();
                 });
             });
 
             await waitForNextPaint();
 
-            if (!CachedElementHtml && maxPreRenderedCacheEntries > 0) {
+            if (!cachedElementHtml && maxPreRenderedCacheEntries > 0) {
                 // cache view html for further use
-                const ElementHtml = RootElement.innerHTML;
+                const elementHtml = rootElement.innerHTML;
                 // get all stylesheets except the stick ones (which will be loaded by the time the html gets rendered) otherwise we could be loading them twice
-                const Stylesheets = Common.getStylesheets(RootElementData.stylesheetsContainer).filter(l => l.dataset.sticky !== "true").map(l => l.outerHTML).join("");
+                const stylesheets = Common.getStylesheets(rootElementData.stylesheetsContainer).filter(l => l.dataset.sticky !== "true").map(l => l.outerHTML).join("");
 
-                localStorage.setItem(ComponentCacheKey, Stylesheets + ElementHtml); // insert html into the cache
+                localStorage.setItem(componentCacheKey, stylesheets + elementHtml); // insert html into the cache
 
                 let componentCachedInfo = localStorage.getItem(componentSource);
                 let cachedEntries: string[] = componentCachedInfo ? JSON.parse(componentCachedInfo) : [];
@@ -256,7 +265,7 @@ export function loadComponent(
 
             window.dispatchEvent(new Event('viewready'));
 
-            fireNativeNotification(ComponentLoadedEventName, frameName);
+            fireNativeNotification(componentLoadedEventName, frameName);
         } catch (error) {
             handleError(error);
         }
@@ -273,19 +282,19 @@ async function bootstrap() {
     await waitForDOMReady();
 
     // add main view
-    Common.addViewElement("", document.getElementById(Common.WebViewRootId) as HTMLElement, document.head);
-    Common.addViewAddedEventListener((viewName) => fireNativeNotification(ViewInitializedEventName, viewName));
+    Common.addViewElement("", document.getElementById(Common.webViewRootId) as HTMLElement, document.head);
+    Common.addViewAddedEventListener((viewName) => fireNativeNotification(viewInitializedEventName, viewName));
     Common.addViewRemovedEventListener((viewName) => {
-        delete PluginsLoadTasks[viewName];
+        delete pluginsLoadTasks[viewName];
         PluginsProvider.unRegisterPlugins(viewName);
     });
 
     await loadFramework();
 
     // bind event listener object ahead-of-time
-    await CefSharp.BindObjectAsync(EventListenerObjectName, EventListenerObjectName);
+    await CefSharp.BindObjectAsync(eventListenerObjectName, eventListenerObjectName);
 
-    BootstrapTask.setResult();
+    bootstrapTask.setResult();
 }
 
 function createPropertiesProxy(basePropertiesObj: {}, nativeObjName: string): {} {
@@ -313,7 +322,7 @@ function createPropertiesProxy(basePropertiesObj: {}, nativeObjName: string): {}
 }
 
 function handleError(error: Error) {
-    if (EnableDebugMode) {
+    if (enableDebugMode) {
         showErrorMessage(error.message);
     }
     throw error;
@@ -335,7 +344,7 @@ function waitForDOMReady() {
 }
 
 function fireNativeNotification(eventName: string, ...args: string[]) {
-    window[EventListenerObjectName].notify(eventName, ...args);
+    window[eventListenerObjectName].notify(eventName, ...args);
 }
 
 bootstrap();

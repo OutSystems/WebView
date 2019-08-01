@@ -1,4 +1,4 @@
-﻿const Plugins: { [frameName: string]: { plugin: PluginConstructor, moduleFullName: string, nativeObject: any }[] } = {};
+﻿const plugins: { [frameName: string]: { plugin: PluginConstructor, moduleFullName: string, nativeObject: any }[] } = {};
 
 export interface Type<T> extends Function { new(...args: any[]): T; }
 
@@ -9,16 +9,16 @@ interface PluginConstructor {
 interface Plugin { }
 
 export function registerPlugin(frameName: string, plugin: PluginConstructor, moduleFullName: string, nativeObject: any) {
-    let framePlugins = Plugins[frameName];
+    let framePlugins = plugins[frameName];
     if (!framePlugins) {
         framePlugins = [];
-        Plugins[frameName] = framePlugins;
+        plugins[frameName] = framePlugins;
     }
     framePlugins.push({ plugin, moduleFullName, nativeObject });
 }
 
 export function unRegisterPlugins(frameName: string) {
-    delete Plugins[frameName];
+    delete plugins[frameName];
 }
 
 export class PluginsContext {
@@ -26,11 +26,11 @@ export class PluginsContext {
     private pluginInstances: Dictionary<Plugin> = {};
 
     constructor(frameName: string, modulesRegistry: Dictionary<any>) {
-        const FramePlugins = Plugins[frameName] || [];
-        FramePlugins.forEach(p => {
-            const PluginInstance = new p.plugin(p.nativeObject);
-            modulesRegistry[p.moduleFullName] = PluginInstance; 
-            this.pluginInstances[p.plugin.name] = PluginInstance;
+        const framePlugins = plugins[frameName] || [];
+        framePlugins.forEach(p => {
+            const pluginInstance = new p.plugin(p.nativeObject);
+            modulesRegistry[p.moduleFullName] = pluginInstance; 
+            this.pluginInstances[p.plugin.name] = pluginInstance;
         });
     }
 

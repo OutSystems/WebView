@@ -26,7 +26,7 @@ class ViewFrame extends HTMLElement {
 
         // create root container
         this.rootElement = document.createElement("div");
-        this.rootElement.id = Common.WebViewRootId;
+        this.rootElement.id = Common.webViewRootId;
 
         let body = document.createElement("body");
         body.appendChild(this.rootElement);

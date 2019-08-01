@@ -4,11 +4,11 @@ export type ViewData = { root: HTMLElement, stylesheetsContainer: HTMLElement };
 
 type Listener = (viewName: string) => void;
 
-export const WebViewRootId = "webview_root";
+export const webViewRootId = "webview_root";
 
-const Views: Dictionary<ViewData> = {};
-const AddListeners: Listener[] = [];
-const RemoveListeners: Listener[] = [];
+const views: Dictionary<ViewData> = {};
+const viewAddListeners: Listener[] = [];
+const viewRemoveListeners: Listener[] = [];
 
 export class Task<ResultType> {
 
@@ -29,25 +29,25 @@ export class Task<ResultType> {
 }
 
 export function addViewElement(viewName: string, root: HTMLElement, stylesheetsContainer: HTMLElement): void {
-    Views[viewName] = { root, stylesheetsContainer }
-    AddListeners.forEach(l => l(viewName));
+    views[viewName] = { root, stylesheetsContainer }
+    viewAddListeners.forEach(l => l(viewName));
 }
 
 export function removeViewElement(viewName: string): void {
-    delete Views[viewName];
-    RemoveListeners.forEach(l => l(viewName));
+    delete views[viewName];
+    viewRemoveListeners.forEach(l => l(viewName));
 }
 
 export function getViewElement(viewName: string): ViewData {
-    return Views[viewName];
+    return views[viewName];
 }
 
 export function addViewAddedEventListener(listener: Listener) {
-    AddListeners.push(listener);
+    viewAddListeners.push(listener);
 }
 
 export function addViewRemovedEventListener(listener: Listener) {
-    RemoveListeners.push(listener);
+    viewRemoveListeners.push(listener);
 }
 
 export function getStylesheets(stylesheetsContainer: HTMLElement): HTMLLinkElement[] {
