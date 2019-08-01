@@ -29,6 +29,9 @@ export class Task<ResultType> {
 }
 
 export function addViewElement(viewName: string, root: HTMLElement, stylesheetsContainer: HTMLElement): void {
+    if (views[viewName]) {
+        throw new Error(`A view with the name "${viewName}" has already been created`);
+    }
     views[viewName] = { root, stylesheetsContainer }
     viewAddListeners.forEach(l => l(viewName));
 }

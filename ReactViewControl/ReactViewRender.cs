@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Security.Cryptography;
-using System.Text;
 using System.Web;
 using System.Windows;
 using System.Windows.Controls;
@@ -16,14 +14,15 @@ namespace ReactViewControl {
 
         private enum LoadStatus {
             Initialized,
-            PageLoaded,
-            Ready
+            PageLoaded, // page is loaded but component not loaded yet
+            ComponentLoading, // component is loading
+            Ready // component is ready
         }
 
         internal const string ModulesObjectName = "__Modules__";
-
-        private const string ViewInitializedEventName = "ViewInitialized";
+        
         private const string ComponentLoadedEventName = "ComponentLoaded";
+        private const string ViewInitializedEventName = "ViewInitialized";
 
         private static Assembly ResourcesAssembly { get; } = typeof(ReactViewResources.Resources).Assembly;
 
@@ -33,6 +32,7 @@ namespace ReactViewControl {
 
         private WebView WebView { get; }
         private Assembly UserCallingAssembly { get; }
+        private LoaderModule Loader { get; }
 
         private bool enableDebugMode = false;
         private LoadStatus status;
@@ -47,6 +47,8 @@ namespace ReactViewControl {
                 DisableBuiltinContextMenus = true,
                 IgnoreMissingResources = false
             };
+
+            Loader = new LoaderModule(this);
 
             DefaultStyleSheet = defaultStyleSheet;
             AddPlugins(WebView.MainFrameName, plugins);
@@ -76,11 +78,23 @@ namespace ReactViewControl {
             WebView.LoadResource(new ResourceUrl(ResourcesAssembly, ReactViewResources.Resources.DefaultUrl + "?" + string.Join("&", urlParams)));
         }
 
+        internal IInputElement FocusableElement => WebView.FocusableElement;
+
+        internal bool IsDisposing => WebView.IsDisposing;
+
+        /// <summary>
+        /// True when the main component has been rendered.
+        /// </summary>
+        public bool IsReady => status == LoadStatus.Ready;
+
+        public bool IsMainComponentLoaded => status >= LoadStatus.ComponentLoading;
+
         private void OnReady(params object[] args) {
             var frameName = (string) args.FirstOrDefault();
             if (frameName == WebView.MainFrameName) {
                 status = LoadStatus.Ready;
             }
+            // start javascript execution engine on the component module
             if (FrameToComponentMap.TryGetValue(frameName, out var component)) {
                 if (component.Engine is ExecutionEngine engine) {
                     engine.Start();
@@ -107,13 +121,22 @@ namespace ReactViewControl {
             WebView.Dispose();
         }
 
+        /// <summary>
+        /// Event fired when the component is rendered and ready for interaction.
+        /// </summary>
         public event Action Ready;
 
+        /// <summary>
+        /// Event fired when an async exception occurs (eg: executing javascript)
+        /// </summary>
         public event UnhandledAsyncExceptionEventHandler UnhandledAsyncException {
             add { WebView.UnhandledAsyncException += value; }
             remove { WebView.UnhandledAsyncException -= value; }
         }
 
+        /// <summary>
+        /// Event fired when a resource fails to load.
+        /// </summary>
         public event ResourceLoadFailedEventHandler ResourceLoadFailed {
             add { WebView.ResourceLoadFailed += value; }
             remove { WebView.ResourceLoadFailed -= value; }
@@ -135,133 +158,94 @@ namespace ReactViewControl {
         /// </summary>
         public event ResourceRequestedEventHandler ExternalResourceRequested;
 
+        /// <summary>
+        /// Load the specified component into the main frame.
+        /// </summary>
+        /// <param name="component"></param>
         public void LoadComponent(IViewModule component) {
             LoadComponent(component, WebView.MainFrameName);
         }
 
+        /// <summary>
+        /// Load the specified component into the specified frame.
+        /// </summary>
         public void LoadComponent(IViewModule component, string frameName) {
             FrameToComponentMap[frameName] = component;
             BindModule(component, frameName);
             if (status >= LoadStatus.PageLoaded) {
-                InternalLoadComponent(component, frameName);
+                Load(component, frameName, loadComponentOnly: true);
             }
         }
 
-        private void InternalLoadComponent(IViewModule component, string frameName) {
-            var mainSource = ToFullUrl(NormalizeUrl(component.MainJsSource));
-            var dependencySources = component.DependencyJsSources.Select(s => ToFullUrl(NormalizeUrl(s))).ToArray();
-            var cssSources = component.CssSources.Select(s => ToFullUrl(NormalizeUrl(s))).ToArray();
-            var originalSourceFolder = ToFullUrl(NormalizeUrl(component.OriginalSourceFolder));
+        /// <summary>
+        /// Load the stylesheet, plugins and component (in that order).
+        /// </summary>
+        /// <param name="component"></param>
+        /// <param name="frameName"></param>
+        /// <param name="loadComponentOnly">If True, only the component will be loaded. Assumes that setylsheet and plugins were loaded previously.</param>
+        private void Load(IViewModule component, string frameName, bool loadComponentOnly) {
+            var plugins = GetPlugins(frameName);
 
-            var nativeObjectMethodsMap =
-                component.Events.Select(g => new KeyValuePair<string, object>(g, JavascriptSerializer.Undefined))
-                .Concat(component.PropertiesValues)
-                .OrderBy(p => p.Key)
-                .Select(p => new KeyValuePair<string, object>(JavascriptSerializer.GetJavascriptName(p.Key), p.Value));
-            var componentSerialization = JavascriptSerializer.Serialize(nativeObjectMethodsMap);
-            var componentHash = ComputeHash(componentSerialization);
+            if (!loadComponentOnly) {
+                if (frameName == WebView.MainFrameName) {
+                    // only need to load the stylesheet for the main frame
+                    if (DefaultStyleSheet != null) {
+                        Loader.LoadDefaultStyleSheet(DefaultStyleSheet);
+                    }
+                }
 
-            // loadComponent arguments:
-            //
-            // componentName: string,
-            // componentInstanceName: string,
-            // componentNativeObjectName: string,
-            // componentSource: string,
-            // dependencySources: string[],
-            // cssSources: string[],
-            // originalSourceFolder: string,
-            // maxPreRenderedCacheEntries: number,
-            // hasStyleSheet: boolean,
-            // hasPlugins: boolean,
-            // componentNativeObject: Dictionary<any>,
-            // frameName: string
-            // componentHash: string
+                if (plugins.Length > 0) {
+                    foreach (var module in plugins) {
+                        RegisterNativeObject(module, frameName);
+                    }
 
-            var loadArgs = new [] {
-                JavascriptSerializer.Serialize(component.Name),
-                JavascriptSerializer.Serialize(component.GetModuleInstanceName(frameName)),
-                JavascriptSerializer.Serialize(component.GetNativeObjectFullName(frameName)),
-                JavascriptSerializer.Serialize(mainSource),
-                JavascriptSerializer.Serialize(originalSourceFolder),
-                JavascriptSerializer.Serialize(dependencySources),
-                JavascriptSerializer.Serialize(cssSources),
-                JavascriptSerializer.Serialize(ReactView.PreloadedCacheEntriesSize),
-                JavascriptSerializer.Serialize(DefaultStyleSheet != null),
-                JavascriptSerializer.Serialize(GetPlugins(frameName).Length > 0),
-                componentSerialization,
-                JavascriptSerializer.Serialize(frameName),
-                JavascriptSerializer.Serialize(componentHash),
-            };
+                    Loader.LoadPlugins(plugins, frameName);
+                }
+            }
+
+            if (frameName == WebView.MainFrameName) {
+                status = LoadStatus.ComponentLoading;
+            }
 
             RegisterNativeObject(component, frameName);
 
-            ExecuteLoaderFunction("loadComponent", loadArgs);
-
-            if (frameName == WebView.MainFrameName) {
-                IsMainComponentLoaded = true;
-            }
+            Loader.LoadComponent(component, frameName, DefaultStyleSheet != null, plugins.Length > 0);
         }
 
-        private void InternalLoadDefaultStyleSheet() {
-            if (DefaultStyleSheet != null) {
-                ExecuteLoaderFunction("loadDefaultStyleSheet", JavascriptSerializer.Serialize(NormalizeUrl(ToFullUrl(DefaultStyleSheet.ToString()))));
-            }
-        }
-
-        private void InternalLoadPlugins(string frameName) {
-            var plugins = GetPlugins(frameName);
-            if (plugins.Length == 0) {
-                return;
-            }
-
-            var loadArgs = new[] {
-                JavascriptSerializer.Serialize(plugins.Select(m => new object[] {
-                    m.Name, // plugin name
-                    m.GetModuleInstanceName(frameName), // module instance name
-                    ToFullUrl(NormalizeUrl(m.MainJsSource)), // plugin source
-                    m.GetNativeObjectFullName(frameName),
-                    m.DependencyJsSources.Select(s => ToFullUrl(NormalizeUrl(s))) // plugin dependencies
-                })),
-                JavascriptSerializer.Serialize(frameName)
-            };
-
-            foreach (var module in plugins) {
-                RegisterNativeObject(module, frameName);
-            }
-
-            ExecuteLoaderFunction("loadPlugins", loadArgs);
-        }
-
-        public bool IsMainComponentLoaded { get; private set; }
-
+        /// <summary>
+        /// Page was loaded, load the component.
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="frameName"></param>
         private void OnWebViewNavigated(string url, string frameName) {
             if (!url.StartsWith(ResourceUrl.EmbeddedScheme + Uri.SchemeDelimiter)) {
                 // not a component, maybe its an iframe with an external url, bail out
                 return;
             }
 
-            LoadComponent(frameName);
-        }
-
-        private void OnViewInitialized(params object[] args) {
-            var frameName = (string) args.FirstOrDefault();
-            LoadComponent(frameName);
-        }
-
-        private void LoadComponent(string frameName) {
             if (frameName == WebView.MainFrameName) {
                 status = LoadStatus.PageLoaded;
-
-                InternalLoadDefaultStyleSheet();
             }
-            
-            InternalLoadPlugins(frameName);
 
-            if (FrameToComponentMap.TryGetValue(frameName, out var component)) { 
-                InternalLoadComponent(component, frameName);
+            if (FrameToComponentMap.TryGetValue(frameName, out var component)) {
+                Load(component, frameName, loadComponentOnly: false);
             }
         }
 
+        /// <summary>
+        /// An inner view was loaded, load its component.
+        /// </summary>
+        /// <param name="args"></param>
+        private void OnViewInitialized(params object[] args) {
+            var frameName = (string)args.FirstOrDefault();
+            if (FrameToComponentMap.TryGetValue(frameName, out var component)) {
+                Load(component, frameName, loadComponentOnly: false);
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the url of the default stylesheet.
+        /// </summary>
         public ResourceUrl DefaultStyleSheet {
             get { return defaultStyleSheet; }
             private set {
@@ -289,10 +273,19 @@ namespace ReactViewControl {
             }
         }
 
+        /// <summary>
+        /// Removes all the plugins registered for the specified frame.
+        /// </summary>
+        /// <param name="frameName"></param>
         public void ClearPlugins(string frameName) {
             FrameToPluginsMap.Remove(frameName);
         }
 
+        /// <summary>
+        /// Binds a module with the spcified frame. When a module is bound to a frame, it will execute its methods on the frame instance.
+        /// </summary>
+        /// <param name="module"></param>
+        /// <param name="frameName"></param>
         internal void BindModule(IViewModule module, string frameName) {
             ExecutionEngine engine;
             lock (FrameToExecutionEngineMap) {
@@ -304,6 +297,13 @@ namespace ReactViewControl {
             module.Bind(engine);
         }
 
+        /// <summary>
+        /// Retrieves the specified plugin module instance for the spcifies frame.
+        /// </summary>
+        /// <typeparam name="T">Type of the plugin to retrieve.</typeparam>
+        /// <param name="frameName"></param>
+        /// <exception cref="InvalidOperationException">If the plugin hasn't been registered on the specified frame.</exception>
+        /// <returns></returns>
         public T WithPlugin<T>(string frameName = WebView.MainFrameName) {
             var plugin = GetPlugins(frameName).OfType<T>().FirstOrDefault();
             if (plugin == null) {
@@ -312,53 +312,51 @@ namespace ReactViewControl {
             return plugin;
         }
 
-        public bool IsReady => status == LoadStatus.Ready;
-
+        /// <summary>
+        /// Opens the developer tools.
+        /// </summary>
         public void ShowDeveloperTools() {
             WebView.ShowDeveloperTools();
         }
 
+        /// <summary>
+        /// Closes the developer tools.
+        /// </summary>
         public void CloseDeveloperTools() {
             WebView.CloseDeveloperTools();
         }
 
+        /// <summary>
+        /// Enables or disables debug mode. 
+        /// In debug mode the webview developer tools becomes available pressing F12 and the webview shows an error message at the top with the error details 
+        /// when a resource fails to load.
+        /// </summary>
         public bool EnableDebugMode {
             get { return enableDebugMode; }
             set {
                 enableDebugMode = value;
                 WebView.AllowDeveloperTools = enableDebugMode;
                 if (enableDebugMode) {
-                    WebView.ResourceLoadFailed += ShowResourceLoadFailedMessage;
+                    WebView.ResourceLoadFailed += Loader.ShowResourceLoadFailedMessage;
                 } else {
-                    WebView.ResourceLoadFailed -= ShowResourceLoadFailedMessage;
+                    WebView.ResourceLoadFailed -= Loader.ShowResourceLoadFailedMessage;
                 }
             }
         }
 
+        /// <summary>
+        /// Gets or sets the webview zoom percentage (1 = 100%)
+        /// </summary>
         public double ZoomPercentage {
             get { return WebView.ZoomPercentage; }
             set { WebView.ZoomPercentage = value; }
         }
 
-        private void ShowResourceLoadFailedMessage(string url) {
-            ShowErrorMessage("Failed to load resource '" + url + "'. Press F12 to open developer tools and see more details.");
-        }
-
-        private void ShowErrorMessage(string msg) {
-            msg = msg.Replace("\"", "\\\"");
-            ExecuteLoaderFunction("showErrorMessage", JavascriptSerializer.Serialize(msg));
-        }
-        
-        private string ToFullUrl(string url) {
-            if (url.Contains(Uri.SchemeDelimiter)) {
-                return url;
-            } else if (url.StartsWith(ResourceUrl.PathSeparator)) {
-                return new ResourceUrl(ResourceUrl.EmbeddedScheme, url).ToString();
-            } else {
-                return new ResourceUrl(UserCallingAssembly, url).ToString();
-            }
-        }
-
+        /// <summary>
+        /// Starts watching for sources changes, reloading the webview when a change occurs.
+        /// </summary>
+        /// <param name="mainModuleFullPath"></param>
+        /// <param name="mainModuleResourcePath"></param>
         public void EnableHotReload(string mainModuleFullPath, string mainModuleResourcePath) {
             if (string.IsNullOrEmpty(mainModuleFullPath)) {
                 throw new InvalidOperationException("Hot reload does not work in release mode");
@@ -419,16 +417,10 @@ namespace ReactViewControl {
             };
         }
 
-        private void ExecuteLoaderFunction(string functionName, params string[] args) {
-            // using setimeout we make sure the function is already defined
-            var loaderUrl = new ResourceUrl(ResourcesAssembly, ReactViewResources.Resources.LoaderUrl);
-            WebView.ExecuteScript($"import('{loaderUrl}').then(m => m.{functionName}({string.Join(",", args)}))");
-        }
-        
-        private static string NormalizeUrl(string url) {
-            return url.Replace("\\", ResourceUrl.PathSeparator);
-        }
-
+        /// <summary>
+        /// Handles the webview load of resources
+        /// </summary>
+        /// <param name="resourceHandler"></param>
         private void OnWebViewBeforeResourceLoad(WebView.ResourceHandler resourceHandler) {
             var url = resourceHandler.Url;
             var scheme = url.Substring(0, Math.Max(0, url.IndexOf(Uri.SchemeDelimiter)));
@@ -465,25 +457,47 @@ namespace ReactViewControl {
             }
         }
 
-        internal IInputElement FocusableElement {
-            get { return WebView.FocusableElement; }
-        }
-
-        internal bool IsDisposing => WebView.IsDisposing;
-
-        private static string ComputeHash(string inputString) {
-            using (var sha256 = SHA256.Create()) {
-                return Convert.ToBase64String(sha256.ComputeHash(Encoding.UTF8.GetBytes(inputString)));
-            }
-        }
-
+        /// <summary>
+        /// Registers a .net object to be available on the js context.
+        /// </summary>
+        /// <param name="module"></param>
+        /// <param name="frameName"></param>
         private void RegisterNativeObject(IViewModule module, string frameName) {
             WebView.RegisterJavascriptObject(module.GetNativeObjectFullName(frameName), module.CreateNativeObject(), executeCallsInUI: false);
         }
 
+        /// <summary>
+        /// Get the plugins modules for the specified frame.
+        /// </summary>
+        /// <param name="frameName"></param>
+        /// <returns></returns>
         private IViewModule[] GetPlugins(string frameName) {
             FrameToPluginsMap.TryGetValue(frameName, out var plugins);
             return plugins ?? new IViewModule[0];
+        }
+
+        /// <summary>
+        /// Converts an url to a full path url
+        /// </summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        private string ToFullUrl(string url) {
+            if (url.Contains(Uri.SchemeDelimiter)) {
+                return url;
+            } else if (url.StartsWith(ResourceUrl.PathSeparator)) {
+                return new ResourceUrl(ResourceUrl.EmbeddedScheme, url).ToString();
+            } else {
+                return new ResourceUrl(UserCallingAssembly, url).ToString();
+            }
+        }
+
+        /// <summary>
+        /// Normalizes the url path separators
+        /// </summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        private static string NormalizeUrl(string url) {
+            return url.Replace("\\", ResourceUrl.PathSeparator);
         }
     }
 }

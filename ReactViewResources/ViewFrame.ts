@@ -5,18 +5,21 @@ class ViewFrame extends HTMLElement {
     private headElement: HTMLElement;
     private rootElement: HTMLElement;
 
-    constructor() {
-        super();
-        let root = this.attachShadow({ mode: "closed" });
+    public connectedCallback() {
+        if (this.id === "") {
+            throw new Error("View Frame Id must be specified (not empty)");
+        }
 
+        const root = this.attachShadow({ mode: "closed" });
+        
         // get sticky stylesheets
-        let mainView = Common.getViewElement("");
-        let stylesheets = Common.getStylesheets(mainView.stylesheetsContainer).filter(s => s.dataset.sticky === "true");
+        const mainView = Common.getViewElement("");
+        const stylesheets = Common.getStylesheets(mainView.stylesheetsContainer).filter(s => s.dataset.sticky === "true");
 
         this.headElement = document.createElement("head");
 
         // reset inherited css properties
-        let style = document.createElement("style");
+        const style = document.createElement("style");
         style.textContent = ":host { all: initial; display: block; }";
         this.headElement.appendChild(style);
 
@@ -28,13 +31,11 @@ class ViewFrame extends HTMLElement {
         this.rootElement = document.createElement("div");
         this.rootElement.id = Common.webViewRootId;
 
-        let body = document.createElement("body");
+        const body = document.createElement("body");
         body.appendChild(this.rootElement);
 
         root.appendChild(body);
-    }
 
-    public connectedCallback() {
         Common.addViewElement(this.id, this.rootElement, this.headElement);
     }
 

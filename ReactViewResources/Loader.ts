@@ -8,8 +8,6 @@ declare const CefSharp: {
     BindObjectAsync(objName1: string, objName2: string): Promise<void>
 };
 
-let rootContext: React.Context<string>;
-
 const reactLib: string = "React";
 const reactDOMLib: string = "ReactDOM";
 const bundlesName: string = "Bundle";
@@ -31,13 +29,15 @@ const bootstrapTask = new Task();
 const stylesheetsLoadTask = new Task();
 const pluginsLoadTasks: Dictionary<Task<any>> = {};
 
+let rootContext: React.Context<string>;
+
 export async function showErrorMessage(msg: string): Promise<void> {
     const containerId = "webview_error";
     let msgContainer = document.getElementById(containerId) as HTMLDivElement;
     if (!msgContainer) {
         msgContainer = document.createElement("div");
         msgContainer.id = containerId;
-        let style = msgContainer.style;
+        const style = msgContainer.style;
         style.backgroundColor = "#f45642";
         style.color = "white";
         style.fontFamily = "Arial";
@@ -61,10 +61,10 @@ export async function showErrorMessage(msg: string): Promise<void> {
 function loadScript(scriptSrc: string): Promise<void> {
     return new Promise((resolve) => {
         // load react view resources
-        let script = document.createElement("script");
+        const script = document.createElement("script");
         script.src = scriptSrc;
         script.addEventListener("load", () => resolve());
-        let head = document.head;
+        const head = document.head;
         if (!head) {
             throw new Error("Document not ready");
         }
@@ -74,7 +74,7 @@ function loadScript(scriptSrc: string): Promise<void> {
 
 function loadStyleSheet(stylesheet: string, containerElement: HTMLElement, markAsSticky: boolean): Promise<void> {
     return new Promise((resolve) => {
-        let link = document.createElement("link");
+        const link = document.createElement("link");
         link.type = "text/css";
         link.rel = "stylesheet";
         link.href = stylesheet;
@@ -107,7 +107,7 @@ export function loadDefaultStyleSheet(stylesheet: string): void {
     innerLoad();
 }
 
-export function loadPlugins(plugins: any[][], frameName: string): void {
+export function loadPlugins(plugins: any[][], frameName: string, forMainFrame: boolean): void {
     async function innerLoad() {
         try {
             await bootstrapTask.promise;
@@ -117,19 +117,18 @@ export function loadPlugins(plugins: any[][], frameName: string): void {
 
             if (plugins && plugins.length > 0) {
                 // load plugin modules
-                let pluginsPromises: Promise<void>[] = plugins.map(async m => {
+                const pluginsPromises = plugins.map(async m => {
                     const moduleName: string = m[0];
                     const moduleInstanceName: string = m[1];
                     const mainJsSource: string = m[2];
                     const nativeObjectFullName: string = m[3]; // fullname with frame name included
                     const dependencySources: string[] = m[4];
 
-                    if (frameName === "") {
+                    if (forMainFrame) {
                         // only load plugins sources once (in the main frame)
 
                         // load plugin dependency js sources
-                        let dependencySourcesPromises: Promise<void>[] = [];
-                        dependencySources.forEach(s => dependencySourcesPromises.push(loadScript(s)));
+                        const dependencySourcesPromises = dependencySources.map(s => loadScript(s));
                         await Promise.all(dependencySourcesPromises);
 
                         // plugin main js source
@@ -179,7 +178,7 @@ export function loadComponent(
 
     async function innerLoad() {
         try {
-            if (frameName === "") {
+            if (originalSourceFolder) {
                 // loading main view
                 // force images and other resources load from the appropriate path
                 (document.getElementById("webview_base") as HTMLBaseElement).href = originalSourceFolder;
@@ -201,17 +200,17 @@ export function loadComponent(
                 await waitForNextPaint();
             }
 
-            let promisesToWaitFor = [bootstrapTask.promise];
+            const promisesToWaitFor = [bootstrapTask.promise];
             if (hasPlugins) {
                 promisesToWaitFor.push(pluginsLoadTasks[frameName].promise);
             }
             await Promise.all(promisesToWaitFor);
 
             // load component dependencies js sources and css sources
-            let loadDependencyPromises: Promise<void>[] = [];
-            dependencySources.forEach(s => loadDependencyPromises.push(loadScript(s)));
-            cssSources.forEach(s => loadDependencyPromises.push(loadStyleSheet(s, rootElementData.stylesheetsContainer, false)));
-            await Promise.all(loadDependencyPromises);
+            const dependencyLoadPromises =
+                dependencySources.map(s => loadScript(s)).concat(
+                    cssSources.map(s => loadStyleSheet(s, rootElementData.stylesheetsContainer, false)));
+            await Promise.all(dependencyLoadPromises);
 
             // main component script should be the last to be loaded, otherwise errors might occur
             await loadScript(componentSource);
@@ -250,12 +249,12 @@ export function loadComponent(
 
                 localStorage.setItem(componentCacheKey, stylesheets + elementHtml); // insert html into the cache
 
-                let componentCachedInfo = localStorage.getItem(componentSource);
-                let cachedEntries: string[] = componentCachedInfo ? JSON.parse(componentCachedInfo) : [];
+                const componentCachedInfo = localStorage.getItem(componentSource);
+                const cachedEntries: string[] = componentCachedInfo ? JSON.parse(componentCachedInfo) : [];
 
                 // remove cached entries that are older tomantina cache size within limits
                 while (cachedEntries.length >= maxPreRenderedCacheEntries) {
-                    let olderCacheEntryKey = cachedEntries.shift() as string;
+                    const olderCacheEntryKey = cachedEntries.shift() as string;
                     localStorage.removeItem(getComponentCacheKey(olderCacheEntryKey));
                 }
 
@@ -298,20 +297,19 @@ async function bootstrap() {
 }
 
 function createPropertiesProxy(basePropertiesObj: {}, nativeObjName: string): {} {
-    let proxy = Object.assign({}, basePropertiesObj);
+    const proxy = Object.assign({}, basePropertiesObj);
     Object.keys(proxy).forEach(key => {
-        let value = basePropertiesObj[key];
+        const value = basePropertiesObj[key];
         if (value !== undefined) {
             proxy[key] = value;
         } else {
             proxy[key] = async function () {
                 let nativeObject = window[nativeObjName];
                 if (!nativeObject) {
-                    await new Promise(async (resolve) => {
+                    nativeObject = await new Promise(async (resolve) => {
                         await waitForNextPaint();
                         await CefSharp.BindObjectAsync(nativeObjName, nativeObjName);
-                        nativeObject = window[nativeObjName];
-                        resolve();
+                        resolve(window[nativeObjName]);
                     });
                 }
                 return nativeObject[key].apply(window, arguments);
