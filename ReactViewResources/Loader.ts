@@ -1,35 +1,18 @@
 ﻿import * as Common from "./LoaderCommon";
+import { Task } from "./LoaderCommon";
+import * as PluginsProvider from "./PluginsProvider";
+import { PluginsContext } from "./PluginsProvider";
 import "./ViewFrame";
 
 declare const CefSharp: {
     BindObjectAsync(objName1: string, objName2: string): Promise<void>
 };
 
-type Dictionary<T> = { [key: string]: T };
-
 let rootContext: React.Context<string>;
 
 const ReactLib: string = "React";
 const ReactDOMLib: string = "ReactDOM";
 const Bundles: string = "Bundle";
-
-class Task<ResultType> {
-
-    private taskPromise: Promise<ResultType>;
-    private resolve: (result: ResultType) => void;
-
-    constructor() {
-        this.taskPromise = new Promise<ResultType>((resolve) => this.resolve = resolve);
-    }
-
-    public setResult(result?: ResultType) {
-        this.resolve(result as ResultType);
-    }
-
-    public get promise() {
-        return this.taskPromise;
-    }
-}
 
 const [LibsPath, EnableDebugMode, ModulesObjectName, EventListenerObjectName, ViewInitializedEventName, ComponentLoadedEventName] = Array.from(new URLSearchParams(location.search).keys());
 
@@ -38,9 +21,9 @@ const ExternalLibsPath = LibsPath + "node_modules/";
 const Modules: Dictionary<{}> = {};
 window[ModulesObjectName] = Modules;
 
-const StylesheetsLoadTask = new Task();
-const PluginsLoadTask = new Task();
 const BootstrapTask = new Task();
+const StylesheetsLoadTask = new Task();
+const PluginsLoadTasks: Dictionary<Task<any>> = {};
 
 export async function showErrorMessage(msg: string): Promise<void> {
     const ContainerId = "webview_error";
@@ -118,46 +101,49 @@ export function loadDefaultStyleSheet(stylesheet: string): void {
     innerLoad();
 }
 
-export function loadPlugins(plugins: any[][]): void {
+export function loadPlugins(plugins: any[][], frameName: string): void {
     async function innerLoad() {
         try {
             await BootstrapTask.promise;
 
+            const LoadTask = new Task();
+            PluginsLoadTasks[frameName] = LoadTask;
+
             if (plugins && plugins.length > 0) {
                 // load plugin modules
-                let pluginsPromises: Promise<void>[] = [];
-                plugins.forEach(m => {
+                let pluginsPromises: Promise<void>[] = plugins.map(async m => {
                     const ModuleName: string = m[0];
-                    const NativeObjectFullName: string = m[1]; // fullname with frame name included
-                    const NativeObjectName: string = m[2]; // name without frame name
-                    const MainJsSource: string = m[3];
+                    const ModuleInstanceName: string = m[1];
+                    const MainJsSource: string = m[2];
+                    const NativeObjectFullName: string = m[3]; // fullname with frame name included
                     const DependencySources: string[] = m[4];
 
-                    // plugin dependency js sources
-                    let dependencySourcesPromises: Promise<void>[] = [];
-                    DependencySources.forEach(s => {
-                        dependencySourcesPromises.push(loadScript(s));
-                    });
-                    
-                    pluginsPromises.push(new Promise<void>((resolve, reject) => {
-                        CefSharp.BindObjectAsync(NativeObjectFullName, NativeObjectFullName).then(async () => {
-                            if (ModuleName) {
-                                await Promise.all(dependencySourcesPromises);
+                    if (frameName === "") {
+                        // only load plugins sources once (in the main frame)
 
-                                // plugin main js source
-                                await loadScript(MainJsSource);
+                        // load plugin dependency js sources
+                        let dependencySourcesPromises: Promise<void>[] = [];
+                        DependencySources.forEach(s => dependencySourcesPromises.push(loadScript(s)));
+                        await Promise.all(dependencySourcesPromises);
 
-                                resolve();
-                            } else {
-                                reject(`Failed to load '${ModuleName}' (might not be a module)`);
-                            }
-                        });
-                    }));
+                        // plugin main js source
+                        await loadScript(MainJsSource);    
+                    }
+
+                    const Module = window[Bundles][ModuleName];
+                    if (!Module || !Module.default) {
+                        throw new Error(`Failed to load '${ModuleName}' (might not be a module with a default export)`);
+                    }
+
+                    await CefSharp.BindObjectAsync(NativeObjectFullName, NativeObjectFullName);
+
+                    PluginsProvider.registerPlugin(frameName, Module.default, ModuleInstanceName, window[NativeObjectFullName]);
                 });
+
                 await Promise.all(pluginsPromises);
             }
 
-            PluginsLoadTask.setResult();
+            LoadTask.setResult();
         } catch (error) {
             handleError(error);
         }
@@ -211,7 +197,7 @@ export function loadComponent(
 
             let promisesToWaitFor = [BootstrapTask.promise];
             if (hasPlugins) {
-                promisesToWaitFor.push(PluginsLoadTask.promise);
+                promisesToWaitFor.push(PluginsLoadTasks[frameName].promise);
             }
             await Promise.all(promisesToWaitFor);
 
@@ -234,11 +220,11 @@ export function loadComponent(
             // render component
             await new Promise((resolve) => {
                 if (!rootContext) {
-                    rootContext = React.createContext("");
+                    rootContext = React.createContext(null);
                 }
                 Component.contextType = rootContext;
                 const RootRef = React.createRef();
-                const Root = React.createElement(rootContext.Provider, { value: frameName }, React.createElement(Component, { ref: RootRef, ...Properties }));
+                const Root = React.createElement(rootContext.Provider, { value: new PluginsContext(frameName, Modules) }, React.createElement(Component, { ref: RootRef, ...Properties }));
                 ReactDOM.hydrate(Root, RootElement, () => {
                     Modules[componentInstanceName] = RootRef.current;
                     resolve();
@@ -289,6 +275,10 @@ async function bootstrap() {
     // add main view
     Common.addViewElement("", document.getElementById(Common.WebViewRootId) as HTMLElement, document.head);
     Common.addViewAddedEventListener((viewName) => fireNativeNotification(ViewInitializedEventName, viewName));
+    Common.addViewRemovedEventListener((viewName) => {
+        delete PluginsLoadTasks[viewName];
+        PluginsProvider.unRegisterPlugins(viewName);
+    });
 
     await loadFramework();
 

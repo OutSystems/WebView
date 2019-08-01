@@ -216,12 +216,13 @@ namespace ReactViewControl {
 
             var loadArgs = new[] {
                 JavascriptSerializer.Serialize(plugins.Select(m => new object[] {
-                    m.Name,
+                    m.Name, // plugin name
+                    m.GetModuleInstanceName(frameName), // module instance name
+                    ToFullUrl(NormalizeUrl(m.MainJsSource)), // plugin source
                     m.GetNativeObjectFullName(frameName),
-                    m.NativeObjectName,
-                    ToFullUrl(NormalizeUrl(m.MainJsSource)),
-                    m.DependencyJsSources.Select(s => ToFullUrl(NormalizeUrl(s)))
-                }))
+                    m.DependencyJsSources.Select(s => ToFullUrl(NormalizeUrl(s))) // plugin dependencies
+                })),
+                JavascriptSerializer.Serialize(frameName)
             };
 
             foreach (var module in plugins) {
@@ -244,17 +245,16 @@ namespace ReactViewControl {
 
         private void OnViewInitialized(params object[] args) {
             var frameName = (string) args.FirstOrDefault();
-            if (FrameToComponentMap.TryGetValue(frameName, out var component)) {
-                InternalLoadComponent(component, frameName);
-            }
+            LoadComponent(frameName);
         }
 
         private void LoadComponent(string frameName) {
             if (frameName == WebView.MainFrameName) {
                 status = LoadStatus.PageLoaded;
+
+                InternalLoadDefaultStyleSheet();
             }
             
-            InternalLoadDefaultStyleSheet();
             InternalLoadPlugins(frameName);
 
             if (FrameToComponentMap.TryGetValue(frameName, out var component)) { 
@@ -285,7 +285,7 @@ namespace ReactViewControl {
             FrameToPluginsMap[frameName] = GetPlugins(frameName).Concat(plugins).ToArray();
 
             foreach (var plugin in plugins) {
-                BindModule(plugin, WebView.MainFrameName);
+                BindModule(plugin, frameName);
             }
         }
 

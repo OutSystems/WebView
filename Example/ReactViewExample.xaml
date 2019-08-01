@@ -11,6 +11,7 @@
             <MenuItem Header="Actions">
                 <MenuItem Header="Call Main View" Click="OnCallMainViewMenuItemClick"></MenuItem>
                 <MenuItem Header="Call Inner View" Click="OnCallInnerViewMenuItemClick"></MenuItem>
+                <MenuItem Header="Call Inner View Plugin" Click="OnCallInnerViewPluginMenuItemClick"></MenuItem>
                 <MenuItem Header="Show dev tools" Click="OnShowDevTools"></MenuItem>
             </MenuItem>
         </Menu>

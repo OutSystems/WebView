@@ -118,6 +118,7 @@ let standardConfig: Webpack.Configuration = {
         "react": "React",
         "react-dom": "ReactDOM",
         "prop-types": "PropTypes",
+        "PluginsProvider": "PluginsProvider",
         "ViewFrame": "ViewFrame"
     },
 

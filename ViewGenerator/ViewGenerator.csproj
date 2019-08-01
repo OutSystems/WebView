@@ -51,6 +51,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="contentFiles\node_modules\%40types\PluginsProvider.d.ts" />
     <TypeScriptCompile Include="contentFiles\node_modules\%40types\ViewFrame.d.ts" />
     <TypeScriptCompile Include="tools\webpack\webpack_framework.config.ts" />
     <None Include="build\ViewGenerator.props" />

@@ -2,10 +2,22 @@
     notifyViewLoaded(viewName: string): void;
 }
 
+export interface IViewPluginPropertiesBehaviors {
+    test(): void;
+}
+
 console.log("Plugin loaded");
 
-declare const ViewPlugin: IViewPluginProperties;
+export default class ViewPlugin implements IViewPluginPropertiesBehaviors {
 
-export function notifyViewLoaded(viewName: string) {
-    ViewPlugin.notifyViewLoaded(viewName);
+    constructor(private nativeObject: IViewPluginProperties) {
+    }
+
+    public notifyViewLoaded(viewName: string) {
+        this.nativeObject.notifyViewLoaded(viewName);
+    }
+
+    public test(): void {
+        alert("test called");
+    }
 }

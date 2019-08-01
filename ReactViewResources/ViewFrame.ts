@@ -17,7 +17,7 @@ class ViewFrame extends HTMLElement {
 
         // reset inherited css properties
         let style = document.createElement("style");
-        style.textContent = ":host { all: initial; display: block; background: white; }";
+        style.textContent = ":host { all: initial; display: block; }";
         this.headElement.appendChild(style);
 
         // import sticky stylesheets into this view

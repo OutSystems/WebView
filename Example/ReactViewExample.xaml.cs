@@ -7,6 +7,8 @@ namespace Example {
     /// </summary>
     public partial class ReactViewExample : Window {
 
+        private const string InnerViewName = "test";
+
         private SubExampleViewModule subView;
 
         public ReactViewExample() {
@@ -15,11 +17,11 @@ namespace Example {
             subView = new SubExampleViewModule();
             subView.ConstantMessage = "This is a sub view";
             subView.GetTime += OnSubViewGetTime;
-            exampleView.AttachInnerView(subView, "test");
+            exampleView.AttachInnerView(subView, InnerViewName);
             subView.CallMe();
 
-            exampleView.WithPlugin<ViewPlugin>("").NotifyViewLoaded += OnNotifyViewLoaded;
-            exampleView.WithPlugin<ViewPlugin>("test").NotifyViewLoaded += OnSubViewNotifyViewLoaded;
+            exampleView.WithPlugin<ViewPlugin>().NotifyViewLoaded += OnNotifyViewLoaded;
+            exampleView.WithPlugin<ViewPlugin>(InnerViewName).NotifyViewLoaded += OnSubViewNotifyViewLoaded;
         }
 
         private void OnExampleViewClick(SomeType arg) {
@@ -32,6 +34,10 @@ namespace Example {
 
         private void OnCallInnerViewMenuItemClick(object sender, RoutedEventArgs e) {
             subView.CallMe();
+        }
+
+        private void OnCallInnerViewPluginMenuItemClick(object sender, RoutedEventArgs e) {
+            exampleView.WithPlugin<ViewPlugin>(InnerViewName).Test();
         }
 
         private void OnShowDevTools(object sender, RoutedEventArgs e) {

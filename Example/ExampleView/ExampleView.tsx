@@ -1,5 +1,6 @@
 ﻿import * as React from "react";
-import * as ViewPlugin from "./ViewPlugin";
+import ViewPlugin from "./ViewPlugin";
+import { IPluginsContext } from "PluginsProvider";
 import "./ExampleView.scss";
 
 export interface ISomeType {
@@ -22,16 +23,20 @@ export interface IExampleViewBehaviors {
     callMe(): void;
 }
 
-export default class ExampleView extends React.Component<IExampleViewProperties, { time: string }> implements IExampleViewBehaviors {
+export default class ExampleView extends React.Component<IExampleViewProperties, { time: string, showSubView: boolean }> implements IExampleViewBehaviors {
 
-    constructor(props: IExampleViewProperties) {
-        super(props);
+    private viewplugin: ViewPlugin;
+
+    constructor(props: IExampleViewProperties, context: IPluginsContext) {
+        super(props, context);
         this.initialize();
+        this.viewplugin = context.getPluginInstance<ViewPlugin>(ViewPlugin);
     }
 
     private async initialize() {
         this.state = {
-            time: "-"
+            time: "-",
+            showSubView: true
         };
         let time = await this.props.getTime();
         this.setState({ time: time });
@@ -42,7 +47,7 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
     }
 
     componentDidMount(): void {
-        ViewPlugin.notifyViewLoaded("ExampleView");
+        this.viewplugin.notifyViewLoaded("ExampleView");
     }
 
     render() {
@@ -54,9 +59,12 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
                 <br />
                 {this.props.image === ImageKind.Beach ? <img className="image" src="beach.jpg" /> : null}
                 <br />
-                <button onClick={() => this.props.click(null)}>Click me!</button>
+                <div className="buttons-bar">
+                    <button onClick={() => this.props.click(null)}>Click me!</button>&nbsp;
+                    <button onClick={() => this.setState({ showSubView: !this.state.showSubView })}>{this.state.showSubView ? "Unmount" : "Mount"} subview</button>
+                </div>
                 <br />
-                {React.createElement("view-frame", { id: "test" })}
+                {this.state.showSubView ? React.createElement("view-frame", { id: "test" }) : null}
             </div>
         );
     }

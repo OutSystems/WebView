@@ -65,6 +65,7 @@
     <EmbeddedResource Include="index.html" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="Dictionary.d.ts" />
     <TypeScriptCompile Include="Loader.ts" />
   </ItemGroup>
   <ItemGroup>
@@ -74,11 +75,15 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="LoaderCommon.ts" />
+    <TypeScriptCompile Include="PluginsProvider.ts" />
     <TypeScriptCompile Include="ViewFrame.ts" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="LoaderCommon.js">
       <DependentUpon>LoaderCommon.ts</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PluginsProvider.js">
+      <DependentUpon>PluginsProvider.ts</DependentUpon>
     </EmbeddedResource>
     <Content Include="tsconfig.json" />
     <EmbeddedResource Include="ViewFrame.js">

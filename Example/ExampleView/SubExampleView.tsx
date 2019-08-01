@@ -1,5 +1,6 @@
 ﻿import * as React from "react";
-import * as ViewPlugin from "./ViewPlugin";
+import ViewPlugin from "./ViewPlugin";
+import { IPluginsContext } from "PluginsProvider";
 import "./SubExampleView.scss";
 
 export interface ISubExampleViewProperties {
@@ -14,9 +15,12 @@ export interface ISubExampleViewBehaviors {
 
 export default class SubExampleView extends React.Component<ISubExampleViewProperties, { time: string, dotNetCallCount: number }> implements ISubExampleViewBehaviors {
 
-    constructor(props: ISubExampleViewProperties) {
-        super(props);
+    private viewplugin: ViewPlugin;
+
+    constructor(props: ISubExampleViewProperties, context: IPluginsContext) {
+        super(props, context);
         this.initialize();
+        this.viewplugin = context.getPluginInstance<ViewPlugin>(ViewPlugin);
     }
 
     private async initialize() {
@@ -37,7 +41,7 @@ export default class SubExampleView extends React.Component<ISubExampleViewPrope
     }
 
     componentDidMount(): void {
-        ViewPlugin.notifyViewLoaded("SubExampleView");
+        this.viewplugin.notifyViewLoaded("SubExampleView");
     }
 
     render() {
