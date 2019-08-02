@@ -10,8 +10,6 @@ namespace ReactViewControl {
 
         string[] CssSources { get; }
 
-        string OriginalSourceFolder { get; }
-
         string NativeObjectName { get; }
 
         string Name { get; }

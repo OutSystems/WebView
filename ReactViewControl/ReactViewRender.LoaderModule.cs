@@ -26,7 +26,6 @@ namespace ReactViewControl {
                 var mainSource = ViewRender.ToFullUrl(NormalizeUrl(component.MainJsSource));
                 var dependencySources = component.DependencyJsSources.Select(s => ViewRender.ToFullUrl(NormalizeUrl(s))).ToArray();
                 var cssSources = component.CssSources.Select(s => ViewRender.ToFullUrl(NormalizeUrl(s))).ToArray();
-                var originalSourceFolder = frameName == WebView.MainFrameName ? ViewRender.ToFullUrl(NormalizeUrl(component.OriginalSourceFolder)) : string.Empty;
 
                 var nativeObjectMethodsMap =
                     component.Events.Select(g => new KeyValuePair<string, object>(g, JavascriptSerializer.Undefined))
@@ -39,12 +38,10 @@ namespace ReactViewControl {
                 // loadComponent arguments:
                 //
                 // componentName: string,
-                // componentInstanceName: string,
                 // componentNativeObjectName: string,
                 // componentSource: string,
                 // dependencySources: string[],
                 // cssSources: string[],
-                // originalSourceFolder: string,
                 // maxPreRenderedCacheEntries: number,
                 // hasStyleSheet: boolean,
                 // hasPlugins: boolean,
@@ -56,7 +53,6 @@ namespace ReactViewControl {
                     JavascriptSerializer.Serialize(component.Name),
                     JavascriptSerializer.Serialize(component.GetNativeObjectFullName(frameName)),
                     JavascriptSerializer.Serialize(mainSource),
-                    JavascriptSerializer.Serialize(originalSourceFolder),
                     JavascriptSerializer.Serialize(dependencySources),
                     JavascriptSerializer.Serialize(cssSources),
                     JavascriptSerializer.Serialize(ReactView.PreloadedCacheEntriesSize),

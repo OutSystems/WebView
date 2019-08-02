@@ -131,21 +131,21 @@ export function loadPlugins(plugins: any[][], frameName: string, forMainFrame: b
 
                         // load plugin dependency js sources
                         const dependencySourcesPromises = dependencySources.map(s => loadScript(s));
-                        await Promise.all(dependencySourcesPromises);
+                                await Promise.all(dependencySourcesPromises);
 
-                        // plugin main js source
+                                // plugin main js source
                         await loadScript(mainJsSource);    
                     }
 
                     const module = window[bundlesName][moduleName];
                     if (!module || !module.default) {
                         throw new Error(`Failed to load '${moduleName}' (might not be a module with a default export)`);
-                    }
+                            }
 
                     const pluginNativeObject = await bindNativeObject(nativeObjectFullName, frameName);
 
                     pluginsInstances[moduleName] = new module.default(pluginNativeObject);
-                });
+                        });
 
                 await Promise.all(pluginsPromises);
             }
@@ -163,7 +163,6 @@ export function loadComponent(
     componentName: string,
     componentNativeObjectName: string,
     componentSource: string,
-    originalSourceFolder: string,
     dependencySources: string[],
     cssSources: string[],
     maxPreRenderedCacheEntries: number,
@@ -179,12 +178,6 @@ export function loadComponent(
 
     async function innerLoad() {
         try {
-            if (originalSourceFolder) {
-                // loading main view
-                // force images and other resources load from the appropriate path
-                (document.getElementById("webview_base") as HTMLBaseElement).href = originalSourceFolder;
-            }
-
             const rootElementData = Common.getViewElement(frameName);
             const rootElement = rootElementData.root;
 
@@ -219,7 +212,7 @@ export function loadComponent(
             const Component = window[bundlesName][componentName].default;
             const React = window[reactLib];
             const ReactDOM = window[reactDOMLib];
-            
+
             // create proxy for properties obj to delay its methods execution until native object is ready
             const properties = createPropertiesProxy(componentNativeObject, componentNativeObjectName, frameName);
 

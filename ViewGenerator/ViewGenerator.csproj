@@ -53,7 +53,7 @@
   <ItemGroup>
     <TypeScriptCompile Include="contentFiles\node_modules\%40types\PluginsProvider.d.ts" />
     <TypeScriptCompile Include="contentFiles\node_modules\%40types\ViewFrame.d.ts" />
-    <TypeScriptCompile Include="tools\webpack\webpack_framework.config.ts" />
+    <TypeScriptCompile Include="tools\webpack\webpack_plugins.config.ts" />
     <None Include="build\ViewGenerator.props" />
     <None Include="contentFiles\ts2lang.json" />
     <None Include="contentFiles\tsconfig.json" />
@@ -75,8 +75,8 @@
     <None Include="readme.txt" />
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="tools\webpack\webpack_custom.config.ts" />
-    <TypeScriptCompile Include="tools\webpack\webpack_global.config.ts" />
+    <TypeScriptCompile Include="tools\webpack\webpack_stylesheets.config.ts" />
+    <TypeScriptCompile Include="tools\webpack\webpack_views.config.ts" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
@@ -90,7 +90,7 @@ npm ci --prefix "$(ProjectDir)contentFiles" "$(ProjectDir)contentFiles"</PreBuil
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
+  </PropertyGroup>
     <Error Condition="!Exists('..\packages\Microsoft.TypeScript.MSBuild.3.6.0\build\Microsoft.TypeScript.MSBuild.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.TypeScript.MSBuild.3.6.0\build\Microsoft.TypeScript.MSBuild.props'))" />
     <Error Condition="!Exists('..\packages\Microsoft.TypeScript.MSBuild.3.6.0\build\Microsoft.TypeScript.MSBuild.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.TypeScript.MSBuild.3.6.0\build\Microsoft.TypeScript.MSBuild.targets'))" />
   </Target>

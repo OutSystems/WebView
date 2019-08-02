@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>ViewGenerator</id>
-    <version>1.0.132</version>
+    <version>1.0.134</version>
     <authors>jmn</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <developmentDependency>true</developmentDependency>
@@ -16,9 +16,9 @@
     <file src="contentFiles\**" exclude="**\LICENSE;**\README.md;**\package.json;**\package-lock.json" target="contentFiles" />
     <file src="build\ViewGenerator.targets" target="build\ViewGenerator.targets" />
     <file src="build\ViewGenerator.props" target="build\ViewGenerator.props" />
-    <file src="tools\webpack\webpack_global.config.js" target="tools\webpack_global.config.js"/>
-    <file src="tools\webpack\webpack_framework.config.js" target="tools\webpack_framework.config.js"/>
-    <file src="tools\webpack\webpack_custom.config.js" target="tools\webpack_custom.config.js"/>
+    <file src="tools\webpack\webpack_views.config.js" target="tools\webpack_views.config.js"/>
+    <file src="tools\webpack\webpack_plugins.config.js" target="tools\webpack_plugins.config.js"/>
+    <file src="tools\webpack\webpack_stylesheets.config.js" target="tools\webpack_stylesheets.config.js"/>
     <file src="tools\node_modules\**" target="tools\node_modules\" />
     <file src="tools\Init.ps1" target="tools\Init.ps1" />
     <file src="readme.txt" target="" />

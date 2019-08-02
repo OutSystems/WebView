@@ -1,11 +1,12 @@
-﻿import Glob from "glob";
+﻿import dtsGenerator, { DtsGeneratorOptions } from 'dts-generator';
+import Glob from "glob";
 import Path from "path";
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
-import Webpack from "webpack";
+import Webpack, { Compiler } from "webpack";
 import ManifestPlugin from "webpack-manifest-plugin";
-import { existsSync } from "fs";
 
-const DtsExtension = ".d.ts";
+const DtsExtension: string = ".d.ts";
+const DtsFileName: string = "@types/Framework.d.ts";
 
 const entryMap: {
     [entry: string]: string
@@ -15,19 +16,51 @@ const outputMap: {
     [entry: string]: string
 } = {};
 
-const aliasMap: {
-    [key: string]: string
-} = {};
+class DtsGeneratorPlugin {
 
-const externalsObjElement: Webpack.ExternalsObjectElement = {};
+    private options: DtsGeneratorOptions;
+
+    constructor(options: DtsGeneratorOptions) {
+        this.options = options;
+    }
+
+    apply(compiler: Compiler) {
+        compiler.hooks.emit.tapAsync("DtsGeneratorPlugin", (_, callback) => {
+            dtsGenerator(this.options);
+            callback();
+        });
+    }
+}
+
+class DtsCleanupPlugin {
+
+    private exclusions: string[];
+    private patterns: RegExp[];
+
+    constructor(exclusions, patterns) {
+        this.exclusions = exclusions;
+        this.patterns = patterns;
+    }
+
+    apply(compiler) {
+        compiler.hooks.emit.tapAsync("DtsCleanupPlugin", (compilation, callback) => {
+            Object.keys(compilation.assets)
+                .filter(asset => this.exclusions.indexOf(asset) < 0 && this.patterns.some(p => p.test(asset)))
+                .forEach(asset => {
+                    delete compilation.assets[asset];
+                });
+            callback();
+        });
+    }
+}
 
 /** 
- *  Build entry and output mappings for webpack config
+ *  Get entries for webpack config
  * */
 function getConfiguration(input: string, output: string): void {
     Glob.sync(input).forEach(f => {
 
-        // Exclude node_modules files
+        // Exclude node_modules and d.ts files
         if (!f.includes("node_modules") && !f.endsWith(DtsExtension)) {
 
             let entryName: string = Path.parse(f).name;
@@ -78,40 +111,11 @@ let getOutputFileName: any = (chunkData) => {
 /** 
  *  Get input and output entries from ts2lang file
  * */
-require(Path.resolve("./ts2lang.json")).tasks.forEach(t =>
-    getConfiguration(t.input, t.output)
-);
+require(Path.resolve("./ts2lang.json")).tasks.forEach(t => {
+    getConfiguration(t.input, t.output);
+});
 
-/** 
- *  Get aliases and externals from a configuration file, if exists
- * */
-let webpackOutputConfigFile = Path.resolve("./webpack-output-config.json");
-if (existsSync(webpackOutputConfigFile)) {
-    let outputConfig = require(webpackOutputConfigFile);
-
-    let allAliases = outputConfig.alias;
-    if (allAliases) {
-        Object.keys(allAliases).forEach(key => aliasMap[key] = Path.resolve(".", allAliases[key]));
-    }
-
-    let allExternals = outputConfig.externals;
-    if (allExternals) {
-        Object.keys(allExternals).forEach(key => {
-
-            let library: string[] = allExternals[key];
-            let entry: string = library[library.length - 1];
-            let record: Record<string, string> = {};
-
-            record["commonjs"] = entry;
-            record["commonjs2"] = entry;
-            record["root"] = allExternals[key];
-
-            externalsObjElement[key] = record;
-        });
-    }
-}
-
-let standardConfig: Webpack.Configuration = {
+var standardConfig: Webpack.Configuration = {
     entry: entryMap,
 
     externals: {
@@ -124,23 +128,11 @@ let standardConfig: Webpack.Configuration = {
     output: {
         path: Path.resolve("."),
         filename: getOutputFileName,
-        chunkFilename: "Generated/chunk_[chunkhash:8].js",
-        library: [ "Bundle" , "[name]" ],
+        library: ["Framework", "[name]"],
         libraryTarget: "umd",
         umdNamedDefine: true,
-        globalObject: "window"
-    },
-
-    optimization: {
-        splitChunks: {
-            chunks: "all",
-            minSize: 1,
-            cacheGroups: {
-                vendors: {
-                    test: /[\\/](node_modules)[\\/]/
-                },
-            }
-        }
+        globalObject: "window",
+        devtoolNamespace: "Framework"
     },
 
     resolveLoader: {
@@ -162,14 +154,42 @@ let standardConfig: Webpack.Configuration = {
                             hmr: false
                         }
                     },
+                    "css-loader",
                     {
-                        loader: "css-loader",
+                        loader: "resolve-url-loader",
                         options: {
-                            url: false
+                            keepQuery: true
                         }
                     },
-                    "sass-loader"
+                    {
+                        loader: "sass-loader",
+                        options: {
+                            sourceMap: true,
+                            sourceMapContents: false
+                        }
+                    }
                 ]
+            },
+            {
+                test: /\.(png|jpg|jpeg|bmp|gif|woff|woff2|ico|svg)$/,
+                use: [
+                    {
+                        loader: 'file-loader',
+                        options: {
+                            emitFile: false,
+                            name: '[path][name].[ext]',
+                            publicPath: (url: string, _, __) => {
+
+                                // relative paths starting with ".." are replaced by "_"
+                                if (url.startsWith("_")) {
+                                    return url.substring(1);
+                                }
+
+                                return `/${Path.basename(Path.resolve("."))}/${url}`;
+                            }
+                        },
+                    },
+                ],
             },
             {
                 test: /\.tsx?$/,
@@ -186,24 +206,23 @@ let standardConfig: Webpack.Configuration = {
         new ManifestPlugin({
             fileName: "manifest.json",
             generate: generateManifest
-        })
+        }),
+        new DtsGeneratorPlugin({
+            name: "",
+            project: Path.resolve("."),
+            out: DtsFileName
+        }),
+        new DtsCleanupPlugin(
+            [DtsFileName],
+            [/\.d.ts$/]
+        )
     ]
 };
-
-// Current webpack typings do not recognize automaticNameMaxLength option.
-// Default is 30 characters, so we need to increase this value.
-(standardConfig.optimization.splitChunks as any).automaticNameMaxLength = 250;
 
 const config = (_, argv) => {
     if (argv.mode === "development") {
         standardConfig.devtool = "inline-source-map";
     }
-
-    if (Object.keys(aliasMap).length > 0) {
-        standardConfig.resolve.alias = aliasMap;
-    }
-
-    Object.keys(externalsObjElement).forEach(key => standardConfig.externals[key] = externalsObjElement[key]);
 
     return standardConfig;
 };

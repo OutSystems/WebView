@@ -47,7 +47,7 @@ const config = (_, argv) => {
         module: {
             rules: [
                 {
-                    test: /\.scss$/,
+                    test: /\.(sa|sc|c)ss$/,
                     use: [
                         {
                             loader: MiniCssExtractPlugin.loader,
@@ -55,14 +55,42 @@ const config = (_, argv) => {
                                 hmr: false
                             }
                         },
+                        "css-loader",
                         {
-                            loader: "css-loader",
+                            loader: "resolve-url-loader",
                             options: {
-                                url: false
+                                keepQuery: true
                             }
                         },
-                        'sass-loader'
+                        {
+                            loader: "sass-loader",
+                            options: {
+                                sourceMap: true,
+                                sourceMapContents: false
+                            }
+                        }
                     ]
+                },
+                {
+                    test: /\.(png|jpg|jpeg|bmp|gif|woff|woff2|ico|svg)$/,
+                    use: [
+                        {
+                            loader: 'file-loader',
+                            options: {
+                                emitFile: false,
+                                name: '[path][name].[ext]',
+                                publicPath: (url: string, _, __) => {
+
+                                    // relative paths starting with ".." are replaced by "_"
+                                    if (url.startsWith("_")) {
+                                        return url.substring(1); 
+                                    }
+
+                                    return `/${Path.basename(Path.resolve("."))}/${url}`;
+                                }
+                            },
+                        },
+                    ],
                 }
             ]
         },
