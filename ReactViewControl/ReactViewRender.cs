@@ -19,10 +19,13 @@ namespace ReactViewControl {
             Ready // component is ready
         }
 
+        private object SyncRoot { get; } = new object();
+
         internal const string ModulesObjectName = "__Modules__";
         
-        private const string ComponentLoadedEventName = "ComponentLoaded";
         private const string ViewInitializedEventName = "ViewInitialized";
+        private const string ViewDestroyedEventName = "ViewDestroyed";
+        private const string ViewLoadedEventName = "ViewLoaded";
 
         private static Assembly ResourcesAssembly { get; } = typeof(ReactViewResources.Resources).Assembly;
 
@@ -33,6 +36,7 @@ namespace ReactViewControl {
         private WebView WebView { get; }
         private Assembly UserCallingAssembly { get; }
         private LoaderModule Loader { get; }
+        private Func<IViewModule[]> PluginsFactory { get; }
 
         private bool enableDebugMode = false;
         private LoadStatus status;
@@ -40,7 +44,7 @@ namespace ReactViewControl {
         private FileSystemWatcher fileSystemWatcher;
         private string cacheInvalidationTimestamp;
 
-        public ReactViewRender(ResourceUrl defaultStyleSheet, IViewModule[] plugins, bool preloadWebView, bool enableDebugMode) {
+        public ReactViewRender(ResourceUrl defaultStyleSheet, Func<IViewModule[]> initializePlugins, bool preloadWebView, bool enableDebugMode) {
             UserCallingAssembly = WebView.GetUserCallingMethod().ReflectedType.Assembly;
 
             WebView = new InternalWebView(this, preloadWebView) {
@@ -51,14 +55,16 @@ namespace ReactViewControl {
             Loader = new LoaderModule(this);
 
             DefaultStyleSheet = defaultStyleSheet;
-            AddPlugins(WebView.MainFrameName, plugins);
+            PluginsFactory = initializePlugins;
+            AddPlugins(WebView.MainFrameName, initializePlugins());
             EnableDebugMode = enableDebugMode;
 
-            var loadedListener = WebView.AttachListener(ComponentLoadedEventName);
+            var loadedListener = WebView.AttachListener(ViewLoadedEventName);
             loadedListener.Handler += OnReady;
             loadedListener.UIHandler += OnReadyUIHandler;
 
             WebView.AttachListener(ViewInitializedEventName).Handler += OnViewInitialized;
+            WebView.AttachListener(ViewDestroyedEventName).Handler += OnViewDestroyed;
 
             WebView.Navigated += OnWebViewNavigated;
             WebView.Disposed += OnWebViewDisposed;
@@ -72,53 +78,51 @@ namespace ReactViewControl {
                 ModulesObjectName,
                 Listener.EventListenerObjName,
                 ViewInitializedEventName,
-                ComponentLoadedEventName
+                ViewDestroyedEventName,
+                ViewLoadedEventName
             };
 
             WebView.LoadResource(new ResourceUrl(ResourcesAssembly, ReactViewResources.Resources.DefaultUrl + "?" + string.Join("&", urlParams)));
         }
 
-        internal IInputElement FocusableElement => WebView.FocusableElement;
+        public IInputElement FocusableElement => WebView.FocusableElement;
 
-        internal bool IsDisposing => WebView.IsDisposing;
+        public bool IsDisposing => WebView.IsDisposing;
 
         /// <summary>
         /// True when the main component has been rendered.
         /// </summary>
         public bool IsReady => status == LoadStatus.Ready;
 
+        /// <summary>
+        /// True when view component is loading or loaded
+        /// </summary>
         public bool IsMainComponentLoaded => status >= LoadStatus.ComponentLoading;
 
-        private void OnReady(params object[] args) {
-            var frameName = (string) args.FirstOrDefault();
-            if (frameName == WebView.MainFrameName) {
-                status = LoadStatus.Ready;
-            }
-            // start javascript execution engine on the component module
-            if (FrameToComponentMap.TryGetValue(frameName, out var component)) {
-                if (component.Engine is ExecutionEngine engine) {
-                    engine.Start();
+        /// <summary>
+        /// Enables or disables debug mode. 
+        /// In debug mode the webview developer tools becomes available pressing F12 and the webview shows an error message at the top with the error details 
+        /// when a resource fails to load.
+        /// </summary>
+        public bool EnableDebugMode {
+            get { return enableDebugMode; }
+            set {
+                enableDebugMode = value;
+                WebView.AllowDeveloperTools = enableDebugMode;
+                if (enableDebugMode) {
+                    WebView.ResourceLoadFailed += Loader.ShowResourceLoadFailedMessage;
+                } else {
+                    WebView.ResourceLoadFailed -= Loader.ShowResourceLoadFailedMessage;
                 }
             }
         }
 
-        private void OnReadyUIHandler(object[] args) {
-            Ready?.Invoke();
-        }
-
-        private void OnWebViewJavascriptContextReleased(string frameName) {
-            lock (FrameToExecutionEngineMap) {
-                FrameToExecutionEngineMap.Remove(frameName);
-            }
-        }
-
-        private void OnWebViewDisposed() {
-            Dispose();
-        }
-
-        public void Dispose() {
-            fileSystemWatcher?.Dispose();
-            WebView.Dispose();
+        /// <summary>
+        /// Gets or sets the webview zoom percentage (1 = 100%)
+        /// </summary>
+        public double ZoomPercentage {
+            get { return WebView.ZoomPercentage; }
+            set { WebView.ZoomPercentage = value; }
         }
 
         /// <summary>
@@ -158,6 +162,41 @@ namespace ReactViewControl {
         /// </summary>
         public event ResourceRequestedEventHandler ExternalResourceRequested;
 
+        private void OnReady(params object[] args) {
+            var frameName = (string)args.FirstOrDefault();
+
+            lock (SyncRoot) {
+                if (frameName == WebView.MainFrameName) {
+                    status = LoadStatus.Ready;
+                }
+                // start javascript execution engine on the component module
+                if (FrameToComponentMap.TryGetValue(frameName, out var component)) {
+                    if (component.Engine is ExecutionEngine engine) {
+                        engine.Start();
+                    }
+                }
+            }
+        }
+
+        private void OnReadyUIHandler(object[] args) {
+            Ready?.Invoke();
+        }
+
+        private void OnWebViewJavascriptContextReleased(string frameName) {
+            lock (SyncRoot) {
+                FrameToExecutionEngineMap.Remove(frameName);
+            }
+        }
+
+        private void OnWebViewDisposed() {
+            Dispose();
+        }
+
+        public void Dispose() {
+            fileSystemWatcher?.Dispose();
+            WebView.Dispose();
+        }
+
         /// <summary>
         /// Load the specified component into the main frame.
         /// </summary>
@@ -170,10 +209,12 @@ namespace ReactViewControl {
         /// Load the specified component into the specified frame.
         /// </summary>
         public void LoadComponent(IViewModule component, string frameName) {
-            FrameToComponentMap[frameName] = component;
-            BindModule(component, frameName);
-            if (frameName == WebView.MainFrameName && status >= LoadStatus.PageLoaded) {
-                Load(component, frameName, loadComponentOnly: true);
+            lock (SyncRoot) {
+                FrameToComponentMap[frameName] = component;
+                BindModule(component, frameName);
+                if (frameName == WebView.MainFrameName && status >= LoadStatus.PageLoaded) {
+                    Load(component, frameName, loadComponentOnly: true);
+                }
             }
         }
 
@@ -225,12 +266,14 @@ namespace ReactViewControl {
                 return;
             }
 
-            if (frameName == WebView.MainFrameName) {
-                status = LoadStatus.PageLoaded;
-            }
+            lock (SyncRoot) {
+                if (frameName == WebView.MainFrameName) {
+                    status = LoadStatus.PageLoaded;
+                }
 
-            FrameToComponentMap.TryGetValue(frameName, out var component);
-            Load(component, frameName, loadComponentOnly: false);
+                FrameToComponentMap.TryGetValue(frameName, out var component);
+                Load(component, frameName, loadComponentOnly: false);
+            }
         }
 
         /// <summary>
@@ -239,8 +282,29 @@ namespace ReactViewControl {
         /// <param name="args"></param>
         private void OnViewInitialized(params object[] args) {
             var frameName = (string)args.FirstOrDefault();
-            FrameToComponentMap.TryGetValue(frameName, out var component);
-            Load(component, frameName, loadComponentOnly: false);
+            lock (SyncRoot) {
+                FrameToComponentMap.TryGetValue(frameName, out var component);
+                Load(component, frameName, loadComponentOnly: false);
+            }
+        }
+
+        /// <summary>
+        /// An inner view was destroyed, cleanup its resources.
+        /// </summary>
+        /// <param name="args"></param>
+        private void OnViewDestroyed(params object[] args) {
+            var frameName = (string)args.FirstOrDefault();
+            lock (SyncRoot) {
+                if (FrameToExecutionEngineMap.TryGetValue(frameName, out var executionEngine)) {
+                    FrameToExecutionEngineMap.Remove(frameName);
+                }
+                if (FrameToComponentMap.TryGetValue(frameName, out var component)) {
+                    FrameToComponentMap.Remove(frameName);
+                }
+                if (FrameToPluginsMap.TryGetValue(frameName, out var plugins)) {
+                    FrameToPluginsMap.Remove(frameName);
+                }
+            }
         }
 
         /// <summary>
@@ -266,19 +330,13 @@ namespace ReactViewControl {
                 throw new ArgumentException($"Plugin '{pluginName}' is invalid");
             }
 
-            FrameToPluginsMap[frameName] = GetPlugins(frameName).Concat(plugins).ToArray();
+            lock (SyncRoot) {
+                FrameToPluginsMap[frameName] = GetPlugins(frameName).Concat(plugins).ToArray();
 
-            foreach (var plugin in plugins) {
-                BindModule(plugin, frameName);
+                foreach (var plugin in plugins) {
+                    BindModule(plugin, frameName);
+                }
             }
-        }
-
-        /// <summary>
-        /// Removes all the plugins registered for the specified frame.
-        /// </summary>
-        /// <param name="frameName"></param>
-        public void ClearPlugins(string frameName) {
-            FrameToPluginsMap.Remove(frameName);
         }
 
         /// <summary>
@@ -288,7 +346,7 @@ namespace ReactViewControl {
         /// <param name="frameName"></param>
         internal void BindModule(IViewModule module, string frameName) {
             ExecutionEngine engine;
-            lock (FrameToExecutionEngineMap) {
+            lock (SyncRoot) {
                 if (!FrameToExecutionEngineMap.TryGetValue(frameName, out engine)) {
                     engine = new ExecutionEngine(WebView, frameName);
                     FrameToExecutionEngineMap[frameName] = engine;
@@ -324,32 +382,6 @@ namespace ReactViewControl {
         /// </summary>
         public void CloseDeveloperTools() {
             WebView.CloseDeveloperTools();
-        }
-
-        /// <summary>
-        /// Enables or disables debug mode. 
-        /// In debug mode the webview developer tools becomes available pressing F12 and the webview shows an error message at the top with the error details 
-        /// when a resource fails to load.
-        /// </summary>
-        public bool EnableDebugMode {
-            get { return enableDebugMode; }
-            set {
-                enableDebugMode = value;
-                WebView.AllowDeveloperTools = enableDebugMode;
-                if (enableDebugMode) {
-                    WebView.ResourceLoadFailed += Loader.ShowResourceLoadFailedMessage;
-                } else {
-                    WebView.ResourceLoadFailed -= Loader.ShowResourceLoadFailedMessage;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Gets or sets the webview zoom percentage (1 = 100%)
-        /// </summary>
-        public double ZoomPercentage {
-            get { return WebView.ZoomPercentage; }
-            set { WebView.ZoomPercentage = value; }
         }
 
         /// <summary>

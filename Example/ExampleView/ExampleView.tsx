@@ -16,6 +16,7 @@ export enum ImageKind {
 export interface IExampleViewProperties {
     click(arg: ISomeType): void;
     getTime(): Promise<string>;
+    viewMounted(): void;
     readonly constantMessage: string;
     readonly image: ImageKind;
 }
@@ -51,6 +52,14 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
         this.viewplugin.notifyViewLoaded("ExampleView");
     }
 
+    private onMountSubViewClick = () => {
+        let show = !this.state.showSubView;
+        if (show) {
+            this.props.viewMounted();
+        }
+        this.setState({ showSubView: show });
+    }
+
     render() {
         return (
             <div className="wrapper">
@@ -62,7 +71,7 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
                 <br />
                 <div className="buttons-bar">
                     <button onClick={() => this.props.click(null)}>Click me!</button>&nbsp;
-                    <button onClick={() => this.setState({ showSubView: !this.state.showSubView })}>{this.state.showSubView ? "Unmount" : "Mount"} subview</button>
+                    <button onClick={this.onMountSubViewClick}>{this.state.showSubView ? "Unmount" : "Mount"} subview</button>
                 </div>
                 <br />
                 {this.state.showSubView ? <view-frame id="test" /> : null}

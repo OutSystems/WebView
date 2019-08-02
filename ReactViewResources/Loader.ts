@@ -3,7 +3,8 @@ import { Task, PluginsContext } from "./LoaderCommon";
 import "./ViewFrame";
 
 declare const CefSharp: {
-    BindObjectAsync(objName1: string, objName2: string): Promise<void>
+    BindObjectAsync(settings: { NotifyIfAlreadyBound?: boolean, IgnoreCache: boolean }, objName: string): Promise<void>
+    DeleteBoundObject(objName: string): boolean;
 };
 
 const reactLib: string = "React";
@@ -16,12 +17,14 @@ const [
     modulesObjectName,
     eventListenerObjectName,
     viewInitializedEventName,
-    componentLoadedEventName
+    viewDestroyedEventName,
+    viewLoadedEventName
 ] = Array.from(new URLSearchParams(location.search).keys());
 
 const externalLibsPath = libsPath + "node_modules/";
 
 const modules: Dictionary<Dictionary<any>> = (() => window[modulesObjectName] = {})();
+const nativeObjectNames: Dictionary<string[]> = {};
 
 const bootstrapTask = new Task();
 const stylesheetsLoadTask = new Task();
@@ -139,9 +142,9 @@ export function loadPlugins(plugins: any[][], frameName: string, forMainFrame: b
                         throw new Error(`Failed to load '${moduleName}' (might not be a module with a default export)`);
                     }
 
-                    await CefSharp.BindObjectAsync(nativeObjectFullName, nativeObjectFullName);
+                    const pluginNativeObject = await bindNativeObject(nativeObjectFullName, frameName);
 
-                    pluginsInstances[moduleName] = new module.default(window[nativeObjectFullName]);
+                    pluginsInstances[moduleName] = new module.default(pluginNativeObject);
                 });
 
                 await Promise.all(pluginsPromises);
@@ -218,7 +221,7 @@ export function loadComponent(
             const ReactDOM = window[reactDOMLib];
             
             // create proxy for properties obj to delay its methods execution until native object is ready
-            const properties = createPropertiesProxy(componentNativeObject, componentNativeObjectName);
+            const properties = createPropertiesProxy(componentNativeObject, componentNativeObjectName, frameName);
 
             // render component
             await new Promise((resolve) => {
@@ -265,7 +268,7 @@ export function loadComponent(
 
             window.dispatchEvent(new Event('viewready'));
 
-            fireNativeNotification(componentLoadedEventName, frameName);
+            fireNativeNotification(viewLoadedEventName, frameName);
         } catch (error) {
             handleError(error);
         }
@@ -286,19 +289,26 @@ async function bootstrap() {
 
     Common.addViewAddedEventListener((frameName) => fireNativeNotification(viewInitializedEventName, frameName));
     Common.addViewRemovedEventListener((frameName) => {
+        // delete native objects
+        const nativeObjects = nativeObjectNames[frameName] || [];
+        nativeObjects.forEach(nativeObjecName => CefSharp.DeleteBoundObject(nativeObjecName));
+
         delete modules[frameName]; // delete registered frame modules
-        delete pluginsLoadTasks[frameName];
+        delete nativeObjectNames[frameName]; // delete registered native objects
+        delete pluginsLoadTasks[frameName]; // delete load tasks
+
+        fireNativeNotification(viewDestroyedEventName, frameName);
     });
 
     await loadFramework();
 
     // bind event listener object ahead-of-time
-    await CefSharp.BindObjectAsync(eventListenerObjectName, eventListenerObjectName);
+    await CefSharp.BindObjectAsync({ IgnoreCache: false }, eventListenerObjectName);
 
     bootstrapTask.setResult();
 }
 
-function createPropertiesProxy(basePropertiesObj: {}, nativeObjName: string): {} {
+function createPropertiesProxy(basePropertiesObj: {}, nativeObjName: string, frameName: string): {} {
     const proxy = Object.assign({}, basePropertiesObj);
     Object.keys(proxy).forEach(key => {
         const value = basePropertiesObj[key];
@@ -310,8 +320,8 @@ function createPropertiesProxy(basePropertiesObj: {}, nativeObjName: string): {}
                 if (!nativeObject) {
                     nativeObject = await new Promise(async (resolve) => {
                         await waitForNextPaint();
-                        await CefSharp.BindObjectAsync(nativeObjName, nativeObjName);
-                        resolve(window[nativeObjName]);
+                        const nativeObject = await bindNativeObject(nativeObjName, frameName);
+                        resolve(nativeObject);
                     });
                 }
                 return nativeObject[key].apply(window, arguments);
@@ -319,6 +329,20 @@ function createPropertiesProxy(basePropertiesObj: {}, nativeObjName: string): {}
         }
     });
     return proxy;
+}
+
+async function bindNativeObject(nativeObjectName: string, frameName: string) {
+    await CefSharp.BindObjectAsync({ IgnoreCache: false }, nativeObjectName);
+
+    // add to the native objects collection
+    let frameNativeObjects = nativeObjectNames[frameName];
+    if (!frameNativeObjects) {
+        frameNativeObjects = [];
+        nativeObjectNames[frameName] = frameNativeObjects;
+    }
+    frameNativeObjects.push(nativeObjectName);
+
+    return window[nativeObjectName];
 }
 
 function handleError(error: Error) {

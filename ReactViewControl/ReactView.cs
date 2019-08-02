@@ -21,7 +21,7 @@ namespace ReactViewControl {
 
         private static ReactViewRender CreateReactViewInstance(ReactViewFactory factory) {
             ReactViewRender InnerCreateView() {
-                var view = new ReactViewRender(factory.DefaultStyleSheet, factory.InitializePlugins(), factory.EnableViewPreload, factory.EnableDebugMode);
+                var view = new ReactViewRender(factory.DefaultStyleSheet, () => factory.InitializePlugins(), factory.EnableViewPreload, factory.EnableDebugMode);
                 if (factory.ShowDeveloperTools) {
                     view.ShowDeveloperTools();
                 }
@@ -232,7 +232,6 @@ namespace ReactViewControl {
         /// <param name="viewModule"></param>
         /// <param name="frameName"></param>
         public void AttachInnerView(IViewModule viewModule, string frameName) {
-            View.ClearPlugins(frameName);
             View.AddPlugins(frameName, Factory.InitializePlugins());
             View.LoadComponent(viewModule, frameName);
         }

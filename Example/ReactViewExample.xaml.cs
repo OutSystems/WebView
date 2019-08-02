@@ -59,5 +59,9 @@ namespace Example {
         private void OnSubViewNotifyViewLoaded(string viewName) {
             Console.WriteLine("On sub view loaded: " + viewName);
         }
+
+        private void OnViewMounted() {
+            exampleView.AttachInnerView(subView, InnerViewName);
+        }
     }
 }

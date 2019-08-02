@@ -16,6 +16,6 @@
             </MenuItem>
         </Menu>
 
-        <local:ExampleView x:Name="exampleView" Click="OnExampleViewClick" GetTime="OnExampleViewGetTime" ConstantMessage="This is an example" Image="Beach" />
+        <local:ExampleView x:Name="exampleView" Click="OnExampleViewClick" GetTime="OnExampleViewGetTime" ConstantMessage="This is an example" Image="Beach" ViewMounted="OnViewMounted" />
     </DockPanel>
 </Window>
