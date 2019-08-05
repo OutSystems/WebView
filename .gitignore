@@ -17,7 +17,6 @@ Tests/ReactViewResources/dist/
 .vs/
 ViewGenerator/tools/dist/
 *.js
-ViewGenerator/content/node_modules/
 ReactViewResources/node_modules/
 *.tgz
 ViewGenerator/tools/node_modules/
@@ -25,8 +24,9 @@ ViewGenerator/tools/node_modules/
 Example/Generated/
 Example/node_modules/
 ViewGeneratorCore/tools/node_modules/
-ViewGenerator/contentFiles/node_modules/
 Tests/TestResult.xml
 ViewGenerator/declarations/
 ReactViewResources/ReactViewResources.js
 manifest.json
+ViewGenerator/contentFiles/node_modules/@types/
+ViewGenerator/contentFiles/node_modules/
