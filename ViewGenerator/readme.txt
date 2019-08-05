@@ -7,7 +7,7 @@ Generates the .Net bindings to the React Web views based on the typescript decla
 Notes:
 ------
 
-This tools uses nodejs to generate the .Net bindings. If you need to use a different nodejs version you can customize the path of the node executable. 
+This tool uses nodejs to generate the .Net bindings. If you need to use a different nodejs version you can customize the path of the node executable. 
 Edit your .csproj file and search for the following:
 
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
