@@ -1,12 +1,12 @@
 ﻿<Project>
   <PropertyGroup>
 
-    <CompileDependsOn>
+    <BuildDependsOn>
       LinkNodeModules;
       GenerateDefaultStyleSheet;
       GenerateBundle;
-      $(CompileDependsOn);
-    </CompileDependsOn>
+      $(BuildDependsOn);
+    </BuildDependsOn>
 
     <CleanDependsOn>
       CleanLegacyJSFiles;
@@ -21,12 +21,33 @@
 
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(ViewGeneratorNodeJsPath)' == ''">
+    <!-- Best effort probing for node.exe in the VS install folder. If not found, then we assume node is already installed and on the system path. -->
+    <ViewGeneratorNodeJsPath Condition="'$(OS)' == 'Windows_NT' AND Exists('$(MSBuildExtensionsPath)\Microsoft\VisualStudio\NodeJs\node.exe')">$(MSBuildExtensionsPath)\Microsoft\VisualStudio\NodeJs\</ViewGeneratorNodeJsPath>
+
+    <!--Legacy node.exe path for VS -->
+    <ViewGeneratorNodeJsPath Condition="'$(ViewGeneratorNodeJsPath)' == '' AND '$(OS)' == 'Windows_NT' AND Exists('$(VsInstallRoot)\Common7\IDE\CommonExtensions\Microsoft\NodeJs\node.exe')">$(VsInstallRoot)\Common7\IDE\CommonExtensions\Microsoft\NodeJs\</ViewGeneratorNodeJsPath>
+
+    <!--Another legacy node.exe path for VS -->
+    <ViewGeneratorNodeJsPath Condition="'$(ViewGeneratorNodeJsPath)' == '' AND '$(OS)' == 'Windows_NT' AND Exists('$(VsInstallRoot)\Web\External\x86\node.exe')">$(VsInstallRoot)\Web\External\x86\</ViewGeneratorNodeJsPath>
+
+    <ViewGeneratorNodeJsExe>$(ViewGeneratorNodeJsPath)node.exe</ViewGeneratorNodeJsExe>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(ViewGeneratorToolsPath)' == ''">
+    <ViewGeneratorToolsPath>$([System.IO.Path]::GetFullPath(&quot;$(MSBuildThisFileDirectory)..\tools&quot;))</ViewGeneratorToolsPath>
+  </PropertyGroup>
+
   <Target Name="LinkNodeModules" Condition="'$(FrameworkRelativePath)' != ''" >
     <CallTarget Targets="UnlinkNodeModules" Condition="Exists('$(ProjectDir)node_modules\webview.framework')" />
-      
+
     <Exec Command="mklink /D &quot;$(ProjectDir)node_modules\webview.framework&quot; &quot;$(ProjectDir)$(FrameworkRelativePath)node_modules&quot;" />
   </Target>
-  
+
+  <Target Name="UnlinkNodeModules">
+    <RemoveDir Directories="$(ProjectDir)node_modules\webview.framework" />
+  </Target>
+
   <Target Name="CleanLegacyJSFiles" >
     <ItemGroup>
       <JSFilesToDelete Include="**\*.js" Exclude="node_modules\**\*.js"/>
@@ -43,7 +64,12 @@
     <Delete Files="@(CSSFilesToDelete)"/>
   </Target>
 
-  <Target Name="GenerateDefaultStyleSheet" DependsOnTargets="LinkNodeModules" Inputs="@(DefaultStyleSheet)" Outputs="%(DefaultStyleSheet.Filename).css" >
+  <Target Name="InstallWebpackDependencies">
+    <Message Importance="High" Text="Installing node modules (at $(ViewGeneratorToolsPath))" />
+    <Exec Command="&quot;$(ViewGeneratorNodeJsPath)npm&quot; install &quot;$(ViewGeneratorToolsPath)&quot; --scripts-prepend-node-path" />
+  </Target>
+
+  <Target Name="GenerateDefaultStyleSheet" DependsOnTargets="LinkNodeModules;InstallWebpackDependencies" Inputs="@(DefaultStyleSheet)" Outputs="%(DefaultStyleSheet.Filename).css" >
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
       <WebpackBuildMode>development</WebpackBuildMode>
     </PropertyGroup>
@@ -51,10 +77,10 @@
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
       <WebpackBuildMode>production</WebpackBuildMode>
     </PropertyGroup>
-    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(MSBuildThisFileDirectory)..\tools\node_modules\webpack\bin\webpack.js&quot; --config &quot;$(MSBuildThisFileDirectory)..\tools\webpack_stylesheets.config.js&quot; --mode $(WebpackBuildMode) --entryPath &quot;%(DefaultStyleSheet.Identity)&quot;" />
-  </Target>    
+    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewGeneratorToolsPath)\node_modules\webpack\bin\webpack.js&quot; --config &quot;$(ViewGeneratorToolsPath)\webpack_stylesheets.config.js&quot; --mode $(WebpackBuildMode) --entryPath &quot;%(DefaultStyleSheet.Identity)&quot;" />
+  </Target>
 
-  <Target Name="GenerateBundle" BeforeTargets="GenerateView" DependsOnTargets="GenerateDefaultStyleSheet">
+  <Target Name="GenerateBundle" DependsOnTargets="InstallWebpackDependencies;GenerateDefaultStyleSheet">
     <PropertyGroup Condition="'$(WebpackConfigFileName)' == ''">
       <WebpackConfigFileName>webpack_views</WebpackConfigFileName>
     </PropertyGroup>
@@ -66,21 +92,17 @@
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
       <WebpackBuildMode>production</WebpackBuildMode>
     </PropertyGroup>
-      
-    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(MSBuildThisFileDirectory)..\tools\node_modules\webpack\bin\webpack.js&quot; --config &quot;$(MSBuildThisFileDirectory)..\tools\$(WebpackConfigFileName).config.js&quot; --mode $(WebpackBuildMode)" />
-    
+
+    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewGeneratorToolsPath)\node_modules\webpack\bin\webpack.js&quot; --config &quot;$(ViewGeneratorToolsPath)\$(WebpackConfigFileName).config.js&quot; --mode $(WebpackBuildMode)" />
+
     <CallTarget Targets="UnlinkNodeModules" Condition="Exists('$(ProjectDir)node_modules\webview.framework')" />
   </Target>
 
-  <Target Name="UnlinkNodeModules">
-    <RemoveDir Directories="$(ProjectDir)node_modules\webview.framework" />
-  </Target>
-
   <Target Name="IncludeGeneratedResources" DependsOnTargets="GenerateBundle">
-    <ItemGroup> 
+    <ItemGroup>
       <EmbeddedResource Include="**\*.js" Exclude="node_modules\**\*.js" />
       <EmbeddedResource Include="**\*.css" Exclude="node_modules\**\*.css;**\*.min.css" />
     </ItemGroup>
   </Target>
-  
+
 </Project>

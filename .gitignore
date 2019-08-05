@@ -30,3 +30,4 @@ ReactViewResources/ReactViewResources.js
 manifest.json
 ViewGenerator/contentFiles/node_modules/@types/
 ViewGenerator/contentFiles/node_modules/
+Example/package-lock.json

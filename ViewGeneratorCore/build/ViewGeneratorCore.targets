@@ -18,9 +18,20 @@
 
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(ViewGeneratorCoreNodeJsExe)' == ''">
+    <!-- Best effort probing for node.exe in the VS install folder. If not found, then we assume node is already installed and on the system path. -->
+    <ViewGeneratorCoreNodeJsExe Condition="'$(OS)' == 'Windows_NT' AND Exists('$(MSBuildExtensionsPath)\Microsoft\VisualStudio\NodeJs\node.exe')">$(MSBuildExtensionsPath)\Microsoft\VisualStudio\NodeJs\node.exe</ViewGeneratorCoreNodeJsExe>
+
+    <!--Legacy node.exe path for VS -->
+    <ViewGeneratorCoreNodeJsExe Condition="'$(ViewGeneratorCoreNodeJsExe)' == '' AND '$(OS)' == 'Windows_NT' AND Exists('$(VsInstallRoot)\Common7\IDE\CommonExtensions\Microsoft\NodeJs\node.exe')">$(VsInstallRoot)\Common7\IDE\CommonExtensions\Microsoft\NodeJs\node.exe</ViewGeneratorCoreNodeJsExe>
+
+    <!--Another legacy node.exe path for VS -->
+    <ViewGeneratorCoreNodeJsExe Condition="'$(ViewGeneratorCoreNodeJsExe)' == '' AND '$(OS)' == 'Windows_NT' AND Exists('$(VsInstallRoot)\Web\External\x86\node.exe')">$(VsInstallRoot)\Web\External\x86\node.exe</ViewGeneratorCoreNodeJsExe>
+  </PropertyGroup>
+  
   <Target Name="GenerateView" BeforeTargets="TransformDuringBuild;PrepareForBuild;CoreCompile" DependsOnTargets="CleanGenerated">
     <Message Importance="Normal" Text="Generating View files" />
-    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(MSBuildThisFileDirectory)..\tools\node_modules\@outsystems\ts2lang\ts2lang-main.js&quot; -f &quot;$(MSBuildProjectDirectory)\ts2lang.json&quot; -t &quot;$(MSBuildThisFileDirectory)..\tools\ViewGenerator.js&quot;" />
+    <Exec Command="&quot;$(ViewGeneratorCoreNodeJsExe)&quot; &quot;$(MSBuildThisFileDirectory)..\tools\node_modules\@outsystems\ts2lang\ts2lang-main.js&quot; -f &quot;$(MSBuildProjectDirectory)\ts2lang.json&quot; -t &quot;$(MSBuildThisFileDirectory)..\tools\ViewGenerator.js&quot;" />
   </Target>
 
   <Target Name="IncludeGeneratedFiles" BeforeTargets="PrepareForBuild;CoreCompile">
