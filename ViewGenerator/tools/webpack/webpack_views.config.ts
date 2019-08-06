@@ -185,7 +185,7 @@ let standardConfig: Webpack.Configuration = {
         path: Path.resolve("."),
         filename: getOutputFileName,
         chunkFilename: "Generated/chunk_[chunkhash:8].js",
-        library: ["Bundle", "[name]"],
+        library: ["Views", "[name]"],
         libraryTarget: "umd",
         umdNamedDefine: true,
         globalObject: "window"

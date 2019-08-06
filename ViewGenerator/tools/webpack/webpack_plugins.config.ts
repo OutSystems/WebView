@@ -187,11 +187,11 @@ var standardConfig: Webpack.Configuration = {
     output: {
         path: Path.resolve("."),
         filename: getOutputFileName,
-        library: ["Framework", "[name]"],
+        library: ["Plugins", "[name]"],
         libraryTarget: "umd",
         umdNamedDefine: true,
         globalObject: "window",
-        devtoolNamespace: "Framework"
+        devtoolNamespace: "Plugins"
     },
 
     resolveLoader: {
