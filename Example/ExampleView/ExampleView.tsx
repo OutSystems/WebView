@@ -26,7 +26,7 @@ export interface IExampleViewBehaviors {
     callMe(): void;
 }
 
-export default class ExampleView extends React.Component<IExampleViewProperties, { time: string, showSubView: boolean }> implements IExampleViewBehaviors {
+export default class ExampleView extends React.Component<IExampleViewProperties, { time: string; showSubView: boolean }> implements IExampleViewBehaviors {
 
     private viewplugin: ViewPlugin;
 
@@ -36,7 +36,7 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
         this.viewplugin = context.getPluginInstance<ViewPlugin>(ViewPlugin);
     }
 
-    private async initialize() {
+    private async initialize(): Promise<void> {
         this.state = {
             time: "-",
             showSubView: true
@@ -45,11 +45,11 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
         this.setState({ time: time });
     }
 
-    callMe(): void {
+    public callMe(): void {
         alert("React View says: clicked on a WPF button");
     }
 
-    componentDidMount(): void {
+    public componentDidMount(): void {
         this.viewplugin.notifyViewLoaded("ExampleView");
     }
 
@@ -61,7 +61,7 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
         this.setState({ showSubView: show });
     }
 
-    render() {
+    public render(): JSX.Element {
         return (
             <div className="wrapper">
                 {this.props.constantMessage}

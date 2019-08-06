@@ -13,7 +13,7 @@ export interface ISubExampleViewBehaviors {
     callMe(): void;
 }
 
-export default class SubExampleView extends React.Component<ISubExampleViewProperties, { time: string, dotNetCallCount: number }> implements ISubExampleViewBehaviors {
+export default class SubExampleView extends React.Component<ISubExampleViewProperties, { time: string; dotNetCallCount: number }> implements ISubExampleViewBehaviors {
 
     private viewplugin: ViewPlugin;
 
@@ -23,7 +23,7 @@ export default class SubExampleView extends React.Component<ISubExampleViewPrope
         this.viewplugin = context.getPluginInstance<ViewPlugin>(ViewPlugin);
     }
 
-    private async initialize() {
+    private async initialize(): Promise<void> {
         this.state = {
             time: "-",
             dotNetCallCount: 0,
@@ -32,7 +32,7 @@ export default class SubExampleView extends React.Component<ISubExampleViewPrope
         this.setState({ time: time });
     }
 
-    callMe(): void {
+    public callMe(): void {
         this.setState(s => {
             return {
                 dotNetCallCount: s.dotNetCallCount + 1
@@ -40,11 +40,11 @@ export default class SubExampleView extends React.Component<ISubExampleViewPrope
         });
     }
 
-    componentDidMount(): void {
+    public componentDidMount(): void {
         this.viewplugin.notifyViewLoaded("SubExampleView");
     }
 
-    render() {
+    public render(): JSX.Element {
         return (
             <div className="wrapper">
                 {this.props.constantMessage}

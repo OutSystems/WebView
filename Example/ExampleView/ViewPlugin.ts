@@ -13,7 +13,7 @@ export default class ViewPlugin implements IViewPluginPropertiesBehaviors {
     constructor(private nativeObject: IViewPluginProperties) {
     }
 
-    public notifyViewLoaded(viewName: string) {
+    public notifyViewLoaded(viewName: string): void {
         this.nativeObject.notifyViewLoaded(viewName);
     }
 

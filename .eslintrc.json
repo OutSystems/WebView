@@ -17,16 +17,7 @@
   },
   "rules": {
     "default-case": "error",
-    "no-console": ["warn", { 
-      "allow": [
-        "debug", 
-        "info", 
-        "time", 
-        "timeEnd", 
-        "trace"
-        ]
-      }
-    ],
+    "no-console": "off",
     "no-mixed-operators": "error",
     "quotes": ["error", "double"],
     "quote-props": [ "error", "as-needed" ],
@@ -46,6 +37,7 @@
     "@typescript-eslint/interface-name-prefix": ["error", "always"],
     "@typescript-eslint/member-ordering": "off",
     "@typescript-eslint/no-namespace": "off",
+	"@typescript-eslint/no-parameter-properties": "off",
     "@typescript-eslint/no-triple-slash-reference": "off",
     "@typescript-eslint/no-type-alias": "off",
     "@typescript-eslint/no-unused-vars": ["warn", {
