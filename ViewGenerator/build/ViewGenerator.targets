@@ -9,6 +9,7 @@
     </CompileDependsOn>
 
     <CleanDependsOn>
+      CleanLegacyEntryFiles;
       CleanLegacyJSFiles;
       CleanLegacyCSSFiles;
       $(CleanDependsOn);
@@ -26,7 +27,15 @@
       
     <Exec Command="mklink /D &quot;$(ProjectDir)node_modules\webview.framework&quot; &quot;$(ProjectDir)$(FrameworkRelativePath)node_modules&quot;" />
   </Target>
-  
+    
+ <Target Name="CleanLegacyEntryFiles" >
+    <ItemGroup>
+      <EntryFilesToDelete Include="**\*.entry" />
+    </ItemGroup>
+    <Message Text="Deleting old files: @(EntryFilesToDelete)" Importance="high" />
+    <Delete Files="@(EntryFilesToDelete)"/>
+  </Target>
+
   <Target Name="CleanLegacyJSFiles" >
     <ItemGroup>
       <JSFilesToDelete Include="**\*.js" Exclude="node_modules\**\*.js"/>
@@ -54,7 +63,7 @@
     <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(MSBuildThisFileDirectory)..\tools\node_modules\webpack\bin\webpack.js&quot; --config &quot;$(MSBuildThisFileDirectory)..\tools\webpack_stylesheets.config.js&quot; --mode $(WebpackBuildMode) --entryPath &quot;%(DefaultStyleSheet.Identity)&quot;" />
   </Target>    
 
-  <Target Name="GenerateBundle" BeforeTargets="GenerateView" DependsOnTargets="GenerateDefaultStyleSheet">
+  <Target Name="GenerateBundle" DependsOnTargets="GenerateDefaultStyleSheet">
     <PropertyGroup Condition="'$(WebpackConfigFileName)' == ''">
       <WebpackConfigFileName>webpack_views</WebpackConfigFileName>
     </PropertyGroup>
@@ -80,6 +89,7 @@
     <ItemGroup> 
       <EmbeddedResource Include="**\*.js" Exclude="node_modules\**\*.js" />
       <EmbeddedResource Include="**\*.css" Exclude="node_modules\**\*.css;**\*.min.css" />
+      <EmbeddedResource Include="**\*.entry" />
     </ItemGroup>
   </Target>
   
