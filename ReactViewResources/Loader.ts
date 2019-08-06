@@ -7,9 +7,11 @@ declare const CefSharp: {
     DeleteBoundObject(objName: string): boolean;
 };
 
+const mainFrameName = "";
 const reactLib: string = "React";
 const reactDOMLib: string = "ReactDOM";
-const bundlesName: string = "Bundle";
+const viewsBundleName: string = "Views";
+const pluginsBundleName: string = "Plugins";
 
 const [
     libsPath,
@@ -111,10 +113,15 @@ export function loadDefaultStyleSheet(stylesheet: string): void {
 export function loadPlugins(plugins: any[][], frameName: string, forMainFrame: boolean): void {
     async function innerLoad() {
         try {
-            await bootstrapTask.promise;
-
             const loadTask = new Task();
             pluginsLoadTasks[frameName] = loadTask;
+
+            await bootstrapTask.promise;
+
+            if (!forMainFrame) {
+                // wait for main frame plugins to be loaded, otherwise modules won't be loaded yet
+                await pluginsLoadTasks[mainFrameName].promise;
+            }
 
             if (plugins && plugins.length > 0) {
                 const pluginsInstances = (modules[frameName] = modules[frameName] || {});
@@ -131,21 +138,22 @@ export function loadPlugins(plugins: any[][], frameName: string, forMainFrame: b
 
                         // load plugin dependency js sources
                         const dependencySourcesPromises = dependencySources.map(s => loadScript(s));
-                                await Promise.all(dependencySourcesPromises);
+                        await Promise.all(dependencySourcesPromises);
 
-                                // plugin main js source
-                        await loadScript(mainJsSource);    
+                        // plugin main js source
+                        await loadScript(mainJsSource);
                     }
 
-                    const module = window[bundlesName][moduleName];
+                    const pluginsBundle = window[pluginsBundleName];
+                    const module = (pluginsBundle ? pluginsBundle[moduleName] : null) || window[viewsBundleName][moduleName];
                     if (!module || !module.default) {
                         throw new Error(`Failed to load '${moduleName}' (might not be a module with a default export)`);
-                            }
+                    }
 
                     const pluginNativeObject = await bindNativeObject(nativeObjectFullName, frameName);
 
                     pluginsInstances[moduleName] = new module.default(pluginNativeObject);
-                        });
+                });
 
                 await Promise.all(pluginsPromises);
             }
@@ -209,7 +217,7 @@ export function loadComponent(
             // main component script should be the last to be loaded, otherwise errors might occur
             await loadScript(componentSource);
 
-            const Component = window[bundlesName][componentName].default;
+            const Component = window[viewsBundleName][componentName].default;
             const React = window[reactLib];
             const ReactDOM = window[reactDOMLib];
 
@@ -278,7 +286,7 @@ async function bootstrap() {
     await waitForDOMReady();
 
     // add main view
-    Common.addViewElement("", document.getElementById(Common.webViewRootId) as HTMLElement, document.head);
+    Common.addViewElement(mainFrameName, document.getElementById(Common.webViewRootId) as HTMLElement, document.head);
 
     Common.addViewAddedEventListener((frameName) => fireNativeNotification(viewInitializedEventName, frameName));
     Common.addViewRemovedEventListener((frameName) => {
