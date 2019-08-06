@@ -9,6 +9,7 @@
     </BuildDependsOn>
 
     <CleanDependsOn>
+      CleanLegacyEntryFiles;
       CleanLegacyJSFiles;
       CleanLegacyCSSFiles;
       $(CleanDependsOn);
@@ -46,6 +47,14 @@
 
   <Target Name="UnlinkNodeModules">
     <RemoveDir Directories="$(ProjectDir)node_modules\webview.framework" />
+  </Target>
+    
+  <Target Name="CleanLegacyEntryFiles" >
+    <ItemGroup>
+      <EntryFilesToDelete Include="**\*.entry" />
+    </ItemGroup>
+    <Message Text="Deleting old files: @(EntryFilesToDelete)" Importance="high" />
+    <Delete Files="@(EntryFilesToDelete)"/>
   </Target>
 
   <Target Name="CleanLegacyJSFiles" >
@@ -102,6 +111,7 @@
     <ItemGroup>
       <EmbeddedResource Include="**\*.js" Exclude="node_modules\**\*.js" />
       <EmbeddedResource Include="**\*.css" Exclude="node_modules\**\*.css;**\*.min.css" />
+      <EmbeddedResource Include="**\*.entry" />
     </ItemGroup>
   </Target>
 
