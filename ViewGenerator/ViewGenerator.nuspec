@@ -9,7 +9,7 @@
     <description>Generates .NET Types from typescript</description>
     <dependencies>
       <dependency id="ViewGeneratorCore" version="1.0.171" />
-      <dependency id="OutSystems.ESLint.MSBuild" version="1.0.5" />
+      <dependency id="OutSystems.ESLint.MSBuild" version="1.0.6" />
     </dependencies>
   </metadata>
   <files>
