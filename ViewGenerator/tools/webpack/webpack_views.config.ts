@@ -69,6 +69,22 @@ function generateManifest(seed: object, files: ManifestPlugin.FileDescriptor[]) 
     return entryArrayManifest;
 }
 
+/**
+ * Formats the output for appropriate error display in VS
+ * @param error
+ * @param colors
+ */
+function customErrorFormatter(error, colors) {
+    let messageColor = error.severity === "warning" ? colors.bold.yellow : colors.bold.red;
+    let errorMsg =
+        colors.bold.white('(') +
+        colors.bold.cyan(error.line.toString() + "," + error.character.toString()) +
+        colors.bold.white(')') +
+        messageColor(": " + error.severity.toString() + " " + error.code.toString() + ": ") +
+        messageColor(error.content);
+    return messageColor(error.file) + errorMsg;
+}
+
 // 🔨 Webpack allows strings and functions as its output configurations,
 // however, webpack typings only allow strings at the moment. 🔨
 let getOutputFileName: any = (chunkData) => {
@@ -125,7 +141,7 @@ let standardConfig: Webpack.Configuration = {
         path: Path.resolve("."),
         filename: getOutputFileName,
         chunkFilename: "Generated/chunk_[chunkhash:8].js",
-        library: ["Bundle", "[name]"],
+        library: ["Views", "[name]"],
         libraryTarget: "umd",
         umdNamedDefine: true,
         globalObject: "window"
@@ -201,7 +217,10 @@ let standardConfig: Webpack.Configuration = {
             },
             {
                 test: /\.tsx?$/,
-                loader: "ts-loader"
+                loader: "ts-loader",
+                options: {
+                    errorFormatter: customErrorFormatter
+                }
             }
         ]
     },

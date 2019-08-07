@@ -1,7 +1,5 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\ViewGenerator.1.0.146\build\ViewGenerator.props" Condition="Exists('..\packages\ViewGenerator.1.0.146\build\ViewGenerator.props')" />
-  <Import Project="..\packages\ViewGeneratorCore.1.0.169\build\ViewGeneratorCore.props" Condition="Exists('..\packages\ViewGeneratorCore.1.0.169\build\ViewGeneratorCore.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -111,14 +109,10 @@
     <DefaultStyleSheet Include="ExampleView\DefaultStyleSheet.scss" />
     <None Include="ExampleView\SubExampleView.scss" />
     <None Include="ExampleView\ExampleView.scss" />
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
-    </None>
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
-    <None Include="webpack-output-config.json" />
     <Resource Include="ExampleView\beach.jpg" />
   </ItemGroup>
   <ItemGroup>
@@ -140,18 +134,16 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="node_modules\%40types\" />
+    <PackageReference Include="ViewGenerator">
+      <Version>1.0.179</Version>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="ViewGeneratorCore">
+      <Version>1.0.169</Version>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('..\packages\ViewGeneratorCore.1.0.169\build\ViewGeneratorCore.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ViewGeneratorCore.1.0.169\build\ViewGeneratorCore.props'))" />
-    <Error Condition="!Exists('..\packages\ViewGeneratorCore.1.0.169\build\ViewGeneratorCore.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ViewGeneratorCore.1.0.169\build\ViewGeneratorCore.targets'))" />
-    <Error Condition="!Exists('..\packages\ViewGenerator.1.0.146\build\ViewGenerator.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ViewGenerator.1.0.146\build\ViewGenerator.props'))" />
-    <Error Condition="!Exists('..\packages\ViewGenerator.1.0.146\build\ViewGenerator.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ViewGenerator.1.0.146\build\ViewGenerator.targets'))" />
-  </Target>
-  <Import Project="..\packages\ViewGeneratorCore.1.0.169\build\ViewGeneratorCore.targets" Condition="Exists('..\packages\ViewGeneratorCore.1.0.169\build\ViewGeneratorCore.targets')" />
-  <Import Project="..\packages\ViewGenerator.1.0.146\build\ViewGenerator.targets" Condition="Exists('..\packages\ViewGenerator.1.0.146\build\ViewGenerator.targets')" />
 </Project>

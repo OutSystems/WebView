@@ -6,7 +6,7 @@ import Webpack, { Compiler } from "webpack";
 import ManifestPlugin from "webpack-manifest-plugin";
 
 const DtsExtension: string = ".d.ts";
-const DtsFileName: string = "@types/Framework.d.ts";
+const DtsFileName: string = "@types/Plugins.d.ts";
 
 const entryMap: {
     [entry: string]: string
@@ -52,6 +52,22 @@ class DtsCleanupPlugin {
             callback();
         });
     }
+}
+
+/**
+ * Formats the output for appropriate error display in VS
+ * @param error
+ * @param colors
+ */
+function customErrorFormatter(error, colors) {
+    let messageColor = error.severity === "warning" ? colors.bold.yellow : colors.bold.red;
+    let errorMsg =
+        colors.bold.white('(') +
+        colors.bold.cyan(error.line.toString() + "," + error.character.toString()) +
+        colors.bold.white(')') +
+        messageColor(": " + error.severity.toString() + " " + error.code.toString() + ": ") +
+        messageColor(error.content);
+    return messageColor(error.file) + errorMsg;
 }
 
 /** 
@@ -128,11 +144,11 @@ var standardConfig: Webpack.Configuration = {
     output: {
         path: Path.resolve("."),
         filename: getOutputFileName,
-        library: ["Framework", "[name]"],
+        library: ["Plugins", "[name]"],
         libraryTarget: "umd",
         umdNamedDefine: true,
         globalObject: "window",
-        devtoolNamespace: "Framework"
+        devtoolNamespace: "Plugins"
     },
 
     resolveLoader: {
@@ -193,7 +209,10 @@ var standardConfig: Webpack.Configuration = {
             },
             {
                 test: /\.tsx?$/,
-                loader: "ts-loader"
+                loader: "ts-loader",
+                options: {
+                    errorFormatter: customErrorFormatter
+                }
             }
         ]
     },

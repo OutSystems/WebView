@@ -58,8 +58,8 @@
     <None Include="build\ViewGenerator.props" />
     <None Include="contentFiles\ts2lang.json" />
     <None Include="contentFiles\tsconfig.json" />
+    <None Include="contentFiles\viewgenerator.cache" />
     <None Include="packages.config" />
-    <None Include="tools\Init.ps1" />
     <Content Include="tools\webpack\tsconfig.json" />
     <None Include="ViewGenerator.nuspec">
       <SubType>Designer</SubType>
@@ -85,9 +85,12 @@
 </PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PreBuildEvent>npm ci --prefix "$(ProjectDir)tools" "$(ProjectDir)tools"
-npm ci --prefix "$(ProjectDir)contentFiles" "$(ProjectDir)contentFiles"</PreBuildEvent>
+    <PreBuildEvent>npm install --no-bin-links --prefix "$(ProjectDir)tools" "$(ProjectDir)tools"
+npm install --no-bin-links --prefix "$(ProjectDir)contentFiles" "$(ProjectDir)contentFiles"</PreBuildEvent>
   </PropertyGroup>
+  <Target Name="TouchCacheFile" BeforeTargets="PrepareForBuild">
+    <Touch Files="$(ProjectDir)contentFiles\viewgenerator.cache"/>
+  </Target>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>

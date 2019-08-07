@@ -2,23 +2,25 @@
   <PropertyGroup>
 
     <BuildDependsOn>
-      LinkNodeModules;
-      GenerateDefaultStyleSheet;
-      GenerateBundle;
+      VG_SetVariables;
+      VG_CopyContentFiles;
+      VG_InstallWebpackDependencies;
+      VG_LinkNodeModules;
+      VG_GenerateDefaultStyleSheet;
+      VG_GenerateBundle;
       $(BuildDependsOn);
     </BuildDependsOn>
 
     <CleanDependsOn>
-      CleanLegacyJSFiles;
-      CleanLegacyCSSFiles;
+      VG_CleanLegacyJSFiles;
+      VG_CleanLegacyCSSFiles;
       $(CleanDependsOn);
     </CleanDependsOn>
 
     <PrepareResourceNamesDependsOn>
-      IncludeGeneratedResources;
+      VG_IncludeGeneratedResources;
       $(PrepareResourceNamesDependsOn)
     </PrepareResourceNamesDependsOn>
-
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(ViewGeneratorNodeJsPath)' == ''">
@@ -34,21 +36,25 @@
     <ViewGeneratorNodeJsExe>$(ViewGeneratorNodeJsPath)node.exe</ViewGeneratorNodeJsExe>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(ViewGeneratorToolsPath)' == ''">
-    <ViewGeneratorToolsPath>$([System.IO.Path]::GetFullPath(&quot;$(MSBuildThisFileDirectory)..\tools&quot;))</ViewGeneratorToolsPath>
-  </PropertyGroup>
+  <Target Name="VG_SetVariables">
+    <PropertyGroup>
+      <ViewGeneratorPath>$([System.IO.Path]::GetFullPath(&quot;$(MSBuildThisFileDirectory)..\&quot;))</ViewGeneratorPath>
+      <ViewGeneratorToolsPath>$(ViewGeneratorPath)tools</ViewGeneratorToolsPath>
+      <ViewGeneratorContentFilesPath>$(ViewGeneratorPath)contentFiles\</ViewGeneratorContentFilesPath>
+    </PropertyGroup>
+  </Target>
 
-  <Target Name="LinkNodeModules" Condition="'$(FrameworkRelativePath)' != ''" >
-    <CallTarget Targets="UnlinkNodeModules" Condition="Exists('$(ProjectDir)node_modules\webview.framework')" />
+  <Target Name="VG_LinkNodeModules" Condition="'$(FrameworkRelativePath)' != ''" >
+    <CallTarget Targets="VG_UnlinkNodeModules" Condition="Exists('$(ProjectDir)node_modules\webview.framework')" />
 
     <Exec Command="mklink /D &quot;$(ProjectDir)node_modules\webview.framework&quot; &quot;$(ProjectDir)$(FrameworkRelativePath)node_modules&quot;" />
   </Target>
 
-  <Target Name="UnlinkNodeModules">
+  <Target Name="VG_UnlinkNodeModules">
     <RemoveDir Directories="$(ProjectDir)node_modules\webview.framework" />
   </Target>
 
-  <Target Name="CleanLegacyJSFiles" >
+  <Target Name="VG_CleanLegacyJSFiles" >
     <ItemGroup>
       <JSFilesToDelete Include="**\*.js" Exclude="node_modules\**\*.js"/>
     </ItemGroup>
@@ -56,7 +62,7 @@
     <Delete Files="@(JSFilesToDelete)"/>
   </Target>
 
-  <Target Name="CleanLegacyCSSFiles" >
+  <Target Name="VG_CleanLegacyCSSFiles" >
     <ItemGroup>
       <CSSFilesToDelete Include="**\*.css" Exclude="node_modules\**\*.css;**\*.min.css"/>
     </ItemGroup>
@@ -64,12 +70,7 @@
     <Delete Files="@(CSSFilesToDelete)"/>
   </Target>
 
-  <Target Name="InstallWebpackDependencies">
-    <Message Importance="High" Text="Installing node modules (at $(ViewGeneratorToolsPath))" />
-    <Exec Command="&quot;$(ViewGeneratorNodeJsPath)npm&quot; --prefix &quot;$(ViewGeneratorToolsPath)&quot; install &quot;$(ViewGeneratorToolsPath)&quot; --scripts-prepend-node-path" />
-  </Target>
-
-  <Target Name="GenerateDefaultStyleSheet" DependsOnTargets="LinkNodeModules;InstallWebpackDependencies" Inputs="@(DefaultStyleSheet)" Outputs="%(DefaultStyleSheet.Filename).css" >
+  <Target Name="VG_GenerateDefaultStyleSheet" DependsOnTargets="VG_SetVariables;VG_InstallWebpackDependencies;VG_LinkNodeModules" Inputs="@(DefaultStyleSheet)" Outputs="%(DefaultStyleSheet.Filename).css" >
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
       <WebpackBuildMode>development</WebpackBuildMode>
     </PropertyGroup>
@@ -80,7 +81,7 @@
     <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewGeneratorToolsPath)\node_modules\webpack\bin\webpack.js&quot; --config &quot;$(ViewGeneratorToolsPath)\webpack_stylesheets.config.js&quot; --mode $(WebpackBuildMode) --entryPath &quot;%(DefaultStyleSheet.Identity)&quot;" />
   </Target>
 
-  <Target Name="GenerateBundle" DependsOnTargets="InstallWebpackDependencies;GenerateDefaultStyleSheet">
+  <Target Name="VG_GenerateBundle" DependsOnTargets="VG_SetVariables;VG_CopyContentFiles;VG_InstallWebpackDependencies;VG_GenerateDefaultStyleSheet">
     <PropertyGroup Condition="'$(WebpackConfigFileName)' == ''">
       <WebpackConfigFileName>webpack_views</WebpackConfigFileName>
     </PropertyGroup>
@@ -95,14 +96,36 @@
 
     <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewGeneratorToolsPath)\node_modules\webpack\bin\webpack.js&quot; --config &quot;$(ViewGeneratorToolsPath)\$(WebpackConfigFileName).config.js&quot; --mode $(WebpackBuildMode)" />
 
-    <CallTarget Targets="UnlinkNodeModules" Condition="Exists('$(ProjectDir)node_modules\webview.framework')" />
+    <CallTarget Targets="VG_UnlinkNodeModules" Condition="Exists('$(ProjectDir)node_modules\webview.framework')" />
   </Target>
 
-  <Target Name="IncludeGeneratedResources" DependsOnTargets="GenerateBundle">
+  <Target Name="VG_IncludeGeneratedResources" DependsOnTargets="VG_GenerateBundle">
     <ItemGroup>
       <EmbeddedResource Include="**\*.js" Exclude="node_modules\**\*.js" />
       <EmbeddedResource Include="**\*.css" Exclude="node_modules\**\*.css;**\*.min.css" />
     </ItemGroup>
   </Target>
 
+  <Target Name="VG_InstallWebpackDependencies" DependsOnTargets="VG_SetVariables" Condition="!Exists('$(ViewGeneratorToolsPath)\package.json.cache') OR $([System.IO.File]::GetLastWriteTime('$(ViewGeneratorToolsPath)\package.json').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(ViewGeneratorToolsPath)\package.json.cache').Ticks)">
+    <Message Importance="Normal" Text="Installing node modules (at $(ViewGeneratorToolsPath))" />
+    <Copy SourceFiles="$(ViewGeneratorToolsPath)\package.json" DestinationFiles="$(ViewGeneratorToolsPath)\package.json.cache" />
+    <Exec Command="&quot;$(ViewGeneratorNodeJsPath)npm&quot; --prefix &quot;$(ViewGeneratorToolsPath)&quot; install &quot;$(ViewGeneratorToolsPath)&quot; --scripts-prepend-node-path" />
+  </Target>
+  
+  <Target Name="VG_CopyContentFiles" DependsOnTargets="VG_SetVariables" Condition="!Exists('$(ProjectDir)viewgenerator.cache') OR $([System.IO.File]::GetLastWriteTime('$(ViewGeneratorContentFilesPath)viewgenerator.cache').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(ProjectDir)viewgenerator.cache').Ticks)">
+    <CreateItem Include="$(ViewGeneratorContentFilesPath)viewgenerator.cache">
+      <Output TaskParameter="Include" ItemName="CacheFile"/>
+    </CreateItem>
+    <CreateItem Include="$(ViewGeneratorContentFilesPath)*.json">
+      <Output TaskParameter="Include" ItemName="TemplatesToCopy"/>
+    </CreateItem>
+    <CreateItem Include="$(ViewGeneratorContentFilesPath)**\*.d.ts">
+      <Output TaskParameter="Include" ItemName="FilesToCopy"/>
+    </CreateItem>
+    <Message Text="Copying View Generator content files" Importance="Normal" />
+    <Copy SourceFiles="@(CacheFile)" DestinationFolder="$(ProjectDir)%(CacheFile.RecursiveDir)" />
+    <Copy SourceFiles="@(TemplatesToCopy)" DestinationFolder="$(ProjectDir)%(TemplatesToCopy.RecursiveDir)" Condition="!Exists('%(FullPath)')" />
+    <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(ProjectDir)%(FilesToCopy.RecursiveDir)" SkipUnchangedFiles="true" />
+  </Target>
+  
 </Project>
