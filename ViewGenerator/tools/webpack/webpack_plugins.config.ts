@@ -1,11 +1,14 @@
-﻿import dtsGenerator, { DtsGeneratorOptions } from 'dts-generator';
+﻿import * as DtsGenerator from 'dts-generator';
 import Glob from "glob";
 import Path from "path";
 import MiniCssExtractPlugin from "mini-css-extract-plugin";
 import Webpack, { Compiler } from "webpack";
 import ManifestPlugin from "webpack-manifest-plugin";
+import { outputFileSync } from "fs-extra";
 
 const DtsExtension: string = ".d.ts";
+const CssExtension = ".css";
+const JsExtension = ".js";
 const DtsFileName: string = "@types/Plugins.d.ts";
 
 const entryMap: {
@@ -16,17 +19,21 @@ const outputMap: {
     [entry: string]: string
 } = {};
 
+const namespaceMap: {
+    [entry: string]: string
+} = {};
+
 class DtsGeneratorPlugin {
 
-    private options: DtsGeneratorOptions;
+    private options: DtsGenerator.DtsGeneratorOptions;
 
-    constructor(options: DtsGeneratorOptions) {
+    constructor(options: DtsGenerator.DtsGeneratorOptions) {
         this.options = options;
     }
 
     apply(compiler: Compiler) {
         compiler.hooks.emit.tapAsync("DtsGeneratorPlugin", (_, callback) => {
-            dtsGenerator(this.options);
+            DtsGenerator.default(this.options);
             callback();
         });
     }
@@ -54,26 +61,10 @@ class DtsCleanupPlugin {
     }
 }
 
-/**
- * Formats the output for appropriate error display in VS
- * @param error
- * @param colors
- */
-function customErrorFormatter(error, colors) {
-    let messageColor = error.severity === "warning" ? colors.bold.yellow : colors.bold.red;
-    let errorMsg =
-        colors.bold.white('(') +
-        colors.bold.cyan(error.line.toString() + "," + error.character.toString()) +
-        colors.bold.white(')') +
-        messageColor(": " + error.severity.toString() + " " + error.code.toString() + ": ") +
-        messageColor(error.content);
-    return messageColor(error.file) + errorMsg;
-}
-
 /** 
  *  Get entries for webpack config
  * */
-function getConfiguration(input: string, output: string): void {
+function getConfiguration(input: string, output: string, namespace: string): void {
     Glob.sync(input).forEach(f => {
 
         // Exclude node_modules and d.ts files
@@ -82,12 +73,27 @@ function getConfiguration(input: string, output: string): void {
             let entryName: string = Path.parse(f).name;
             entryMap[entryName] = "./" + f;
             outputMap[entryName] = output;
+            namespaceMap[entryName] = namespace;
         }
     });
 }
 
 /*
- * Generate a manifest for the output.
+ * Generates an entry file.
+ * */
+function generateEntryFile(files: string[],
+    entryName: string,
+    extension: string,
+    relativePath: string,
+    namespace: string,
+    entryFilter: (file: string) => boolean) {
+
+    let fileEntries = files.filter(entryFilter).map(f => "/" + namespace + "/" + f).join("\n");
+    outputFileSync(relativePath + entryName + extension + ".entry", (fileEntries || []).length > 0 ? fileEntries : "");
+}
+
+/*
+ * Generates a manifest for the output.
  * */
 function generateManifest(seed: object, files: ManifestPlugin.FileDescriptor[]) {
     let entries = [];
@@ -112,10 +118,47 @@ function generateManifest(seed: object, files: ManifestPlugin.FileDescriptor[]) 
                 }
             });
         }
-        return name ? { ...acc, [name]: files } : acc;
+        if (name) {
+            var relativePath = outputMap[name];
+            var namespace = namespaceMap[name];
+
+            // CSS
+            generateEntryFile(files,
+                name,
+                CssExtension,
+                relativePath,
+                namespace,
+                f => f.endsWith(CssExtension));
+
+            // JS
+            generateEntryFile(files,
+                name,
+                JsExtension,
+                relativePath,
+                namespace,
+                f => f.endsWith(JsExtension) && !f.endsWith("/" + name + ".js"));
+
+            return { ...acc, [name]: files };
+        }
+
+        return acc;
     }, seed);
 
     return entryArrayManifest;
+}
+
+/*
+ * Custom typescript error formater for Visual Studio.
+ * */
+function customErrorFormatter(error, colors) {
+    let messageColor = error.severity === "warning" ? colors.bold.yellow : colors.bold.red;
+    let errorMsg =
+        colors.bold.white('(') +
+        colors.bold.cyan(error.line.toString() + "," + error.character.toString()) +
+        colors.bold.white(')') +
+        messageColor(": " + error.severity.toString() + " " + error.code.toString() + ": ") +
+        messageColor(error.content);
+    return messageColor(error.file) + errorMsg;
 }
 
 // 🔨 Webpack allows strings and functions as its output configurations,
@@ -128,7 +171,7 @@ let getOutputFileName: any = (chunkData) => {
  *  Get input and output entries from ts2lang file
  * */
 require(Path.resolve("./ts2lang.json")).tasks.forEach(t => {
-    getConfiguration(t.input, t.output);
+    getConfiguration(t.input, t.output, t.parameters.namespace);
 });
 
 var standardConfig: Webpack.Configuration = {

@@ -4,14 +4,21 @@ import MiniCssExtractPlugin from "mini-css-extract-plugin";
 import Webpack from "webpack";
 import ManifestPlugin from "webpack-manifest-plugin";
 import { existsSync } from "fs";
+import { outputFileSync } from "fs-extra";
 
 const DtsExtension = ".d.ts";
+const CssExtension = ".css";
+const JsExtension = ".js";
 
 const entryMap: {
     [entry: string]: string
 } = {};
 
 const outputMap: {
+    [entry: string]: string
+} = {};
+
+const namespaceMap: {
     [entry: string]: string
 } = {};
 
@@ -24,7 +31,7 @@ const externalsObjElement: Webpack.ExternalsObjectElement = {};
 /** 
  *  Build entry and output mappings for webpack config
  * */
-function getConfiguration(input: string, output: string): void {
+function getConfiguration(input: string, output: string, namespace: string): void {
     Glob.sync(input).forEach(f => {
 
         // Exclude node_modules files
@@ -33,12 +40,27 @@ function getConfiguration(input: string, output: string): void {
             let entryName: string = Path.parse(f).name;
             entryMap[entryName] = "./" + f;
             outputMap[entryName] = output;
+            namespaceMap[entryName] = namespace;
         }
     });
 }
 
 /*
- * Generate a manifest for the output.
+ * Generates an entry file.
+ * */
+function generateEntryFile(files: string[],
+    entryName: string,
+    extension: string,
+    relativePath: string,
+    namespace: string,
+    entryFilter: (file: string) => boolean) {
+
+    let fileEntries = files.filter(entryFilter).map(f => "/" + namespace + "/" + f).join("\n");
+    outputFileSync(relativePath + entryName + extension + ".entry", (fileEntries || []).length > 0 ? fileEntries : "");
+}
+
+/*
+ * Generates a manifest for the output.
  * */
 function generateManifest(seed: object, files: ManifestPlugin.FileDescriptor[]) {
     let entries = [];
@@ -63,17 +85,39 @@ function generateManifest(seed: object, files: ManifestPlugin.FileDescriptor[]) 
                 }
             });
         }
-        return name ? { ...acc, [name]: files } : acc;
+
+        if (name) {
+            var relativePath = outputMap[name];
+            var namespace = namespaceMap[name];
+
+            // CSS
+            generateEntryFile(files,
+                name,
+                CssExtension,
+                relativePath,
+                namespace,
+                f => f.endsWith(CssExtension));
+
+            // JS
+            generateEntryFile(files,
+                name,
+                JsExtension,
+                relativePath,
+                namespace,
+                f => f.endsWith(JsExtension) && !f.endsWith("/" + name + ".js"));
+
+            return { ...acc, [name]: files };
+        }
+
+        return acc;
     }, seed);
 
     return entryArrayManifest;
 }
 
-/**
- * Formats the output for appropriate error display in VS
- * @param error
- * @param colors
- */
+/*
+ * Custom typescript error formater for Visual Studio.
+ * */
 function customErrorFormatter(error, colors) {
     let messageColor = error.severity === "warning" ? colors.bold.yellow : colors.bold.red;
     let errorMsg =
@@ -95,7 +139,7 @@ let getOutputFileName: any = (chunkData) => {
  *  Get input and output entries from ts2lang file
  * */
 require(Path.resolve("./ts2lang.json")).tasks.forEach(t =>
-    getConfiguration(t.input, t.output)
+    getConfiguration(t.input, t.output, t.parameters.namespace)
 );
 
 /** 

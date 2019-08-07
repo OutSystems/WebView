@@ -1,7 +1,5 @@
 ﻿import * as Types from "@outsystems/ts2lang/ts-types";
 import * as Units from "@outsystems/ts2lang/ts-units";
-import * as Path from "path";
-import { existsSync } from "fs";
 
 const GeneratedFilesHeader = "/*** Auto-generated ***/";
 
@@ -11,8 +9,6 @@ const BaseModuleAliasName = "BaseModule";
 const PropertiesClassName = "Properties";
 const PropertiesInterfaceSuffix = "Properties";
 const BehaviorsInterfaceSuffix = "Behaviors";
-
-const ManifestFileName = "manifest.json";
 
 function f(input: string) {
     if (!input) {
@@ -49,8 +45,6 @@ class Generator {
         private baseComponentClass: string,
         private baseModuleClass: string,
         private baseComponentInterface: string,
-        private jsSources: string[],
-        private cssSources: string[],
         private isModule: boolean) {
 
         this.component = module.classes.filter(c => c.isPublic)[0];
@@ -260,12 +254,6 @@ class Generator {
             `    protected override string ModuleName => \"${this.filename}\";\n` +
             `    protected override object CreateNativeObject() => new ${PropertiesClassName}(this);\n` +
             `    protected override string[] Events => ${this.propsInterface ? `new string[] { ${this.propsInterface.functions.map(p => `"${p.name}"`).join(",")} }` : ``};\n` +
-            `    protected override string[] DependencyJsSources => ${this.jsSources ? `new string[] {\n` +
-            `        ${this.jsSources.map(o => `"${o}"`).join(",\n\t\t")}\n` +
-            `    }` : ``};\n` +
-            `    protected override string[] CssSources => ${this.cssSources ? `new string[] {\n` +
-            `        ${this.cssSources.map(o => `"${o}"`).join(",\n\t\t")}\n` +
-            `    }` : ``};\n` +
             `    protected override ${keyValuePairType}[] PropertiesValues {\n` +
             `        get { \n` +
             `            return new ${keyValuePairType}[] {\n` +
@@ -346,26 +334,9 @@ function combinePath(path: string, rest: string) {
     return path + (path.endsWith("/") ? "" : "/") + (rest.startsWith("/") ? rest.substr(1) : rest);
 }
 
-function getAllSources(entrypoint: string, namespace: string, manifestPath: string, entryFilter: (string) => boolean) {
-    let fullPath: string = Path.resolve(manifestPath);
-    if (existsSync(fullPath)) {
-        var jsonObject = require(fullPath);
-        if (jsonObject.hasOwnProperty(entrypoint)) {
-            return jsonObject[entrypoint].filter(entryFilter).map(outputPath => "/" + namespace + "/" + outputPath);
-        }
-    }
-    return [];
-}
-
 export function transform(module: Units.TsModule, context: Object): string {
     debugger; // left on purpose to ease debugging
     const JsExtension = ".js";
-    const CssExtension = ".css";
-
-    let emitComponent = context["emitComponent"] !== false;
-    let emitComponentInterface = context["emitComponentInterface"] !== false;
-    let emitComponentAdapter = context["emitComponentAdapter"] === true;
-    let emitViewObjects = context["emitViewObjects"] !== false;
 
     let namespace = context["namespace"];
     let baseDir = normalizePath(context["$baseDir"]);
@@ -386,13 +357,6 @@ export function transform(module: Units.TsModule, context: Object): string {
         javascriptRelativePath = combinePath(javascriptDistPath, javascriptRelativePath);
     }
 
-    let allSources: string[] = emitComponent ? 
-        getAllSources(filenameWithoutExtension,
-            namespace,
-            combinePath(baseDir, ManifestFileName),
-            file => !javascriptRelativePath.endsWith(file)) : // exclude the main module entrypoint
-        []; 
-
     let javascriptFullPath = combinePath(baseDir, javascriptRelativePath); // add the base dir
     javascriptRelativePath = "/" + combinePath(namespace, javascriptRelativePath); // add the namespace
 
@@ -409,10 +373,13 @@ export function transform(module: Units.TsModule, context: Object): string {
         context["baseComponentClass"],
         context["baseModuleClass"],
         context["baseComponentInterface"],
-        allSources.filter(s => s.endsWith(JsExtension)),
-        allSources.filter(s => s.endsWith(CssExtension)),
         context["isModule"]
     );
+
+    let emitComponent = context["emitComponent"] !== false;
+    let emitComponentInterface = context["emitComponentInterface"] !== false;
+    let emitComponentAdapter = context["emitComponentAdapter"] === true;
+    let emitViewObjects = context["emitViewObjects"] !== false;
 
     return generator.generateComponent(emitComponent, emitComponentInterface, emitComponentAdapter, emitViewObjects);
 }

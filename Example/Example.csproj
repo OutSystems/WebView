@@ -135,12 +135,12 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="ViewGenerator">
-      <Version>1.0.179</Version>
+      <Version>1.0.180</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="ViewGeneratorCore">
-      <Version>1.0.169</Version>
+      <Version>1.0.171</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>

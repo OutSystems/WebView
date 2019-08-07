@@ -12,6 +12,7 @@
     </BuildDependsOn>
 
     <CleanDependsOn>
+      VG_CleanLegacyEntryFiles;
       VG_CleanLegacyJSFiles;
       VG_CleanLegacyCSSFiles;
       $(CleanDependsOn);
@@ -41,17 +42,25 @@
       <ViewGeneratorPath>$([System.IO.Path]::GetFullPath(&quot;$(MSBuildThisFileDirectory)..\&quot;))</ViewGeneratorPath>
       <ViewGeneratorToolsPath>$(ViewGeneratorPath)tools</ViewGeneratorToolsPath>
       <ViewGeneratorContentFilesPath>$(ViewGeneratorPath)contentFiles\</ViewGeneratorContentFilesPath>
-    </PropertyGroup>
+  </PropertyGroup>
   </Target>
 
-  <Target Name="VG_LinkNodeModules" Condition="'$(FrameworkRelativePath)' != ''" >
-    <CallTarget Targets="VG_UnlinkNodeModules" Condition="Exists('$(ProjectDir)node_modules\webview.framework')" />
+  <Target Name="VG_LinkNodeModules" Condition="'$(PluginsRelativePath)' != ''" >
+    <CallTarget Targets="VG_UnlinkNodeModules" Condition="Exists('$(ProjectDir)node_modules\webview.plugins')" />
 
-    <Exec Command="mklink /D &quot;$(ProjectDir)node_modules\webview.framework&quot; &quot;$(ProjectDir)$(FrameworkRelativePath)node_modules&quot;" />
+    <Exec Command="mklink /D &quot;$(ProjectDir)node_modules\webview.plugins&quot; &quot;$(ProjectDir)$(PluginsRelativePath)node_modules&quot;" />
   </Target>
 
   <Target Name="VG_UnlinkNodeModules">
-    <RemoveDir Directories="$(ProjectDir)node_modules\webview.framework" />
+    <RemoveDir Directories="$(ProjectDir)node_modules\webview.plugins" />
+  </Target>
+    
+  <Target Name="VG_CleanLegacyEntryFiles" >
+    <ItemGroup>
+      <EntryFilesToDelete Include="**\*.entry" />
+    </ItemGroup>
+    <Message Text="Deleting old files: @(EntryFilesToDelete)" Importance="high" />
+    <Delete Files="@(EntryFilesToDelete)"/>
   </Target>
 
   <Target Name="VG_CleanLegacyJSFiles" >
@@ -96,13 +105,14 @@
 
     <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewGeneratorToolsPath)\node_modules\webpack\bin\webpack.js&quot; --config &quot;$(ViewGeneratorToolsPath)\$(WebpackConfigFileName).config.js&quot; --mode $(WebpackBuildMode)" />
 
-    <CallTarget Targets="VG_UnlinkNodeModules" Condition="Exists('$(ProjectDir)node_modules\webview.framework')" />
+    <CallTarget Targets="VG_UnlinkNodeModules" Condition="Exists('$(ProjectDir)node_modules\webview.plugins')" />
   </Target>
 
   <Target Name="VG_IncludeGeneratedResources" DependsOnTargets="VG_GenerateBundle">
     <ItemGroup>
       <EmbeddedResource Include="**\*.js" Exclude="node_modules\**\*.js" />
       <EmbeddedResource Include="**\*.css" Exclude="node_modules\**\*.css;**\*.min.css" />
+      <EmbeddedResource Include="**\*.entry" />
     </ItemGroup>
   </Target>
 
