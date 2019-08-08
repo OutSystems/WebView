@@ -4,7 +4,6 @@
     <BuildDependsOn>
       VG_SetVariables;
       VG_CopyContentFiles;
-      VG_InstallWebpackDependencies;
       VG_LinkNodeModules;
       VG_GenerateDefaultStyleSheet;
       VG_GenerateBundle;
@@ -79,7 +78,7 @@
     <Delete Files="@(CSSFilesToDelete)"/>
   </Target>
 
-  <Target Name="VG_GenerateDefaultStyleSheet" DependsOnTargets="VG_SetVariables;VG_InstallWebpackDependencies;VG_LinkNodeModules" Inputs="@(DefaultStyleSheet)" Outputs="%(DefaultStyleSheet.Filename).css" >
+  <Target Name="VG_GenerateDefaultStyleSheet" DependsOnTargets="VG_EnsureViewPackerInstalled;VG_SetVariables;VG_LinkNodeModules" Inputs="@(DefaultStyleSheet)" Outputs="%(DefaultStyleSheet.Filename).css" >
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
       <WebpackBuildMode>development</WebpackBuildMode>
     </PropertyGroup>
@@ -87,10 +86,14 @@
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
       <WebpackBuildMode>production</WebpackBuildMode>
     </PropertyGroup>
-    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewGeneratorToolsPath)\node_modules\webpack\bin\webpack.js&quot; --config &quot;$(ViewGeneratorToolsPath)\webpack_stylesheets.config.js&quot; --mode $(WebpackBuildMode) --entryPath &quot;%(DefaultStyleSheet.Identity)&quot;" />
+    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config &quot;$(ViewGeneratorToolsPath)\webpack_stylesheets.config.js&quot; --mode $(WebpackBuildMode) --entryPath &quot;%(DefaultStyleSheet.Identity)&quot;" />
   </Target>
 
-  <Target Name="VG_GenerateBundle" DependsOnTargets="VG_SetVariables;VG_CopyContentFiles;VG_InstallWebpackDependencies;VG_GenerateDefaultStyleSheet">
+  <Target Name="VG_EnsureViewPackerInstalled" Condition="'$(ViewPackerToolScript)' == ''">
+    <Error Text="View Packer dependency is not installed" />
+  </Target>
+  
+  <Target Name="VG_GenerateBundle" DependsOnTargets="VG_EnsureViewPackerInstalled;VG_SetVariables;VG_CopyContentFiles;VG_GenerateDefaultStyleSheet">
     <PropertyGroup Condition="'$(WebpackConfigFileName)' == ''">
       <WebpackConfigFileName>webpack_views</WebpackConfigFileName>
     </PropertyGroup>
@@ -103,7 +106,7 @@
       <WebpackBuildMode>production</WebpackBuildMode>
     </PropertyGroup>
 
-    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewGeneratorToolsPath)\node_modules\webpack\bin\webpack.js&quot; --config &quot;$(ViewGeneratorToolsPath)\$(WebpackConfigFileName).config.js&quot; --mode $(WebpackBuildMode)" />
+    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config &quot;$(ViewGeneratorToolsPath)\$(WebpackConfigFileName).config.js&quot; --mode $(WebpackBuildMode)" />
 
     <CallTarget Targets="VG_UnlinkNodeModules" Condition="Exists('$(ProjectDir)node_modules\webview.plugins')" />
   </Target>
@@ -114,12 +117,6 @@
       <EmbeddedResource Include="**\*.css" Exclude="node_modules\**\*.css;**\*.min.css" />
       <EmbeddedResource Include="**\*.entry" />
     </ItemGroup>
-  </Target>
-
-  <Target Name="VG_InstallWebpackDependencies" DependsOnTargets="VG_SetVariables" Condition="!Exists('$(ViewGeneratorToolsPath)\package.json.cache') OR $([System.IO.File]::GetLastWriteTime('$(ViewGeneratorToolsPath)\package.json').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(ViewGeneratorToolsPath)\package.json.cache').Ticks)">
-    <Message Importance="Normal" Text="Installing node modules (at $(ViewGeneratorToolsPath))" />
-    <Copy SourceFiles="$(ViewGeneratorToolsPath)\package.json" DestinationFiles="$(ViewGeneratorToolsPath)\package.json.cache" />
-    <Exec Command="&quot;$(ViewGeneratorNodeJsPath)npm&quot; --prefix &quot;$(ViewGeneratorToolsPath)&quot; install &quot;$(ViewGeneratorToolsPath)&quot; --scripts-prepend-node-path" />
   </Target>
   
   <Target Name="VG_CopyContentFiles" DependsOnTargets="VG_SetVariables" Condition="!Exists('$(ProjectDir)viewgenerator.cache') OR $([System.IO.File]::GetLastWriteTime('$(ViewGeneratorContentFilesPath)viewgenerator.cache').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(ProjectDir)viewgenerator.cache').Ticks)">

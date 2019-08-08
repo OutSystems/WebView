@@ -1,4 +1,12 @@
-﻿declare module "*.jpg" {
+﻿/// built-in web-components
+declare namespace JSX {
+    interface IntrinsicElements {
+        'view-frame': { id: string };
+    }
+}
+
+/// images support
+declare module "*.jpg" {
     const value: any;
     export = value;
 }

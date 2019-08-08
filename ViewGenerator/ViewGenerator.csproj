@@ -53,7 +53,6 @@
   <ItemGroup>
     <TypeScriptCompile Include="contentFiles\global.d.ts" />
     <TypeScriptCompile Include="contentFiles\node_modules\%40types\PluginsProvider.d.ts" />
-    <TypeScriptCompile Include="contentFiles\node_modules\%40types\ViewFrame.d.ts" />
     <TypeScriptCompile Include="tools\webpack\webpack_plugins.config.ts" />
     <None Include="build\ViewGenerator.props" />
     <None Include="contentFiles\ts2lang.json" />
@@ -89,7 +88,7 @@
 npm install --no-bin-links --prefix "$(ProjectDir)contentFiles" "$(ProjectDir)contentFiles"</PreBuildEvent>
   </PropertyGroup>
   <Target Name="TouchCacheFile" BeforeTargets="PrepareForBuild">
-    <Touch Files="$(ProjectDir)contentFiles\viewgenerator.cache"/>
+    <Touch Files="$(ProjectDir)contentFiles\viewgenerator.cache" />
   </Target>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

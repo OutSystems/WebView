@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Web;
 using WebViewControl;
 
 namespace ReactViewControl {
@@ -12,6 +13,14 @@ namespace ReactViewControl {
         private const string CssEntryFileExtension = ".css.entry";
 
         private IExecutionEngine engine;
+
+        public ViewModuleContainer() {
+            DependencyJsSourcesCache = new Lazy<string[]>(() => GetDependenciesFromEntriesFile(JsEntryFileExtension));
+            CssSourcesCache = new Lazy<string[]>(() => GetDependenciesFromEntriesFile(CssEntryFileExtension));
+        }
+
+        private Lazy<string[]> DependencyJsSourcesCache { get; }
+        private Lazy<string[]> CssSourcesCache { get; }
 
         protected virtual string MainJsSource => null;
         protected virtual string NativeObjectName => null;
@@ -40,9 +49,9 @@ namespace ReactViewControl {
 
         string[] IViewModule.Events => Events;
 
-        string[] IViewModule.DependencyJsSources => GetDependenciesFromEntriesFile(JsEntryFileExtension);
+        string[] IViewModule.DependencyJsSources => DependencyJsSourcesCache.Value;
 
-        string[] IViewModule.CssSources => GetDependenciesFromEntriesFile(CssEntryFileExtension);
+        string[] IViewModule.CssSources => CssSourcesCache.Value;
 
         KeyValuePair<string, object>[] IViewModule.PropertiesValues => PropertiesValues;
 
@@ -61,7 +70,7 @@ namespace ReactViewControl {
         }
 
         private string[] GetDependenciesFromEntriesFile(string extension) {
-            var entriesFilePath = MainJsSource.Substring(0, MainJsSource.LastIndexOf(".")) + extension;
+            var entriesFilePath = VirtualPathUtility.GetDirectory(MainJsSource) + Path.GetFileNameWithoutExtension(MainJsSource) + extension;
             var resource = entriesFilePath.Split(new[] { ResourceUrl.PathSeparator }, StringSplitOptions.RemoveEmptyEntries);
 
             var stream = ResourcesManager.TryGetResourceWithFullPath(resource.First(), resource);
@@ -69,12 +78,11 @@ namespace ReactViewControl {
                 using (var reader = new StreamReader(stream)) {
                     var allEntries = reader.ReadToEnd();
                     if (allEntries != null && allEntries != string.Empty) {
-                        return allEntries.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+                        return allEntries.Split(new[] { "\n" }, StringSplitOptions.RemoveEmptyEntries);
                     }
                 }
             }
             return new string[0];
         }
-
     }
 }

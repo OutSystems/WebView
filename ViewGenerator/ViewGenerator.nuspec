@@ -2,13 +2,14 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>ViewGenerator</id>
-    <version>1.0.181</version>
+    <version>1.0.183</version>
     <authors>jmn</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <developmentDependency>true</developmentDependency>
     <description>Generates .NET Types from typescript</description>
     <dependencies>
-      <dependency id="ViewGeneratorCore" version="1.0.171" />
+      <dependency id="ViewGeneratorCore" version="1.0.174" />
+      <dependency id="ViewPacker" version="1.0.0" />
       <dependency id="OutSystems.ESLint.MSBuild" version="1.0.7" />
     </dependencies>
   </metadata>
@@ -19,7 +20,6 @@
     <file src="tools\webpack\webpack_views.config.js" target="tools\webpack_views.config.js"/>
     <file src="tools\webpack\webpack_plugins.config.js" target="tools\webpack_plugins.config.js"/>
     <file src="tools\webpack\webpack_stylesheets.config.js" target="tools\webpack_stylesheets.config.js"/>
-    <file src="tools\package.json" target="tools\package.json" />
     <file src="readme.txt" target="" />
   </files>
 </package>

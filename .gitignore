@@ -32,3 +32,4 @@ ViewGenerator/contentFiles/node_modules/@types/
 ViewGenerator/contentFiles/node_modules/
 Example/package-lock.json
 Example/viewgenerator.cache
+ViewPacker/tools/node_modules/
