@@ -106,7 +106,7 @@
       <WebpackBuildMode>production</WebpackBuildMode>
     </PropertyGroup>
 
-    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config &quot;$(ViewGeneratorToolsPath)\$(WebpackConfigFileName).config.js&quot; --mode $(WebpackBuildMode)" />
+    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config &quot;$(ViewGeneratorToolsPath)\$(WebpackConfigFileName).config.js&quot; --mode $(WebpackBuildMode) --pluginsRelativePath &quot;$(PluginsRelativePath)&quot;" />
 
     <CallTarget Targets="VG_UnlinkNodeModules" Condition="Exists('$(ProjectDir)node_modules\webview.plugins')" />
   </Target>

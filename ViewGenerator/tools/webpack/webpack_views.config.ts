@@ -129,6 +129,40 @@ function customErrorFormatter(error, colors) {
     return messageColor(error.file) + errorMsg;
 }
 
+/** 
+ *  Get aliases and externals from a configuration file, if exists
+ * */
+function generateExtendedConfig(pluginsRelativePath: string): void {
+
+    let pluginsPath: string = pluginsRelativePath.replace("\\", "\/");
+
+    let webpackOutputConfigFile = Path.resolve(pluginsPath, "webpack-output-config.json");
+    if (existsSync(webpackOutputConfigFile)) {
+        let outputConfig = require(webpackOutputConfigFile);
+
+        let allAliases = outputConfig.alias;
+        if (allAliases) {
+            Object.keys(allAliases).forEach(key => aliasMap[key] = Path.resolve(pluginsPath, allAliases[key]));
+        }
+
+        let allExternals = outputConfig.externals;
+        if (allExternals) {
+            Object.keys(allExternals).forEach(key => {
+
+                let library: string[] = allExternals[key];
+                let entry: string = library[library.length - 1];
+                let record: Record<string, string> = {};
+
+                record["commonjs"] = entry;
+                record["commonjs2"] = entry;
+                record["root"] = allExternals[key];
+
+                externalsObjElement[key] = record;
+            });
+        }
+    }
+}
+
 // 🔨 Webpack allows strings and functions as its output configurations,
 // however, webpack typings only allow strings at the moment. 🔨
 let getOutputFileName: any = (chunkData) => {
@@ -141,35 +175,6 @@ let getOutputFileName: any = (chunkData) => {
 require(Path.resolve("./ts2lang.json")).tasks.forEach(t =>
     getConfiguration(t.input, t.output, t.parameters.namespace)
 );
-
-/** 
- *  Get aliases and externals from a configuration file, if exists
- * */
-let webpackOutputConfigFile = Path.resolve("./webpack-output-config.json");
-if (existsSync(webpackOutputConfigFile)) {
-    let outputConfig = require(webpackOutputConfigFile);
-
-    let allAliases = outputConfig.alias;
-    if (allAliases) {
-        Object.keys(allAliases).forEach(key => aliasMap[key] = Path.resolve(".", allAliases[key]));
-    }
-
-    let allExternals = outputConfig.externals;
-    if (allExternals) {
-        Object.keys(allExternals).forEach(key => {
-
-            let library: string[] = allExternals[key];
-            let entry: string = library[library.length - 1];
-            let record: Record<string, string> = {};
-
-            record["commonjs"] = entry;
-            record["commonjs2"] = entry;
-            record["root"] = allExternals[key];
-
-            externalsObjElement[key] = record;
-        });
-    }
-}
 
 let standardConfig: Webpack.Configuration = {
     entry: entryMap,
@@ -290,11 +295,16 @@ const config = (_, argv) => {
         standardConfig.devtool = "inline-source-map";
     }
 
-    if (Object.keys(aliasMap).length > 0) {
-        standardConfig.resolve.alias = aliasMap;
-    }
+    if (argv.pluginsRelativePath) {
 
-    Object.keys(externalsObjElement).forEach(key => standardConfig.externals[key] = externalsObjElement[key]);
+        generateExtendedConfig(argv.pluginsRelativePath);
+
+        if (Object.keys(aliasMap).length > 0) {
+            standardConfig.resolve.alias = aliasMap;
+        }
+
+        Object.keys(externalsObjElement).forEach(key => standardConfig.externals[key] = externalsObjElement[key]);
+    }
 
     return standardConfig;
 };
