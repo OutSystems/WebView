@@ -9,6 +9,5 @@
   </ItemGroup>
   <PropertyGroup>
     <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
-    <ViewGeneratorNodeJsExe>node</ViewGeneratorNodeJsExe>
   </PropertyGroup>
 </Project>

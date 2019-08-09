@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>ViewPacker</id>
-    <version>1.0.0</version>
+    <version>1.0.8</version>
     <authors>jmn</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <developmentDependency>true</developmentDependency>
@@ -10,6 +10,6 @@
   </metadata>
   <files>
     <file src="build\**" target="build" />
-    <file src="tools\**" target="tools"/>
+    <file src="tools\**" exclude="**\LICENSE;**\README.md;**\*.txt" target="tools"/>
   </files>
 </package>

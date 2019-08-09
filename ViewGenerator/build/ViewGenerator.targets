@@ -11,6 +11,7 @@
     </BuildDependsOn>
 
     <CleanDependsOn>
+      VG_UnlinkNodeModules;
       VG_CleanLegacyEntryFiles;
       VG_CleanLegacyJSFiles;
       VG_CleanLegacyCSSFiles;
@@ -23,34 +24,23 @@
     </PrepareResourceNamesDependsOn>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(ViewGeneratorNodeJsPath)' == ''">
-    <!-- Best effort probing for node.exe in the VS install folder. If not found, then we assume node is already installed and on the system path. -->
-    <ViewGeneratorNodeJsPath Condition="'$(OS)' == 'Windows_NT' AND Exists('$(MSBuildExtensionsPath)\Microsoft\VisualStudio\NodeJs\node.exe')">$(MSBuildExtensionsPath)\Microsoft\VisualStudio\NodeJs\</ViewGeneratorNodeJsPath>
-
-    <!--Legacy node.exe path for VS -->
-    <ViewGeneratorNodeJsPath Condition="'$(ViewGeneratorNodeJsPath)' == '' AND '$(OS)' == 'Windows_NT' AND Exists('$(VsInstallRoot)\Common7\IDE\CommonExtensions\Microsoft\NodeJs\node.exe')">$(VsInstallRoot)\Common7\IDE\CommonExtensions\Microsoft\NodeJs\</ViewGeneratorNodeJsPath>
-
-    <!--Another legacy node.exe path for VS -->
-    <ViewGeneratorNodeJsPath Condition="'$(ViewGeneratorNodeJsPath)' == '' AND '$(OS)' == 'Windows_NT' AND Exists('$(VsInstallRoot)\Web\External\x86\node.exe')">$(VsInstallRoot)\Web\External\x86\</ViewGeneratorNodeJsPath>
-
-    <ViewGeneratorNodeJsExe>$(ViewGeneratorNodeJsPath)node.exe</ViewGeneratorNodeJsExe>
-  </PropertyGroup>
-
   <Target Name="VG_SetVariables">
+    <ItemGroup>
+      <_ViewGeneratorNodeJsExe Include="$(MSBuildThisFileDirectory)..\..\Node.js.redist.*\tools\win-x64\node.exe"/>
+    </ItemGroup>
     <PropertyGroup>
       <ViewGeneratorPath>$([System.IO.Path]::GetFullPath(&quot;$(MSBuildThisFileDirectory)..\&quot;))</ViewGeneratorPath>
       <ViewGeneratorToolsPath>$(ViewGeneratorPath)tools</ViewGeneratorToolsPath>
       <ViewGeneratorContentFilesPath>$(ViewGeneratorPath)contentFiles\</ViewGeneratorContentFilesPath>
-  </PropertyGroup>
+      <ViewGeneratorNodeJsExe>@(_ViewGeneratorNodeJsExe)</ViewGeneratorNodeJsExe>
+    </PropertyGroup>
   </Target>
 
-  <Target Name="VG_LinkNodeModules" Condition="'$(PluginsRelativePath)' != ''" >
-    <CallTarget Targets="VG_UnlinkNodeModules" Condition="Exists('$(ProjectDir)node_modules\webview.plugins')" />
-
-    <Exec Command="mklink /D &quot;$(ProjectDir)node_modules\webview.plugins&quot; &quot;$(ProjectDir)$(PluginsRelativePath)node_modules&quot;" />
+  <Target Name="VG_LinkNodeModules" Condition="'$(PluginsRelativePath)' != '' AND !Exists('$(ProjectDir)node_modules\webview.plugins')" >
+    <Exec Command="mklink /J &quot;$(ProjectDir)node_modules\webview.plugins&quot; &quot;$(ProjectDir)$(PluginsRelativePath)node_modules&quot;" />
   </Target>
 
-  <Target Name="VG_UnlinkNodeModules">
+  <Target Name="VG_UnlinkNodeModules" Condition="Exists('$(ProjectDir)node_modules\webview.plugins')">
     <RemoveDir Directories="$(ProjectDir)node_modules\webview.plugins" />
   </Target>
     
@@ -78,7 +68,11 @@
     <Delete Files="@(CSSFilesToDelete)"/>
   </Target>
 
-  <Target Name="VG_GenerateDefaultStyleSheet" DependsOnTargets="VG_EnsureViewPackerInstalled;VG_SetVariables;VG_LinkNodeModules" Inputs="@(DefaultStyleSheet)" Outputs="%(DefaultStyleSheet.Filename).css" >
+  <Target Name="VG_SetupViewPacker" DependsOnTargets="VG_EnsureViewPackerInstalled" Condition="!Exists('$(ViewGeneratorToolsPath)\webpack\node_modules')">
+    <Exec Command="mklink /J &quot;$(ViewGeneratorToolsPath)\webpack\node_modules&quot; &quot;$(ViewPackerToolNodeModules)&quot;" />
+  </Target>
+  
+  <Target Name="VG_GenerateDefaultStyleSheet" DependsOnTargets="VG_SetupViewPacker;VG_SetVariables;VG_LinkNodeModules" Inputs="@(DefaultStyleSheet)" Outputs="%(DefaultStyleSheet.Filename).css" >
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
       <WebpackBuildMode>development</WebpackBuildMode>
     </PropertyGroup>
@@ -86,14 +80,14 @@
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
       <WebpackBuildMode>production</WebpackBuildMode>
     </PropertyGroup>
-    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config &quot;$(ViewGeneratorToolsPath)\webpack_stylesheets.config.js&quot; --mode $(WebpackBuildMode) --entryPath &quot;%(DefaultStyleSheet.Identity)&quot;" />
+    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config &quot;$(ViewGeneratorToolsPath)\webpack\webpack_stylesheets.config.js&quot; --mode $(WebpackBuildMode) --entryPath &quot;%(DefaultStyleSheet.Identity)&quot;" />
   </Target>
 
   <Target Name="VG_EnsureViewPackerInstalled" Condition="'$(ViewPackerToolScript)' == ''">
     <Error Text="View Packer dependency is not installed" />
   </Target>
   
-  <Target Name="VG_GenerateBundle" DependsOnTargets="VG_EnsureViewPackerInstalled;VG_SetVariables;VG_CopyContentFiles;VG_GenerateDefaultStyleSheet">
+  <Target Name="VG_GenerateBundle" DependsOnTargets="VG_SetupViewPacker;VG_SetVariables;VG_CopyContentFiles;VG_GenerateDefaultStyleSheet">
     <PropertyGroup Condition="'$(WebpackConfigFileName)' == ''">
       <WebpackConfigFileName>webpack_views</WebpackConfigFileName>
     </PropertyGroup>
@@ -106,9 +100,7 @@
       <WebpackBuildMode>production</WebpackBuildMode>
     </PropertyGroup>
 
-    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config &quot;$(ViewGeneratorToolsPath)\$(WebpackConfigFileName).config.js&quot; --mode $(WebpackBuildMode)" />
-
-    <CallTarget Targets="VG_UnlinkNodeModules" Condition="Exists('$(ProjectDir)node_modules\webview.plugins')" />
+    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config &quot;$(ViewGeneratorToolsPath)\webpack\$(WebpackConfigFileName).config.js&quot; --mode $(WebpackBuildMode)" />
   </Target>
 
   <Target Name="VG_IncludeGeneratedResources" DependsOnTargets="VG_GenerateBundle">

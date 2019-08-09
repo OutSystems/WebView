@@ -1,5 +1,6 @@
 ﻿<Project>
   <PropertyGroup>
-    <ViewPackerToolScript>$([System.IO.Path]::GetFullPath(&quot;$(MSBuildThisFileDirectory)..\tools\node_modules\webpack\bin\webpack.js&quot;))</ViewPackerToolScript>
+    <ViewPackerToolNodeModules>$([System.IO.Path]::GetFullPath(&quot;$(MSBuildThisFileDirectory)..\tools\node_modules\&quot;))</ViewPackerToolNodeModules>
+    <ViewPackerToolScript>$(ViewPackerToolNodeModules)webpack\bin\webpack.js</ViewPackerToolScript>
   </PropertyGroup>
 </Project>
