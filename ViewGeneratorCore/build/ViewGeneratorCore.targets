@@ -20,7 +20,8 @@
 
   <Target Name="VGC_SetVariables">
     <ItemGroup>
-      <_ViewGeneratorCoreNodeJsExe Include="$(MSBuildThisFileDirectory)..\..\Node.js.redist.*\tools\win-x64\node.exe"/>
+      <_ViewGeneratorCoreNodeJsExe Include="$(MSBuildThisFileDirectory)..\..\..\Node.js.redist\*\tools\win-x64\node.exe"/>
+      <_ViewGeneratorCoreNodeJsExe Include="$(MSBuildThisFileDirectory)..\..\Node.js.redist*\tools\win-x64\node.exe"/>
     </ItemGroup>
     <PropertyGroup>
       <ViewGeneratorCoreNodeJsExe>@(_ViewGeneratorCoreNodeJsExe)</ViewGeneratorCoreNodeJsExe>

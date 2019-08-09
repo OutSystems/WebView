@@ -25,15 +25,16 @@
   </PropertyGroup>
 
   <Target Name="VG_SetVariables">
-    <ItemGroup>
-      <_ViewGeneratorNodeJsExe Include="$(MSBuildThisFileDirectory)..\..\Node.js.redist.*\tools\win-x64\node.exe"/>
+    <ItemGroup>     
+      <_ViewGeneratorNodeJsExe Include="$(MSBuildThisFileDirectory)..\..\..\Node.js.redist\*\tools\win-x64\node.exe"/>
+      <_ViewGeneratorNodeJsExe Include="$(MSBuildThisFileDirectory)..\..\Node.js.redist*\tools\win-x64\node.exe"/>
     </ItemGroup>
     <PropertyGroup>
       <ViewGeneratorPath>$([System.IO.Path]::GetFullPath(&quot;$(MSBuildThisFileDirectory)..\&quot;))</ViewGeneratorPath>
       <ViewGeneratorToolsPath>$(ViewGeneratorPath)tools</ViewGeneratorToolsPath>
       <ViewGeneratorContentFilesPath>$(ViewGeneratorPath)contentFiles\</ViewGeneratorContentFilesPath>
       <ViewGeneratorNodeJsExe>@(_ViewGeneratorNodeJsExe)</ViewGeneratorNodeJsExe>
-  </PropertyGroup>
+    </PropertyGroup>
   </Target>
 
   <Target Name="VG_LinkNodeModules" Condition="'$(PluginsRelativePath)' != '' AND !Exists('$(ProjectDir)node_modules\webview.plugins')" >
