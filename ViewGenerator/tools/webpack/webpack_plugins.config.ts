@@ -194,6 +194,8 @@ var standardConfig: Webpack.Configuration = {
         devtoolNamespace: "Plugins"
     },
 
+    node: false,
+
     resolveLoader: {
         modules: [Path.join(__dirname, "/node_modules")],
     },

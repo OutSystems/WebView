@@ -210,6 +210,8 @@ let standardConfig: Webpack.Configuration = {
         }
     },
 
+    node: false,
+
     resolveLoader: {
         modules: [Path.join(__dirname, "/node_modules")],
     },
