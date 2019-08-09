@@ -81,7 +81,7 @@
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
       <WebpackBuildMode>production</WebpackBuildMode>
     </PropertyGroup>
-    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config &quot;$(ViewGeneratorToolsPath)\webpack\webpack_stylesheets.config.js&quot; --mode $(WebpackBuildMode) --entryPath &quot;%(DefaultStyleSheet.Identity)&quot;" />
+    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config '$(ViewGeneratorToolsPath)\webpack\webpack_stylesheets.config.js' --mode $(WebpackBuildMode) --entryPath &quot;%(DefaultStyleSheet.Identity)&quot;" />
   </Target>
 
   <Target Name="VG_EnsureViewPackerInstalled" Condition="'$(ViewPackerToolScript)' == ''">
@@ -101,7 +101,7 @@
       <WebpackBuildMode>production</WebpackBuildMode>
     </PropertyGroup>
 
-    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config &quot;$(ViewGeneratorToolsPath)\webpack\$(WebpackConfigFileName).config.js&quot; --mode $(WebpackBuildMode) --pluginsRelativePath &quot;$(PluginsRelativePath)&quot;" />
+    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config '$(ViewGeneratorToolsPath)\webpack\$(WebpackConfigFileName).config.js' --mode $(WebpackBuildMode) --pluginsRelativePath '$(PluginsRelativePath)'" />
   </Target>
 
   <Target Name="VG_IncludeGeneratedResources" DependsOnTargets="VG_GenerateBundle">

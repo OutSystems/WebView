@@ -134,7 +134,7 @@ function customErrorFormatter(error, colors) {
  * */
 function generateExtendedConfig(pluginsRelativePath: string): void {
 
-    let pluginsPath: string = pluginsRelativePath.replace("\\", "\/");
+    let pluginsPath: string = pluginsRelativePath.replace(/\\/g, "/")
 
     let webpackOutputConfigFile = Path.resolve(pluginsPath, "webpack-output-config.json");
     if (existsSync(webpackOutputConfigFile)) {
@@ -160,6 +160,8 @@ function generateExtendedConfig(pluginsRelativePath: string): void {
                 externalsObjElement[key] = record;
             });
         }
+    } else {
+        throw new Error("Extended configuration file not found.");
     }
 }
 
