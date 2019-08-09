@@ -33,7 +33,7 @@
       <ViewGeneratorToolsPath>$(ViewGeneratorPath)tools</ViewGeneratorToolsPath>
       <ViewGeneratorContentFilesPath>$(ViewGeneratorPath)contentFiles\</ViewGeneratorContentFilesPath>
       <ViewGeneratorNodeJsExe>@(_ViewGeneratorNodeJsExe)</ViewGeneratorNodeJsExe>
-    </PropertyGroup>
+  </PropertyGroup>
   </Target>
 
   <Target Name="VG_LinkNodeModules" Condition="'$(PluginsRelativePath)' != '' AND !Exists('$(ProjectDir)node_modules\webview.plugins')" >
@@ -100,7 +100,7 @@
       <WebpackBuildMode>production</WebpackBuildMode>
     </PropertyGroup>
 
-    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config &quot;$(ViewGeneratorToolsPath)\webpack\$(WebpackConfigFileName).config.js&quot; --mode $(WebpackBuildMode)" />
+    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config &quot;$(ViewGeneratorToolsPath)\webpack\$(WebpackConfigFileName).config.js&quot; --mode $(WebpackBuildMode) --pluginsRelativePath &quot;$(PluginsRelativePath)&quot;" />
   </Target>
 
   <Target Name="VG_IncludeGeneratedResources" DependsOnTargets="VG_GenerateBundle">
