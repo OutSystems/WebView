@@ -53,6 +53,16 @@
   <ItemGroup>
     <TypeScriptCompile Include="contentFiles\global.d.ts" />
     <TypeScriptCompile Include="contentFiles\node_modules\%40types\PluginsProvider.d.ts" />
+    <TypeScriptCompile Include="tools\webpack\Plugins\MiniCssExtractPluginCleanup.ts" />
+    <TypeScriptCompile Include="tools\webpack\Plugins\RenameChunksPlugin.ts" />
+    <TypeScriptCompile Include="tools\webpack\Plugins\Resources.ts" />
+    <TypeScriptCompile Include="tools\webpack\Plugins\CommonConfiguration.ts" />
+    <TypeScriptCompile Include="tools\webpack\Plugins\Utils.ts" />
+    <TypeScriptCompile Include="tools\webpack\Plugins\DtsCleanupPlugin.ts" />
+    <TypeScriptCompile Include="tools\webpack\Plugins\DtsGeneratorPlugin.ts" />
+    <TypeScriptCompile Include="tools\webpack\Rules\Files.ts" />
+    <TypeScriptCompile Include="tools\webpack\Rules\Sass.ts" />
+    <TypeScriptCompile Include="tools\webpack\Rules\TypeScript.ts" />
     <TypeScriptCompile Include="tools\webpack\webpack_plugins.config.ts" />
     <None Include="build\ViewGenerator.props" />
     <None Include="contentFiles\ts2lang.json" />

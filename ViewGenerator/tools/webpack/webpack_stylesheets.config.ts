@@ -1,110 +1,49 @@
 ﻿import MiniCssExtractPlugin from "mini-css-extract-plugin";
-import Path from "path";
-import Webpack, { Compiler } from "webpack";
+import { join } from "path";
+import { Configuration } from "webpack";
 
-const OutputFolder: string = "Generated";
+import MiniCssExtractPluginCleanup from "./Plugins/MiniCssExtractPluginCleanup";
+import { CssPlaceholder, JsMapPlaceholder, OutputDirectoryDefault } from "./Plugins/Resources";
+import { Dictionary, getCurrentDirectory } from "./Plugins/Utils"
 
-class MiniCssExtractPluginCleanup {
-
-    private patterns: RegExp[];
-
-    constructor(patterns) {
-        this.patterns = patterns;
-    }
-
-    apply(compiler: Compiler) {
-        compiler.hooks.emit.tapAsync("MiniCssExtractPluginCleanup", (compilation, callback) => {
-            Object.keys(compilation.assets)
-                .filter(asset => this.patterns.some(p => p.test(asset)))
-                .forEach(asset => {
-                    delete compilation.assets[asset];
-                });
-            callback();
-        });
-    }
-}
+import ResourcesRuleSet from "./Rules/Files";
+import SassRuleSet from "./Rules/Sass";
 
 const config = (_, argv) => {
 
-    let entryPath: string = argv.entryPath;
+    let entryPath: string = argv.entryPath; // should be only one path
     let fileExtensionLen: number = entryPath.length - entryPath.lastIndexOf(".");
     let entryName: string = entryPath.slice(entryPath.lastIndexOf("\\") + 1, -fileExtensionLen);
-    let entryMap: { [entry: string]: string } = {};
+    let entryMap: Dictionary<string> = {};
+
     entryMap[entryName] = './' + entryPath;
 
-    var customConfig: Webpack.Configuration = {
+    let stylesheetsConfig: Configuration = {
         entry: entryMap,
 
         output: {
-            path: Path.resolve('.'),
-            filename: '[name].js.map'
+            path: getCurrentDirectory(),
+            filename: JsMapPlaceholder
         },
 
         resolveLoader: {
-            modules: [Path.join(__dirname, '/node_modules')],
+            modules: [ join(__dirname, "/node_modules") ],
         },
 
         module: {
             rules: [
-                {
-                    test: /\.(sa|sc|c)ss$/,
-                    use: [
-                        {
-                            loader: MiniCssExtractPlugin.loader,
-                            options: {
-                                hmr: false
-                            }
-                        },
-                        "css-loader",
-                        {
-                            loader: "resolve-url-loader",
-                            options: {
-                                keepQuery: true
-                            }
-                        },
-                        {
-                            loader: "sass-loader",
-                            options: {
-                                sourceMap: true,
-                                sourceMapContents: false
-                            }
-                        }
-                    ]
-                },
-                {
-                    test: /\.(png|jpg|jpeg|bmp|gif|woff|woff2|ico|svg)$/,
-                    use: [
-                        {
-                            loader: 'file-loader',
-                            options: {
-                                emitFile: false,
-                                name: '[path][name].[ext]',
-                                publicPath: (url: string, _, __) => {
-
-                                    // relative paths starting with ".." are replaced by "_"
-                                    if (url.startsWith("_")) {
-                                        return url.substring(1); 
-                                    }
-
-                                    return `/${Path.basename(Path.resolve("."))}/${url}`;
-                                }
-                            },
-                        },
-                    ],
-                }
+                SassRuleSet,
+                ResourcesRuleSet
             ]
         },
 
         plugins: [
-            new MiniCssExtractPlugin({
-                filename: OutputFolder + '/[name].css'
-            }),
+            new MiniCssExtractPlugin({ filename: OutputDirectoryDefault + CssPlaceholder }),
             new MiniCssExtractPluginCleanup([/\.js.map$/])
         ]
-
     }
 
-    return customConfig;
+    return stylesheetsConfig;
 };
 
 export default config;

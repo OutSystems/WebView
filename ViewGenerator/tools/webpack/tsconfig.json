@@ -7,7 +7,6 @@
   "compileOnSave": true,
   "exclude": [
     "dist",
-    "src",
     "node_modules"
   ]
 }
