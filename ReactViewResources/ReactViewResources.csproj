@@ -65,7 +65,6 @@
     <EmbeddedResource Include="index.html" />
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="Dictionary.d.ts" />
     <TypeScriptCompile Include="Loader.ts" />
   </ItemGroup>
   <ItemGroup>

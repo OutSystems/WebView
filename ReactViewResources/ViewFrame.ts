@@ -13,8 +13,8 @@ class ViewFrame extends HTMLElement {
         const root = this.attachShadow({ mode: "closed" });
         
         // get sticky stylesheets
-        const mainView = Common.getViewElement("");
-        const stylesheets = Common.getStylesheets(mainView.stylesheetsContainer).filter(s => s.dataset.sticky === "true");
+        const mainView = Common.getView(Common.mainFrameName);
+        const stylesheets = Common.getStylesheets(mainView.head).filter(s => s.dataset.sticky === "true");
 
         this.headElement = document.createElement("head");
 
@@ -36,11 +36,11 @@ class ViewFrame extends HTMLElement {
 
         root.appendChild(body);
 
-        Common.addViewElement(this.id, this.rootElement, this.headElement);
+        Common.addView(this.id, this.rootElement, this.headElement);
     }
 
     public disconnectedCallback() {
-        Common.removeViewElement(this.id);
+        Common.removeView(this.id);
     }
 }
 
