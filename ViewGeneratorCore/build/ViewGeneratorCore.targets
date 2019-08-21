@@ -26,7 +26,7 @@
     </ParameterGroup>
     <Task>
       <Code Type="Fragment" Language="cs">
-        <![CDATA[Item = Items[ Index ];]]>
+        <![CDATA[Item = Items.Length > Index ? Items[ Index ] : null;]]>
       </Code>
     </Task>
   </UsingTask>
@@ -36,11 +36,11 @@
       <_ViewGeneratorCoreNodeJsExe Include="$(MSBuildThisFileDirectory)..\..\..\Node.js.redist\*\tools\win-x64\node.exe"/>
       <_ViewGeneratorCoreNodeJsExe Include="$(MSBuildThisFileDirectory)..\..\Node.js.redist*\tools\win-x64\node.exe"/>
     </ItemGroup>
-    <IndexItemGroup Items="@(_ViewGeneratorNodeJsExe)" Index="0">
-      <Output PropertyName="_ViewGeneratorNodeJsExeFirst" TaskParameter="Item"/>
+    <IndexItemGroup Items="@(_ViewGeneratorCoreNodeJsExe)" Index="0">
+      <Output PropertyName="_ViewGeneratorCoreNodeJsExeFirst" TaskParameter="Item"/>
     </IndexItemGroup>
     <PropertyGroup>
-      <ViewGeneratorCoreNodeJsExe>$(_ViewGeneratorNodeJsExeFirst)</ViewGeneratorCoreNodeJsExe>
+      <ViewGeneratorCoreNodeJsExe>$(_ViewGeneratorCoreNodeJsExeFirst)</ViewGeneratorCoreNodeJsExe>
     </PropertyGroup>
   </Target>
   
