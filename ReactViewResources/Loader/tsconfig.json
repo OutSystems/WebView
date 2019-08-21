@@ -1,7 +1,7 @@
 ﻿{
     "compilerOptions": {
         "outDir": ".",
-        "module": "es6",
+        "module": "amd",
         "target": "es2017",
         "sourceMap": false,
         "moduleResolution": "node",
@@ -11,14 +11,14 @@
         "noImplicitReturns": true,
         "noImplicitThis": true,
         "strictNullChecks": true,
-        "noImplicitAny": true,
+        "noImplicitAny": false,
         "suppressImplicitAnyIndexErrors": true,
-        "removeComments": true
+        "removeComments": true,
+        "allowSyntheticDefaultImports": true,
+        "outFile": "_Loader.js"
     },
-    "compileOnSave": true,
+    "compileOnSave": false,
     "exclude": [
-        "libs",
-        "webpack",
         "node_modules"
     ]
 }

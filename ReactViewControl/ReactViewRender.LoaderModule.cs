@@ -87,8 +87,7 @@ namespace ReactViewControl {
                         m.GetNativeObjectFullName(frameName), // native object name
                         m.DependencyJsSources.Select(s => ViewRender.ToFullUrl(NormalizeUrl(s))) // plugin dependencies
                     })),
-                    JavascriptSerializer.Serialize(frameName),
-                    JavascriptSerializer.Serialize(frameName == WebView.MainFrameName)
+                    JavascriptSerializer.Serialize(frameName)
                 };
 
                 ExecuteLoaderFunction("loadPlugins", loadArgs);
@@ -119,7 +118,7 @@ namespace ReactViewControl {
             private void ExecuteLoaderFunction(string functionName, params string[] args) {
                 // using setimeout we make sure the function is already defined
                 var loaderUrl = new ResourceUrl(ResourcesAssembly, ReactViewResources.Resources.LoaderUrl);
-                ViewRender.WebView.ExecuteScript($"import('{loaderUrl}').then(m => m.{functionName}({string.Join(",", args)}))");
+                ViewRender.WebView.ExecuteScript($"import('{loaderUrl}').then(m => m.default.Loader.{functionName}({string.Join(",", args)}))");
             }
 
             private static string ComputeHash(string inputString) {

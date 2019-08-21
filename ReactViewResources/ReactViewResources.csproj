@@ -14,7 +14,6 @@
     <Deterministic>true</Deterministic>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
-    <ViewGeneratorNodeJsExe>node</ViewGeneratorNodeJsExe>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -57,33 +56,23 @@
     <Compile Include="Resources.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Loader.js">
-      <DependentUpon>Loader.ts</DependentUpon>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="index.html" />
   </ItemGroup>
   <ItemGroup>
-    <TypeScriptCompile Include="Loader.ts" />
+    <TypeScriptCompile Include="Loader\Loader.ts" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="Loader\LoaderCommon.ts" />
+    <TypeScriptCompile Include="Loader\ViewFrame.tsx" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="node_modules\react-dom\umd\react-dom.development.js" />
+    <EmbeddedResource Include="node_modules\react\umd\react.development.js" />
     <EmbeddedResource Include="node_modules\prop-types\prop-types.min.js" />
-    <EmbeddedResource Include="node_modules\react-dom\umd\react-dom.production.min.js" />
-    <EmbeddedResource Include="node_modules\react\umd\react.production.min.js" />
-  </ItemGroup>
-  <ItemGroup>
-    <TypeScriptCompile Include="LoaderCommon.ts" />
-    <TypeScriptCompile Include="ViewFrame.ts" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="LoaderCommon.js">
-      <DependentUpon>LoaderCommon.ts</DependentUpon>
-    </EmbeddedResource>
-    <Content Include="tsconfig.json" />
-    <EmbeddedResource Include="ViewFrame.js">
-      <DependentUpon>ViewFrame.ts</DependentUpon>
-    </EmbeddedResource>
+    <EmbeddedResource Include="Loader.js" />
+    <TypeScriptCompile Include="AMDLoader\AMDLoader.ts" />
+    <Content Include="AMDLoader\AMDLoaderExports.js" />
+    <Content Include="Loader\tsconfig.json" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.TypeScript.MSBuild">
@@ -92,9 +81,14 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="AMDLoader\tsconfig.json" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>npm ci</PreBuildEvent>
   </PropertyGroup>
+  <Target Name="MergeLoaderFiles" AfterTargets="CompileTypeScriptWithTSConfig" BeforeTargets="AssignTargetPath">
+    <Exec Command="copy /b &quot;$(ProjectDir)AMDLoader\AMDLoaderExports.js&quot; + &quot;$(ProjectDir)AMDLoader\AMDLoader.js&quot; + &quot;$(ProjectDir)Loader\_Loader.js&quot; &quot;$(ProjectDir)Loader.js&quot;" />
+  </Target>
 </Project>

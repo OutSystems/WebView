@@ -7,14 +7,18 @@ const viewRemoveListeners: Listener[] = [];
 export const mainFrameName = "";
 export const webViewRootId = "webview_root";
 
+type RenderViewContentHandler = (children: React.ReactNode) => Promise<void>;
+
 export type View = {
     name: string,
+    isMain: boolean,
     root: HTMLElement,
     head: HTMLElement,
     scriptsLoadTasks: Map<string, Task<void>>; // maps scripts urls to load tasks
     pluginsLoadTask: Task<void>; // plugins load task
     modules: Map<string, any>; // maps module name to module instance
     nativeObjectNames: string[]; // list of frame native objects
+    renderContent: RenderViewContentHandler;
 };
 
 export interface Type<T> extends Function { new(...args: any[]): T; }
@@ -50,18 +54,20 @@ export class PluginsContext {
     }
 }
 
-export function addView(viewName: string, root: HTMLElement, head: HTMLElement): void {
+export function addView(viewName: string, isMain: boolean, root: HTMLElement, head: HTMLElement, renderContent: RenderViewContentHandler): void {
     if (views.has(viewName)) {
         throw new Error(`A view with the name "${viewName}" has already been created`);
     }
     const view: View = {
         name: viewName,
+        isMain: isMain,
         root: root,
         head: head,
         scriptsLoadTasks: new Map<string, Task<void>>(),
         pluginsLoadTask: new Task<void>(),
         modules: new Map<string, any>(),
-        nativeObjectNames: []
+        nativeObjectNames: [],
+        renderContent: renderContent
     };
     views.set(viewName, view);
     viewAddListeners.forEach(l => l(view));

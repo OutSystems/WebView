@@ -1,7 +1,8 @@
 ﻿import * as Common from "./LoaderCommon";
 import { Task, PluginsContext, View, mainFrameName } from "./LoaderCommon";
-import "./ViewFrame";
-import { func } from "prop-types";
+//import "./ViewFrame"; 
+
+declare function define(name: string, dependencies: string[], definition: Function);
 
 declare const CefSharp: {
     BindObjectAsync(settings: { NotifyIfAlreadyBound?: boolean, IgnoreCache: boolean }, objName: string): Promise<void>
@@ -66,9 +67,17 @@ export async function showErrorMessage(msg: string): Promise<void> {
         style.wordWrap = "break-word";
 
         await waitForDOMReady();
-        document.body.appendChild(msgContainer);   
+        document.body.appendChild(msgContainer);
     }
     msgContainer.innerText = msg;
+}
+
+function importReact() {
+    return window[reactLib];
+}
+
+function importReactDOM() {
+    return window[reactDOMLib];
 }
 
 function loadScript(scriptSrc: string, view: View): Promise<void> {
@@ -114,10 +123,18 @@ function loadStyleSheet(stylesheet: string, containerElement: HTMLElement, markA
 }
 
 async function loadFramework(): Promise<void> {
+
+    // TODO ***********************************************************
+
     const view = Common.getView(mainFrameName);
     await loadScript(externalLibsPath + "prop-types/prop-types.min.js", view); /* Prop-Types */
-    await loadScript(externalLibsPath + "react/umd/react.production.min.js", view); /* React */ 
-    await loadScript(externalLibsPath + "react-dom/umd/react-dom.production.min.js", view); /* ReactDOM */
+    //await loadScript(externalLibsPath + "react/umd/react.production.min.js", view); /* React */ 
+    await loadScript(externalLibsPath + "react/umd/react.development.js", view); /* React */
+    await loadScript(externalLibsPath + "react-dom/umd/react-dom.development.js", view); /* ReactDOM */
+
+    define("react", [], () => importReact());
+    define("react-dom", [], () => importReactDOM());
+    //await loadScript(externalLibsPath + "react-shadow-dom-retarget-events/index.js", view); /* react-shadow-dom-retarget-events */
 }
 
 export function loadDefaultStyleSheet(stylesheet: string): void {
@@ -135,14 +152,14 @@ export function loadDefaultStyleSheet(stylesheet: string): void {
     innerLoad();
 }
 
-export function loadPlugins(plugins: any[][], frameName: string, forMainFrame: boolean): void {
+export function loadPlugins(plugins: any[][], frameName: string): void {
     async function innerLoad() {
         try {
             await bootstrapTask.promise;
 
             const view = Common.getView(frameName);
 
-            if (!forMainFrame) {
+            if (!view.isMain) {
                 // wait for main frame plugins to be loaded, otherwise modules won't be loaded yet
                 await Common.getView(mainFrameName).pluginsLoadTask.promise;
             }
@@ -155,7 +172,7 @@ export function loadPlugins(plugins: any[][], frameName: string, forMainFrame: b
                     const nativeObjectFullName: string = m[2]; // fullname with frame name included
                     const dependencySources: string[] = m[3];
 
-                    if (forMainFrame) {
+                    if (view.isMain) {
                         // only load plugins sources once (in the main frame)
                         // load plugin dependency js sources
                         const dependencySourcesPromises = dependencySources.map(s => loadScript(s, view));
@@ -239,30 +256,23 @@ export function loadComponent(
             await loadScript(componentSource, view);
 
             const Component = window[viewsBundleName][componentName].default;
-            const React = window[reactLib];
-            const ReactDOM = window[reactDOMLib];
+            const React = importReact();
 
             // create proxy for properties obj to delay its methods execution until native object is ready
             const properties = createPropertiesProxy(componentNativeObject, componentNativeObjectName, view);
 
-            // render component
-            await new Promise((resolve) => {
-                // create context
-                if (!rootContext) {
-                    rootContext = React.createContext(null);
-                }
-                Component.contextType = rootContext;
+            // create context
+            if (!rootContext) {
+                rootContext = React.createContext(null);
+            }
+            Component.contextType = rootContext;
 
-                const context = new PluginsContext(Array.from(view.modules.values()));
+            const context = new PluginsContext(Array.from(view.modules.values()));
+                
+            const viewComponent = React.createElement(Component, { ref: e => view.modules.set(componentName, e), ...properties });
+            const root = React.createElement(rootContext.Provider, { value: context }, viewComponent);
 
-                const rootRef = React.createRef();
-                const root = React.createElement(rootContext.Provider, { value: context }, React.createElement(Component, { ref: rootRef, ...properties }));
-
-                ReactDOM.hydrate(root, rootElement, () => {
-                    view.modules.set(componentName, rootRef.current);
-                    resolve();
-                });
-            });
+            await view.renderContent(root);
 
             await waitForNextPaint();
 
@@ -305,11 +315,21 @@ async function bootstrap() {
 
     await waitForDOMReady();
 
+    const rootElement = document.getElementById(Common.webViewRootId) as HTMLElement;
+
+    function renderMainView(children: React.ReactNode): Promise<void> {
+        const ReactDOM = importReactDOM();
+        return new Promise<void>(resolve => ReactDOM.render(children, rootElement, resolve));
+    }
+
     // add main view
-    Common.addView(mainFrameName, document.getElementById(Common.webViewRootId) as HTMLElement, document.head);
+    Common.addView(mainFrameName, true, rootElement, document.head, renderMainView);
 
     Common.addViewAddedEventListener(view => fireNativeNotification(viewInitializedEventName, view.name));
     Common.addViewRemovedEventListener(view => {
+        const ReactDOM = importReactDOM();
+        // TODO unmount
+
         // delete native objects
         view.nativeObjectNames.forEach(nativeObjecName => CefSharp.DeleteBoundObject(nativeObjecName));
 
