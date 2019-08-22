@@ -1,5 +1,5 @@
 ﻿import * as React from "react";
-import "ViewFrame";
+import { ViewFrame } from "ViewFrame";
 import ViewPlugin from "./ViewPlugin";
 import { IPluginsContext } from "PluginsProvider";
 import "./ExampleView.scss";
@@ -75,7 +75,7 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
                     <button onClick={this.onMountSubViewClick}>{this.state.showSubView ? "Unmount" : "Mount"} subview</button>
                 </div>
                 <br />
-                {this.state.showSubView ? <view-frame id="test" /> : null}
+                {this.state.showSubView ? <ViewFrame name="test" /> : null}
             </div>
         );
     }

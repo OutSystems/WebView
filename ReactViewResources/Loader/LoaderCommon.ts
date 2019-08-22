@@ -7,7 +7,7 @@ const viewRemoveListeners: Listener[] = [];
 export const mainFrameName = "";
 export const webViewRootId = "webview_root";
 
-type RenderViewContentHandler = (children: React.ReactNode) => Promise<void>;
+type RenderViewContentHandler = (children: React.ReactElement) => Promise<void>;
 
 export type View = {
     name: string,

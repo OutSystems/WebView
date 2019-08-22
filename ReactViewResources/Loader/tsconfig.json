@@ -15,7 +15,8 @@
         "suppressImplicitAnyIndexErrors": true,
         "removeComments": true,
         "allowSyntheticDefaultImports": true,
-        "outFile": "_Loader.js"
+        "outFile": "_Loader.js",
+        "allowUmdGlobalAccess": true
     },
     "compileOnSave": false,
     "exclude": [

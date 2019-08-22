@@ -1,6 +1,5 @@
 ﻿import * as Common from "./LoaderCommon";
 import { Task, PluginsContext, View, mainFrameName } from "./LoaderCommon";
-//import "./ViewFrame"; 
 
 declare function define(name: string, dependencies: string[], definition: Function);
 
@@ -29,7 +28,7 @@ const externalLibsPath = libsPath + "node_modules/";
 const bootstrapTask = new Task();
 const defaultStylesheetLoadTask = new Task();
 
-let rootContext: React.Context<string>;
+let rootContext: React.Context<PluginsContext | null>;
 
 function getModule(viewName: string, moduleName: string) {
     const view = Common.getView(viewName);
@@ -72,11 +71,11 @@ export async function showErrorMessage(msg: string): Promise<void> {
     msgContainer.innerText = msg;
 }
 
-function importReact() {
+function importReact(): typeof React {
     return window[reactLib];
 }
 
-function importReactDOM() {
+function importReactDOM(): typeof ReactDOM {
     return window[reactDOMLib];
 }
 
@@ -120,21 +119,6 @@ function loadStyleSheet(stylesheet: string, containerElement: HTMLElement, markA
         }
         containerElement.appendChild(link);
     });
-}
-
-async function loadFramework(): Promise<void> {
-
-    // TODO ***********************************************************
-
-    const view = Common.getView(mainFrameName);
-    await loadScript(externalLibsPath + "prop-types/prop-types.min.js", view); /* Prop-Types */
-    //await loadScript(externalLibsPath + "react/umd/react.production.min.js", view); /* React */ 
-    await loadScript(externalLibsPath + "react/umd/react.development.js", view); /* React */
-    await loadScript(externalLibsPath + "react-dom/umd/react-dom.development.js", view); /* ReactDOM */
-
-    define("react", [], () => importReact());
-    define("react-dom", [], () => importReactDOM());
-    //await loadScript(externalLibsPath + "react-shadow-dom-retarget-events/index.js", view); /* react-shadow-dom-retarget-events */
 }
 
 export function loadDefaultStyleSheet(stylesheet: string): void {
@@ -233,7 +217,8 @@ export function loadComponent(
             const rootElement = view.root;
 
             const componentCacheKey = getComponentCacheKey(componentHash);
-            const cachedElementHtml = localStorage.getItem(componentCacheKey);
+            const enableHtmlCache = view.isMain; // disable cache retrieval for inner views, since react does not currently support portals hydration
+            const cachedElementHtml = enableHtmlCache ? localStorage.getItem(componentCacheKey) : null; 
             if (cachedElementHtml) {
                 // render cached component html to reduce time to first render
                 rootElement.innerHTML = cachedElementHtml;
@@ -263,7 +248,7 @@ export function loadComponent(
 
             // create context
             if (!rootContext) {
-                rootContext = React.createContext(null);
+                rootContext = React.createContext<PluginsContext | null>(null);
             }
             Component.contextType = rootContext;
 
@@ -276,7 +261,7 @@ export function loadComponent(
 
             await waitForNextPaint();
 
-            if (!cachedElementHtml && maxPreRenderedCacheEntries > 0) {
+            if (enableHtmlCache && !cachedElementHtml && maxPreRenderedCacheEntries > 0) {
                 // cache view html for further use
                 const elementHtml = rootElement.innerHTML;
                 // get all stylesheets except the stick ones (which will be loaded by the time the html gets rendered) otherwise we could be loading them twice
@@ -317,9 +302,9 @@ async function bootstrap() {
 
     const rootElement = document.getElementById(Common.webViewRootId) as HTMLElement;
 
-    function renderMainView(children: React.ReactNode): Promise<void> {
+    function renderMainView(children: React.ReactElement): Promise<void> {
         const ReactDOM = importReactDOM();
-        return new Promise<void>(resolve => ReactDOM.render(children, rootElement, resolve));
+        return new Promise<void>(resolve => ReactDOM.hydrate(children, rootElement, resolve));
     }
 
     // add main view
@@ -327,9 +312,6 @@ async function bootstrap() {
 
     Common.addViewAddedEventListener(view => fireNativeNotification(viewInitializedEventName, view.name));
     Common.addViewRemovedEventListener(view => {
-        const ReactDOM = importReactDOM();
-        // TODO unmount
-
         // delete native objects
         view.nativeObjectNames.forEach(nativeObjecName => CefSharp.DeleteBoundObject(nativeObjecName));
 
@@ -342,6 +324,16 @@ async function bootstrap() {
     await CefSharp.BindObjectAsync({ IgnoreCache: false }, eventListenerObjectName);
 
     bootstrapTask.setResult();
+}
+
+async function loadFramework(): Promise<void> {
+    const view = Common.getView(mainFrameName);
+    await loadScript(externalLibsPath + "prop-types/prop-types.min.js", view); /* Prop-Types */
+    await loadScript(externalLibsPath + "react/umd/react.production.min.js", view); /* React */
+    await loadScript(externalLibsPath + "react-dom/umd/react-dom.production.min.js", view); /* ReactDOM */
+
+    define("react", [], () => importReact());
+    define("react-dom", [], () => importReactDOM());
 }
 
 function createPropertiesProxy(basePropertiesObj: {}, nativeObjName: string, view: View): {} {

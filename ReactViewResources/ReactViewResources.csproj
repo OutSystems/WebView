@@ -66,8 +66,8 @@
     <TypeScriptCompile Include="Loader\ViewFrame.tsx" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="node_modules\react-dom\umd\react-dom.development.js" />
-    <EmbeddedResource Include="node_modules\react\umd\react.development.js" />
+    <EmbeddedResource Include="node_modules\react-dom\umd\react-dom.production.min.js" />
+    <EmbeddedResource Include="node_modules\react\umd\react.production.min.js" />
     <EmbeddedResource Include="node_modules\prop-types\prop-types.min.js" />
     <EmbeddedResource Include="Loader.js" />
     <TypeScriptCompile Include="AMDLoader\AMDLoader.ts" />

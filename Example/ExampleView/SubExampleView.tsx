@@ -13,7 +13,7 @@ export interface ISubExampleViewBehaviors {
     callMe(): void;
 }
 
-export default class SubExampleView extends React.Component<ISubExampleViewProperties, { time: string; dotNetCallCount: number }> implements ISubExampleViewBehaviors {
+export default class SubExampleView extends React.Component<ISubExampleViewProperties, { time: string; dotNetCallCount: number, buttonClicksCount: number }> implements ISubExampleViewBehaviors {
 
     private viewplugin: ViewPlugin;
 
@@ -27,6 +27,7 @@ export default class SubExampleView extends React.Component<ISubExampleViewPrope
         this.state = {
             time: "-",
             dotNetCallCount: 0,
+            buttonClicksCount: 0
         };
         let time = await this.props.getTime();
         this.setState({ time: time });
@@ -52,6 +53,11 @@ export default class SubExampleView extends React.Component<ISubExampleViewPrope
                 Current time (+1hr): {this.state.time}<br />
                 <br />
                 Dot net calls count: {this.state.dotNetCallCount}
+                <br />
+                Button clicks count: {this.state.buttonClicksCount}
+                <br />
+                <br />
+                <button onClick={() => this.setState(s => { return { buttonClicksCount: s.buttonClicksCount + 1 }; })}>Click me!</button>&nbsp;
             </div>
         );
     }
