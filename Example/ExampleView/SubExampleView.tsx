@@ -1,6 +1,6 @@
 ﻿import * as React from "react";
 import ViewPlugin from "./ViewPlugin";
-import { IPluginsContext } from "PluginsProvider";
+import { IPluginsContext, PluginsContext } from "PluginsProvider";
 import "./SubExampleView.scss";
 
 export interface ISubExampleViewProperties {
@@ -11,6 +11,19 @@ export interface ISubExampleViewProperties {
 
 export interface ISubExampleViewBehaviors {
     callMe(): void;
+}
+
+class SubExampleComponent extends React.Component<{}, {}, IPluginsContext> {
+    
+    public static contextType = PluginsContext;
+
+    constructor(props: {}, context: IPluginsContext) {
+        super(props, context);
+    }
+
+    render(): JSX.Element {
+        return <div>Plugins provider available: {(this.context as IPluginsContext).getPluginInstance ? "yes" : "no"}</div>;
+    }
 }
 
 export default class SubExampleView extends React.Component<ISubExampleViewProperties, { time: string; dotNetCallCount: number, buttonClicksCount: number }> implements ISubExampleViewBehaviors {
@@ -56,6 +69,7 @@ export default class SubExampleView extends React.Component<ISubExampleViewPrope
                 <br />
                 Button clicks count: {this.state.buttonClicksCount}
                 <br />
+                <SubExampleComponent />
                 <br />
                 <button onClick={() => this.setState(s => { return { buttonClicksCount: s.buttonClicksCount + 1 }; })}>Click me!</button>&nbsp;
             </div>

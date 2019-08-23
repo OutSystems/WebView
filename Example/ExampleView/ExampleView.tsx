@@ -75,7 +75,7 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
                     <button onClick={this.onMountSubViewClick}>{this.state.showSubView ? "Unmount" : "Mount"} subview</button>
                 </div>
                 <br />
-                {this.state.showSubView ? <ViewFrame name="test" /> : null}
+                {this.state.showSubView ? <ViewFrame name="test" className="" /> : null}
             </div>
         );
     }

@@ -12,6 +12,7 @@ const reactLib: string = "React";
 const reactDOMLib: string = "ReactDOM";
 const viewsBundleName: string = "Views";
 const pluginsBundleName: string = "Plugins";
+const pluginsProviderModuleName: string = "PluginsProvider";
 
 const [
     libsPath,
@@ -245,11 +246,7 @@ export function loadComponent(
 
             // create proxy for properties obj to delay its methods execution until native object is ready
             const properties = createPropertiesProxy(componentNativeObject, componentNativeObjectName, view);
-
-            // create context
-            if (!rootContext) {
-                rootContext = React.createContext<PluginsContext | null>(null);
-            }
+            
             Component.contextType = rootContext;
 
             const context = new PluginsContext(Array.from(view.modules.values()));
@@ -334,6 +331,10 @@ async function loadFramework(): Promise<void> {
 
     define("react", [], () => importReact());
     define("react-dom", [], () => importReactDOM());
+
+    // create context
+    rootContext = React.createContext<PluginsContext | null>(null);
+    window[pluginsProviderModuleName] = { PluginsContext: rootContext };
 }
 
 function createPropertiesProxy(basePropertiesObj: {}, nativeObjName: string, view: View): {} {
