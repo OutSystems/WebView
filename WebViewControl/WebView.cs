@@ -278,13 +278,17 @@ namespace WebViewControl {
                 RenderProcessCrashed = null;
                 JavascriptContextReleased = null;
 
-                resourceHandlerFactory.Dispose();
+                resourceHandlerFactory?.Dispose();
 
-                foreach (var jsExecutor in JsExecutors.Values) {
-                    jsExecutor.Dispose();
+                try {
+                    foreach (var jsExecutor in JsExecutors.Values) {
+                        jsExecutor.Dispose();
+                    }
+                } catch (Exception e) {
+                    throw new Exception("Exception ocurred while disposing " + nameof(JsExecutors), e);
                 }
 
-                chromium.Dispose();
+                chromium?.Dispose();
                 AsyncCancellationTokenSource.Dispose();
 
                 Disposed?.Invoke();
