@@ -90,13 +90,10 @@
   </Target>
   
   <Target Name="VG_GenerateDefaultStyleSheet" DependsOnTargets="VG_SetupViewPacker;VG_SetVariables;VG_LinkNodeModules" Inputs="@(DefaultStyleSheet)" Outputs="%(DefaultStyleSheet.Filename).css" >
-    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <PropertyGroup>
       <WebpackBuildMode>development</WebpackBuildMode>
     </PropertyGroup>
-
-    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-      <WebpackBuildMode>production</WebpackBuildMode>
-    </PropertyGroup>
+    
     <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config '$(ViewGeneratorToolsPath)\webpack\webpack_stylesheets.config.js' --mode $(WebpackBuildMode) --entryPath &quot;%(DefaultStyleSheet.Identity)&quot;" />
   </Target>
 
@@ -109,12 +106,8 @@
       <WebpackConfigFileName>webpack_views</WebpackConfigFileName>
     </PropertyGroup>
 
-    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <PropertyGroup>
       <WebpackBuildMode>development</WebpackBuildMode>
-    </PropertyGroup>
-
-    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-      <WebpackBuildMode>production</WebpackBuildMode>
     </PropertyGroup>
 
     <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config '$(ViewGeneratorToolsPath)\webpack\$(WebpackConfigFileName).config.js' --mode $(WebpackBuildMode) --pluginsRelativePath '$(PluginsRelativePath)'" />

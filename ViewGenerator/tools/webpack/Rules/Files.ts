@@ -3,7 +3,7 @@ import { RuleSetRule } from "webpack";
 
 // Resource files
 const ResourcesRuleSet: RuleSetRule = {
-    test: /\.(png|jpg|jpeg|bmp|gif|woff|woff2|ico|svg)$/,
+    test: /\.(png|jpg|jpeg|bmp|gif|woff|woff2|ico|svg|html)$/,
     use: [
         {
             loader: 'file-loader',

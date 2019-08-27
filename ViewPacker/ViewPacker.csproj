@@ -56,7 +56,7 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Node.js.redist">
-      <Version>10.15.0</Version>
+      <Version>10.16.3</Version>
     </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
@@ -64,7 +64,7 @@
     <PreBuildEvent>npm install --no-bin-links --prefix "$(ProjectDir)tools" "$(ProjectDir)tools"</PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PostBuildEvent>"$(ProjectDir)..\packages\Node.js.redist.10.15.0\tools\win-x64\node.exe" "$(ProjectDir)tools\node_modules\node-sass\scripts\install.js"
+    <PostBuildEvent>"$(ProjectDir)..\packages\Node.js.redist.10.16.3\tools\win-x64\node.exe" "$(ProjectDir)tools\node_modules\node-sass\scripts\install.js"
 "$(ProjectDir)..\nuget" pack "$(ProjectDir)ViewPacker.nuspec" -OutputDirectory "$(ProjectDir)..\Nuget\ " -Properties Configuration=$(ConfigurationName)
 </PostBuildEvent>
   </PropertyGroup>
