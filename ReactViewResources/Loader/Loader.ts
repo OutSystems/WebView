@@ -175,7 +175,7 @@ export function loadPlugins(plugins: any[][], frameName: string): void {
 
                     const pluginNativeObject = await bindNativeObject(nativeObjectFullName, view);
 
-                    view.modules.set(moduleName, new module.default(pluginNativeObject));
+                    view.modules.set(moduleName, new module.default(pluginNativeObject, view.root));
                 });
 
                 await Promise.all(pluginsPromises);

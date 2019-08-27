@@ -36,7 +36,8 @@ class ViewFrame extends React.Component<ViewFrameProps> {
 
     private setContainer(container: HTMLElement | null) {
         if (container && !this.shadowRoot) {
-            this.shadowRoot = container.attachShadow({ mode: "closed" }).getRootNode() as Element;
+            // create an open shadow-dom, so that bubbled events expose the inner element
+            this.shadowRoot = container.attachShadow({ mode: "open" }).getRootNode() as Element;
             this.forceUpdate(() => {
                 if (!this.root || !this.head) {
                     throw new Error("Expected root and head to be set");
