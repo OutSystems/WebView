@@ -16,6 +16,8 @@
             </MenuItem>
         </Menu>
 
+        <TextBlock x:Name="status" DockPanel.Dock="Bottom" Height="50"></TextBlock>
+
         <local:ExampleView x:Name="exampleView" Click="OnExampleViewClick" GetTime="OnExampleViewGetTime" ConstantMessage="This is an example" Image="Beach" ViewMounted="OnViewMounted" />
     </DockPanel>
 </Window>

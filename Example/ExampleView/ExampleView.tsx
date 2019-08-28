@@ -39,7 +39,7 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
     private async initialize(): Promise<void> {
         this.state = {
             time: "-",
-            showSubView: true
+            showSubView: false
         };
         let time = await this.props.getTime();
         this.setState({ time: time });

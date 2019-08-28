@@ -5,6 +5,7 @@ declare function define(name: string, dependencies: string[], definition: Functi
 
 declare const CefSharp: {
     BindObjectAsync(settings: { NotifyIfAlreadyBound?: boolean, IgnoreCache: boolean }, objName: string): Promise<void>
+    RemoveObjectFromCache(objName: string): boolean;
     DeleteBoundObject(objName: string): boolean;
 };
 
@@ -173,8 +174,9 @@ export function loadPlugins(plugins: any[][], frameName: string): void {
                         throw new Error(`Failed to load '${moduleName}' (might not be a module with a default export)`);
                     }
 
-                    const pluginNativeObject = await bindNativeObject(nativeObjectFullName, view);
-
+                    const pluginNativeObject = await bindNativeObject(nativeObjectFullName);
+                    
+                    view.nativeObjectNames.push(nativeObjectFullName); // add to the native objects collection
                     view.modules.set(moduleName, new module.default(pluginNativeObject, view.root));
                 });
 
@@ -245,8 +247,9 @@ export function loadComponent(
             const React = importReact();
 
             // create proxy for properties obj to delay its methods execution until native object is ready
-            const properties = createPropertiesProxy(componentNativeObject, componentNativeObjectName, view);
-            
+            const properties = createPropertiesProxy(componentNativeObject, componentNativeObjectName);
+            view.nativeObjectNames.push(componentNativeObjectName); // add to the native objects collection
+
             Component.contextType = rootContext;
 
             const context = new PluginsContext(Array.from(view.modules.values()));
@@ -310,7 +313,10 @@ async function bootstrap() {
     Common.addViewAddedEventListener(view => fireNativeNotification(viewInitializedEventName, view.name));
     Common.addViewRemovedEventListener(view => {
         // delete native objects
-        view.nativeObjectNames.forEach(nativeObjecName => CefSharp.DeleteBoundObject(nativeObjecName));
+        view.nativeObjectNames.forEach(nativeObjecName => {
+            CefSharp.RemoveObjectFromCache(nativeObjecName);
+            CefSharp.DeleteBoundObject(nativeObjecName);
+        });
 
         fireNativeNotification(viewDestroyedEventName, view.name);
     });
@@ -321,6 +327,8 @@ async function bootstrap() {
     await CefSharp.BindObjectAsync({ IgnoreCache: false }, eventListenerObjectName);
 
     bootstrapTask.setResult();
+
+    fireNativeNotification(viewInitializedEventName, mainFrameName);
 }
 
 async function loadFramework(): Promise<void> {
@@ -337,7 +345,7 @@ async function loadFramework(): Promise<void> {
     window[pluginsProviderModuleName] = { PluginsContext: rootContext };
 }
 
-function createPropertiesProxy(basePropertiesObj: {}, nativeObjName: string, view: View): {} {
+function createPropertiesProxy(basePropertiesObj: {}, nativeObjName: string): {} {
     const proxy = Object.assign({}, basePropertiesObj);
     Object.keys(proxy).forEach(key => {
         const value = basePropertiesObj[key];
@@ -349,7 +357,7 @@ function createPropertiesProxy(basePropertiesObj: {}, nativeObjName: string, vie
                 if (!nativeObject) {
                     nativeObject = await new Promise(async (resolve) => {
                         await waitForNextPaint();
-                        const nativeObject = await bindNativeObject(nativeObjName, view);
+                        const nativeObject = await bindNativeObject(nativeObjName);
                         resolve(nativeObject);
                     });
                 }
@@ -360,12 +368,8 @@ function createPropertiesProxy(basePropertiesObj: {}, nativeObjName: string, vie
     return proxy;
 }
 
-async function bindNativeObject(nativeObjectName: string, view: View) {
+async function bindNativeObject(nativeObjectName: string) {
     await CefSharp.BindObjectAsync({ IgnoreCache: false }, nativeObjectName);
-
-    // add to the native objects collection
-    view.nativeObjectNames.push(nativeObjectName);
-
     return window[nativeObjectName];
 }
 
