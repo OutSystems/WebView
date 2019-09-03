@@ -53,7 +53,7 @@ namespace Example {
             subView.GetTime += () => DateTime.Now.AddHours(1).ToShortTimeString() + $"(Id: {subViewId})";
             exampleView.AttachInnerView(subView, InnerViewName);
             exampleView.WithPlugin<ViewPlugin>(InnerViewName).NotifyViewLoaded += (viewName) => AppendLog($"On sub view loaded (Id: {subViewId}): {viewName}");
-            subView.CallMe();
+            //subView.CallMe();
         }
 
         private void AppendLog(string log) {

@@ -39,7 +39,7 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
     private async initialize(): Promise<void> {
         this.state = {
             time: "-",
-            showSubView: false
+            showSubView: true
         };
         let time = await this.props.getTime();
         this.setState({ time: time });
@@ -51,14 +51,21 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
 
     public componentDidMount(): void {
         this.viewplugin.notifyViewLoaded("ExampleView");
+        if (this.state.showSubView) {
+            this.props.viewMounted();
+        }
     }
 
     private onMountSubViewClick = () => {
         let show = !this.state.showSubView;
-        if (show) {
-            this.props.viewMounted();
-        }
+        //if (show) {
+        //    this.props.viewMounted();
+        //}
         this.setState({ showSubView: show });
+    }
+
+    private renderViewFrame() {
+        return <ViewFrame key="x" name="test" className="" />;
     }
 
     public render(): JSX.Element {
@@ -75,7 +82,7 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
                     <button onClick={this.onMountSubViewClick}>{this.state.showSubView ? "Unmount" : "Mount"} subview</button>
                 </div>
                 <br />
-                {this.state.showSubView ? <ViewFrame name="test" className="" /> : null}
+                {/*this.state.showSubView ? <div>{this.renderViewFrame()}</div> : this.renderViewFrame()*/}
             </div>
         );
     }

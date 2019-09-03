@@ -1,21 +1,25 @@
 ﻿import * as React from "react";
-import * as ReactDOM from "react-dom";
-import * as Common from "./LoaderCommon";
+import { ViewContext } from "./LoaderCommon";
 
 type ViewFrameProps = { name: string, className: string };
 
-class ViewFrame extends React.Component<ViewFrameProps> {
+export class ViewFrame extends React.Component<ViewFrameProps, {}, ViewContext> {
 
-    private shadowRoot: Element | null;
-    private head: HTMLElement | null;
-    private root: HTMLElement | null;
-    private children: React.ReactNode;
+    private componentGuid: string;
+    private container: HTMLElement;
 
-    constructor(props: ViewFrameProps, context: any) {
+    constructor(props: ViewFrameProps, context: ViewContext) {
         super(props, context);
         if (props.name === "") {
             throw new Error("View Frame name must be specified (not empty)");
         }
+        
+        this.componentGuid = performance.now() + "" + Math.random();
+        //const view = Common.getView(props.name);
+        //if (view) {
+        //    // if there's already a view with the same name it will be replaced with this new instance
+        //    view.componentGuid = this.componentGuid;
+        //}
     }
 
     public shouldComponentUpdate(): boolean {
@@ -23,61 +27,16 @@ class ViewFrame extends React.Component<ViewFrameProps> {
         return false;
     }
 
+    public componentDidMount() {
+        (this.context as ViewContext).addOrReplaceSubView(this.props.name, this.container);
+    }
+
     public componentWillUnmount() {
-        Common.removeView(this.props.name);
-    }
-
-    private renderChildren = (children: React.ReactNode) => {
-        return new Promise<void>(resolve => {
-            this.children = children;
-            this.forceUpdate(resolve);
-        });
-    }
-
-    private setContainer(container: HTMLElement | null) {
-        if (container && !this.shadowRoot) {
-            // create an open shadow-dom, so that bubbled events expose the inner element
-            this.shadowRoot = container.attachShadow({ mode: "open" }).getRootNode() as Element;
-            this.forceUpdate(() => {
-                if (!this.root || !this.head) {
-                    throw new Error("Expected root and head to be set");
-                }
-                Common.addView(this.props.name, false, this.root, this.head, this.renderChildren);
-            });
-        }
-    }
-
-    private renderPortal() {
-        if (!this.shadowRoot) {
-            return null;
-        }
-
-        // get sticky stylesheets
-        const mainView = Common.getView(Common.mainFrameName);
-        const stylesheets = Common.getStylesheets(mainView.head).filter(s => s.dataset.sticky === "true");
-
-        const headContent =
-            "<style>:host { all: initial; display: block; }</style>\n" + // reset inherited css properties
-            stylesheets.map(s => s.outerHTML).join("\n"); // import sticky stylesheets into this view 
-
-        return ReactDOM.createPortal(
-            <>
-                <head ref={e => this.head = e} dangerouslySetInnerHTML={{ __html: headContent }} />
-                <body>
-                    <div ref={e => this.root = e} id={Common.webViewRootId}>
-                        {this.children}
-                    </div>
-                </body>
-            </>,
-            this.shadowRoot);
+        (this.context as ViewContext).removeSubView(this.props.name);
     }
 
     public render() {
-        return (
-            <div ref={e => this.setContainer(e)} className={this.props.className}>
-                {this.renderPortal()}
-            </div>
-        );
+        return <div ref={e => this.container = e!} className={this.props.className} />;
     }
 }
 

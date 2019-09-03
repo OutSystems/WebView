@@ -58,6 +58,10 @@ export default class SubExampleView extends React.Component<ISubExampleViewPrope
         this.viewplugin.notifyViewLoaded("SubExampleView");
     }
 
+    public componentWillUnmount() {
+        debugger;
+    }
+
     public render(): JSX.Element {
         return (
             <div className="wrapper">
