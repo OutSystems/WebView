@@ -1,5 +1,6 @@
 ﻿import * as Common from "./LoaderCommon";
-import { Task, ViewMetadata, mainFrameName } from "./LoaderCommon";
+import { Task, ViewMetadata, Placeholder, mainFrameName } from "./LoaderCommon";
+import { ObservableListCollection } from "./ObservableCollection";
 
 declare function define(name: string, dependencies: string[], definition: Function);
 
@@ -100,6 +101,9 @@ function loadScript(scriptSrc: string, view: ViewMetadata): Promise<void> {
             resolve();
         });
 
+        if (!view.head) {
+            throw new Error(`View ${view.name} head is not set`);
+        }
         view.head.appendChild(script);
     });
 }
@@ -212,7 +216,12 @@ export function loadComponent(
             }
 
             const view = getView(frameName);
+            const head = view.head;
             const rootElement = view.root;
+
+            if (!rootElement || !head) {
+                throw new Error(`View ${view.name} head or root is not set`);
+            }
 
             const componentCacheKey = getComponentCacheKey(componentHash);
             const enableHtmlCache = view.isMain; // disable cache retrieval for inner views, since react does not currently support portals hydration
@@ -232,7 +241,7 @@ export function loadComponent(
             // load component dependencies js sources and css sources
             const dependencyLoadPromises =
                 dependencySources.map(s => loadScript(s, view)).concat(
-                    cssSources.map(s => loadStyleSheet(s, view.head, false)));
+                    cssSources.map(s => loadStyleSheet(s, head, false)));
             await Promise.all(dependencyLoadPromises);
 
             // main component script should be the last to be loaded, otherwise errors might occur
@@ -241,18 +250,19 @@ export function loadComponent(
             // create proxy for properties obj to delay its methods execution until native object is ready
             const properties = createPropertiesProxy(componentNativeObject, componentNativeObjectName);
             view.nativeObjectNames.push(componentNativeObjectName); // add to the native objects collection
+            view.childViews.addChangedListener(onChildViewAdded);
 
             const componentClass = window[viewsBundleName][componentName].default;
 
-            const { createView, renderMainView } = await import("./Loader.View");
-
+            const { createView } = await import("./Loader.View");
+            
             const viewElement = createView(componentClass, properties, view, componentName);
-
-            if (view.isMain) {
-                await renderMainView(viewElement, view.root);
-            } else {
-                // TODO
+            const render = view.componentRenderHandler;
+            if (!render) {
+                throw new Error(`View ${view.name} render handler is not set`);
             }
+
+            await render(viewElement);
 
             await waitForNextPaint();
 
@@ -260,7 +270,7 @@ export function loadComponent(
                 // cache view html for further use
                 const elementHtml = rootElement.innerHTML;
                 // get all stylesheets except the stick ones (which will be loaded by the time the html gets rendered) otherwise we could be loading them twice
-                const stylesheets = Common.getStylesheets(view.head).filter(l => l.dataset.sticky !== "true").map(l => l.outerHTML).join("");
+                const stylesheets = Common.getStylesheets(head).filter(l => l.dataset.sticky !== "true").map(l => l.outerHTML).join("");
 
                 localStorage.setItem(componentCacheKey, stylesheets + elementHtml); // insert html into the cache
 
@@ -297,7 +307,7 @@ async function bootstrap() {
 
     const rootElement = document.getElementById(Common.webViewRootId) as HTMLElement;
 
-    views.set(mainFrameName, {
+    const mainView: ViewMetadata = {
         name: mainFrameName,
         componentGuid: "0",
         isMain: true,
@@ -307,21 +317,28 @@ async function bootstrap() {
         modules: new Map<string, any>(),
         nativeObjectNames: [],
         pluginsLoadTask: new Task(),
-        scriptsLoadTasks: new Map<string, Task<void>>()
-    });
+        scriptsLoadTasks: new Map<string, Task<void>>(),
+        childViews: new ObservableListCollection<ViewMetadata>(),
+        parentView: null!
+    };
+    views.set(mainFrameName, mainView);
 
-    Common.addViewAddedEventListener(view => fireNativeNotification(viewInitializedEventName, view.name));
-    Common.addViewRemovedEventListener(view => {
-        // delete native objects
-        view.nativeObjectNames.forEach(nativeObjecName => {
-            CefSharp.RemoveObjectFromCache(nativeObjecName);
-            CefSharp.DeleteBoundObject(nativeObjecName);
-        });
+    // TODO
+    //Common.addViewAddedEventListener(view => fireNativeNotification(viewInitializedEventName, view.name));
+    //Common.addViewRemovedEventListener(view => {
+    //    // delete native objects
+    //    view.nativeObjectNames.forEach(nativeObjecName => {
+    //        CefSharp.RemoveObjectFromCache(nativeObjecName);
+    //        CefSharp.DeleteBoundObject(nativeObjecName);
+    //    });
 
-        fireNativeNotification(viewDestroyedEventName, view.name);
-    });
+    //    fireNativeNotification(viewDestroyedEventName, view.name);
+    //});
 
     await loadFramework();
+
+    const { renderMainView } = await import("./Loader.View");
+    mainView.componentRenderHandler = component => renderMainView(component, rootElement);
 
     // bind event listener object ahead-of-time
     await CefSharp.BindObjectAsync({ IgnoreCache: false }, eventListenerObjectName);
@@ -393,6 +410,11 @@ function waitForDOMReady() {
 
 function fireNativeNotification(eventName: string, ...args: string[]) {
     window[eventListenerObjectName].notify(eventName, ...args);
+}
+
+function onChildViewAdded(childView: ViewMetadata) {
+    views.set(childView.name, childView);
+    fireNativeNotification(viewInitializedEventName, childView.name);
 }
 
 bootstrap();

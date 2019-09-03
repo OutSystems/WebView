@@ -1,4 +1,6 @@
-﻿type Listener = (view: ViewMetadata) => void;
+﻿import { ObservableListCollection } from "./ObservableCollection";
+
+type Listener = (view: ViewMetadata) => void;
 
 const views: Map<string, ViewMetadata> = new Map();
 const viewAddListeners: Listener[] = [];
@@ -13,19 +15,22 @@ export type ViewMetadata = {
     name: string;
     componentGuid: string;
     isMain: boolean;
-    placeholder: HTMLElement; // element were the view is mounted
-    root: HTMLElement; // view root element
-    head: HTMLElement; // view head element
+    placeholder: Element; // element were the view is mounted
+    root?: HTMLElement; // view root element
+    head?: HTMLElement; // view head element
     scriptsLoadTasks: Map<string, Task<void>>; // maps scripts urls to load tasks
     pluginsLoadTask: Task<void>; // plugins load task
     modules: Map<string, any>; // maps module name to module instance
     nativeObjectNames: string[]; // list of frame native objects
-    //renderContent: RenderViewContentHandler;
-};
+    //childPlaceholders: ObservableListCollection<Placeholder>;
+    childViews: ObservableListCollection<ViewMetadata>;
+    parentView: ViewMetadata;
+    componentRenderHandler?: (component: React.ReactElement) => Promise<void>;
+}
 
-export interface IViewCollection {
-    addView(viewName: string, container: HTMLElement);
-    removeView(viewName: string);
+export type Placeholder = {
+    name: string;
+    target: Element;
 }
 
 export interface Type<T> extends Function { new(...args: any[]): T; }
@@ -58,23 +63,6 @@ export class PluginsContext {
 
     public getPluginInstance<T>(_class: Type<T>) {
         return this.pluginInstances.get(_class.name);
-    }
-}
-
-export class ViewContext {
-
-    constructor(private viewName: string, private viewCollection: IViewCollection) { }
-
-    public get name() {
-        return this.viewName;
-    }
-
-    public addOrReplaceSubView(viewName: string, container: HTMLElement) {
-        this.viewCollection.addView(viewName, container);
-    }
-
-    public removeSubView(viewName: string) {
-        this.viewCollection.removeView(viewName);
     }
 }
 

@@ -1,147 +1,111 @@
 ﻿import * as React from "react";
 import * as ReactDOM from "react-dom";
-import { ViewMetadata, PluginsContext, ViewContext, IViewCollection, Task } from "./LoaderCommon";
+import { ViewMetadata, PluginsContext, Task, Placeholder, getStylesheets, webViewRootId } from "./LoaderCommon";
 import { ViewFrame } from "./ViewFrame";
+import { ObservableListCollection } from "./ObservableCollection";
 
-const pluginsContext = React.createContext<PluginsContext | null>(null);;
-const viewContext = React.createContext<ViewContext>(new ViewContext("", null!));
+const pluginsContext = React.createContext<PluginsContext>(null!);
+const viewContext = React.createContext<ViewMetadata>(null!);
 
 const pluginsProviderModuleName: string = "PluginsProvider";
 
 ViewFrame.contextType = viewContext;
 window[pluginsProviderModuleName] = { PluginsContext: pluginsContext };
 
-export interface IViewProps {
-    component: React.ComponentClass;
-    placeholder: HTMLElement;
-    name: string;
+export interface IViewPortalProps {
+    view: ViewMetadata
 }
 
-class ViewPortal extends React.Component<IViewProps, {}> {
+interface IViewPortalState {
+    component: React.ReactElement;
+}
 
-    private container: HTMLDivElement;
-    private shadowRoot: Element;
+class ViewPortal extends React.Component<IViewPortalProps, IViewPortalState> {
 
-    constructor(props: IViewProps) {
+    private container: Element;
+
+    constructor(props: IViewPortalProps) {
         super(props);
+
+        this.state = { component: null! };
+
         this.container = document.createElement("div");
-        this.shadowRoot = this.container.attachShadow({ mode: "open" }).getRootNode() as Element;
+
+        const shadowRoot = this.container.attachShadow({ mode: "open" }).getRootNode() as Element;
+
+        // get sticky stylesheets
+        const stylesheets = getStylesheets(document.head).filter(s => s.dataset.sticky === "true");
+
+        const head = document.createElement("head");
+
+        // TODO import using import method
+        head.innerHTML = (
+            "<style>:host { all: initial; display: block; }</style>\n" + // reset inherited css properties
+            stylesheets.map(s => s.outerHTML).join("\n") // import sticky stylesheets into this view 
+        );
+
+        shadowRoot.appendChild(head);
+
+        const body = document.createElement("body");
+        shadowRoot.appendChild(body);
+
+        const root = document.createElement("div");
+        root.id = webViewRootId;
+        body.appendChild(root);
+
+        const view = props.view;
+        view.componentRenderHandler = component => this.renderPortal(component);
+        view.root = root;
+        view.head = head;
+
+        view.placeholder.parentElement!.replaceChild(this.container, view.placeholder);
     }
 
-    public shouldComponentUpdate() {
-        return false;
+    private renderPortal(component: React.ReactElement) {
+        return new Promise<void>(resolve => this.setState({ component }));
     }
 
-    public get name() {
-        return this.props.name;
+    public shouldComponentUpdate(nextProps: IViewPortalProps, nextState: IViewPortalState) {
+        return nextState.component !== this.state.component;
     }
-
-    public componentDidMount() {
-        //// create an open shadow-dom, so that bubbled events expose the inner element
-        //const shadowRoot = this.container.attachShadow({ mode: "open" }).getRootNode() as Element;
-
-        //// get sticky stylesheets
-        //const mainView = Common.getView(Common.mainFrameName);
-        //const stylesheets = Common.getStylesheets(mainView.head).filter(s => s.dataset.sticky === "true");
-
-        //const head = document.createElement("head");
-
-        //// TODO import using import method
-        //head.innerHTML = (
-        //    "<style>:host { all: initial; display: block; }</style>\n" + // reset inherited css properties
-        //    stylesheets.map(s => s.outerHTML).join("\n") // import sticky stylesheets into this view 
-        //);
-
-        //shadowRoot.appendChild(head);
-
-        //const body = document.createElement("body");
-        //shadowRoot.appendChild(body);
-
-        //const root = document.createElement("div");
-        //root.id = Common.webViewRootId;
-        //body.appendChild(root);
-
-        //const view = Common.getView(this.props.name);
-        //if (view && view.componentGuid === this.componentGuid) {
-        //    // update view
-        //    view.head = head;
-        //    view.root = root;
-        //    view.renderContent = this.renderContent;
-        //} else {
-        //    Common.addView(this.props.name, this.componentGuid, false, root, head, this.renderContent);
-        //}
-
-        ////this.forceUpdate(() => {
-        //    //if (!this.root || !this.head) {
-        //    //    throw new Error("Expected root and head to be set");
-        //    //}
-        //    //const view = Common.getView(this.props.name);
-        //    //if (view && view.componentGuid === this.componentGuid) {
-        //    //    // update view
-        //    //    view.head = this.head;
-        //    //    view.root = this.root;
-        //    //    view.renderContent = this.renderChildren;
-        //    //} else {
-        //    //    Common.addView(this.props.name, this.componentGuid, false, this.root, this.head, this.renderChildren);
-        //    //}
-        ////this.renderPortal();
-        ////});
-    }
-
+    
     public render(): React.ReactNode {
-        const component = React.createElement(this.props.component);
-        return ReactDOM.createPortal(component, this.shadowRoot);
+        if (!this.state.component || !this.props.view.root) {
+            return null;
+        }
+        return ReactDOM.createPortal(this.state.component, this.props.view.root);
     }
 }
 
-class ViewPortalsCollection extends React.Component implements IViewCollection {
+interface IViewPortalsCollectionProps {
+    views: ObservableListCollection<ViewMetadata>;
+}
+
+class ViewPortalsCollection extends React.Component<IViewPortalsCollectionProps> {
     
-    private views: ViewMetadata[] = [];
+    constructor(props: IViewPortalsCollectionProps) {
+        super(props);
+        props.views.addChangedListener(() => this.forceUpdate());
+    }
 
     public shouldComponentUpdate() {
         return false;
     }
 
-    public addView(viewName: string, container: HTMLElement) {
-        const view: ViewMetadata = {
-            name: viewName,
-            componentGuid: "",
-            isMain: false,
-            placeholder: container,
-            root: null!,
-            head: null!,
-            scriptsLoadTasks: new Map<string, Task<void>>(),
-            pluginsLoadTask: new Task<void>(),
-            modules: new Map<string, any>(),
-            nativeObjectNames: [],
-        };
-        this.views.push(view);
-        
-        this.forceUpdate();
-    }
-
-    public removeView(viewName: string) {
-        /*const viewIndex = this.views.findIndex(v => this.views)
-        this.views.splice(viewIndex, 1);*/
-        this.forceUpdate();
-    }
-
     public render(): React.ReactNode {
-        return this.views.map(v => <ViewPortal key={v.name} name={v.name} component={null!/*v.componentGuid*/} placeholder={v.placeholder} />);
+        return this.props.views.items.sort((a, b) => a.name.localeCompare(b.name))
+            .map(view => <ViewPortal key={view.name} view={view} />);
     }
 }
 
 export function createView(componentClass: any, properties: {}, view: ViewMetadata, componentName: string) {
-    const viewProtalsCollectionRef = React.createRef<ViewPortalsCollection>();
-    const viewContextInstance = new ViewContext(view.name, viewProtalsCollectionRef.current!);
-
     componentClass.contextType = pluginsContext;
 
     return (
-        React.createElement(viewContext.Provider, { value: viewContextInstance },
+        React.createElement(viewContext.Provider, { value: view },
             React.createElement(pluginsContext.Provider, { value: new PluginsContext(Array.from(view.modules.values())) },
                 <>
-                    <ViewPortalsCollection ref={viewProtalsCollectionRef}/>,
+                    <ViewPortalsCollection views={view.childViews} />,
                     {React.createElement(componentClass, { ref: e => view.modules.set(componentName, e), ...properties })}
                 </>
             )

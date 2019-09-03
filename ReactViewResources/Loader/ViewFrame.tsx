@@ -1,14 +1,15 @@
 ﻿import * as React from "react";
-import { ViewContext } from "./LoaderCommon";
+import { ViewMetadata, Placeholder, Task } from "./LoaderCommon";
+import { ObservableListCollection } from "./ObservableCollection";
 
 type ViewFrameProps = { name: string, className: string };
 
-export class ViewFrame extends React.Component<ViewFrameProps, {}, ViewContext> {
+export class ViewFrame extends React.Component<ViewFrameProps, {}, ViewMetadata> {
 
     private componentGuid: string;
     private container: HTMLElement;
 
-    constructor(props: ViewFrameProps, context: ViewContext) {
+    constructor(props: ViewFrameProps, context: ViewMetadata) {
         super(props, context);
         if (props.name === "") {
             throw new Error("View Frame name must be specified (not empty)");
@@ -27,12 +28,28 @@ export class ViewFrame extends React.Component<ViewFrameProps, {}, ViewContext> 
         return false;
     }
 
+    private get parentView(): ViewMetadata {
+        return this.context as ViewMetadata;
+    }
+
     public componentDidMount() {
-        (this.context as ViewContext).addOrReplaceSubView(this.props.name, this.container);
+        const childView: ViewMetadata = {
+            name: this.props.name,
+            componentGuid: this.componentGuid,
+            isMain: false,
+            placeholder: this.container,
+            modules: new Map<string, any>(),
+            nativeObjectNames: [],
+            pluginsLoadTask: new Task(),
+            scriptsLoadTasks: new Map<string, Task<void>>(),
+            childViews: new ObservableListCollection<ViewMetadata>(),
+            parentView: this.parentView
+        };
+        this.parentView.childViews.add(childView);
     }
 
     public componentWillUnmount() {
-        (this.context as ViewContext).removeSubView(this.props.name);
+        //this.parentView.childPlaceholders.remove(this.placeholder);
     }
 
     public render() {

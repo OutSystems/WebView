@@ -61,7 +61,7 @@
   <ItemGroup>
     <TypeScriptCompile Include="Loader\Loader.ts" />
     <TypeScriptCompile Include="Loader\Loader.View.tsx" />
-    <TypeScriptCompile Include="Loader\ViewsCollection.tsx" />
+    <TypeScriptCompile Include="Loader\ObservableCollection.ts" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="Loader\LoaderCommon.ts" />
