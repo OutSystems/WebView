@@ -1,5 +1,4 @@
-﻿import * as Common from "./LoaderCommon";
-import { mainFrameName } from "./LoaderCommon";
+﻿import { getStylesheets, webViewRootId, mainFrameName } from "./LoaderCommon";
 import { ObservableListCollection } from "./ObservableCollection";
 import { Task } from "./Task";
 import { ViewMetadata } from "./ViewMetadata";
@@ -252,14 +251,16 @@ export function loadComponent(
             // create proxy for properties obj to delay its methods execution until native object is ready
             const properties = createPropertiesProxy(componentNativeObject, componentNativeObjectName);
             view.nativeObjectNames.push(componentNativeObjectName); // add to the native objects collection
-            //view.childViews.addChangedListener(onChildViewAdded);
 
             const componentClass = window[viewsBundleName][componentName].default;
+            if (!componentClass) {
+                throw new Error(`Component ${componentName} is not defined or does not have a default class`);
+            }
 
             const { createView } = await import("./Loader.View");
             
             const viewElement = createView(componentClass, properties, view, componentName, onChildViewAdded, onChildViewRemoved);
-            const render = view.componentRenderHandler;
+            const render = view.renderHandler;
             if (!render) {
                 throw new Error(`View ${view.name} render handler is not set`);
             }
@@ -272,7 +273,7 @@ export function loadComponent(
                 // cache view html for further use
                 const elementHtml = rootElement.innerHTML;
                 // get all stylesheets except the stick ones (which will be loaded by the time the html gets rendered) otherwise we could be loading them twice
-                const stylesheets = Common.getStylesheets(head).filter(l => l.dataset.sticky !== "true").map(l => l.outerHTML).join("");
+                const stylesheets = getStylesheets(head).filter(l => l.dataset.sticky !== "true").map(l => l.outerHTML).join("");
 
                 localStorage.setItem(componentCacheKey, stylesheets + elementHtml); // insert html into the cache
 
@@ -307,7 +308,10 @@ async function bootstrap() {
 
     await waitForDOMReady();
 
-    const rootElement = document.getElementById(Common.webViewRootId) as HTMLElement;
+    const rootElement = document.getElementById(webViewRootId);
+    if (!rootElement) {
+        throw new Error("Root element not found");
+    }
 
     const mainView: ViewMetadata = {
         name: mainFrameName,
@@ -328,7 +332,7 @@ async function bootstrap() {
     await loadFramework();
 
     const { renderMainView } = await import("./Loader.View");
-    mainView.componentRenderHandler = component => renderMainView(component, rootElement);
+    mainView.renderHandler = component => renderMainView(component, rootElement);
 
     // bind event listener object ahead-of-time
     await CefSharp.BindObjectAsync({ IgnoreCache: false }, eventListenerObjectName);

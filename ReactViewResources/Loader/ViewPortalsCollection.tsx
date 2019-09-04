@@ -10,6 +10,10 @@ interface IViewPortalsCollectionProps {
     viewRemoved: ViewLifecycleEventHandler;
 }
 
+/**
+ * Handles notifications from the views collection. Whenever a view is added or removed
+ * the corresponding ViewPortal is added or removed
+ * */
 export class ViewPortalsCollection extends React.Component<IViewPortalsCollectionProps> {
 
     constructor(props: IViewPortalsCollectionProps) {

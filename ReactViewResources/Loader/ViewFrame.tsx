@@ -9,6 +9,9 @@ interface IViewFrameProps {
     className: string;
 }
 
+/**
+ * Placeholder were a child view is mounted.
+ * */
 export class ViewFrame extends React.Component<IViewFrameProps, {}, ViewMetadata> {
 
     private static generation = 0;

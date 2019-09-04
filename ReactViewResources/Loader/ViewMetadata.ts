@@ -14,5 +14,5 @@ export type ViewMetadata = {
     nativeObjectNames: string[]; // list of frame native objects
     childViews: ObservableListCollection<ViewMetadata>;
     parentView: ViewMetadata;
-    componentRenderHandler?: (component: React.ReactElement) => Promise<void>;
+    renderHandler?: (component: React.ReactElement) => Promise<void>;
 }
