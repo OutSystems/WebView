@@ -84,7 +84,7 @@ export class ViewFrame extends React.Component<IViewFrameProps, {}, ViewMetadata
 
         const existingView = this.getView();
         if (existingView && this.generation === existingView.generation) {
-            // this is the most recent frame, so its time to remove it
+            // this is the most recent frame - meaning it was not replaced by another one - so the view should be removed
             this.parentView.childViews.remove(existingView);
         }
     }
