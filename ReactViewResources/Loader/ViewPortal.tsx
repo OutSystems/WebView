@@ -2,9 +2,12 @@
 import { webViewRootId } from "./LoaderCommon"
 import { ViewMetadata } from "./ViewMetadata";
 
+export type ViewLifecycleEventHandler = (view: ViewMetadata) => void;
+
 export interface IViewPortalProps {
     view: ViewMetadata
-    viewAddedHandler: (view: ViewMetadata) => void;
+    viewMounted: ViewLifecycleEventHandler;
+    viewUnmounted: ViewLifecycleEventHandler;
 }
 
 interface IViewPortalState {
@@ -37,12 +40,16 @@ export class ViewPortal extends React.Component<IViewPortalProps, IViewPortalSta
     }
 
     public componentDidMount() {
-        this.props.viewAddedHandler(this.props.view);
+        this.props.viewMounted(this.props.view);
         this.renderShadowView();
     }
 
     public componentDidUpdate() {
         this.renderShadowView();
+    }
+
+    public componentWillUnmount() {
+        this.props.viewUnmounted(this.props.view);
     }
 
     private renderShadowView() {

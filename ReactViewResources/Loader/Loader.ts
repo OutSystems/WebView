@@ -258,7 +258,7 @@ export function loadComponent(
 
             const { createView } = await import("./Loader.View");
             
-            const viewElement = createView(componentClass, properties, view, componentName, onChildViewAdded);
+            const viewElement = createView(componentClass, properties, view, componentName, onChildViewAdded, onChildViewRemoved);
             const render = view.componentRenderHandler;
             if (!render) {
                 throw new Error(`View ${view.name} render handler is not set`);
@@ -324,18 +324,6 @@ async function bootstrap() {
         parentView: null!
     };
     views.set(mainFrameName, mainView);
-
-    // TODO
-    //Common.addViewAddedEventListener(view => fireNativeNotification(viewInitializedEventName, view.name));
-    //Common.addViewRemovedEventListener(view => {
-    //    // delete native objects
-    //    view.nativeObjectNames.forEach(nativeObjecName => {
-    //        CefSharp.RemoveObjectFromCache(nativeObjecName);
-    //        CefSharp.DeleteBoundObject(nativeObjecName);
-    //    });
-
-    //    fireNativeNotification(viewDestroyedEventName, view.name);
-    //});
 
     await loadFramework();
 
@@ -417,6 +405,17 @@ function fireNativeNotification(eventName: string, ...args: string[]) {
 function onChildViewAdded(childView: ViewMetadata) {
     views.set(childView.name, childView);
     fireNativeNotification(viewInitializedEventName, childView.name);
+}
+
+function onChildViewRemoved(childView: ViewMetadata) {
+    views.delete(childView.name);
+    // delete native objects
+    childView.nativeObjectNames.forEach(nativeObjecName => {
+        CefSharp.RemoveObjectFromCache(nativeObjecName);
+        CefSharp.DeleteBoundObject(nativeObjecName);
+    });
+
+    fireNativeNotification(viewDestroyedEventName, childView.name);
 }
 
 bootstrap();

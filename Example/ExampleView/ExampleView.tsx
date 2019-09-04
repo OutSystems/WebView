@@ -64,9 +64,9 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
 
     private onMountSubViewClick = () => {
         let next = (this.state.subViewShowStatus + 1) % 3;
-        //if (show) {
-        //    this.props.viewMounted();
-        //}
+        if (next === SubViewShowStatus.Show) {
+            this.props.viewMounted();
+        }
         this.setState({ subViewShowStatus: next });
     }
 

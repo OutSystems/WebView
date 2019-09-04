@@ -4,9 +4,12 @@ import { Task } from "./Task";
 import { ViewContext } from "./ViewContext";
 import { ViewMetadata } from "./ViewMetadata";
 
-type ViewFrameProps = { name: string, className: string };
+interface IViewFrameProps {
+    name: string;
+    className: string;
+}
 
-export class ViewFrame extends React.Component<ViewFrameProps, {}, ViewMetadata> {
+export class ViewFrame extends React.Component<IViewFrameProps, {}, ViewMetadata> {
 
     private static generation = 0;
 
@@ -16,7 +19,7 @@ export class ViewFrame extends React.Component<ViewFrameProps, {}, ViewMetadata>
 
     static contextType = ViewContext;
 
-    constructor(props: ViewFrameProps, context: ViewMetadata) {
+    constructor(props: IViewFrameProps, context: ViewMetadata) {
         super(props, context);
         if (props.name === "") {
             throw new Error("View Frame name must be specified (not empty)");

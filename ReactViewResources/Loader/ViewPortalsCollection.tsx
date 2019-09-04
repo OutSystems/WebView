@@ -1,11 +1,13 @@
 ﻿import * as React from "react";
 import { ObservableListCollection } from "./ObservableCollection";
 import { ViewMetadata } from "./ViewMetadata";
-import { ViewPortal } from "./ViewPortal";
+import { ViewPortal, ViewLifecycleEventHandler } from "./ViewPortal";
+export { ViewLifecycleEventHandler } from "./ViewPortal";
 
 interface IViewPortalsCollectionProps {
     views: ObservableListCollection<ViewMetadata>;
-    viewAddedHandler: (view: ViewMetadata) => void;
+    viewAdded: ViewLifecycleEventHandler;
+    viewRemoved: ViewLifecycleEventHandler;
 }
 
 export class ViewPortalsCollection extends React.Component<IViewPortalsCollectionProps> {
@@ -21,6 +23,6 @@ export class ViewPortalsCollection extends React.Component<IViewPortalsCollectio
 
     public render(): React.ReactNode {
         return this.props.views.items.sort((a, b) => a.name.localeCompare(b.name))
-            .map(view => <ViewPortal key={ view.name } view = { view } viewAddedHandler = { this.props.viewAddedHandler } />);
+            .map(view => <ViewPortal key={view.name} view={view} viewMounted={this.props.viewAdded} viewUnmounted={this.props.viewRemoved} />);
     }
 }
