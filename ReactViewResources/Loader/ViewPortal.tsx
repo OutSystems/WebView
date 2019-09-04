@@ -17,6 +17,10 @@ interface IViewPortalState {
 /**
  * A ViewPortal is were a view is rendered. The view DOM is then moved into the appropriate placeholder.
  * This way we avoid a view being recreated (and losing state) when its ViewFrame is moved in the tree.
+ * 
+ * A View Frame notifies its sibling view collection when a new instance is mounted.
+ * Upon mount, a View Portal is created and it will be responsible for rendering its view component in the shadow dom.
+ * A view portal is persisted until its View Frame counterpart disappears.
  * */
 export class ViewPortal extends React.Component<IViewPortalProps, IViewPortalState> {
 
