@@ -1,6 +1,8 @@
-﻿export interface Type<T> extends Function { new(...args: any[]): T; }
+﻿import * as React from "react";
 
-export class PluginsContext {
+export interface Type<T> extends Function { new(...args: any[]): T; }
+
+export class PluginsContextHolder {
 
     private pluginInstances: Map<string, any> = new Map<string, any>();
 
@@ -12,3 +14,7 @@ export class PluginsContext {
         return this.pluginInstances.get(_class.name);
     }
 }
+
+export const PluginsContext = React.createContext<PluginsContextHolder>(null!);
+
+window["PluginsProvider"] = { PluginsContext: PluginsContext };

@@ -1,6 +1,7 @@
 ﻿import * as React from "react";
 import { ObservableListCollection } from "./ObservableCollection";
 import { Task } from "./Task";
+import { ViewContext } from "./ViewContext";
 import { ViewMetadata } from "./ViewMetadata";
 
 type ViewFrameProps = { name: string, className: string };
@@ -12,6 +13,8 @@ export class ViewFrame extends React.Component<ViewFrameProps, {}, ViewMetadata>
     private generation: number;
     private placeholder: Element;
     private replacement: Element;
+
+    static contextType = ViewContext;
 
     constructor(props: ViewFrameProps, context: ViewMetadata) {
         super(props, context);
