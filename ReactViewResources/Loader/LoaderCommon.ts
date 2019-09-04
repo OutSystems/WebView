@@ -16,8 +16,8 @@ export type ViewMetadata = {
     componentGuid: string;
     isMain: boolean;
     placeholder: Element; // element were the view is mounted
-    root?: HTMLElement; // view root element
-    head?: HTMLElement; // view head element
+    root?: Element; // view root element
+    head?: Element; // view head element
     scriptsLoadTasks: Map<string, Task<void>>; // maps scripts urls to load tasks
     pluginsLoadTask: Task<void>; // plugins load task
     modules: Map<string, any>; // maps module name to module instance
@@ -107,6 +107,6 @@ export function addViewRemovedEventListener(listener: Listener) {
     viewRemoveListeners.push(listener);
 }
 
-export function getStylesheets(head: HTMLElement): HTMLLinkElement[] {
+export function getStylesheets(head: Element): HTMLLinkElement[] {
     return Array.from(head.getElementsByTagName("link"));
 }

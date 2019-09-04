@@ -108,7 +108,7 @@ function loadScript(scriptSrc: string, view: ViewMetadata): Promise<void> {
     });
 }
 
-function loadStyleSheet(stylesheet: string, containerElement: HTMLElement, markAsSticky: boolean): Promise<void> {
+function loadStyleSheet(stylesheet: string, containerElement: Element, markAsSticky: boolean): Promise<void> {
     return new Promise((resolve) => {
         const link = document.createElement("link");
         link.type = "text/css";
@@ -250,13 +250,13 @@ export function loadComponent(
             // create proxy for properties obj to delay its methods execution until native object is ready
             const properties = createPropertiesProxy(componentNativeObject, componentNativeObjectName);
             view.nativeObjectNames.push(componentNativeObjectName); // add to the native objects collection
-            view.childViews.addChangedListener(onChildViewAdded);
+            //view.childViews.addChangedListener(onChildViewAdded);
 
             const componentClass = window[viewsBundleName][componentName].default;
 
             const { createView } = await import("./Loader.View");
             
-            const viewElement = createView(componentClass, properties, view, componentName);
+            const viewElement = createView(componentClass, properties, view, componentName, onChildViewAdded);
             const render = view.componentRenderHandler;
             if (!render) {
                 throw new Error(`View ${view.name} render handler is not set`);

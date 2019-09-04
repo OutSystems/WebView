@@ -6,8 +6,11 @@ type ViewFrameProps = { name: string, className: string };
 
 export class ViewFrame extends React.Component<ViewFrameProps, {}, ViewMetadata> {
 
+    private static counter = 0;
+
     private componentGuid: string;
     private container: HTMLElement;
+    private replacement: Element;
 
     constructor(props: ViewFrameProps, context: ViewMetadata) {
         super(props, context);
@@ -15,7 +18,11 @@ export class ViewFrame extends React.Component<ViewFrameProps, {}, ViewMetadata>
             throw new Error("View Frame name must be specified (not empty)");
         }
         
-        this.componentGuid = performance.now() + "" + Math.random();
+        this.componentGuid = "" + ViewFrame.counter++;
+        const view = this.parentView.childViews.items.find(c => c.name === this.props.name);
+        if (view) {
+            view.componentGuid = this.componentGuid;
+        }
         //const view = Common.getView(props.name);
         //if (view) {
         //    // if there's already a view with the same name it will be replaced with this new instance
@@ -33,6 +40,14 @@ export class ViewFrame extends React.Component<ViewFrameProps, {}, ViewMetadata>
     }
 
     public componentDidMount() {
+        const existingView = this.parentView.childViews.items.find(c => c.name === this.props.name);
+        if (existingView) {
+            //existingView.placeholder = this.container;
+            this.replacement = existingView.placeholder;
+            this.container.parentElement!.replaceChild(this.replacement, this.container);
+            return;
+        }
+
         const childView: ViewMetadata = {
             name: this.props.name,
             componentGuid: this.componentGuid,
@@ -49,7 +64,9 @@ export class ViewFrame extends React.Component<ViewFrameProps, {}, ViewMetadata>
     }
 
     public componentWillUnmount() {
-        //this.parentView.childPlaceholders.remove(this.placeholder);
+        if (this.replacement) {
+            this.replacement.parentElement!.replaceChild(this.container, this.replacement);
+        }
     }
 
     public render() {
