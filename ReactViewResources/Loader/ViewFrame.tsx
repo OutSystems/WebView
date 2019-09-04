@@ -67,6 +67,10 @@ export class ViewFrame extends React.Component<ViewFrameProps, {}, ViewMetadata>
         if (this.replacement) {
             this.replacement.parentElement!.replaceChild(this.container, this.replacement);
         }
+        const existingView = this.parentView.childViews.items.find(c => c.name === this.props.name);
+        if (existingView && this.componentGuid === existingView.componentGuid) {
+            this.parentView.childViews.remove(existingView);
+        }
     }
 
     public render() {

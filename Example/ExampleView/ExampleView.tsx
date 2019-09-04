@@ -26,7 +26,13 @@ export interface IExampleViewBehaviors {
     callMe(): void;
 }
 
-export default class ExampleView extends React.Component<IExampleViewProperties, { time: string; showSubView: boolean }> implements IExampleViewBehaviors {
+enum SubViewShowStatus {
+    Show,
+    ShowWrapped,
+    Hide
+}
+
+export default class ExampleView extends React.Component<IExampleViewProperties, { time: string; subViewShowStatus: SubViewShowStatus }> implements IExampleViewBehaviors {
 
     private viewplugin: ViewPlugin;
 
@@ -39,7 +45,7 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
     private async initialize(): Promise<void> {
         this.state = {
             time: "-",
-            showSubView: true
+            subViewShowStatus: SubViewShowStatus.Show
         };
         let time = await this.props.getTime();
         this.setState({ time: time });
@@ -51,21 +57,32 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
 
     public componentDidMount(): void {
         this.viewplugin.notifyViewLoaded("ExampleView");
-        if (this.state.showSubView) {
+        if (this.state.subViewShowStatus !== SubViewShowStatus.Hide) {
             this.props.viewMounted();
         }
     }
 
     private onMountSubViewClick = () => {
-        let show = !this.state.showSubView;
+        let next = (this.state.subViewShowStatus + 1) % 3;
         //if (show) {
         //    this.props.viewMounted();
         //}
-        this.setState({ showSubView: show });
+        this.setState({ subViewShowStatus: next });
     }
 
     private renderViewFrame() {
         return <ViewFrame key="x" name="test" className="" />;
+    }
+
+    private renderSubView() {
+        switch (this.state.subViewShowStatus) {
+            case SubViewShowStatus.Show:
+                return <div>{this.renderViewFrame()}</div>;
+            case SubViewShowStatus.ShowWrapped:
+                return this.renderViewFrame();
+            default:
+                return null;
+        }
     }
 
     public render(): JSX.Element {
@@ -79,10 +96,10 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
                 <br />
                 <div className="buttons-bar">
                     <button onClick={() => this.props.click(null)}>Click me!</button>&nbsp;
-                    <button onClick={this.onMountSubViewClick}>{this.state.showSubView ? "Unmount" : "Mount"} subview</button>
+                    <button onClick={this.onMountSubViewClick}>Mount/Wrap/Hide child view</button>
                 </div>
                 <br />
-                {this.state.showSubView ? <div>{this.renderViewFrame()}</div> : this.renderViewFrame()}
+                {this.renderSubView()}
             </div>
         );
     }
