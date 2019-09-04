@@ -62,6 +62,9 @@
     <TypeScriptCompile Include="Loader\Loader.ts" />
     <TypeScriptCompile Include="Loader\Loader.View.tsx" />
     <TypeScriptCompile Include="Loader\ObservableCollection.ts" />
+    <TypeScriptCompile Include="Loader\PluginsContext.ts" />
+    <TypeScriptCompile Include="Loader\Task.ts" />
+    <TypeScriptCompile Include="Loader\ViewMetadata.ts" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="Loader\LoaderCommon.ts" />

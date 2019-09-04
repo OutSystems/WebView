@@ -1,15 +1,16 @@
 ﻿import * as React from "react";
-import { ViewMetadata, Placeholder, Task } from "./LoaderCommon";
 import { ObservableListCollection } from "./ObservableCollection";
+import { Task } from "./Task";
+import { ViewMetadata } from "./ViewMetadata";
 
 type ViewFrameProps = { name: string, className: string };
 
 export class ViewFrame extends React.Component<ViewFrameProps, {}, ViewMetadata> {
 
-    private static counter = 0;
+    private static generation = 0;
 
-    private componentGuid: string;
-    private container: HTMLElement;
+    private generation: number;
+    private placeholder: Element;
     private replacement: Element;
 
     constructor(props: ViewFrameProps, context: ViewMetadata) {
@@ -17,21 +18,19 @@ export class ViewFrame extends React.Component<ViewFrameProps, {}, ViewMetadata>
         if (props.name === "") {
             throw new Error("View Frame name must be specified (not empty)");
         }
-        
-        this.componentGuid = "" + ViewFrame.counter++;
-        const view = this.parentView.childViews.items.find(c => c.name === this.props.name);
+
+        // keep track of this frame generation, so that we can keep tracking the most recent frame instance
+        this.generation = ++ViewFrame.generation;
+
+        const view = this.getView();
         if (view) {
-            view.componentGuid = this.componentGuid;
+            // update the existing view generation
+            view.generation = this.generation;
         }
-        //const view = Common.getView(props.name);
-        //if (view) {
-        //    // if there's already a view with the same name it will be replaced with this new instance
-        //    view.componentGuid = this.componentGuid;
-        //}
     }
 
     public shouldComponentUpdate(): boolean {
-        // prevent component updates, it will be updated explicitly
+        // prevent component updates
         return false;
     }
 
@@ -39,20 +38,24 @@ export class ViewFrame extends React.Component<ViewFrameProps, {}, ViewMetadata>
         return this.context as ViewMetadata;
     }
 
+    private getView(): ViewMetadata | undefined {
+        return this.parentView.childViews.items.find(c => c.name === this.props.name);
+    }
+
     public componentDidMount() {
-        const existingView = this.parentView.childViews.items.find(c => c.name === this.props.name);
+        const existingView = this.getView();
         if (existingView) {
-            //existingView.placeholder = this.container;
+            // there's a view already rendered, insert in current frame's placeholder
             this.replacement = existingView.placeholder;
-            this.container.parentElement!.replaceChild(this.replacement, this.container);
+            this.placeholder.parentElement!.replaceChild(this.replacement, this.placeholder);
             return;
         }
 
         const childView: ViewMetadata = {
             name: this.props.name,
-            componentGuid: this.componentGuid,
+            generation: this.generation,
             isMain: false,
-            placeholder: this.container,
+            placeholder: this.placeholder,
             modules: new Map<string, any>(),
             nativeObjectNames: [],
             pluginsLoadTask: new Task(),
@@ -60,21 +63,25 @@ export class ViewFrame extends React.Component<ViewFrameProps, {}, ViewMetadata>
             childViews: new ObservableListCollection<ViewMetadata>(),
             parentView: this.parentView
         };
+
         this.parentView.childViews.add(childView);
     }
 
     public componentWillUnmount() {
         if (this.replacement) {
-            this.replacement.parentElement!.replaceChild(this.container, this.replacement);
+            // put back the original container, otherwise react will complain
+            this.replacement.parentElement!.replaceChild(this.placeholder, this.replacement);
         }
-        const existingView = this.parentView.childViews.items.find(c => c.name === this.props.name);
-        if (existingView && this.componentGuid === existingView.componentGuid) {
+
+        const existingView = this.getView();
+        if (existingView && this.generation === existingView.generation) {
+            // this is the most recent frame, so its time to remove it
             this.parentView.childViews.remove(existingView);
         }
     }
 
     public render() {
-        return <div ref={e => this.container = e!} className={this.props.className} />;
+        return <div ref={e => this.placeholder = e!} className={this.props.className} />;
     }
 }
 

@@ -1,6 +1,8 @@
 ﻿import * as Common from "./LoaderCommon";
-import { Task, ViewMetadata, Placeholder, mainFrameName } from "./LoaderCommon";
+import { mainFrameName } from "./LoaderCommon";
 import { ObservableListCollection } from "./ObservableCollection";
+import { Task } from "./Task";
+import { ViewMetadata } from "./ViewMetadata";
 
 declare function define(name: string, dependencies: string[], definition: Function);
 
@@ -309,7 +311,7 @@ async function bootstrap() {
 
     const mainView: ViewMetadata = {
         name: mainFrameName,
-        componentGuid: "0",
+        generation: 0,
         isMain: true,
         placeholder: rootElement,
         head: document.head,

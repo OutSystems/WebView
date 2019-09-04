@@ -1,16 +1,17 @@
 ﻿import * as React from "react";
 import * as ReactDOM from "react-dom";
-import { ViewMetadata, PluginsContext, Task, Placeholder, getStylesheets, webViewRootId } from "./LoaderCommon";
-import { ViewFrame } from "./ViewFrame";
+import { webViewRootId } from "./LoaderCommon";
 import { ObservableListCollection } from "./ObservableCollection";
+import { PluginsContext } from "./PluginsContext";
+import { ViewFrame } from "./ViewFrame";
+import { ViewMetadata } from "./ViewMetadata";
 
 const pluginsContext = React.createContext<PluginsContext>(null!);
 const viewContext = React.createContext<ViewMetadata>(null!);
 
-const pluginsProviderModuleName: string = "PluginsProvider";
-
+window["PluginsProvider"] = { PluginsContext: pluginsContext };
 ViewFrame.contextType = viewContext;
-window[pluginsProviderModuleName] = { PluginsContext: pluginsContext };
+
 
 export interface IViewPortalProps {
     view: ViewMetadata
