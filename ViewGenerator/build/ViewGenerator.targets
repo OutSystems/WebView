@@ -6,6 +6,9 @@
       VG_CopyContentFiles;
       VG_LinkNodeModules;
       VG_GenerateDefaultStyleSheet;
+      VG_CleanLegacyEntryFiles;
+      VG_CleanLegacyJSFiles;
+      VG_CleanLegacyCSSFiles;
       VG_GenerateBundle;
       $(BuildDependsOn);
     </BuildDependsOn>
@@ -90,8 +93,12 @@
   </Target>
   
   <Target Name="VG_GenerateDefaultStyleSheet" DependsOnTargets="VG_SetupViewPacker;VG_SetVariables;VG_LinkNodeModules" Inputs="@(DefaultStyleSheet)" Outputs="%(DefaultStyleSheet.Filename).css" >
-    <PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
       <WebpackBuildMode>development</WebpackBuildMode>
+    </PropertyGroup>
+      
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <WebpackBuildMode>production</WebpackBuildMode>
     </PropertyGroup>
     
     <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config '$(ViewGeneratorToolsPath)\webpack\webpack_stylesheets.config.js' --mode $(WebpackBuildMode) --entryPath &quot;%(DefaultStyleSheet.Identity)&quot;" />
@@ -101,13 +108,17 @@
     <Error Text="View Packer dependency is not installed" />
   </Target>
   
-  <Target Name="VG_GenerateBundle" DependsOnTargets="VG_SetupViewPacker;VG_SetVariables;VG_CopyContentFiles;VG_GenerateDefaultStyleSheet">
+  <Target Name="VG_GenerateBundle" DependsOnTargets="VG_SetupViewPacker;VG_SetVariables;VG_CopyContentFiles;VG_GenerateDefaultStyleSheet;VG_CleanLegacyEntryFiles;VG_CleanLegacyJSFiles;VG_CleanLegacyCSSFiles">
     <PropertyGroup Condition="'$(WebpackConfigFileName)' == ''">
       <WebpackConfigFileName>webpack_views</WebpackConfigFileName>
     </PropertyGroup>
 
-    <PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
       <WebpackBuildMode>development</WebpackBuildMode>
+    </PropertyGroup>
+      
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <WebpackBuildMode>production</WebpackBuildMode>
     </PropertyGroup>
 
     <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config '$(ViewGeneratorToolsPath)\webpack\$(WebpackConfigFileName).config.js' --mode $(WebpackBuildMode) --pluginsRelativePath '$(PluginsRelativePath)'" />

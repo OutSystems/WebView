@@ -3,7 +3,7 @@ import { resolve } from "path";
 import { Configuration } from "webpack";
 
 import getCommonConfiguration from "./Plugins/CommonConfiguration";
-import { Dictionary } from "./Plugins/Utils";
+import { Dictionary, applyConfigurationModeProperties } from "./Plugins/Utils";
 
 const config = (_, argv) => {
 
@@ -51,12 +51,6 @@ const config = (_, argv) => {
     // Default is 30 characters, so we need to increase this value.
     (standardConfig.optimization.splitChunks as any).automaticNameMaxLength = 250;
 
-
-    // devtool
-    if (argv.mode === "development") {
-        standardConfig.devtool = "inline-source-map";
-    }
-
     if (argv.pluginsRelativePath) {
         generateExtendedConfig(argv.pluginsRelativePath);
 
@@ -71,7 +65,7 @@ const config = (_, argv) => {
         }
     }
 
-    return standardConfig;
+    return applyConfigurationModeProperties(standardConfig, argv.mode);
 };
 
 export default config;

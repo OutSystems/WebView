@@ -4,16 +4,11 @@ import getCommonConfiguration from "./Plugins/CommonConfiguration";
 import DtsCleanupPlugin from "./Plugins/DtsCleanupPlugin";
 import DtsGeneratorPlugin from "./Plugins/DtsGeneratorPlugin";
 import { DtsFileName } from "./Plugins/Resources";
-import { getCurrentDirectory } from "./Plugins/Utils";
+import { getCurrentDirectory, applyConfigurationModeProperties } from "./Plugins/Utils";
 
 const config = (_, argv) => {
 
     let standardConfig: Configuration = getCommonConfiguration("Plugins");
-
-    // devtool
-    if (argv.mode === "development") {
-        standardConfig.devtool = "inline-source-map";
-    }
 
     // Plugins
     standardConfig.plugins = standardConfig.plugins.concat(
@@ -25,7 +20,7 @@ const config = (_, argv) => {
         new DtsCleanupPlugin([DtsFileName], [/\.d.ts$/])
     );
 
-    return standardConfig;
+    return applyConfigurationModeProperties(standardConfig, argv.mode);
 };
 
 export default config;

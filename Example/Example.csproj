@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="..\packages\ViewGenerator.1.0.228\build\ViewGenerator.props" Condition="Exists('..\packages\ViewGenerator.1.0.228\build\ViewGenerator.props')" />
+  <Import Project="..\packages\ViewGenerator.1.0.229\build\ViewGenerator.props" Condition="Exists('..\packages\ViewGenerator.1.0.229\build\ViewGenerator.props')" />
   <Import Project="..\packages\ViewPacker.1.0.9\build\ViewPacker.props" Condition="Exists('..\packages\ViewPacker.1.0.9\build\ViewPacker.props')" />
   <Import Project="..\packages\ViewGeneratorCore.1.0.185\build\ViewGeneratorCore.props" Condition="Exists('..\packages\ViewGeneratorCore.1.0.185\build\ViewGeneratorCore.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
@@ -149,10 +149,10 @@
     <Error Condition="!Exists('..\packages\ViewGeneratorCore.1.0.185\build\ViewGeneratorCore.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ViewGeneratorCore.1.0.185\build\ViewGeneratorCore.props'))" />
     <Error Condition="!Exists('..\packages\ViewGeneratorCore.1.0.185\build\ViewGeneratorCore.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ViewGeneratorCore.1.0.185\build\ViewGeneratorCore.targets'))" />
     <Error Condition="!Exists('..\packages\ViewPacker.1.0.9\build\ViewPacker.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ViewPacker.1.0.9\build\ViewPacker.props'))" />
-    <Error Condition="!Exists('..\packages\ViewGenerator.1.0.228\build\ViewGenerator.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ViewGenerator.1.0.228\build\ViewGenerator.props'))" />
-    <Error Condition="!Exists('..\packages\ViewGenerator.1.0.228\build\ViewGenerator.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ViewGenerator.1.0.228\build\ViewGenerator.targets'))" />
+    <Error Condition="!Exists('..\packages\ViewGenerator.1.0.229\build\ViewGenerator.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ViewGenerator.1.0.229\build\ViewGenerator.props'))" />
+    <Error Condition="!Exists('..\packages\ViewGenerator.1.0.229\build\ViewGenerator.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\ViewGenerator.1.0.229\build\ViewGenerator.targets'))" />
   </Target>
   <Import Project="..\packages\OutSystems.ESLint.MSBuild.1.0.7\build\OutSystems.ESLint.MSBuild.targets" Condition="Exists('..\packages\OutSystems.ESLint.MSBuild.1.0.7\build\OutSystems.ESLint.MSBuild.targets')" />
   <Import Project="..\packages\ViewGeneratorCore.1.0.185\build\ViewGeneratorCore.targets" Condition="Exists('..\packages\ViewGeneratorCore.1.0.185\build\ViewGeneratorCore.targets')" />
-  <Import Project="..\packages\ViewGenerator.1.0.228\build\ViewGenerator.targets" Condition="Exists('..\packages\ViewGenerator.1.0.228\build\ViewGenerator.targets')" />
+  <Import Project="..\packages\ViewGenerator.1.0.229\build\ViewGenerator.targets" Condition="Exists('..\packages\ViewGenerator.1.0.229\build\ViewGenerator.targets')" />
 </Project>

@@ -3,6 +3,7 @@ import { resolve } from "path";
 import { FileDescriptor } from "webpack-manifest-plugin";
 
 import { CssExtension, EntryExtension, JsExtension, JsPlaceholder, OutputDirectoryDefault } from "./Resources";
+import { Configuration } from "webpack";
 
 export type Dictionary<T> = { [key: string]: T };
 
@@ -108,4 +109,18 @@ export function getCurrentDirectory() {
  * */
 export function getFileName(relativePaths: Dictionary<string>, chunkData: any) {
     return (relativePaths[chunkData.chunk.name] || OutputDirectoryDefault) + JsPlaceholder;
+}
+
+/*
+ * Sets a proper webpack configuration according to the given mode.
+ * */
+export function applyConfigurationModeProperties(configuration: Configuration, mode: string): Configuration {
+    if (mode === "development") {
+        configuration.devtool = "inline-source-map";
+
+    } else {
+        configuration.devtool = false;
+        configuration.optimization.minimize = false;
+    }
+    return configuration;
 }
