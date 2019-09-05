@@ -2,7 +2,7 @@
 
 var target = Argument("target", "Default");
 var configuration = Argument("configuration", "Release"); //Here you can configure if you want do debug or release
-var solutionPath=@"WebView.sln";// Here you put the location of sln file
+var solutionPath=@"ViewGenerator.csproj";// Here you put the location of csproj file
 
 var restore=Task("Restore-NuGet-Packages")
     .Does(() =>
@@ -29,7 +29,7 @@ var tests = Task("Tests")
         var testSettings = new VSTestSettings{
             ToolPath = Context.Tools.Resolve("vstest.console.exe")
         };
-        VSTest(@"./Release/Tests.dll", testSettings); //Here you need to put your tests dll for the NuGet built. If you don't have, let the String empty.
+        VSTest(@"../Release/Tests.dll", testSettings); //Here you need to put your tests dll for the NuGet built. If you don't have, let the String empty.
         Information("Ending Tests");
     });
 
@@ -43,12 +43,9 @@ var packageNuspecFile = Task("Package")
     {
         Information("Starting Package");
          var testSettings = new NuGetPackSettings{ //Define NuGet metadata. 
-            OutputDirectory =  @".\artifacts\"
+            OutputDirectory =  @"..\artifacts\"
         };
-        NuGetPack(@"./WebViewControl/WebViewControl.nuspec",testSettings); //Here you need to put nuspec file location.
-        NuGetPack(@"./ReactViewControl/ReactViewControl.nuspec",testSettings); //If you have more than one package, NuGetPack command.
-        NuGetPack(@"./ViewGenerator/ViewGenerator.nuspec",testSettings);
-        NuGetPack(@"./ViewGeneratorCore/ViewGeneratorCore.nuspec",testSettings);
+        NuGetPack(@"ViewGenerator.nuspec",testSettings); //Here you need to put nuspec file location.
         Information("Ending Package");
     });
 
