@@ -13,9 +13,9 @@
         "noImplicitAny": true,
         "suppressImplicitAnyIndexErrors": true
     },
-    "compileOnSave": true,
+    "compileOnSave": false,
+    "buildOnSave": false,
     "exclude": [
-        "node_modules",
         "dist"
     ]
 }

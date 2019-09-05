@@ -2,11 +2,14 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>ViewGeneratorCore</id>
-    <version>1.0.163</version>
+    <version>1.0.185</version>
     <authors>jmn</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <developmentDependency>true</developmentDependency>
     <description>Generates .NET Types from typescript</description>
+    <dependencies>
+      <dependency id="Node.js.redist" version="10.16.3" />
+    </dependencies>
   </metadata>
   <files>
     <file src="build\ViewGeneratorCore.targets" target="build\ViewGeneratorCore.targets" />

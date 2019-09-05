@@ -1,8 +1,9 @@
 ﻿import * as React from "react";
-import * as ReactDOM from "react-dom";
-import "css!./ExampleView.css";
-import ViewFrame from "ViewFrame";
-import * as ViewPlugin from "./ViewPlugin";
+import { ViewFrame } from "ViewFrame";
+import ViewPlugin from "./ViewPlugin";
+import { IPluginsContext } from "PluginsProvider";
+import "./ExampleView.scss";
+import * as Image from "./beach.jpg";
 
 export interface ISomeType {
     name: string;
@@ -16,6 +17,7 @@ export enum ImageKind {
 export interface IExampleViewProperties {
     click(arg: ISomeType): void;
     getTime(): Promise<string>;
+    viewMounted(): void;
     readonly constantMessage: string;
     readonly image: ImageKind;
 }
@@ -24,41 +26,80 @@ export interface IExampleViewBehaviors {
     callMe(): void;
 }
 
-export default class ExampleView extends React.Component<IExampleViewProperties, { time: string }> implements IExampleViewBehaviors {
+enum SubViewShowStatus {
+    Show,
+    ShowWrapped,
+    Hide
+}
 
-    constructor(props: IExampleViewProperties) {
-        super(props);
+export default class ExampleView extends React.Component<IExampleViewProperties, { time: string; subViewShowStatus: SubViewShowStatus }> implements IExampleViewBehaviors {
+
+    private viewplugin: ViewPlugin;
+
+    constructor(props: IExampleViewProperties, context: IPluginsContext) {
+        super(props, context);
         this.initialize();
+        this.viewplugin = context.getPluginInstance<ViewPlugin>(ViewPlugin);
     }
 
-    private async initialize() {
+    private async initialize(): Promise<void> {
         this.state = {
-            time: "-"
+            time: "-",
+            subViewShowStatus: SubViewShowStatus.Show
         };
         let time = await this.props.getTime();
         this.setState({ time: time });
     }
 
-    callMe(): void {
+    public callMe(): void {
         alert("React View says: clicked on a WPF button");
     }
 
-    componentDidMount(): void {
-        ViewPlugin.notifyViewLoaded("ExampleView");
+    public componentDidMount(): void {
+        this.viewplugin.notifyViewLoaded("ExampleView");
+        if (this.state.subViewShowStatus !== SubViewShowStatus.Hide) {
+            this.props.viewMounted();
+        }
     }
 
-    render() {
+    private onMountSubViewClick = () => {
+        let next = (this.state.subViewShowStatus + 1) % 3;
+        if (next === SubViewShowStatus.Show) {
+            this.props.viewMounted();
+        }
+        this.setState({ subViewShowStatus: next });
+    }
+
+    private renderViewFrame() {
+        return <ViewFrame key="test" name="test" className="" />;
+    }
+
+    private renderSubView() {
+        switch (this.state.subViewShowStatus) {
+            case SubViewShowStatus.Show:
+                return <div>{this.renderViewFrame()}</div>;
+            case SubViewShowStatus.ShowWrapped:
+                return this.renderViewFrame();
+            default:
+                return null;
+        }
+    }
+
+    public render(): JSX.Element {
         return (
             <div className="wrapper">
                 {this.props.constantMessage}
                 <br />
                 Current time: {this.state.time}<br />
                 <br />
-                {this.props.image === ImageKind.Beach ? <img className="image" src="beach.jpg" /> : null}
+                {this.props.image === ImageKind.Beach ? <img className="image" src={Image} /> : null}
                 <br />
-                <button onClick={() => this.props.click(null)}>Click me!</button>
+                <div className="buttons-bar">
+                    <button onClick={() => this.props.click(null)}>Click me!</button>&nbsp;
+                    <button onClick={this.onMountSubViewClick}>Mount/Wrap/Hide child view</button>
+                </div>
                 <br />
-                <ViewFrame name="test" />
+                {this.renderSubView()}
             </div>
         );
     }
