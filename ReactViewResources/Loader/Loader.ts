@@ -1,5 +1,7 @@
-﻿import * as Common from "./LoaderCommon";
-import { Task, PluginsContext, View, mainFrameName } from "./LoaderCommon";
+﻿import { getStylesheets, webViewRootId, mainFrameName } from "./LoaderCommon";
+import { ObservableListCollection } from "./ObservableCollection";
+import { Task } from "./Task";
+import { ViewMetadata } from "./ViewMetadata";
 
 declare function define(name: string, dependencies: string[], definition: Function);
 
@@ -13,7 +15,6 @@ const reactLib: string = "React";
 const reactDOMLib: string = "ReactDOM";
 const viewsBundleName: string = "Views";
 const pluginsBundleName: string = "Plugins";
-const pluginsProviderModuleName: string = "PluginsProvider";
 
 const [
     libsPath,
@@ -29,14 +30,18 @@ const externalLibsPath = libsPath + "node_modules/";
 
 const bootstrapTask = new Task();
 const defaultStylesheetLoadTask = new Task();
+const views = new Map<string, ViewMetadata>();
 
-let rootContext: React.Context<PluginsContext | null>;
-
-function getModule(viewName: string, moduleName: string) {
-    const view = Common.getView(viewName);
+function getView(viewName: string): ViewMetadata {
+    const view = views.get(viewName);
     if (!view) {
         throw new Error(`View "${viewName}" not loaded`);
     }
+    return view;
+}
+
+function getModule(viewName: string, moduleName: string) {
+    const view = getView(viewName);
     const module = view.modules.get(moduleName);
     if (!module) {
         throw new Error(`Module "${moduleName}" not loaded in view "${viewName}"`);
@@ -73,21 +78,13 @@ export async function showErrorMessage(msg: string): Promise<void> {
     msgContainer.innerText = msg;
 }
 
-function importReact(): typeof React {
-    return window[reactLib];
-}
-
-function importReactDOM(): typeof ReactDOM {
-    return window[reactDOMLib];
-}
-
-function loadScript(scriptSrc: string, view: View): Promise<void> {
+function loadScript(scriptSrc: string, view: ViewMetadata): Promise<void> {
     const loadEventName = "load";
     return new Promise(async (resolve) => {
         const frameScripts = view.scriptsLoadTasks;
 
         // check if script was already added, fallback to main frame
-        let scriptLoadTask = frameScripts.get(scriptSrc) || Common.getView(mainFrameName).scriptsLoadTasks.get(scriptSrc);
+        let scriptLoadTask = frameScripts.get(scriptSrc) || getView(mainFrameName).scriptsLoadTasks.get(scriptSrc);
         if (scriptLoadTask) {
             // wait for script to be loaded
             await scriptLoadTask.promise;
@@ -96,7 +93,7 @@ function loadScript(scriptSrc: string, view: View): Promise<void> {
         }
 
         const loadTask = new Task<void>();
-        view.scriptsLoadTasks.set(scriptSrc, loadTask);
+        frameScripts.set(scriptSrc, loadTask);
 
         const script = document.createElement("script");
         script.src = scriptSrc;
@@ -105,11 +102,14 @@ function loadScript(scriptSrc: string, view: View): Promise<void> {
             resolve();
         });
 
+        if (!view.head) {
+            throw new Error(`View ${view.name} head is not set`);
+        }
         view.head.appendChild(script);
     });
 }
 
-function loadStyleSheet(stylesheet: string, containerElement: HTMLElement, markAsSticky: boolean): Promise<void> {
+function loadStyleSheet(stylesheet: string, containerElement: Element, markAsSticky: boolean): Promise<void> {
     return new Promise((resolve) => {
         const link = document.createElement("link");
         link.type = "text/css";
@@ -143,11 +143,11 @@ export function loadPlugins(plugins: any[][], frameName: string): void {
         try {
             await bootstrapTask.promise;
 
-            const view = Common.getView(frameName);
+            const view = getView(frameName);
 
             if (!view.isMain) {
                 // wait for main frame plugins to be loaded, otherwise modules won't be loaded yet
-                await Common.getView(mainFrameName).pluginsLoadTask.promise;
+                await getView(mainFrameName).pluginsLoadTask.promise;
             }
 
             if (plugins && plugins.length > 0) {
@@ -216,8 +216,13 @@ export function loadComponent(
                 await defaultStylesheetLoadTask.promise;
             }
 
-            const view = Common.getView(frameName);
+            const view = getView(frameName);
+            const head = view.head;
             const rootElement = view.root;
+
+            if (!rootElement || !head) {
+                throw new Error(`View ${view.name} head or root is not set`);
+            }
 
             const componentCacheKey = getComponentCacheKey(componentHash);
             const enableHtmlCache = view.isMain; // disable cache retrieval for inner views, since react does not currently support portals hydration
@@ -237,27 +242,30 @@ export function loadComponent(
             // load component dependencies js sources and css sources
             const dependencyLoadPromises =
                 dependencySources.map(s => loadScript(s, view)).concat(
-                    cssSources.map(s => loadStyleSheet(s, view.head, false)));
+                    cssSources.map(s => loadStyleSheet(s, head, false)));
             await Promise.all(dependencyLoadPromises);
 
             // main component script should be the last to be loaded, otherwise errors might occur
             await loadScript(componentSource, view);
 
-            const Component = window[viewsBundleName][componentName].default;
-            const React = importReact();
-
             // create proxy for properties obj to delay its methods execution until native object is ready
             const properties = createPropertiesProxy(componentNativeObject, componentNativeObjectName);
             view.nativeObjectNames.push(componentNativeObjectName); // add to the native objects collection
 
-            Component.contextType = rootContext;
+            const componentClass = window[viewsBundleName][componentName].default;
+            if (!componentClass) {
+                throw new Error(`Component ${componentName} is not defined or does not have a default class`);
+            }
 
-            const context = new PluginsContext(Array.from(view.modules.values()));
-                
-            const viewComponent = React.createElement(Component, { ref: e => view.modules.set(componentName, e), ...properties });
-            const root = React.createElement(rootContext.Provider, { value: context }, viewComponent);
+            const { createView } = await import("./Loader.View");
+            
+            const viewElement = createView(componentClass, properties, view, componentName, onChildViewAdded, onChildViewRemoved);
+            const render = view.renderHandler;
+            if (!render) {
+                throw new Error(`View ${view.name} render handler is not set`);
+            }
 
-            await view.renderContent(root);
+            await render(viewElement);
 
             await waitForNextPaint();
 
@@ -265,7 +273,7 @@ export function loadComponent(
                 // cache view html for further use
                 const elementHtml = rootElement.innerHTML;
                 // get all stylesheets except the stick ones (which will be loaded by the time the html gets rendered) otherwise we could be loading them twice
-                const stylesheets = Common.getStylesheets(view.head).filter(l => l.dataset.sticky !== "true").map(l => l.outerHTML).join("");
+                const stylesheets = getStylesheets(head).filter(l => l.dataset.sticky !== "true").map(l => l.outerHTML).join("");
 
                 localStorage.setItem(componentCacheKey, stylesheets + elementHtml); // insert html into the cache
 
@@ -300,28 +308,31 @@ async function bootstrap() {
 
     await waitForDOMReady();
 
-    const rootElement = document.getElementById(Common.webViewRootId) as HTMLElement;
-
-    function renderMainView(children: React.ReactElement): Promise<void> {
-        const ReactDOM = importReactDOM();
-        return new Promise<void>(resolve => ReactDOM.hydrate(children, rootElement, resolve));
+    const rootElement = document.getElementById(webViewRootId);
+    if (!rootElement) {
+        throw new Error("Root element not found");
     }
 
-    // add main view
-    Common.addView(mainFrameName, true, rootElement, document.head, renderMainView);
-
-    Common.addViewAddedEventListener(view => fireNativeNotification(viewInitializedEventName, view.name));
-    Common.addViewRemovedEventListener(view => {
-        // delete native objects
-        view.nativeObjectNames.forEach(nativeObjecName => {
-            CefSharp.RemoveObjectFromCache(nativeObjecName);
-            CefSharp.DeleteBoundObject(nativeObjecName);
-        });
-
-        fireNativeNotification(viewDestroyedEventName, view.name);
-    });
+    const mainView: ViewMetadata = {
+        name: mainFrameName,
+        generation: 0,
+        isMain: true,
+        placeholder: rootElement,
+        head: document.head,
+        root: rootElement,
+        modules: new Map<string, any>(),
+        nativeObjectNames: [],
+        pluginsLoadTask: new Task(),
+        scriptsLoadTasks: new Map<string, Task<void>>(),
+        childViews: new ObservableListCollection<ViewMetadata>(),
+        parentView: null!
+    };
+    views.set(mainFrameName, mainView);
 
     await loadFramework();
+
+    const { renderMainView } = await import("./Loader.View");
+    mainView.renderHandler = component => renderMainView(component, rootElement);
 
     // bind event listener object ahead-of-time
     await CefSharp.BindObjectAsync({ IgnoreCache: false }, eventListenerObjectName);
@@ -332,17 +343,13 @@ async function bootstrap() {
 }
 
 async function loadFramework(): Promise<void> {
-    const view = Common.getView(mainFrameName);
+    const view = getView(mainFrameName);
     await loadScript(externalLibsPath + "prop-types/prop-types.min.js", view); /* Prop-Types */
     await loadScript(externalLibsPath + "react/umd/react.production.min.js", view); /* React */
     await loadScript(externalLibsPath + "react-dom/umd/react-dom.production.min.js", view); /* ReactDOM */
 
-    define("react", [], () => importReact());
-    define("react-dom", [], () => importReactDOM());
-
-    // create context
-    rootContext = React.createContext<PluginsContext | null>(null);
-    window[pluginsProviderModuleName] = { PluginsContext: rootContext };
+    define("react", [], () => window[reactLib]);
+    define("react-dom", [], () => window[reactDOMLib]);
 }
 
 function createPropertiesProxy(basePropertiesObj: {}, nativeObjName: string): {} {
@@ -397,6 +404,22 @@ function waitForDOMReady() {
 
 function fireNativeNotification(eventName: string, ...args: string[]) {
     window[eventListenerObjectName].notify(eventName, ...args);
+}
+
+function onChildViewAdded(childView: ViewMetadata) {
+    views.set(childView.name, childView);
+    fireNativeNotification(viewInitializedEventName, childView.name);
+}
+
+function onChildViewRemoved(childView: ViewMetadata) {
+    views.delete(childView.name);
+    // delete native objects
+    childView.nativeObjectNames.forEach(nativeObjecName => {
+        CefSharp.RemoveObjectFromCache(nativeObjecName);
+        CefSharp.DeleteBoundObject(nativeObjecName);
+    });
+
+    fireNativeNotification(viewDestroyedEventName, childView.name);
 }
 
 bootstrap();

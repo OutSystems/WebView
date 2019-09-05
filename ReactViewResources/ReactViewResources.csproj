@@ -60,6 +60,14 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="Loader\Loader.ts" />
+    <TypeScriptCompile Include="Loader\Loader.View.tsx" />
+    <TypeScriptCompile Include="Loader\ObservableCollection.ts" />
+    <TypeScriptCompile Include="Loader\PluginsContext.ts" />
+    <TypeScriptCompile Include="Loader\Task.ts" />
+    <TypeScriptCompile Include="Loader\ViewContext.ts" />
+    <TypeScriptCompile Include="Loader\ViewMetadata.ts" />
+    <TypeScriptCompile Include="Loader\ViewPortal.tsx" />
+    <TypeScriptCompile Include="Loader\ViewPortalsCollection.tsx" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="Loader\LoaderCommon.ts" />

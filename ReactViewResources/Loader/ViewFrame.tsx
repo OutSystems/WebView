@@ -1,83 +1,96 @@
 ﻿import * as React from "react";
-import * as ReactDOM from "react-dom";
-import * as Common from "./LoaderCommon";
+import { ObservableListCollection } from "./ObservableCollection";
+import { Task } from "./Task";
+import { ViewContext } from "./ViewContext";
+import { ViewMetadata } from "./ViewMetadata";
 
-type ViewFrameProps = { name: string, className: string };
+interface IViewFrameProps {
+    name: string;
+    className: string;
+}
 
-class ViewFrame extends React.Component<ViewFrameProps> {
+/**
+ * Placeholder were a child view is mounted.
+ * */
+export class ViewFrame extends React.Component<IViewFrameProps, {}, ViewMetadata> {
 
-    private shadowRoot: Element | null;
-    private head: HTMLElement | null;
-    private root: HTMLElement | null;
-    private children: React.ReactNode;
+    private static generation = 0;
 
-    constructor(props: ViewFrameProps, context: any) {
+    private generation: number;
+    private placeholder: Element;
+    private replacement: Element;
+
+    static contextType = ViewContext;
+
+    constructor(props: IViewFrameProps, context: ViewMetadata) {
         super(props, context);
         if (props.name === "") {
             throw new Error("View Frame name must be specified (not empty)");
         }
+
+        // keep track of this frame generation, so that we can keep tracking the most recent frame instance
+        this.generation = ++ViewFrame.generation;
+
+        const view = this.getView();
+        if (view) {
+            // update the existing view generation
+            view.generation = this.generation;
+        }
     }
 
     public shouldComponentUpdate(): boolean {
-        // prevent component updates, it will be updated explicitly
+        // prevent component updates
         return false;
     }
 
+    private get parentView(): ViewMetadata {
+        return this.context as ViewMetadata;
+    }
+
+    private getView(): ViewMetadata | undefined {
+        return this.parentView.childViews.items.find(c => c.name === this.props.name);
+    }
+
+    public componentDidMount() {
+        const existingView = this.getView();
+        if (existingView) {
+            // there's a view already rendered, insert in current frame's placeholder
+            this.replacement = existingView.placeholder;
+            this.placeholder.parentElement!.replaceChild(this.replacement, this.placeholder);
+            return;
+        }
+
+        const childView: ViewMetadata = {
+            name: this.props.name,
+            generation: this.generation,
+            isMain: false,
+            placeholder: this.placeholder,
+            modules: new Map<string, any>(),
+            nativeObjectNames: [],
+            pluginsLoadTask: new Task(),
+            scriptsLoadTasks: new Map<string, Task<void>>(),
+            childViews: new ObservableListCollection<ViewMetadata>(),
+            parentView: this.parentView
+        };
+
+        this.parentView.childViews.add(childView);
+    }
+
     public componentWillUnmount() {
-        Common.removeView(this.props.name);
-    }
-
-    private renderChildren = (children: React.ReactNode) => {
-        return new Promise<void>(resolve => {
-            this.children = children;
-            this.forceUpdate(resolve);
-        });
-    }
-
-    private setContainer(container: HTMLElement | null) {
-        if (container && !this.shadowRoot) {
-            // create an open shadow-dom, so that bubbled events expose the inner element
-            this.shadowRoot = container.attachShadow({ mode: "open" }).getRootNode() as Element;
-            this.forceUpdate(() => {
-                if (!this.root || !this.head) {
-                    throw new Error("Expected root and head to be set");
-                }
-                Common.addView(this.props.name, false, this.root, this.head, this.renderChildren);
-            });
-        }
-    }
-
-    private renderPortal() {
-        if (!this.shadowRoot) {
-            return null;
+        if (this.replacement) {
+            // put back the original container, otherwise react will complain
+            this.replacement.parentElement!.replaceChild(this.placeholder, this.replacement);
         }
 
-        // get sticky stylesheets
-        const mainView = Common.getView(Common.mainFrameName);
-        const stylesheets = Common.getStylesheets(mainView.head).filter(s => s.dataset.sticky === "true");
-
-        const headContent =
-            "<style>:host { all: initial; display: block; }</style>\n" + // reset inherited css properties
-            stylesheets.map(s => s.outerHTML).join("\n"); // import sticky stylesheets into this view 
-
-        return ReactDOM.createPortal(
-            <>
-                <head ref={e => this.head = e} dangerouslySetInnerHTML={{ __html: headContent }} />
-                <body>
-                    <div ref={e => this.root = e} id={Common.webViewRootId}>
-                        {this.children}
-                    </div>
-                </body>
-            </>,
-            this.shadowRoot);
+        const existingView = this.getView();
+        if (existingView && this.generation === existingView.generation) {
+            // this is the most recent frame - meaning it was not replaced by another one - so the view should be removed
+            this.parentView.childViews.remove(existingView);
+        }
     }
 
     public render() {
-        return (
-            <div ref={e => this.setContainer(e)} className={this.props.className}>
-                {this.renderPortal()}
-            </div>
-        );
+        return <div ref={e => this.placeholder = e!} className={this.props.className} />;
     }
 }
 

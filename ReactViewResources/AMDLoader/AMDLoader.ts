@@ -6,6 +6,7 @@ namespace AMDLoader {
     const resolves: { [module: string]: Function } = {};
 
     export function getOrCreateDependencyPromise(name: string) {
+        name = name.replace(/^.\//, "");
         if (!promises[name]) {
             promises[name] = new Promise((resolve) => resolves[name] = resolve);
         }
