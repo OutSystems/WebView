@@ -2,6 +2,7 @@
 import ViewPlugin from "./ViewPlugin";
 import { IPluginsContext, PluginsContext } from "PluginsProvider";
 import "./SubExampleView.scss";
+import { ResourceLoader } from "ResourceLoader";
 
 export interface ISubExampleViewProperties {
     click(): void;
@@ -71,6 +72,11 @@ export default class SubExampleView extends React.Component<ISubExampleViewPrope
                 <br />
                 <SubExampleComponent />
                 <br />
+                Custom resource:
+                <ResourceLoader.Consumer>
+                    {url => <img src={url("Completed.png")} />}
+                </ResourceLoader.Consumer>
+                <br/>
                 <button onClick={() => this.setState(s => { return { buttonClicksCount: s.buttonClicksCount + 1 }; })}>Click me!</button>&nbsp;
             </div>
         );

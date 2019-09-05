@@ -23,7 +23,8 @@ const [
     eventListenerObjectName,
     viewInitializedEventName,
     viewDestroyedEventName,
-    viewLoadedEventName
+    viewLoadedEventName,
+    customResourceBaseUrl
 ] = Array.from(new URLSearchParams(location.search).keys());
 
 const externalLibsPath = libsPath + "node_modules/";
@@ -259,7 +260,7 @@ export function loadComponent(
 
             const { createView } = await import("./Loader.View");
             
-            const viewElement = createView(componentClass, properties, view, componentName, onChildViewAdded, onChildViewRemoved);
+            const viewElement = createView(componentClass, properties, view, componentName, onChildViewAdded, onChildViewRemoved, customResourceBaseUrl);
             const render = view.renderHandler;
             if (!render) {
                 throw new Error(`View ${view.name} render handler is not set`);

@@ -13,6 +13,8 @@ namespace ReactViewControl {
 
     public delegate Stream CustomResourceRequestedEventHandler(string url);
 
+    public delegate Stream CustomResourceWithKeyRequestedEventHandler(string resourceKey);
+
     public abstract class ReactView : UserControl, IDisposable {
 
         private static Dictionary<Type, ReactViewRender> CachedViews { get; } = new Dictionary<Type, ReactViewRender>();
@@ -189,6 +191,40 @@ namespace ReactViewControl {
         public event CustomResourceRequestedEventHandler CustomResourceRequested {
             add { View.CustomResourceRequested += value; }
             remove { View.CustomResourceRequested -= value; }
+        }
+
+        /// <summary>
+        /// Add an handler for custom resources from main frame.
+        /// </summary>
+        /// <param name="handler"></param>
+        public void AddCustomResourceRequestedHandler(CustomResourceWithKeyRequestedEventHandler handler) {
+            AddCustomResourceRequestedHandler(WebView.MainFrameName, handler);
+        }
+
+        /// <summary>
+        /// Add an handler for custom resources from the specified frame.
+        /// </summary>
+        /// <param name="frameName"></param>
+        /// <param name="handler"></param>
+        public void AddCustomResourceRequestedHandler(string frameName, CustomResourceWithKeyRequestedEventHandler handler) {
+            View.AddCustomResourceRequestedHandler(frameName, handler);
+        }
+
+        /// <summary>
+        /// Remve the handler for custom resources from the main frame.
+        /// </summary>
+        /// <param name="handler"></param>
+        public void RemoveCustomResourceRequestedHandler(CustomResourceWithKeyRequestedEventHandler handler) {
+            RemoveCustomResourceRequestedHandler(WebView.MainFrameName, handler);
+        }
+
+        /// <summary>
+        /// Remve the handler for custom resources from the specified frame.
+        /// </summary>
+        /// <param name="frameName"></param>
+        /// <param name="handler"></param>
+        public void RemoveCustomResourceRequestedHandler(string frameName, CustomResourceWithKeyRequestedEventHandler handler) {
+            View.RemoveCustomResourceRequestedHandler(frameName, handler);
         }
 
         /// <summary>

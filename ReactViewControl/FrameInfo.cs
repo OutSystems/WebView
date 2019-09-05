@@ -17,5 +17,7 @@
         public LoadStatus LoadStatus { get; set; }
 
         public bool PluginsLoaded { get; set; }
+
+        public CustomResourceWithKeyRequestedEventHandler CustomResourceRequested;
     }
 }

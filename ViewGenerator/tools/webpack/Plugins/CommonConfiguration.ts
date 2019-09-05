@@ -51,7 +51,8 @@ let getCommonConfiguration = (libraryName: string): Configuration => {
             "react-dom": "ReactDOM",
             "prop-types": "PropTypes",
             "ViewFrame": "ViewFrame",
-            "PluginsProvider": "PluginsProvider"
+            "PluginsProvider": "PluginsProvider",
+            "ResourceLoader": "ResourceLoader"
         },
 
         output: {
