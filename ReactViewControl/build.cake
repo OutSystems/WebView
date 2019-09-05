@@ -1,5 +1,10 @@
 #tool "nuget:?package=Microsoft.TestPlatform&version=15.7.0"
 
+////////////////////////////////////////////////////////////////
+// Use always this structure. If you don't need to run some   //
+// task, comment the code inside it.                          //
+////////////////////////////////////////////////////////////////
+
 var target = Argument("target", "Default");
 var configuration = Argument("configuration", "Release"); //Here you can configure if you want do debug or release
 var solutionPath=@"../WebView.sln";// Here you put the location of csproj file. If your csproj have dependencies with other, put the location of sln file instead.
