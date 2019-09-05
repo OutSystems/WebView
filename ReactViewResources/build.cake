@@ -2,7 +2,8 @@
 
 var target = Argument("target", "Default");
 var configuration = Argument("configuration", "Release"); //Here you can configure if you want do debug or release
-var solutionPath=@"ReactViewResources.csproj";// Here you put the location of sln file
+var solutionPath=@"../WebView.sln";// Here you put the location of csproj file. If your csproj have dependencies with other, put the location of sln file instead.
+
 
 var restore=Task("Restore-NuGet-Packages")
     .Does(() =>
