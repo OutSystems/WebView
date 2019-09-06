@@ -26,33 +26,19 @@
       $(PrepareResourceNamesDependsOn)
     </PrepareResourceNamesDependsOn>
   </PropertyGroup>
-
-  <UsingTask TaskName="IndexItemGroup" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll" >
-    <ParameterGroup>
-      <Items Required="true" ParameterType="Microsoft.Build.Framework.ITaskItem[]"/>
-      <Index Required="true" ParameterType="System.Int32"/>
-      <Item Output="true" ParameterType="Microsoft.Build.Framework.ITaskItem"/>
-    </ParameterGroup>
-    <Task>
-      <Code Type="Fragment" Language="cs">
-        <![CDATA[Item = Items.Length > Index ? Items[ Index ] : null;]]>
-      </Code>
-    </Task>
-  </UsingTask>
   
   <Target Name="VG_SetVariables">
     <ItemGroup>     
       <_ViewGeneratorNodeJsExe Include="$(MSBuildThisFileDirectory)..\..\..\Node.js.redist\*\tools\win-x64\node.exe"/>
       <_ViewGeneratorNodeJsExe Include="$(MSBuildThisFileDirectory)..\..\Node.js.redist*\tools\win-x64\node.exe"/>
     </ItemGroup>
-    <IndexItemGroup Items="@(_ViewGeneratorNodeJsExe)" Index="0">
-      <Output PropertyName="_ViewGeneratorNodeJsExeFirst" TaskParameter="Item"/>
-    </IndexItemGroup>
     <PropertyGroup>
       <ViewGeneratorPath>$([System.IO.Path]::GetFullPath(&quot;$(MSBuildThisFileDirectory)..\&quot;))</ViewGeneratorPath>
       <ViewGeneratorToolsPath>$(ViewGeneratorPath)tools</ViewGeneratorToolsPath>
       <ViewGeneratorContentFilesPath>$(ViewGeneratorPath)contentFiles\</ViewGeneratorContentFilesPath>
-      <ViewGeneratorNodeJsExe>$(_ViewGeneratorNodeJsExeFirst)</ViewGeneratorNodeJsExe>
+
+      <__ViewGeneratorNodeJsExe>@(_ViewGeneratorNodeJsExe);</__ViewGeneratorNodeJsExe>
+      <ViewGeneratorNodeJsExe>$(__ViewGeneratorNodeJsExe.Substring(0, $(__ViewGeneratorNodeJsExe.IndexOf(';'))))</ViewGeneratorNodeJsExe>
     </PropertyGroup>
   </Target>
 

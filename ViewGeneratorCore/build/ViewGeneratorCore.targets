@@ -18,29 +18,25 @@
 
   </PropertyGroup>
 
-  <UsingTask TaskName="IndexItemGroup" TaskFactory="CodeTaskFactory" AssemblyFile="$(MSBuildToolsPath)\Microsoft.Build.Tasks.v4.0.dll" >
-    <ParameterGroup>
-      <Items Required="true" ParameterType="Microsoft.Build.Framework.ITaskItem[]"/>
-      <Index Required="true" ParameterType="System.Int32"/>
-      <Item Output="true" ParameterType="Microsoft.Build.Framework.ITaskItem"/>
-    </ParameterGroup>
-    <Task>
-      <Code Type="Fragment" Language="cs">
-        <![CDATA[Item = Items.Length > Index ? Items[ Index ] : null;]]>
-      </Code>
-    </Task>
-  </UsingTask>
+  <Target Name="ESLint_SetVariables">
+    <ItemGroup>
+      <_ESLintNodeExe Include="$(MSBuildThisFileDirectory)..\..\..\Node.js.redist\*\tools\win-x64\node.exe"/>
+      <_ESLintNodeExe Include="$(MSBuildThisFileDirectory)..\..\Node.js.redist*\tools\win-x64\node.exe"/>
+    </ItemGroup>
+    <PropertyGroup>
+      <__ESLintNodeExe>@(_ESLintNodeExe);</__ESLintNodeExe>
+      <ESLintNodeExe>$(__ESLintNodeExe.Substring(0, $(__ESLintNodeExe.IndexOf(';'))))</ESLintNodeExe>
+    </PropertyGroup>
+  </Target>
   
   <Target Name="VGC_SetVariables">
     <ItemGroup>
       <_ViewGeneratorCoreNodeJsExe Include="$(MSBuildThisFileDirectory)..\..\..\Node.js.redist\*\tools\win-x64\node.exe"/>
       <_ViewGeneratorCoreNodeJsExe Include="$(MSBuildThisFileDirectory)..\..\Node.js.redist*\tools\win-x64\node.exe"/>
     </ItemGroup>
-    <IndexItemGroup Items="@(_ViewGeneratorCoreNodeJsExe)" Index="0">
-      <Output PropertyName="_ViewGeneratorCoreNodeJsExeFirst" TaskParameter="Item"/>
-    </IndexItemGroup>
     <PropertyGroup>
-      <ViewGeneratorCoreNodeJsExe>$(_ViewGeneratorCoreNodeJsExeFirst)</ViewGeneratorCoreNodeJsExe>
+      <__ViewGeneratorCoreNodeJsExe>@(_ViewGeneratorCoreNodeJsExe);</__ViewGeneratorCoreNodeJsExe>
+      <ViewGeneratorCoreNodeJsExe>$(__ViewGeneratorCoreNodeJsExe.Substring(0, $(__ViewGeneratorCoreNodeJsExe.IndexOf(';'))))</ViewGeneratorCoreNodeJsExe>
     </PropertyGroup>
   </Target>
   
