@@ -1,4 +1,4 @@
-﻿import { basename, resolve } from "path";
+﻿import { basename } from "path";
 import { RuleSetRule } from "webpack";
 
 // Resource files
@@ -10,14 +10,15 @@ const ResourcesRuleSet: RuleSetRule = {
             options: {
                 emitFile: false,
                 name: '[path][name].[ext]',
-                publicPath: (url: string, _, __) => {
+                publicPath: (url: string, _, context: string) => {
+                    let resourceBase: string = basename(context);
 
                     // relative paths starting with ".." are replaced by "_"
                     if (url.startsWith("_")) {
-                        return url.substring(1);
+                        return url.substring(url.indexOf(`/${resourceBase}/`));
                     }
 
-                    return `/${basename(resolve("."))}/${url}`;
+                    return `/${resourceBase}/${url}`;
                 }
             },
         },
