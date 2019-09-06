@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Windows;
+using Xilium.CefGlue;
 
 namespace WebViewControl {
 
@@ -80,7 +81,8 @@ namespace WebViewControl {
         }
 
         public static string GetExtensionMimeType(string extension) {
-            return string.IsNullOrEmpty(extension) ? "text/html" : null; // TODO CefSharp.ResourceHandler.GetMimeType(extension);
+            extension = string.IsNullOrEmpty(extension) ? "html" : extension.TrimStart('.');
+            return CefRuntime.GetMimeType(extension);
         }
     }
 }

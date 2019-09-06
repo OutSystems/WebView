@@ -90,7 +90,7 @@ namespace WebViewControl {
                 } else {
                     TriggerBeforeResourceLoadEvent();
                 }
-
+                
                 return resourceHandler.Handler;
             }
 

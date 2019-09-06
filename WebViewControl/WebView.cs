@@ -33,7 +33,7 @@ namespace WebViewControl {
 
     public partial class WebView : UserControl, IDisposable {
 
-        internal const string MainFrameName = "";
+        internal const string MainFrameName = null;
 
         private static string[] CustomSchemes { get; } = new[] {
             ResourceUrl.LocalScheme,
@@ -116,13 +116,11 @@ namespace WebViewControl {
             cefSettings.UncaughtExceptionStackSize = 100; // enable stack capture
             cefSettings.CachePath = CachePath; // enable cache for external resources to speedup loading
 
-            foreach (var scheme in CustomSchemes) {
-                CefRuntime.RegisterSchemeHandlerFactory(scheme, null, new SchemeHandlerFactory());
-            }
-
             // TODO cefSettings.BrowserSubprocessPath = CefLoader.GetBrowserSubProcessPath();
 
-            CefRuntimeLoader.Initialize(new string[0], cefSettings);
+            var customSchemes = CustomSchemes.Select(s => new CustomScheme() { SchemeName = s, SchemeHandlerFactory = new SchemeHandlerFactory() }).ToArray();
+
+            CefRuntimeLoader.Initialize(new string[0], cefSettings, customSchemes);
 
             if (Application.Current != null) {
                 Application.Current.Exit += OnApplicationExit;
@@ -333,13 +331,13 @@ namespace WebViewControl {
 
                 chromium.Address = address;
                 // must wait for the browser to be initialized otherwise navigation will be aborted
-                /*ExecuteWhenInitialized(() => {
-                    if (frameName == MainFrameName) {
+                //ExecuteWhenInitialized(() => {
+                //    if (frameName == MainFrameName) {
                         
-                    } else {
-                        GetFrame(frameName)?.LoadUrl(address);
-                    }
-                });*/
+                //    } else {
+                //        GetFrame(frameName)?.LoadUrl(address);
+                //    }
+                //});
             } else {
                 var userAssembly = GetUserCallingMethod().ReflectedType.Assembly;
                 LoadUrl(new ResourceUrl(userAssembly, address).WithDomain(CurrentDomainId), frameName);
@@ -389,51 +387,40 @@ namespace WebViewControl {
         /// <param name="name"></param>
         /// <param name="objectToBind"></param>
         /// <param name="interceptCall"></param>
-        /// <param name="bind"></param>
         /// <param name="executeCallsInUI"></param>
         /// <returns>True if the object was registered or false if the object was already registered before</returns>
-        public bool RegisterJavascriptObject(string name, object objectToBind, Func<Func<object>, object> interceptCall = null, Func<object, Type, object> bind = null, bool executeCallsInUI = false) {
-            // TODO jmn
-            //if (chromium.JavascriptObjectRepository.IsBound(name)) {
-            //    return false;
-            //}
+        public bool RegisterJavascriptObject(string name, object objectToBind, Func<Func<object>, object> interceptCall = null, bool executeCallsInUI = false) {
+            if (chromium.IsJavascriptObjectRegistered(name)) {
+                return false;
+            }
 
-            //if (executeCallsInUI) {
-            //    return RegisterJavascriptObject(name, objectToBind, target => Dispatcher.Invoke(target), bind, false);
+            if (executeCallsInUI) {
+                return RegisterJavascriptObject(name, objectToBind, target => Dispatcher.Invoke(target), false);
+            }
+            
+            if (interceptCall == null) {
+                interceptCall = target => target();
+            }
 
-            //} else {
-            //    var bindingOptions = new BindingOptions();
-            //    if (bind != null) {
-            //        bindingOptions.Binder = new LambdaMethodBinder(bind);
-            //    } else {
-            //        bindingOptions.Binder = Binder;
-            //    }
+            object CallTargetMethod(Func<object> target) {
+                if (isDisposing) {
+                    return null;
+                }
+                try {
+                    javascriptPendingCalls++;
+                    if (isDisposing) {
+                        // check again, to avoid concurrency problems with dispose
+                        return null;
+                    }
+                    return interceptCall(target);
+                } finally {
+                    javascriptPendingCalls--;
+                    JavascriptCallFinished?.Invoke();
+                }
+            }
 
-            //    if (interceptCall == null) {
-            //        interceptCall = target => target();
-            //    }
-
-            //    object WrapCall(Func<object> target) {
-            //        if (isDisposing) {
-            //            return null;
-            //        }
-            //        try {
-            //            javascriptPendingCalls++;
-            //            if (isDisposing) {
-            //                // check again, to avoid concurrency problems with dispose
-            //                return null;
-            //            }
-            //            return interceptCall(target);
-            //        } finally {
-            //            javascriptPendingCalls--;
-            //            JavascriptCallFinished?.Invoke();
-            //        }
-            //    }
-
-            //    bindingOptions.MethodInterceptor = new LambdaMethodInterceptor(WrapCall);
-            //    chromium.JavascriptObjectRepository.Register(name, objectToBind, true, bindingOptions);
-            //}
-
+            chromium.RegisterJavascriptObject(objectToBind, name, CallTargetMethod);
+        
             return true;
         }
 
@@ -740,14 +727,15 @@ namespace WebViewControl {
         }
 
         private CefFrame GetFrame(string frameName) {
-            return chromium.GetBrowser()?.GetFrame(frameName);
+            return chromium.GetBrowser()?.GetFrame(frameName ?? "");
         }
 
         private JavascriptExecutor GetJavascriptExecutor(string frameName) {
             lock(JsExecutors) {
-                if (!JsExecutors.TryGetValue(frameName, out var jsExecutor)) {
+                var frameNameForIndex = frameName ?? "";
+                if (!JsExecutors.TryGetValue(frameNameForIndex, out var jsExecutor)) {
                     jsExecutor = new JavascriptExecutor(this, GetFrame(frameName));
-                    JsExecutors.Add(frameName, jsExecutor);
+                    JsExecutors.Add(frameNameForIndex, jsExecutor);
                 }
                 return jsExecutor;
             }
@@ -760,7 +748,7 @@ namespace WebViewControl {
                 }
 
                 lock (JsExecutors) {
-                    var frameName = e.Frame.Name ?? "";
+                    var frameName = e.Frame.Name;
 
                     if (frameName == MainFrameName) {
                         // when a new main frame in created, dispose all running executors -> since they should not be valid anymore
@@ -782,7 +770,7 @@ namespace WebViewControl {
                     return;
                 }
 
-                var frameName = e.Frame.Name ?? "";
+                var frameName = e.Frame.Name;
 
                 lock (JsExecutors) {
                     DisposeJavascriptExecutors(new[] { frameName });
@@ -811,7 +799,7 @@ namespace WebViewControl {
         //        // ignore internal exceptions, they will be handled by the EvaluateScript caller
         //        return;
         //    }
-        //    var javascriptException = new JavascriptException(exception.Message/*, TODO exception.StackTrace */);
+        //    var javascriptException = new JavascriptException(exception.Message, exception.StackTrace);
         //    OwnerWebView.ForwardUnhandledAsyncException(javascriptException, frame.Name);
         //}
     }

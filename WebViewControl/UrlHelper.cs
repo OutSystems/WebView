@@ -9,7 +9,7 @@ namespace WebViewControl {
         public const string AboutBlankUrl = "about:blank";
 
         public static bool IsChromeInternalUrl(string url) {
-            return url.StartsWith(ChromeInternalProtocol, StringComparison.InvariantCultureIgnoreCase);
+            return url != null && url.StartsWith(ChromeInternalProtocol, StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }

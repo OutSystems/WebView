@@ -119,6 +119,9 @@
     <Reference Include="Xilium.CefGlue">
       <HintPath>..\..\cefglue\CefGlue.WPF\bin\Debug\Xilium.CefGlue.dll</HintPath>
     </Reference>
+    <Reference Include="Xilium.CefGlue.BrowserProcess">
+      <HintPath>..\..\cefglue\CefGlue.BrowserProcess\bin\Debug\net45\Xilium.CefGlue.BrowserProcess.exe</HintPath>
+    </Reference>
     <Reference Include="Xilium.CefGlue.Common">
       <HintPath>..\..\cefglue\CefGlue.WPF\bin\Debug\Xilium.CefGlue.Common.dll</HintPath>
     </Reference>
@@ -150,7 +153,6 @@
     <Compile Include="AsyncResourceHandler.cs" />
     <Compile Include="WebView.InternalDialogHandler.cs" />
     <Compile Include="WebView.InternalContextMenuHandler.cs" />
-    <Compile Include="WebView.InternalResourceHandler.cs" />
     <Compile Include="SchemeHandlerFactory.cs" />
     <Compile Include="WebView.cs" />
     <Compile Include="WebView.JavascriptException.cs" />
