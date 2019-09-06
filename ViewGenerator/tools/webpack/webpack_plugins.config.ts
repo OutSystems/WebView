@@ -4,9 +4,9 @@ import getCommonConfiguration from "./Plugins/CommonConfiguration";
 import DtsCleanupPlugin from "./Plugins/DtsCleanupPlugin";
 import DtsGeneratorPlugin from "./Plugins/DtsGeneratorPlugin";
 import { DtsFileName } from "./Plugins/Resources";
-import { getCurrentDirectory, applyConfigurationModeProperties } from "./Plugins/Utils";
+import { getCurrentDirectory } from "./Plugins/Utils";
 
-const config = (_, argv) => {
+const config = (_, __) => {
 
     let standardConfig: Configuration = getCommonConfiguration("Plugins");
 
@@ -20,7 +20,7 @@ const config = (_, argv) => {
         new DtsCleanupPlugin([DtsFileName], [/\.d.ts$/])
     );
 
-    return applyConfigurationModeProperties(standardConfig, argv.mode);
+    return standardConfig;
 };
 
 export default config;

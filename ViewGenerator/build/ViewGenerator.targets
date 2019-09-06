@@ -93,15 +93,19 @@
   </Target>
   
   <Target Name="VG_GenerateDefaultStyleSheet" DependsOnTargets="VG_SetupViewPacker;VG_SetVariables;VG_LinkNodeModules" Inputs="@(DefaultStyleSheet)" Outputs="%(DefaultStyleSheet.Filename).css" >
-    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <PropertyGroup>
       <WebpackBuildMode>development</WebpackBuildMode>
+    </PropertyGroup>
+    
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <WebpackDevTool>inline-source-map</WebpackDevTool>
     </PropertyGroup>
       
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-      <WebpackBuildMode>production</WebpackBuildMode>
+      <WebpackDevTool>false</WebpackDevTool>
     </PropertyGroup>
-    
-    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config '$(ViewGeneratorToolsPath)\webpack\webpack_stylesheets.config.js' --mode $(WebpackBuildMode) --entryPath &quot;%(DefaultStyleSheet.Identity)&quot;" />
+      
+    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config '$(ViewGeneratorToolsPath)\webpack\webpack_stylesheets.config.js' --mode $(WebpackBuildMode) --devtool $(WebpackDevTool) --entryPath &quot;%(DefaultStyleSheet.Identity)&quot;" />
   </Target>
 
   <Target Name="VG_EnsureViewPackerInstalled" Condition="'$(ViewPackerToolScript)' == ''">
@@ -109,19 +113,23 @@
   </Target>
   
   <Target Name="VG_GenerateBundle" DependsOnTargets="VG_SetupViewPacker;VG_SetVariables;VG_CopyContentFiles;VG_GenerateDefaultStyleSheet;VG_CleanLegacyEntryFiles;VG_CleanLegacyJSFiles;VG_CleanLegacyCSSFiles">
+    <PropertyGroup>
+      <WebpackBuildMode>development</WebpackBuildMode>
+    </PropertyGroup>
+
     <PropertyGroup Condition="'$(WebpackConfigFileName)' == ''">
       <WebpackConfigFileName>webpack_views</WebpackConfigFileName>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-      <WebpackBuildMode>development</WebpackBuildMode>
+      <WebpackDevTool>inline-source-map</WebpackDevTool>
     </PropertyGroup>
       
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-      <WebpackBuildMode>production</WebpackBuildMode>
+      <WebpackDevTool>false</WebpackDevTool>
     </PropertyGroup>
 
-    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config '$(ViewGeneratorToolsPath)\webpack\$(WebpackConfigFileName).config.js' --mode $(WebpackBuildMode) --pluginsRelativePath '$(PluginsRelativePath)'" />
+    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config '$(ViewGeneratorToolsPath)\webpack\$(WebpackConfigFileName).config.js' --mode $(WebpackBuildMode) --devtool $(WebpackDevTool) --pluginsRelativePath '$(PluginsRelativePath)'" />
   </Target>
 
   <Target Name="VG_IncludeGeneratedResources" DependsOnTargets="VG_GenerateBundle">

@@ -3,7 +3,7 @@ import { resolve } from "path";
 import { Configuration } from "webpack";
 
 import getCommonConfiguration from "./Plugins/CommonConfiguration";
-import { Dictionary, applyConfigurationModeProperties } from "./Plugins/Utils";
+import { Dictionary } from "./Plugins/Utils";
 
 const config = (_, argv) => {
 
@@ -65,7 +65,7 @@ const config = (_, argv) => {
         }
     }
 
-    return applyConfigurationModeProperties(standardConfig, argv.mode);
+    return standardConfig;
 };
 
 export default config;
