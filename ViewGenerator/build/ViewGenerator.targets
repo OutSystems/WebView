@@ -5,10 +5,10 @@
       VG_SetVariables;
       VG_CopyContentFiles;
       VG_LinkNodeModules;
-      VG_GenerateDefaultStyleSheet;
       VG_CleanLegacyEntryFiles;
       VG_CleanLegacyJSFiles;
       VG_CleanLegacyCSSFiles;
+      VG_GenerateDefaultStyleSheet;
       VG_GenerateBundle;
       $(BuildDependsOn);
     </BuildDependsOn>
@@ -92,7 +92,7 @@
     <Exec Command="mklink /J &quot;$(ViewGeneratorToolsPath)\webpack\node_modules&quot; &quot;$(ViewPackerToolNodeModules)&quot;" />
   </Target>
   
-  <Target Name="VG_GenerateDefaultStyleSheet" DependsOnTargets="VG_SetupViewPacker;VG_SetVariables;VG_LinkNodeModules" Inputs="@(DefaultStyleSheet)" Outputs="%(DefaultStyleSheet.Filename).css" >
+  <Target Name="VG_GenerateDefaultStyleSheet" DependsOnTargets="VG_SetupViewPacker;VG_SetVariables;VG_LinkNodeModules;VG_CleanLegacyCSSFiles" Inputs="@(DefaultStyleSheet)" Outputs="%(DefaultStyleSheet.Filename).css" >
     <PropertyGroup>
       <WebpackBuildMode>development</WebpackBuildMode>
     </PropertyGroup>
