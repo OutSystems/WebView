@@ -140,6 +140,10 @@
   <ItemGroup>
     <Folder Include="node_modules\%40types\" />
   </ItemGroup>
+  <ItemGroup>
+    <Resource Include="ExampleView\ExampleView\Ok.png" />
+    <Resource Include="ExampleView\SubExampleView\Completed.png" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

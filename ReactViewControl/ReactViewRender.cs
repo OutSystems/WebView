@@ -19,6 +19,7 @@ namespace ReactViewControl {
         private const string ViewInitializedEventName = "ViewInitialized";
         private const string ViewDestroyedEventName = "ViewDestroyed";
         private const string ViewLoadedEventName = "ViewLoaded";
+        private const string CustomResourceBaseUrl = "resource";
 
         private static Assembly ResourcesAssembly { get; } = typeof(ReactViewResources.Resources).Assembly;
 
@@ -69,10 +70,13 @@ namespace ReactViewControl {
                 Listener.EventListenerObjName,
                 ViewInitializedEventName,
                 ViewDestroyedEventName,
-                ViewLoadedEventName
+                ViewLoadedEventName,
+                ResourceUrl.CustomScheme +  Uri.SchemeDelimiter + CustomResourceBaseUrl
             };
 
             WebView.LoadResource(new ResourceUrl(ResourcesAssembly, ReactViewResources.Resources.DefaultUrl + "?" + string.Join("&", urlParams)));
+
+            CustomResourceRequested += OnCustomResourceRequested;
         }
 
         public IInputElement FocusableElement => WebView.FocusableElement;
@@ -389,6 +393,28 @@ namespace ReactViewControl {
         }
 
         /// <summary>
+        /// Add an handler for custom resources from the specified frame.
+        /// </summary>
+        /// <param name="frameName"></param>
+        /// <param name="handler"></param>
+        public void AddCustomResourceRequestedHandler(string frameName, CustomResourceWithKeyRequestedEventHandler handler) {
+            var frame = GetOrCreateFrame(frameName);
+            frame.CustomResourceRequested += handler;
+        }
+
+        /// <summary>
+        /// Remve the handler for custom resources from the specified frame.
+        /// </summary>
+        /// <param name="frameName"></param>
+        /// <param name="handler"></param>
+        public void RemoveCustomResourceRequestedHandler(string frameName, CustomResourceWithKeyRequestedEventHandler handler) {
+            // do not create if frame does not exist
+            if (Frames.TryGetValue(frameName, out var frame)) {
+                frame.CustomResourceRequested -= handler;
+            }
+        }
+
+        /// <summary>
         /// Starts watching for sources changes, reloading the webview when a change occurs.
         /// </summary>
         /// <param name="mainModuleFullPath"></param>
@@ -490,6 +516,21 @@ namespace ReactViewControl {
                     ExternalResourceRequested?.Invoke(resourceHandler);
                     break;
             }
+        }
+
+        /// <summary>
+        /// Handle custom resource request and forward it to the appropriate frame.
+        /// </summary>
+        /// <param name="url"></param>
+        /// <returns></returns>
+        private Stream OnCustomResourceRequested(string url) {
+            if (Uri.TryCreate(url, UriKind.Absolute, out var uri) && uri.Segments.Length > 1 && uri.Host.Equals(CustomResourceBaseUrl, StringComparison.InvariantCultureIgnoreCase)) {
+                var frameName = uri.Segments.ElementAt(1).TrimEnd(ResourceUrl.PathSeparator.ToCharArray());
+                if (frameName != null && Frames.TryGetValue(frameName, out var frame)) {
+                    return frame.CustomResourceRequested?.Invoke(uri.Query.TrimStart('?'));
+                }
+            }
+            return null;
         }
 
         /// <summary>

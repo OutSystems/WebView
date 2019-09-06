@@ -4,6 +4,7 @@ import ViewPlugin from "./ViewPlugin";
 import { IPluginsContext } from "PluginsProvider";
 import "./ExampleView.scss";
 import * as Image from "./beach.jpg";
+import { ResourceLoader } from "ResourceLoader";
 
 export interface ISomeType {
     name: string;
@@ -98,6 +99,10 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
                     <button onClick={() => this.props.click(null)}>Click me!</button>&nbsp;
                     <button onClick={this.onMountSubViewClick}>Mount/Wrap/Hide child view</button>
                 </div>
+                Custom resource:
+                <ResourceLoader.Consumer>
+                    {url => <img src={url("Ok.png")} />}
+                </ResourceLoader.Consumer>
                 <br />
                 {this.renderSubView()}
             </div>

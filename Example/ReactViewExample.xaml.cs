@@ -1,5 +1,7 @@
 ﻿using System;
+using System.IO;
 using System.Windows;
+using WebViewControl;
 
 namespace Example {
     /// <summary>
@@ -16,6 +18,9 @@ namespace Example {
             InitializeComponent();
 
             exampleView.WithPlugin<ViewPlugin>().NotifyViewLoaded += OnNotifyViewLoaded;
+
+            exampleView.AddCustomResourceRequestedHandler(OnViewResourceRequested);
+            exampleView.AddCustomResourceRequestedHandler(InnerViewName, OnInnerViewResourceRequested);
         }
 
         private void OnExampleViewClick(SomeType arg) {
@@ -58,6 +63,14 @@ namespace Example {
 
         private void AppendLog(string log) {
             Application.Current.Dispatcher.Invoke(() => status.Text = log + Environment.NewLine + status.Text);
+        }
+
+        private Stream OnViewResourceRequested(string resourceKey) {
+            return ResourcesManager.GetResource(GetType().Assembly, new[] { "ExampleView", "ExampleView", resourceKey });
+        }
+
+        private Stream OnInnerViewResourceRequested(string resourceKey) {
+            return ResourcesManager.GetResource(GetType().Assembly, new[] { "ExampleView", "SubExampleView", resourceKey });
         }
     }
 }

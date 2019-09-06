@@ -52,6 +52,7 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="contentFiles\global.d.ts" />
+    <TypeScriptCompile Include="contentFiles\node_modules\%40types\ResourceLoader.d.ts" />
     <TypeScriptCompile Include="contentFiles\node_modules\%40types\PluginsProvider.d.ts" />
     <TypeScriptCompile Include="contentFiles\node_modules\%40types\ViewFrame.d.ts" />
     <TypeScriptCompile Include="tools\webpack\Plugins\MiniCssExtractPluginCleanup.ts" />
