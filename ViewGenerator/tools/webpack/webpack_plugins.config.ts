@@ -6,14 +6,9 @@ import DtsGeneratorPlugin from "./Plugins/DtsGeneratorPlugin";
 import { DtsFileName } from "./Plugins/Resources";
 import { getCurrentDirectory } from "./Plugins/Utils";
 
-const config = (_, argv) => {
+const config = (_, __) => {
 
     let standardConfig: Configuration = getCommonConfiguration("Plugins");
-
-    // devtool
-    if (argv.mode === "development") {
-        standardConfig.devtool = "inline-source-map";
-    }
 
     // Plugins
     standardConfig.plugins = standardConfig.plugins.concat(
