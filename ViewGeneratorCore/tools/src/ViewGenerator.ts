@@ -249,7 +249,7 @@ class Generator {
             `    \n` +
             `    ${f(this.generateComponentBody(generatePropertyEvent, generateProperty, generateBehaviorMethod))}\n` +
             `    \n` +
-            `    protected override string JavascriptSource => \"${this.relativePath}\";\n` +
+            `    protected override string MainJsSource => \"${this.relativePath}\";\n` +
             `    protected override string NativeObjectName => \"${this.propsInterfaceCoreName}\";\n` +
             `    protected override string ModuleName => \"${this.filename}\";\n` +
             `    protected override object CreateNativeObject() => new ${PropertiesClassName}(this);\n` +
@@ -337,6 +337,7 @@ function combinePath(path: string, rest: string) {
 export function transform(module: Units.TsModule, context: Object): string {
     debugger; // left on purpose to ease debugging
     const JsExtension = ".js";
+
     let namespace = context["namespace"];
     let baseDir = normalizePath(context["$baseDir"]);
     let fullPath = normalizePath(context["$fullpath"]);
@@ -345,9 +346,8 @@ export function transform(module: Units.TsModule, context: Object): string {
     let fileExtensionLen = fullPath.length - fullPath.lastIndexOf(".");
     let filenameWithoutExtension = fullPath.slice(fullPath.lastIndexOf("/") + 1, -fileExtensionLen);
 
-    let javascriptFullPath = fullPath.slice(0, -fileExtensionLen) + JsExtension; // replace the tsx/ts extension with js extension
-
-    let javascriptRelativePath = javascriptFullPath.substr(baseDir.length + 1); // remove the base dir
+    let output = normalizePath(context["$output"]);
+    let javascriptRelativePath = combinePath(output, filenameWithoutExtension) + JsExtension;
 
     if (javascriptDistPath.endsWith(JsExtension)) {
         // dist path has extension... then its a complete filename, use as the output
@@ -357,10 +357,9 @@ export function transform(module: Units.TsModule, context: Object): string {
         javascriptRelativePath = combinePath(javascriptDistPath, javascriptRelativePath);
     }
 
-    javascriptFullPath = combinePath(baseDir, javascriptRelativePath); // add the base dir
+    let javascriptFullPath = combinePath(baseDir, javascriptRelativePath); // add the base dir
     javascriptRelativePath = "/" + combinePath(namespace, javascriptRelativePath); // add the namespace
 
-    let output = normalizePath(context["$output"]);
     output = combinePath(output, filenameWithoutExtension + ".Generated.cs");
     context["$output"] = output;
     

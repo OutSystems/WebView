@@ -1,23 +1,22 @@
 ﻿{
     "compilerOptions": {
         "outDir": ".",
-        "module": "amd",
+        "module": "none",
         "target": "es2017",
         "sourceMap": false,
         "moduleResolution": "node",
         "rootDir": ".",
         "jsx": "react",
-        "declaration": true,
-        "declarationDir": "./../../ViewGenerator/declarations",
         "forceConsistentCasingInFileNames": true,
         "noImplicitReturns": true,
         "noImplicitThis": true,
         "strictNullChecks": true,
-        "noImplicitAny": true,
+        "noImplicitAny": false,
         "suppressImplicitAnyIndexErrors": true,
-        "removeComments": true
+        "removeComments": true,
+        "allowSyntheticDefaultImports": true
     },
-    "compileOnSave": true,
+    "compileOnSave": false,
     "exclude": [
         "node_modules"
     ]

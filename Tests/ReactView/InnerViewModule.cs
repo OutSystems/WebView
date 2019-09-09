@@ -30,7 +30,7 @@ namespace Tests.ReactView {
             ExecutionEngine.ExecuteMethod(this, "testMethod");
         }
 
-        protected override string JavascriptSource => "/Tests/ReactViewResources/Test/InnerView";
+        protected override string MainJsSource => "/Tests/ReactViewResources/Test/InnerView";
 
         protected override string NativeObjectName => nameof(InnerViewModule);
 

@@ -19,14 +19,14 @@ namespace ReactViewControl {
 
         private ConcurrentQueue<Tuple<string, object[]>> PendingScripts { get; } = new ConcurrentQueue<Tuple<string, object[]>>();
 
-        private static string FormatMethodInvocation(IViewModule module, string methodCall) {
-            return ReactViewRender.ModulesObjectName + "[\"" + module.Name + "\"]." + methodCall;
+        private string FormatMethodInvocation(IViewModule module, string methodCall) {
+            return ReactViewRender.ModulesObjectName + "(\"" + FrameName + "\",\"" + module.Name + "\")." + methodCall;
         }
 
         public void ExecuteMethod(IViewModule module, string methodCall, params object[] args) {
             var method = FormatMethodInvocation(module, methodCall);
             if (isReady) {
-                WebView.ExecuteScriptFunctionWithSerializedParamsInFrame(method, FrameName, args);
+                WebView.ExecuteScriptFunctionWithSerializedParams(method, args);
             } else {
                 PendingScripts.Enqueue(Tuple.Create(method, args));
             }
@@ -34,14 +34,14 @@ namespace ReactViewControl {
 
         public T EvaluateMethod<T>(IViewModule module, string methodCall, params object[] args) {
             var method = FormatMethodInvocation(module, methodCall);
-            return WebView.EvaluateScriptFunctionWithSerializedParamsInFrame<T>(method, FrameName, args);
+            return WebView.EvaluateScriptFunctionWithSerializedParams<T>(method, args);
         }
 
         public void Start() {
             isReady = true;
             while (true) {
                 if (PendingScripts.TryDequeue(out var pendingScript)) {
-                    WebView.ExecuteScriptFunctionWithSerializedParamsInFrame(pendingScript.Item1, FrameName, pendingScript.Item2);
+                    WebView.ExecuteScriptFunctionWithSerializedParams(pendingScript.Item1, pendingScript.Item2);
                 } else {
                     // nothing else to execute
                     break;

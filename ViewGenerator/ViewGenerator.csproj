@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\Microsoft.TypeScript.MSBuild.3.6.0\build\Microsoft.TypeScript.MSBuild.props" Condition="Exists('..\packages\Microsoft.TypeScript.MSBuild.3.6.0\build\Microsoft.TypeScript.MSBuild.props')" />
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -50,10 +51,27 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="contentFiles\global.d.ts" />
+    <TypeScriptCompile Include="contentFiles\node_modules\%40types\ResourceLoader.d.ts" />
+    <TypeScriptCompile Include="contentFiles\node_modules\%40types\PluginsProvider.d.ts" />
+    <TypeScriptCompile Include="contentFiles\node_modules\%40types\ViewFrame.d.ts" />
+    <TypeScriptCompile Include="tools\webpack\Plugins\MiniCssExtractPluginCleanup.ts" />
+    <TypeScriptCompile Include="tools\webpack\Plugins\RenameChunksPlugin.ts" />
+    <TypeScriptCompile Include="tools\webpack\Plugins\Resources.ts" />
+    <TypeScriptCompile Include="tools\webpack\Plugins\CommonConfiguration.ts" />
+    <TypeScriptCompile Include="tools\webpack\Plugins\Utils.ts" />
+    <TypeScriptCompile Include="tools\webpack\Plugins\DtsCleanupPlugin.ts" />
+    <TypeScriptCompile Include="tools\webpack\Plugins\DtsGeneratorPlugin.ts" />
+    <TypeScriptCompile Include="tools\webpack\Rules\Files.ts" />
+    <TypeScriptCompile Include="tools\webpack\Rules\Sass.ts" />
+    <TypeScriptCompile Include="tools\webpack\Rules\TypeScript.ts" />
+    <TypeScriptCompile Include="tools\webpack\webpack_plugins.config.ts" />
     <None Include="build\ViewGenerator.props" />
     <None Include="contentFiles\ts2lang.json" />
     <None Include="contentFiles\tsconfig.json" />
-    <None Include="tools\Init.ps1" />
+    <None Include="contentFiles\viewgenerator.cache" />
+    <None Include="packages.config" />
+    <Content Include="tools\webpack\tsconfig.json" />
     <None Include="ViewGenerator.nuspec">
       <SubType>Designer</SubType>
     </None>
@@ -61,22 +79,35 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="contentFiles\node_modules\%40types\" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <ItemGroup>
     <None Include="readme.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <TypeScriptCompile Include="tools\webpack\webpack_stylesheets.config.ts" />
+    <TypeScriptCompile Include="tools\webpack\webpack_views.config.ts" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy "$(ProjectDir)declarations" "$(ProjectDir)contentFiles\node_modules\@types\" /s /y
-"$(ProjectDir)..\nuget" pack "$(ProjectDir)ViewGenerator.nuspec" -OutputDirectory "$(ProjectDir)..\Nuget\ " -Properties Configuration=$(ConfigurationName)
+    <PostBuildEvent>"$(ProjectDir)..\nuget" pack "$(ProjectDir)ViewGenerator.nuspec" -OutputDirectory "$(ProjectDir)..\Nuget\ " -Properties Configuration=$(ConfigurationName)
 </PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PreBuildEvent>npm ci --prefix "$(ProjectDir)contentFiles" "$(ProjectDir)contentFiles"</PreBuildEvent>
+    <PreBuildEvent>npm install --no-bin-links --prefix "$(ProjectDir)tools" "$(ProjectDir)tools"
+npm install --no-bin-links --prefix "$(ProjectDir)contentFiles" "$(ProjectDir)contentFiles"</PreBuildEvent>
   </PropertyGroup>
+  <Target Name="TouchCacheFile" BeforeTargets="PrepareForBuild">
+    <Touch Files="$(ProjectDir)contentFiles\viewgenerator.cache" />
+  </Target>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\Microsoft.TypeScript.MSBuild.3.6.0\build\Microsoft.TypeScript.MSBuild.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.TypeScript.MSBuild.3.6.0\build\Microsoft.TypeScript.MSBuild.props'))" />
+    <Error Condition="!Exists('..\packages\Microsoft.TypeScript.MSBuild.3.6.0\build\Microsoft.TypeScript.MSBuild.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.TypeScript.MSBuild.3.6.0\build\Microsoft.TypeScript.MSBuild.targets'))" />
+  </Target>
+  <Import Project="..\packages\Microsoft.TypeScript.MSBuild.3.6.0\build\Microsoft.TypeScript.MSBuild.targets" Condition="Exists('..\packages\Microsoft.TypeScript.MSBuild.3.6.0\build\Microsoft.TypeScript.MSBuild.targets')" />
 </Project>

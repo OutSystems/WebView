@@ -278,13 +278,17 @@ namespace WebViewControl {
                 RenderProcessCrashed = null;
                 JavascriptContextReleased = null;
 
-                resourceHandlerFactory.Dispose();
+                resourceHandlerFactory?.Dispose();
 
-                foreach (var jsExecutor in JsExecutors.Values) {
-                    jsExecutor.Dispose();
+                try {
+                    foreach (var jsExecutor in JsExecutors.Values) {
+                        jsExecutor.Dispose();
+                    }
+                } catch (Exception e) {
+                    throw new Exception("Exception ocurred while disposing " + nameof(JsExecutors), e);
                 }
 
-                chromium.Dispose();
+                chromium?.Dispose();
                 AsyncCancellationTokenSource.Dispose();
 
                 Disposed?.Invoke();
@@ -458,6 +462,14 @@ namespace WebViewControl {
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Unregisters an object with the specified name in the window context of the browser
+        /// </summary>
+        /// <param name="name"></param>
+        public bool UnregisterJavascriptObject(string name) {
+            return chromium.JavascriptObjectRepository.UnRegister(name);
         }
 
         public T EvaluateScript<T>(string script, string frameName = MainFrameName, TimeSpan? timeout = null) {
