@@ -33,7 +33,9 @@ namespace WebViewControl {
 
     public partial class WebView : UserControl, IDisposable {
 
-        internal const string MainFrameName = null;
+        private const string AboutBlankUrl = "about:blank";
+
+        private const string MainFrameName = null;
 
         private static string[] CustomSchemes { get; } = new[] {
             ResourceUrl.LocalScheme,
@@ -756,34 +758,34 @@ namespace WebViewControl {
                     return;
                 }
 
-                lock (JsExecutors) {
+            lock (JsExecutors) {
                     var frameName = e.Frame.Name;
 
-                    if (frameName == MainFrameName) {
-                        // when a new main frame in created, dispose all running executors -> since they should not be valid anymore
-                        // all child iframes were gone
+                if (frameName == MainFrameName) {
+                    // when a new main frame in created, dispose all running executors -> since they should not be valid anymore
+                    // all child iframes were gone
                         DisposeJavascriptExecutors(JsExecutors.Where(je => !je.Value.IsValid).Select(je => je.Key).ToArray());
-                    }
+                }
 
-                    var jsExecutor = GetJavascriptExecutor(frameName);
+                var jsExecutor = GetJavascriptExecutor(frameName);
                     jsExecutor.StartFlush(e.Frame);
 
                     JavascriptContextCreated?.Invoke(frameName);
                 }
             });
-        }
+            }
 
         private void OnJavascriptContextReleased(object sender, JavascriptContextLifetimeEventArgs e) {
             ExecuteWithAsyncErrorHandling(() => {
                 if (UrlHelper.IsChromeInternalUrl(e.Frame.Url)) {
                     return;
-                }
+        }
 
                 var frameName = e.Frame.Name;
 
-                lock (JsExecutors) {
-                    DisposeJavascriptExecutors(new[] { frameName });
-                }
+            lock (JsExecutors) {
+                DisposeJavascriptExecutors(new[] { frameName });
+            }
 
                 JavascriptContextReleased?.Invoke(frameName);
             });
