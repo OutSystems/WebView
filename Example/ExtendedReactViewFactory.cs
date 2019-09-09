@@ -5,14 +5,12 @@ namespace Example {
 
     internal class ExtendedReactViewFactory : ReactViewFactory {
 
-        public override ResourceUrl DefaultStyleSheet => new ResourceUrl(typeof(ReactViewExample).Assembly, "ExampleView", "DefaultStyleSheet.css");
+        public override ResourceUrl DefaultStyleSheet => new ResourceUrl(typeof(ReactViewExample).Assembly, "Generated", "DefaultStyleSheet.css");
 
-        public override IViewModule[] Plugins {
-            get {
-                return new[]{
-                    new Plugin()
-                };
-            }
+        public override IViewModule[] InitializePlugins() {
+            return new[]{
+                new ViewPlugin()
+            };
         }
 
         public override bool ShowDeveloperTools => false;

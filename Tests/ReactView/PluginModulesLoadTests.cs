@@ -7,14 +7,13 @@ namespace Tests.ReactView {
     public class PluginModulesLoadTests : ReactViewTestBase {
 
         private class ViewFactoryWithPlugin : TestReactViewFactory {
-            public override IViewModule[] Plugins => new[] { new PluginModule() };
+
+            public override IViewModule[] InitializePlugins() => new[] { new PluginModule() };
         }
 
         private class ReactViewWithPlugin : TestReactView {
 
-            public ReactViewWithPlugin() {
-                AddMappings(new SimpleViewModule("SimpleModuleWithAlias", new ResourceUrl(typeof(ReactViewWithPlugin).Assembly, "ReactViewResources", "Test", "AliasedModule.js")));
-            }
+            public ReactViewWithPlugin() { }
 
             protected override ReactViewFactory Factory => new ViewFactoryWithPlugin();
         }
@@ -35,7 +34,7 @@ namespace Tests.ReactView {
                 }
             }
 
-            protected override string JavascriptSource => "/Tests/ReactViewResources/Test/PluginModule.js";
+            protected override string MainJsSource => "/Tests/ReactViewResources/Test/PluginModule.js";
             protected override string NativeObjectName => "Common";
             protected override string ModuleName => "Plugin/With/Slashes/On/Name";
             protected override object CreateNativeObject() {

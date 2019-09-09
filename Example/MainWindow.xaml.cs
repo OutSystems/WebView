@@ -1,5 +1,4 @@
-﻿using ReactViewControl;
-using System.Windows;
+﻿using System.Windows;
 
 namespace Example {
     /// <summary>

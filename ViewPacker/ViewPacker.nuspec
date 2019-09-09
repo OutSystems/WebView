@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+  <metadata>
+    <id>ViewPacker</id>
+    <version>1.0.9</version>
+    <authors>jmn</authors>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <developmentDependency>true</developmentDependency>
+    <description>Creates bundles for view files using webpack</description>
+    <dependencies>
+      <dependency id="Node.js.redist" version="10.16.3" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="build\**" target="build" />
+    <file src="tools\**" exclude="**\LICENSE;**\README.md;**\*.txt" target="tools"/>
+  </files>
+</package>

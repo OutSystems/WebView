@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -14,6 +13,8 @@ namespace ReactViewControl {
 
     public delegate Stream CustomResourceRequestedEventHandler(string url);
 
+    public delegate Stream CustomResourceWithKeyRequestedEventHandler(string resourceKey);
+
     public abstract class ReactView : UserControl, IDisposable {
 
         private static Dictionary<Type, ReactViewRender> CachedViews { get; } = new Dictionary<Type, ReactViewRender>();
@@ -22,7 +23,7 @@ namespace ReactViewControl {
 
         private static ReactViewRender CreateReactViewInstance(ReactViewFactory factory) {
             ReactViewRender InnerCreateView() {
-                var view = new ReactViewRender(factory.DefaultStyleSheet, factory.Plugins, factory.EnableViewPreload, factory.EnableDebugMode);
+                var view = new ReactViewRender(factory.DefaultStyleSheet, () => factory.InitializePlugins(), factory.EnableViewPreload, factory.EnableDebugMode);
                 if (factory.ShowDeveloperTools) {
                     view.ShowDeveloperTools();
                 }
@@ -66,6 +67,18 @@ namespace ReactViewControl {
             FocusManager.SetFocusedElement(this, View.FocusableElement);
         }
 
+        ~ReactView() {
+            Dispose();
+        }
+
+        public void Dispose() {
+            View.Dispose();
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Factory used to configure the initial properties of the control.
+        /// </summary>
         protected virtual ReactViewFactory Factory => new ReactViewFactory();
 
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e) {
@@ -104,75 +117,142 @@ namespace ReactViewControl {
         private void LoadComponent() {
             if (!View.IsMainComponentLoaded) {
                 if (EnableHotReload) {
-                    View.EnableHotReload(MainModule.Source, MainModule.JavascriptSource);
+                    View.EnableHotReload(MainModule.Source, MainModule.MainJsSource);
                 }
                 View.LoadComponent(MainModule);
             }
         }
 
-        ~ReactView() {
-            Dispose();
+        /// <summary>
+        /// Retrieves the specified plugin module instance for the spcifies frame.
+        /// </summary>
+        /// <typeparam name="T">Type of the plugin to retrieve.</typeparam>
+        /// <param name="frameName"></param>
+        /// <exception cref="InvalidOperationException">If the plugin hasn't been registered on the specified frame.</exception>
+        /// <returns></returns>
+        public T WithPlugin<T>(string frameName = WebView.MainFrameName) {
+            return View.WithPlugin<T>(frameName);
         }
 
-        public void Dispose() {
-            View.Dispose();
-            GC.SuppressFinalize(this);
-        }
-
-        public T WithPlugin<T>() {
-            return View.WithPlugin<T>();
-        }
-
-        protected void AddMappings(params SimpleViewModule[] mappings) {
-            View.Plugins = View.Plugins.Concat(mappings).ToArray();
-        }
-
+        /// <summary>
+        /// Enables or disables debug mode. 
+        /// In debug mode the webview developer tools becomes available pressing F12 and the webview shows an error message at the top with the error details 
+        /// when a resource fails to load.
+        /// </summary>
         public bool EnableDebugMode { get => View.EnableDebugMode; set => View.EnableDebugMode = value; }
 
         public bool EnableHotReload { get; set; }
 
+        /// <summary>
+        /// True when the main component has been rendered.
+        /// </summary>
         public bool IsReady => View.IsReady;
 
+        /// <summary>
+        /// Gets or sets the control zoom percentage (1 = 100%)
+        /// </summary>
         public double ZoomPercentage { get => View.ZoomPercentage; set => View.ZoomPercentage = value; }
 
+        /// <summary>
+        /// Event fired when the component is rendered and ready for interaction.
+        /// </summary>
         public event Action Ready {
             add { View.Ready += value; }
             remove { View.Ready -= value; }
         }
 
+        /// <summary>
+        /// Event fired when an async exception occurs (eg: executing javascript)
+        /// </summary>
         public event UnhandledAsyncExceptionEventHandler UnhandledAsyncException {
             add { View.UnhandledAsyncException += value; }
             remove { View.UnhandledAsyncException -= value; }
         }
 
+        /// <summary>
+        /// Event fired when a resource fails to load.
+        /// </summary>
         public event ResourceLoadFailedEventHandler ResourceLoadFailed {
             add { View.ResourceLoadFailed += value; }
             remove { View.ResourceLoadFailed -= value; }
         }
 
+        /// <summary>
+        /// Handle embedded resource requests. You can use this event to change the resource being loaded.
+        /// </summary>
         public event ResourceRequestedEventHandler EmbeddedResourceRequested {
             add { View.EmbeddedResourceRequested += value; }
             remove { View.EmbeddedResourceRequested -= value; }
         }
 
+        /// <summary>
+        /// Handle custom resource requests. Use this event to load the resource based on the url.
+        /// </summary>
         public event CustomResourceRequestedEventHandler CustomResourceRequested {
             add { View.CustomResourceRequested += value; }
             remove { View.CustomResourceRequested -= value; }
         }
 
+        /// <summary>
+        /// Add an handler for custom resources from main frame.
+        /// </summary>
+        /// <param name="handler"></param>
+        public void AddCustomResourceRequestedHandler(CustomResourceWithKeyRequestedEventHandler handler) {
+            AddCustomResourceRequestedHandler(WebView.MainFrameName, handler);
+        }
+
+        /// <summary>
+        /// Add an handler for custom resources from the specified frame.
+        /// </summary>
+        /// <param name="frameName"></param>
+        /// <param name="handler"></param>
+        public void AddCustomResourceRequestedHandler(string frameName, CustomResourceWithKeyRequestedEventHandler handler) {
+            View.AddCustomResourceRequestedHandler(frameName, handler);
+        }
+
+        /// <summary>
+        /// Remve the handler for custom resources from the main frame.
+        /// </summary>
+        /// <param name="handler"></param>
+        public void RemoveCustomResourceRequestedHandler(CustomResourceWithKeyRequestedEventHandler handler) {
+            RemoveCustomResourceRequestedHandler(WebView.MainFrameName, handler);
+        }
+
+        /// <summary>
+        /// Remve the handler for custom resources from the specified frame.
+        /// </summary>
+        /// <param name="frameName"></param>
+        /// <param name="handler"></param>
+        public void RemoveCustomResourceRequestedHandler(string frameName, CustomResourceWithKeyRequestedEventHandler handler) {
+            View.RemoveCustomResourceRequestedHandler(frameName, handler);
+        }
+
+        /// <summary>
+        /// Handle external resource requests. 
+        /// Call <see cref="WebView.ResourceHandler.BeginAsyncResponse"/> to handle the request in an async way.
+        /// </summary>
         public event ResourceRequestedEventHandler ExternalResourceRequested {
             add { View.ExternalResourceRequested += value; }
             remove { View.ExternalResourceRequested -= value; }
         }
 
+        /// <summary>
+        /// Opens the developer tools.
+        /// </summary>
         public void ShowDeveloperTools() {
             View.ShowDeveloperTools();
         }
 
+        /// <summary>
+        /// Closes the developer tools.
+        /// </summary>
         public void CloseDeveloperTools() {
             View.CloseDeveloperTools();
         }
         
+        /// <summary>
+        /// View module of this control.
+        /// </summary>
         protected IViewModule MainModule { get; }
 
         /// <summary>
@@ -182,7 +262,13 @@ namespace ReactViewControl {
         /// </summary>
         public static int PreloadedCacheEntriesSize { get; set; } = 6;
 
+        /// <summary>
+        /// Loads the view module into the specified frame when the frame is rendered.
+        /// </summary>
+        /// <param name="viewModule"></param>
+        /// <param name="frameName"></param>
         public void AttachInnerView(IViewModule viewModule, string frameName) {
+            View.AddPlugins(frameName, Factory.InitializePlugins());
             View.LoadComponent(viewModule, frameName);
         }
     }

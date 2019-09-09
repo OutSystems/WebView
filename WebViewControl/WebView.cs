@@ -110,11 +110,11 @@ namespace WebViewControl {
                 return;
             }
 
-            var cefSettings = new CefSettings();
+                var cefSettings = new CefSettings();
             cefSettings.LogSeverity = string.IsNullOrWhiteSpace(LogFile) ? CefLogSeverity.Disable : (EnableErrorLogOnly ? CefLogSeverity.Error : CefLogSeverity.Verbose);
-            cefSettings.LogFile = LogFile;
-            cefSettings.UncaughtExceptionStackSize = 100; // enable stack capture
-            cefSettings.CachePath = CachePath; // enable cache for external resources to speedup loading
+                cefSettings.LogFile = LogFile;
+                cefSettings.UncaughtExceptionStackSize = 100; // enable stack capture
+                cefSettings.CachePath = CachePath; // enable cache for external resources to speedup loading
 
             // TODO cefSettings.BrowserSubprocessPath = CefLoader.GetBrowserSubProcessPath();
 
@@ -122,11 +122,11 @@ namespace WebViewControl {
 
             CefRuntimeLoader.Initialize(new string[0], cefSettings, customSchemes);
 
-            if (Application.Current != null) {
-                Application.Current.Exit += OnApplicationExit;
-                subscribedApplicationExit = true;
+                if (Application.Current != null) {
+                    Application.Current.Exit += OnApplicationExit;
+                    subscribedApplicationExit = true;
+                }
             }
-        }
 
         /// <summary>
         /// Release all resources and shutdown web view
@@ -263,7 +263,7 @@ namespace WebViewControl {
                     disposable.Dispose();
                 }
 
-                chromium.Dispose();
+                chromium?.Dispose();
                 AsyncCancellationTokenSource.Dispose();
 
                 Disposed?.Invoke();
@@ -322,12 +322,12 @@ namespace WebViewControl {
                 htmlToLoad = null;
             }
             if (address.Contains(Uri.SchemeDelimiter) || address == UrlHelper.AboutBlankUrl || address.StartsWith("data:")) {
-                if (CustomSchemes.Any(s => address.StartsWith(s + Uri.SchemeDelimiter))) {
-                    // custom schemes -> turn off security ... to enable full access without problems to local resources
-                    IsSecurityDisabled = true;
-                } else {
-                    IsSecurityDisabled = false;
-                }
+                    if (CustomSchemes.Any(s => address.StartsWith(s + Uri.SchemeDelimiter))) {
+                        // custom schemes -> turn off security ... to enable full access without problems to local resources
+                        IsSecurityDisabled = true;
+                    } else {
+                        IsSecurityDisabled = false;
+                    }
 
                 chromium.Address = address;
                 // must wait for the browser to be initialized otherwise navigation will be aborted
@@ -396,32 +396,41 @@ namespace WebViewControl {
 
             if (executeCallsInUI) {
                 return RegisterJavascriptObject(name, objectToBind, target => Dispatcher.Invoke(target), false);
-            }
-            
-            if (interceptCall == null) {
-                interceptCall = target => target();
-            }
+                }
+
+                if (interceptCall == null) {
+                    interceptCall = target => target();
+                }
 
             object CallTargetMethod(Func<object> target) {
-                if (isDisposing) {
-                    return null;
-                }
-                try {
-                    javascriptPendingCalls++;
                     if (isDisposing) {
-                        // check again, to avoid concurrency problems with dispose
                         return null;
                     }
-                    return interceptCall(target);
-                } finally {
-                    javascriptPendingCalls--;
-                    JavascriptCallFinished?.Invoke();
+                    try {
+                        javascriptPendingCalls++;
+                        if (isDisposing) {
+                            // check again, to avoid concurrency problems with dispose
+                            return null;
+                        }
+                        return interceptCall(target);
+                    } finally {
+                        javascriptPendingCalls--;
+                        JavascriptCallFinished?.Invoke();
+                    }
                 }
-            }
 
             chromium.RegisterJavascriptObject(objectToBind, name, CallTargetMethod);
-        
+
             return true;
+        }
+
+        /// <summary>
+        /// Unregisters an object with the specified name in the window context of the browser
+        /// </summary>
+        /// <param name="name"></param>
+        public bool UnregisterJavascriptObject(string name) {
+            throw new NotImplementedException();
+            // TODO return chromium.JavascriptObjectRepository.UnRegister(name);
         }
 
         public T EvaluateScript<T>(string script, string frameName = MainFrameName, TimeSpan? timeout = null) {
@@ -747,34 +756,34 @@ namespace WebViewControl {
                     return;
                 }
 
-                lock (JsExecutors) {
+            lock (JsExecutors) {
                     var frameName = e.Frame.Name;
 
-                    if (frameName == MainFrameName) {
-                        // when a new main frame in created, dispose all running executors -> since they should not be valid anymore
-                        // all child iframes were gone
+                if (frameName == MainFrameName) {
+                    // when a new main frame in created, dispose all running executors -> since they should not be valid anymore
+                    // all child iframes were gone
                         DisposeJavascriptExecutors(JsExecutors.Where(je => !je.Value.IsValid).Select(je => je.Key).ToArray());
-                    }
+                }
 
-                    var jsExecutor = GetJavascriptExecutor(frameName);
+                var jsExecutor = GetJavascriptExecutor(frameName);
                     jsExecutor.StartFlush(e.Frame);
 
                     JavascriptContextCreated?.Invoke(frameName);
                 }
             });
-        }
+            }
 
         private void OnJavascriptContextReleased(object sender, JavascriptContextLifetimeEventArgs e) {
             ExecuteWithAsyncErrorHandling(() => {
                 if (UrlHelper.IsChromeInternalUrl(e.Frame.Url)) {
                     return;
-                }
+        }
 
                 var frameName = e.Frame.Name;
 
-                lock (JsExecutors) {
-                    DisposeJavascriptExecutors(new[] { frameName });
-                }
+            lock (JsExecutors) {
+                DisposeJavascriptExecutors(new[] { frameName });
+            }
 
                 JavascriptContextReleased?.Invoke(frameName);
             });

@@ -57,48 +57,48 @@
     <Compile Include="Resources.cs" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Loader.js">
-      <DependentUpon>Loader.ts</DependentUpon>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="node_modules\prop-types\prop-types.min.js" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="node_modules\require-css\css.min.js" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="node_modules\requirejs\require.js" />
-  </ItemGroup>
-  <ItemGroup>
     <EmbeddedResource Include="index.html" />
+  </ItemGroup>
+  <ItemGroup>
+    <TypeScriptCompile Include="Loader\Loader.ts" />
+    <TypeScriptCompile Include="Loader\Loader.View.tsx" />
+    <TypeScriptCompile Include="Loader\ObservableCollection.ts" />
+    <TypeScriptCompile Include="Loader\PluginsContext.ts" />
+    <TypeScriptCompile Include="Loader\ResourceLoader.ts" />
+    <TypeScriptCompile Include="Loader\Task.ts" />
+    <TypeScriptCompile Include="Loader\ViewContext.ts" />
+    <TypeScriptCompile Include="Loader\ViewMetadata.ts" />
+    <TypeScriptCompile Include="Loader\ViewPortal.tsx" />
+    <TypeScriptCompile Include="Loader\ViewPortalsCollection.tsx" />
+  </ItemGroup>
+  <ItemGroup>
+    <TypeScriptCompile Include="Loader\LoaderCommon.ts" />
+    <TypeScriptCompile Include="Loader\ViewFrame.tsx" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="node_modules\react-dom\umd\react-dom.production.min.js" />
     <EmbeddedResource Include="node_modules\react\umd\react.production.min.js" />
-  </ItemGroup>
-  <ItemGroup>
-    <TypeScriptCompile Include="Loader.ts" />
-    <TypeScriptCompile Include="libs\ViewFrame.tsx" />
-  </ItemGroup>
-  <ItemGroup>
-    <Content Include="tsconfig.json" />
-    <EmbeddedResource Include="libs\ViewFrame.js">
-      <DependentUpon>ViewFrame.tsx</DependentUpon>
-    </EmbeddedResource>
+    <EmbeddedResource Include="node_modules\prop-types\prop-types.min.js" />
+    <EmbeddedResource Include="Loader.js" />
+    <TypeScriptCompile Include="AMDLoader\AMDLoader.ts" />
+    <Content Include="AMDLoader\AMDLoaderExports.js" />
+    <Content Include="Loader\tsconfig.json" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.TypeScript.MSBuild">
-      <Version>3.4.5</Version>
+      <Version>3.6.0</Version>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="libs\tsconfig.json" />
+    <Content Include="AMDLoader\tsconfig.json" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>npm ci</PreBuildEvent>
   </PropertyGroup>
+  <Target Name="MergeLoaderFiles" AfterTargets="CompileTypeScriptWithTSConfig" BeforeTargets="AssignTargetPath">
+    <Exec Command="copy /b &quot;$(ProjectDir)AMDLoader\AMDLoaderExports.js&quot; + &quot;$(ProjectDir)AMDLoader\AMDLoader.js&quot; + &quot;$(ProjectDir)Loader\_Loader.js&quot; &quot;$(ProjectDir)Loader.js&quot;" />
+  </Target>
 </Project>
