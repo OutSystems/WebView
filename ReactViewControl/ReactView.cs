@@ -56,7 +56,7 @@ namespace ReactViewControl {
             View = CreateReactViewInstance(Factory);
             SetResourceReference(StyleProperty, typeof(ReactView)); // force styles to be inherited, must be called after view is created otherwise view might be null
 
-            View.BindModule(mainModule, WebView.MainFrameName);
+            View.BindModule(mainModule, ReactViewRender.MainViewFrameName);
             MainModule = mainModule;
 
             IsVisibleChanged += OnIsVisibleChanged;
@@ -130,7 +130,7 @@ namespace ReactViewControl {
         /// <param name="frameName"></param>
         /// <exception cref="InvalidOperationException">If the plugin hasn't been registered on the specified frame.</exception>
         /// <returns></returns>
-        public T WithPlugin<T>(string frameName = WebView.MainFrameName) {
+        public T WithPlugin<T>(string frameName = ReactViewRender.MainViewFrameName) {
             return View.WithPlugin<T>(frameName);
         }
 
@@ -198,7 +198,7 @@ namespace ReactViewControl {
         /// </summary>
         /// <param name="handler"></param>
         public void AddCustomResourceRequestedHandler(CustomResourceWithKeyRequestedEventHandler handler) {
-            AddCustomResourceRequestedHandler(WebView.MainFrameName, handler);
+            AddCustomResourceRequestedHandler(ReactViewRender.MainViewFrameName, handler);
         }
 
         /// <summary>
@@ -215,7 +215,7 @@ namespace ReactViewControl {
         /// </summary>
         /// <param name="handler"></param>
         public void RemoveCustomResourceRequestedHandler(CustomResourceWithKeyRequestedEventHandler handler) {
-            RemoveCustomResourceRequestedHandler(WebView.MainFrameName, handler);
+            RemoveCustomResourceRequestedHandler(ReactViewRender.MainViewFrameName, handler);
         }
 
         /// <summary>

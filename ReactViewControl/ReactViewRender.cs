@@ -14,6 +14,7 @@ namespace ReactViewControl {
 
         private object SyncRoot { get; } = new object();
 
+        internal const string MainViewFrameName = "";
         internal const string ModulesObjectName = "__Modules__";
         
         private const string ViewInitializedEventName = "ViewInitialized";
@@ -47,7 +48,7 @@ namespace ReactViewControl {
 
             DefaultStyleSheet = defaultStyleSheet;
             PluginsFactory = initializePlugins;
-            AddPlugins(WebView.MainFrameName, initializePlugins());
+            AddPlugins(MainViewFrameName, initializePlugins());
             EnableDebugMode = enableDebugMode;
 
             var loadedListener = WebView.AttachListener(ViewLoadedEventName);
@@ -86,12 +87,12 @@ namespace ReactViewControl {
         /// <summary>
         /// True when the main component has been rendered.
         /// </summary>
-        public bool IsReady => Frames.Any() && Frames[WebView.MainFrameName].LoadStatus == LoadStatus.Ready;
+        public bool IsReady => Frames.Any() && Frames[MainViewFrameName].LoadStatus == LoadStatus.Ready;
 
         /// <summary>
         /// True when view component is loading or loaded
         /// </summary>
-        public bool IsMainComponentLoaded => Frames.Any() && Frames[WebView.MainFrameName].LoadStatus >= LoadStatus.ComponentLoading;
+        public bool IsMainComponentLoaded => Frames.Any() && Frames[MainViewFrameName].LoadStatus >= LoadStatus.ComponentLoading;
 
         /// <summary>
         /// Enables or disables debug mode. 
@@ -216,14 +217,14 @@ namespace ReactViewControl {
         /// </summary>
         /// <param name="frameName"></param>
         private void OnWebViewJavascriptContextReleased(string frameName) {
-            if (frameName != WebView.MainFrameName) {
+            if (frameName != MainViewFrameName) {
                 return;
             }
 
             lock (SyncRoot) {
-                var mainFrame = Frames[WebView.MainFrameName];
+                var mainFrame = Frames[MainViewFrameName];
                 Frames.Clear();
-                Frames.Add(WebView.MainFrameName, mainFrame);
+                Frames.Add(MainViewFrameName, mainFrame);
                 mainFrame.LoadStatus = LoadStatus.Initialized;
                 mainFrame.PluginsLoaded = false;
                 mainFrame.ExecutionEngine = null;
@@ -248,7 +249,7 @@ namespace ReactViewControl {
         /// </summary>
         /// <param name="component"></param>
         public void LoadComponent(IViewModule component) {
-            LoadComponent(component, WebView.MainFrameName);
+            LoadComponent(component, MainViewFrameName);
         }
 
         /// <summary>
@@ -272,7 +273,7 @@ namespace ReactViewControl {
         /// <param name="frame"></param>
         private void Load(FrameInfo frame) {
             if (!frame.PluginsLoaded) {
-                if (frame.Name == WebView.MainFrameName) {
+                if (frame.Name == MainViewFrameName) {
                     // only need to load the stylesheet for the main frame
                     if (DefaultStyleSheet != null) {
                         Loader.LoadDefaultStyleSheet(DefaultStyleSheet);
@@ -365,7 +366,7 @@ namespace ReactViewControl {
         /// <param name="frameName"></param>
         /// <exception cref="InvalidOperationException">If the plugin hasn't been registered on the specified frame.</exception>
         /// <returns></returns>
-        public T WithPlugin<T>(string frameName = WebView.MainFrameName) {
+        public T WithPlugin<T>(string frameName = MainViewFrameName) {
             if (!Frames.TryGetValue(frameName, out var frame)) {
                 throw new InvalidOperationException($"Frame {frameName} is not loaded");
             }
