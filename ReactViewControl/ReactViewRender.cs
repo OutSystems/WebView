@@ -16,7 +16,7 @@ namespace ReactViewControl {
 
         internal const string MainViewFrameName = "";
         internal const string ModulesObjectName = "__Modules__";
-        
+
         private const string ViewInitializedEventName = "ViewInitialized";
         private const string ViewDestroyedEventName = "ViewDestroyed";
         private const string ViewLoadedEventName = "ViewLoaded";
@@ -61,7 +61,7 @@ namespace ReactViewControl {
             WebView.Disposed += OnWebViewDisposed;
             WebView.JavascriptContextReleased += OnWebViewJavascriptContextReleased;
             WebView.BeforeResourceLoad += OnWebViewBeforeResourceLoad;
-            
+
             Content = WebView;
 
             var urlParams = new string[] {
@@ -108,8 +108,8 @@ namespace ReactViewControl {
                     WebView.ResourceLoadFailed += Loader.ShowResourceLoadFailedMessage;
                 } else {
                     WebView.ResourceLoadFailed -= Loader.ShowResourceLoadFailedMessage;
+                }
             }
-        }
         }
 
         /// <summary>
@@ -182,7 +182,7 @@ namespace ReactViewControl {
             lock (SyncRoot) {
                 var frame = GetOrCreateFrame(frameName);
                 frame.LoadStatus = LoadStatus.Ready;
-            
+
                 // start component execution engine
                 if (frame.Component != null) {
                     if (frame.Component.Engine is ExecutionEngine engine) {
@@ -242,7 +242,7 @@ namespace ReactViewControl {
         public void Dispose() {
             fileSystemWatcher?.Dispose();
             WebView.Dispose();
-            }
+        }
 
         /// <summary>
         /// Load the specified component into the main frame.
@@ -265,7 +265,7 @@ namespace ReactViewControl {
                     Load(frame);
                 }
             }
-            }
+        }
 
         /// <summary>
         /// Load the stylesheet, plugins and component (in that order).
@@ -275,31 +275,31 @@ namespace ReactViewControl {
             if (!frame.PluginsLoaded) {
                 if (frame.Name == MainViewFrameName) {
                     // only need to load the stylesheet for the main frame
-            if (DefaultStyleSheet != null) {
+                    if (DefaultStyleSheet != null) {
                         Loader.LoadDefaultStyleSheet(DefaultStyleSheet);
                     }
-            }
+                }
 
                 if (frame.Plugins?.Length > 0) {
                     foreach (var module in frame.Plugins) {
                         RegisterNativeObject(module, frame.Name);
-            }
+                    }
 
                     Loader.LoadPlugins(frame.Plugins, frame.Name);
 
                     frame.PluginsLoaded = true;
+                }
             }
-        }
 
             if (frame.Component != null) {
-                frame.LoadStatus =  LoadStatus.ComponentLoading;
+                frame.LoadStatus = LoadStatus.ComponentLoading;
 
                 RegisterNativeObject(frame.Component, frame.Name);
 
                 Loader.LoadComponent(frame.Component, frame.Name, DefaultStyleSheet != null, frame.Plugins?.Length > 0);
             }
         }
-        
+
         /// <summary>
         /// Gets or sets the url of the default stylesheet.
         /// </summary>
@@ -315,10 +315,10 @@ namespace ReactViewControl {
 
         public void AddPlugins(string frameName, params IViewModule[] plugins) {
             var invalidPlugins = plugins.Where(p => string.IsNullOrEmpty(p.MainJsSource) || string.IsNullOrEmpty(p.Name) || string.IsNullOrEmpty(p.NativeObjectName));
-                if (invalidPlugins.Any()) {
-                    var pluginName = invalidPlugins.First().Name + "|" + invalidPlugins.First().GetType().Name;
-                    throw new ArgumentException($"Plugin '{pluginName}' is invalid");
-                }
+            if (invalidPlugins.Any()) {
+                var pluginName = invalidPlugins.First().Name + "|" + invalidPlugins.First().GetType().Name;
+                throw new ArgumentException($"Plugin '{pluginName}' is invalid");
+            }
 
             lock (SyncRoot) {
                 var frame = GetOrCreateFrame(frameName);
@@ -329,7 +329,7 @@ namespace ReactViewControl {
 
                 frame.Plugins = frame.Plugins != null ? frame.Plugins.Concat(plugins).ToArray() : plugins;
 
-                foreach(var plugin in plugins) {
+                foreach (var plugin in plugins) {
                     BindModule(plugin, frame);
                 }
             }
@@ -353,11 +353,11 @@ namespace ReactViewControl {
         /// <param name="module"></param>
         /// <param name="frameName"></param>
         internal void BindModule(IViewModule module, string frameName) {
-            lock(SyncRoot) {
+            lock (SyncRoot) {
                 var frame = GetOrCreateFrame(frameName);
                 BindModule(module, frame);
-                }
             }
+        }
 
         /// <summary>
         /// Retrieves the specified plugin module instance for the spcifies frame.
@@ -369,12 +369,12 @@ namespace ReactViewControl {
         public T WithPlugin<T>(string frameName = MainViewFrameName) {
             if (!Frames.TryGetValue(frameName, out var frame)) {
                 throw new InvalidOperationException($"Frame {frameName} is not loaded");
-        }
+            }
 
             var plugin = frame.Plugins.OfType<T>().FirstOrDefault();
             if (plugin == null) {
                 throw new InvalidOperationException($"Plugin {typeof(T).Name} not found in {frameName}");
-        }
+            }
 
             return plugin;
         }
@@ -452,7 +452,7 @@ namespace ReactViewControl {
                     // TODO visual studio reports a change in a file with a (strange) temporary name
                     //if (fileExtensionsToWatch.Any(e => eventArgs.Name.EndsWith(e))) {
                     filesChanged = true;
-                    Dispatcher.BeginInvoke((Action) (() => {
+                    Dispatcher.BeginInvoke((Action)(() => {
                         if (IsReady && !IsDisposing) {
                             cacheInvalidationTimestamp = DateTime.UtcNow.Ticks.ToString();
                             WebView.Reload(true);
