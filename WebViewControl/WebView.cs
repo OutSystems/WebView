@@ -430,9 +430,8 @@ namespace WebViewControl {
         /// Unregisters an object with the specified name in the window context of the browser
         /// </summary>
         /// <param name="name"></param>
-        public bool UnregisterJavascriptObject(string name) {
-            throw new NotImplementedException();
-            // TODO return chromium.JavascriptObjectRepository.UnRegister(name);
+        public void UnregisterJavascriptObject(string name) {
+            chromium.UnregisterJavascriptObject(name);
         }
 
         public T EvaluateScript<T>(string script, string frameName = MainFrameName, TimeSpan? timeout = null) {

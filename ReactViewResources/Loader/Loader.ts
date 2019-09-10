@@ -5,10 +5,8 @@ import { ViewMetadata } from "./ViewMetadata";
 
 declare function define(name: string, dependencies: string[], definition: Function);
 
-declare const CefSharp: {
-    BindObjectAsync(settings: { NotifyIfAlreadyBound?: boolean, IgnoreCache: boolean }, objName: string): Promise<void>
-    RemoveObjectFromCache(objName: string): boolean;
-    DeleteBoundObject(objName: string): boolean;
+declare const cefglue: {
+    checkObjectBound(objName: string): Promise<boolean>
 };
 
 const reactLib: string = "React";
@@ -336,7 +334,7 @@ async function bootstrap() {
     mainView.renderHandler = component => renderMainView(component, rootElement);
 
     // bind event listener object ahead-of-time
-    await CefSharp.BindObjectAsync({ IgnoreCache: false }, eventListenerObjectName);
+    await cefglue.checkObjectBound(eventListenerObjectName);
 
     bootstrapTask.setResult();
 
@@ -377,7 +375,7 @@ function createPropertiesProxy(basePropertiesObj: {}, nativeObjName: string): {}
 }
 
 async function bindNativeObject(nativeObjectName: string) {
-    await CefSharp.BindObjectAsync({ IgnoreCache: false }, nativeObjectName);
+    await cefglue.checkObjectBound(nativeObjectName);
     return window[nativeObjectName];
 }
 
@@ -414,12 +412,6 @@ function onChildViewAdded(childView: ViewMetadata) {
 
 function onChildViewRemoved(childView: ViewMetadata) {
     views.delete(childView.name);
-    // delete native objects
-    childView.nativeObjectNames.forEach(nativeObjecName => {
-        CefSharp.RemoveObjectFromCache(nativeObjecName);
-        CefSharp.DeleteBoundObject(nativeObjecName);
-    });
-
     fireNativeNotification(viewDestroyedEventName, childView.name);
 }
 
