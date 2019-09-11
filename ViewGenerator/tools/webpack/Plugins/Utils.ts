@@ -1,5 +1,7 @@
-﻿import { outputFileSync } from "fs-extra";
+﻿import Chalk from "chalk";
+import { outputFileSync } from "fs-extra";
 import { resolve } from "path";
+import { NormalizedMessage } from "fork-ts-checker-webpack-plugin/lib/NormalizedMessage";
 import { FileDescriptor } from "webpack-manifest-plugin";
 
 import { CssExtension, EntryExtension, JsExtension, JsPlaceholder, OutputDirectoryDefault } from "./Resources";
@@ -84,16 +86,18 @@ export function generateManifest(
 /*
  * Custom typescript error formater for Visual Studio.
  * */
-export function customErrorFormatter(error, colors) {
-    let messageColor = error.severity === "warning" ? colors.bold.yellow : colors.bold.red;
+export function customErrorFormatter(message: NormalizedMessage, enableColors: boolean) {
+    const colors = Chalk.constructor({ enabled: enableColors })
+
+    let messageColor = message.severity === "warning" ? colors.bold.yellow : colors.bold.red;
     let errorMsg =
         colors.bold.white('(') +
-        colors.bold.cyan(error.line.toString() + "," + error.character.toString()) +
+        colors.bold.cyan(message.line.toString() + "," + message.character.toString()) +
         colors.bold.white(')') +
-        messageColor(": " + error.severity.toString() + " " + error.code.toString() + ": ") +
-        messageColor(error.content);
+        messageColor(": " + message.severity.toString() + " " + message.code.toString() + ": ") +
+        messageColor(message.content);
 
-    return messageColor(error.file) + errorMsg;
+    return messageColor(message.file) + errorMsg;
 }
 
 /*

@@ -5,6 +5,7 @@ export const EntryExtension: string = ".entry";
 export const JsExtension: string = ".js";
 
 // Directories
+export const CacheDirectoryDefault: string = ".wpcache";
 export const OutputDirectoryDefault: string = "Generated/";
 
 // Filenames
