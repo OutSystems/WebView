@@ -13,9 +13,9 @@ import { Dictionary, customErrorFormatter, generateManifest, getCurrentDirectory
 // Rules
 import ResourcesRuleSet from "../Rules/Files";
 import SassRuleSet from "../Rules/Sass";
-import TypeScriptRuleSet from "../Rules/TypeScript";
+import getTypeScriptRuleSet from "../Rules/TypeScript";
 
-let getCommonConfiguration = (libraryName: string): Configuration => {
+let getCommonConfiguration = (libraryName: string, useCache: boolean): Configuration => {
 
     const entryMap: Dictionary<string> = {}
     const outputMap: Dictionary<string> = {};
@@ -86,7 +86,7 @@ let getCommonConfiguration = (libraryName: string): Configuration => {
             rules: [
                 SassRuleSet,
                 ResourcesRuleSet,
-                TypeScriptRuleSet
+                getTypeScriptRuleSet(useCache)
             ]
         },
 
