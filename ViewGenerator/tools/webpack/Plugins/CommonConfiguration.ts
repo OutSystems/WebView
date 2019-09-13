@@ -43,6 +43,7 @@ let getCommonConfiguration = (libraryName: string, useCache: boolean): Configura
     // however, webpack typings only allow strings at the moment. 🔨
     let getOutputFileName: any = (chunkData) => getFileName(outputMap, chunkData);
 
+    let currentDirectory: string = getCurrentDirectory();
     const Configuration: Configuration = {
 
         entry: entryMap,
@@ -57,7 +58,7 @@ let getCommonConfiguration = (libraryName: string, useCache: boolean): Configura
         },
 
         output: {
-            path: getCurrentDirectory(),
+            path: currentDirectory,
             filename: getOutputFileName,
             chunkFilename: OutputDirectoryDefault + JsChunkPlaceholder,
             library: [libraryName, NamePlaceholder],
@@ -93,7 +94,7 @@ let getCommonConfiguration = (libraryName: string, useCache: boolean): Configura
         plugins: [
             new ForkTsCheckerWebpackPlugin({
                 checkSyntacticErrors: true,
-                formatter: customErrorFormatter,
+                formatter: (msg, useColors) => customErrorFormatter(msg, useColors, currentDirectory),
                 measureCompilationTime: true
             }),
 
