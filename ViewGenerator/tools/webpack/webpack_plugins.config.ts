@@ -6,9 +6,9 @@ import DtsGeneratorPlugin from "./Plugins/DtsGeneratorPlugin";
 import { DtsFileName } from "./Plugins/Resources";
 import { getCurrentDirectory } from "./Plugins/Utils";
 
-const config = (_, __) => {
+const config = (_, argv) => {
 
-    let standardConfig: Configuration = getCommonConfiguration("Plugins");
+    let standardConfig: Configuration = getCommonConfiguration("Plugins", argv.useCache);
 
     // Plugins
     standardConfig.plugins = standardConfig.plugins.concat(
