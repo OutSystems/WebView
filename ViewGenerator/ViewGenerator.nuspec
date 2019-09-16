@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>ViewGenerator</id>
-    <version>1.0.239</version>
+    <version>1.0.240</version>
     <authors>jmn</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <developmentDependency>true</developmentDependency>
@@ -10,7 +10,7 @@
     <dependencies>
       <dependency id="ViewGeneratorCore" version="1.0.186" />
       <dependency id="ViewPacker" version="1.0.11" />
-      <dependency id="OutSystems.ESLint.MSBuild" version="1.0.9" />
+      <dependency id="OutSystems.ESLint.MSBuild" version="1.0.11" />
     </dependencies>
   </metadata>
   <files>
