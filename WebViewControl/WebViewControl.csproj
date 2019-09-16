@@ -130,17 +130,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CefLoader.cs" />
     <Compile Include="ResourcesProvider.cs" />
     <Compile Include="UrlHelper.cs" />
     <Compile Include="ChromiumBrowser.cs" />
     <Compile Include="JavascriptSerializationHelper.cs" />
     <Compile Include="BrowserObjectListener.cs" />
     <Compile Include="JavascriptStackFrame.cs" />
-    <Compile Include="LambdaMethodBinder.cs" />
-    <Compile Include="LambdaMethodInterceptor.cs" />
     <Compile Include="Listener.cs" />
-    <Compile Include="ModuleInitializer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ProxyAuthentication.cs" />
     <Compile Include="RenderProcessTerminatedException.cs" />
@@ -163,7 +159,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="packages.config" />
     <None Include="WebViewControl.targets">
       <SubType>Designer</SubType>
     </None>
@@ -182,10 +177,7 @@
       CreateNugetPackage
     </AfterBuild>
   </PropertyGroup>
-  <Target Name="InjectModuleInitializer" AfterTargets="AfterBuild">
-    <Exec Command="..\packages\InjectModuleInitializer.1.5\tools\InjectModuleInitializer.exe &quot;$(TargetPath)&quot;" />
-  </Target>
-  <Target Name="CreateNugetPackage" AfterTargets="InjectModuleInitializer">
+  <Target Name="CreateNugetPackage">
     <Exec Command="&quot;$(ProjectDir)..\nuget&quot; pack &quot;$(ProjectPath)&quot; -OutputDirectory &quot;$(ProjectDir)..\Nuget&quot; -Properties Configuration=$(ConfigurationName)" />
   </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

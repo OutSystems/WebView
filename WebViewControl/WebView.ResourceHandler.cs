@@ -43,7 +43,7 @@ namespace WebViewControl {
             if (Handler == null) {
                 Handler = CreateCefResourceHandler();
             }
-            Handler.SetResponse(fileStream, ResourcesManager.GetMimeType(filename) /* TODO, autoDisposeStream: true*/);
+            Handler.SetResponse(fileStream, ResourcesManager.GetMimeType(filename), autoDisposeStream: true);
             Continue();
         }
 
