@@ -27,32 +27,26 @@ namespace WebViewControl {
 
         internal class ScriptTask {
 
-            public ScriptTask(string script, string functionName, TimeSpan? timeout = default(TimeSpan?), bool awaitable = false) {
+            public ScriptTask(string script, string functionName, Action evaluate = null) {
                 Script = script;
-                if (awaitable) {
-                    WaitHandle = new ManualResetEvent(false);
-                }
-                Timeout = timeout;
-
-                // we store the function name apart from the script and use it later in the exception details 
-                // this prevents any params to be shown in the message because they can contain sensitive information
+                Evaluate = evaluate;
                 FunctionName = functionName;
             }
 
-            public string Script { get; private set; }
+            public string Script { get; }
 
-            public string FunctionName { get; private set; }
+            /// <summary>
+            /// We store the function name apart from the script and use it later in the exception details 
+            /// this prevents any params to be shown in the message because they can contain sensitive information
+            /// </summary>
+            public string FunctionName { get; }
 
-            public ManualResetEvent WaitHandle { get; private set; }
-
-            public object Result { get; set; }
-
-            public Exception Exception { get; set; }
-
-            public TimeSpan? Timeout { get; set; }
+            public Action Evaluate { get; }
         }
 
         internal class JavascriptExecutor : IDisposable {
+
+            private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(60);
 
             private static Regex StackFrameRegex { get; } = new Regex(@"at\s*(?<method>.*?)\s\(?(?<location>[^\s]+):(?<line>\d+):(?<column>\d+)", RegexOptions.Compiled);
 
@@ -105,18 +99,19 @@ namespace WebViewControl {
 
                 // signal any pending js evaluations
                 foreach (var pendingScript in PendingScripts.ToArray()) {
-                    pendingScript.WaitHandle?.Set();
+                    // TODO pendingScript.WaitHandle?.Set();
                 }
 
                 PendingScripts.Dispose();
                 FlushTaskCancelationToken.Dispose();
             }
 
-            private ScriptTask QueueScript(string script, string functionName = null, TimeSpan? timeout = default(TimeSpan?), bool awaitable = false) {
+            private ScriptTask QueueScript(string script, string functionName = null, Action evaluate = null) {
                 if (OwnerWebView.isDisposing) {
                     return null;
                 }
-                var scriptTask = new ScriptTask(script, functionName, timeout, awaitable);
+
+                var scriptTask = new ScriptTask(script, functionName, evaluate);
                 PendingScripts.Add(scriptTask);
                 return scriptTask;
             }
@@ -143,7 +138,7 @@ namespace WebViewControl {
 
                 do {
                     var scriptTask = PendingScripts.Take(FlushTaskCancelationToken.Token);
-                    if (scriptTask.WaitHandle == null) {
+                    if (scriptTask.Evaluate == null) {
                         scriptsToExecute.Add(scriptTask);
                     } else { 
                         scriptToEvaluate = scriptTask;
@@ -156,8 +151,8 @@ namespace WebViewControl {
                     if (frame.IsValid) {
                         var frameName = frame.Name;
                         var task = OwnerWebView.chromium.EvaluateJavaScript<object>(WrapScriptWithErrorHandling(script));
-                        var timeout = OwnerWebView.DefaultScriptsExecutionTimeout?.TotalMilliseconds ?? -1;
-                        task.Wait((int) timeout, FlushTaskCancelationToken.Token);
+                        var timeout = OwnerWebView.DefaultScriptsExecutionTimeout ?? DefaultTimeout;
+                        task.Wait((int) timeout.TotalMilliseconds, FlushTaskCancelationToken.Token);
                         if (task.IsFaulted) {
                             var evaluatedScriptFunctions = scriptsToExecute.Select(s => s.FunctionName);
                             OwnerWebView.ExecuteWithAsyncErrorHandlingOnFrame(() => throw new Exception(), frameName); // TODO ParseResponseException(response, evaluatedScriptFunctions), frameName);
@@ -166,54 +161,58 @@ namespace WebViewControl {
                 }
 
                 if (scriptToEvaluate != null) {
-                    // evaluate and signal waiting thread
-                    Task<object> task = null;
-                    var script = scriptToEvaluate.Script;
-                    var timeout = scriptToEvaluate.Timeout ?? OwnerWebView.DefaultScriptsExecutionTimeout;
-                    try {
-                        task = OwnerWebView.chromium.EvaluateJavaScript<object>(script);
-                        task.Wait((int) timeout.Value.TotalMilliseconds, FlushTaskCancelationToken.Token);
-                        scriptToEvaluate.Result = task.Result;
-                    } catch(Exception e) {
-                        if (task?.IsCanceled == true) {
-                            // timeout
-                            scriptToEvaluate.Exception = new JavascriptException("Timeout", (timeout.HasValue ? $"More than {timeout.Value.TotalMilliseconds}ms elapsed" : "Timeout ocurred") + $" evaluating the script: '{script}'");
-                        } else {
-                            scriptToEvaluate.Exception = e;
-                        }
-                    } finally {
-                        scriptToEvaluate.WaitHandle.Set();
-                    }
+                    scriptToEvaluate.Evaluate();
                 }
             }
 
-            public T EvaluateScript<T>(string script, string functionName = null, TimeSpan? timeout = default(TimeSpan?)) {
+            public T EvaluateScript<T>(string script, string functionName = null, TimeSpan? timeout = null) {
+                var result = default(T);
+                Exception exception = null;
+                var waitHandle = new ManualResetEvent(false);
                 var scriptWithErrorHandling = WrapScriptWithErrorHandling(script);
 
-                var scriptTask = QueueScript(scriptWithErrorHandling, functionName, timeout, true);
-                if (scriptTask == null) {
-                    return GetResult<T>(null); // webview is disposing
-                }
+                void Evaluate() {
+                    var effectiveTimeout = timeout ?? OwnerWebView.DefaultScriptsExecutionTimeout ?? DefaultTimeout;
 
-                if (!isFlushRunning) {
-                    timeout = timeout ?? TimeSpan.FromSeconds(15);
-                    var succeeded = scriptTask.WaitHandle.WaitOne(timeout.Value); // wait with timeout if flush is not running yet to avoid hanging forever
-                    if (!succeeded) {
-                        throw new JavascriptException("Timeout", $"Javascript engine is not initialized after {timeout.Value.Seconds}s");
+                    try {
+                        var task = OwnerWebView.chromium.EvaluateJavaScript<T>(scriptWithErrorHandling);
+
+                        if (task.Wait((int)effectiveTimeout.TotalMilliseconds, FlushTaskCancelationToken.Token)) {
+                            result = task.Result;
+                            return;
+                        }
+
+                        exception = MakeTimeoutException(functionName, effectiveTimeout);
+
+                    } catch (TaskCanceledException) {
+                        exception = MakeTimeoutException(functionName, effectiveTimeout);
+
+                    } catch (Exception e) {
+                        exception = e;
+
+                    } finally {
+                        waitHandle.Set();
                     }
-                } else {
-                    scriptTask.WaitHandle.WaitOne();
                 }
 
-                if (scriptTask.Exception != null) {
-                    throw scriptTask.Exception;
+                var scriptTask = QueueScript(scriptWithErrorHandling, functionName, Evaluate);
+                if (scriptTask != null) {
+                    if (!isFlushRunning) {
+                        var initializationTimeout = timeout ?? TimeSpan.FromSeconds(15);
+                        var succeeded = waitHandle.WaitOne(initializationTimeout); // wait with timeout if flush is not running yet to avoid hanging forever
+                        if (!succeeded) {
+                            throw new JavascriptException("Timeout", $"Javascript engine is not initialized after {initializationTimeout.Seconds}s");
+                        }
+                    } else {
+                        waitHandle.WaitOne();
+                    }
+
+                    if (exception != null) {
+                        throw exception;
+                    }
                 }
 
-                if (scriptTask.Result == null) {
-                    return GetResult<T>(null); // webview is disposing
-                }
-
-                return GetResult<T>(scriptTask.Result);
+                return GetResult<T>(result);
             
                 throw new Exception(); // TODO ParseResponseException(scriptTask.Result, new[] { functionName });
             }
@@ -276,6 +275,10 @@ namespace WebViewControl {
                 }
             }
 
+            private static Exception MakeTimeoutException(string functionName, TimeSpan timeout) {
+                return new JavascriptException("Timeout", $"More than {timeout.TotalMilliseconds}ms elapsed evaluating: '{functionName}'");
+            }
+
             //private static Exception ParseResponseException(JavascriptResponse response, IEnumerable<string> evaluatedScriptFunctions) {
             //    var jsErrorJSON = response.Message;
 
@@ -315,7 +318,7 @@ namespace WebViewControl {
             //                    });
             //                }
             //            }
-                        
+
             //            return new JavascriptException(jsError.Name, jsError.Message, parsedStack);
             //        }
             //    }
