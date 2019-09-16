@@ -8,6 +8,7 @@ namespace WebViewControl {
     internal class AsyncResourceHandler : DefaultResourceHandler {
 
         private CefCallback responseCallback;
+        private bool autoDisposeStream;
 
         protected override bool ProcessRequest(CefRequest request, CefCallback callback) {
             if (Response == null && string.IsNullOrEmpty(RedirectUrl)) {
@@ -23,9 +24,10 @@ namespace WebViewControl {
             MimeType = mimeType;
         }
 
-        public void SetResponse(Stream response, string mimeType = null) {
+        public void SetResponse(Stream response, string mimeType = null, bool autoDisposeStream = false) {
             Response = response;
             MimeType = mimeType;
+            this.autoDisposeStream = autoDisposeStream;
         }
 
         public void RedirectTo(string targetUrl) {
@@ -58,6 +60,13 @@ namespace WebViewControl {
             }
 
             return new MemoryStream(encoding.GetBytes(text));
+        }
+
+        protected override void Dispose(bool disposing) {
+            base.Dispose(disposing);
+            if (autoDisposeStream) {
+                Response?.Dispose();
+            }
         }
     }
 }
