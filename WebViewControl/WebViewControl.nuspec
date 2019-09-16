@@ -9,9 +9,6 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Description</description>
     <copyright>Copyright ©  2018</copyright>
-    <dependencies>
-      <dependency id="CefSharp.Wpf" version="67.0.4" />
-    </dependencies>
   </metadata>
   <files>
     <file src="WebViewControl.targets" target="build" />
