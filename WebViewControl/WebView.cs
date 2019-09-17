@@ -211,6 +211,8 @@ namespace WebViewControl {
 
             FocusManager.SetIsFocusScope(this, true);
             FocusManager.SetFocusedElement(this, FocusableElement);
+
+            PresentationSource.AddSourceChangedHandler(this, OnPresentationSourceChanged);
         }
 
         private static void OnApplicationExit(object sender, ExitEventArgs e) {
@@ -240,6 +242,8 @@ namespace WebViewControl {
                 }
 
                 disposed = true;
+
+                PresentationSource.RemoveSourceChangedHandler(this, OnPresentationSourceChanged);
 
                 AsyncCancellationTokenSource.Cancel();
 
@@ -675,18 +679,12 @@ namespace WebViewControl {
 
         internal bool IsDisposing => isDisposing;
 
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e) {
-            base.OnPropertyChanged(e);
-
-            // IWindowService is a WPF internal property set when component is loaded into a new window, even if the window isn't shown
-            if (e.Property.Name == "IWindowService") {
-                if (e.OldValue is Window oldWindow) {
-                    oldWindow.Closed -= OnHostWindowClosed;
-                }
-
-                if (e.NewValue is Window newWindow) {
-                    newWindow.Closed += OnHostWindowClosed;
-                }
+        private void OnPresentationSourceChanged(object sender, SourceChangedEventArgs e) {
+            if (e.OldSource?.RootVisual is Window oldWindow) {
+                oldWindow.Closed -= OnHostWindowClosed;
+            }
+            if (e.NewSource?.RootVisual is Window newWindow) {
+                newWindow.Closed += OnHostWindowClosed;
             }
         }
 
