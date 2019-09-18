@@ -33,3 +33,5 @@ Example/package-lock.json
 Example/viewgenerator.cache
 ViewPacker/tools/node_modules/
 !ReactViewResources/AMDLoader/AMDLoaderExports.js
+Example/.wpcache/
+Example/global.d.ts

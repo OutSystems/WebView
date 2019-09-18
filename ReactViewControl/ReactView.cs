@@ -184,6 +184,15 @@ namespace ReactViewControl {
         }
 
         /// <summary>
+        /// Handle custom resource requests. Use this event to load the resource based on the provided key.
+        /// This handler will be called before the frame handler.
+        /// </summary>
+        public event CustomResourceRequestedEventHandler CustomResourceRequested {
+            add { View.CustomResourceRequested += value; }
+            remove { View.CustomResourceRequested -= value; }
+        }
+
+        /// <summary>
         /// Add an handler for custom resources from main frame.
         /// </summary>
         /// <param name="handler"></param>

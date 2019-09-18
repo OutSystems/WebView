@@ -69,11 +69,11 @@ namespace Tests.ReactView {
             var mainThread = Thread.CurrentThread.ManagedThreadId;
             var customResourceRequestThread = -1;
 
-            TargetView.CustomResourceRequested += (req) => {
+            TargetView.AddCustomResourceRequestedHandler((req) => {
                 customResourceRequestThread = Thread.CurrentThread.ManagedThreadId;
                 requestHandlerCalled = true;
                 return null;
-            };
+            });
 
             TargetView.ExecuteMethod("loadCustomResource", "custom://webview/test.png");
             WaitFor(() => requestHandlerCalled, "custom request handler called");

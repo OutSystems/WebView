@@ -1,4 +1,6 @@
-﻿import { getStylesheets, webViewRootId, mainFrameName } from "./LoaderCommon";
+﻿/// <reference path="./../../ViewGenerator/contentFiles/global.d.ts"/>
+
+import { getStylesheets, webViewRootId, mainFrameName } from "./LoaderCommon";
 import { ObservableListCollection } from "./ObservableCollection";
 import { Task } from "./Task";
 import { ViewMetadata } from "./ViewMetadata";

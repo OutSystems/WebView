@@ -39,3 +39,28 @@ declare module "*.html" {
     const value: any;
     export = value;
 }
+
+declare module "PluginsProvider" {
+    export interface Type<T> extends Function { new(...args: any[]): T; }
+
+    export interface IPluginsContext {
+        getPluginInstance<T>(_class: Type<T>): T;
+    }
+
+    export const PluginsContext: React.Context<IPluginsContext>;
+}
+
+declare module "ResourceLoader" {
+    export type ResourceLoaderUrlFormatter = (resourceKey: string) => string;
+
+    export const ResourceLoader: React.Context<ResourceLoaderUrlFormatter>;
+}
+
+declare module "ViewFrame" {
+    export interface IViewFrameProps {
+        name: string;
+        className?: string;
+    }
+
+    export class ViewFrame extends React.Component<IViewFrameProps> { }
+}

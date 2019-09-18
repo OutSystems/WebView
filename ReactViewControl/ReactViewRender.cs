@@ -145,6 +145,11 @@ namespace ReactViewControl {
         public event ResourceRequestedEventHandler EmbeddedResourceRequested;
 
         /// <summary>
+        /// Handle custom resource requests. Use this event to load the resource based on provied key.
+        /// </summary>
+        public event CustomResourceRequestedEventHandler CustomResourceRequested;
+
+        /// <summary>
         /// Handle external resource requests. 
         /// Call <see cref="WebView.ResourceHandler.BeginAsyncResponse"/> to handle the request in an async way.
         /// </summary>
@@ -497,6 +502,12 @@ namespace ReactViewControl {
             }
         }
 
+        private CustomResourceRequestedEventHandler[] GetCustomResourceHandlers(FrameInfo frame) {
+            var globalHandlers = CustomResourceRequested?.GetInvocationList().Cast<CustomResourceRequestedEventHandler>() ?? Enumerable.Empty<CustomResourceRequestedEventHandler>();
+            var frameHandlers = frame.CustomResourceRequested?.GetInvocationList().Cast<CustomResourceRequestedEventHandler>() ?? Enumerable.Empty<CustomResourceRequestedEventHandler>();
+            return globalHandlers.Concat(frameHandlers).ToArray();
+        }
+
         /// <summary>
         /// Handle custom resource request and forward it to the appropriate frame.
         /// </summary>
@@ -508,13 +519,13 @@ namespace ReactViewControl {
             if (Uri.TryCreate(url, UriKind.Absolute, out var uri) && uri.Segments.Length > 1 && uri.Host.Equals(CustomResourceBaseUrl, StringComparison.InvariantCultureIgnoreCase)) {
                 var frameName = uri.Segments.ElementAt(1).TrimEnd(ResourceUrl.PathSeparator.ToCharArray());
                 if (frameName != null && Frames.TryGetValue(frameName, out var frame)) {
-                    var customResourceRequestedHandlers = frame.CustomResourceRequested?.GetInvocationList().ToArray();
-                    if (customResourceRequestedHandlers?.Any() == true) {
+                    var customResourceRequestedHandlers = GetCustomResourceHandlers(frame);
+                    if (customResourceRequestedHandlers.Any()) {
                         resourceHandler.BeginAsyncResponse(() => {
                             // get resource key from the query params
                             var resourceKey = uri.Query.TrimStart('?');
                             // get response from first handler that returns a stream
-                            var response = customResourceRequestedHandlers.Cast<CustomResourceRequestedEventHandler>().Select(h => h(resourceKey)).FirstOrDefault(r => r != null);
+                            var response = customResourceRequestedHandlers.Select(h => h(resourceKey)).FirstOrDefault(r => r != null);
 
                             if (response != null) {
                                 var path = uri.AbsolutePath;

@@ -1,5 +1,5 @@
 ﻿import * as React from "react";
-import { IPluginsContext } from "./../../ViewGenerator/contentFiles/node_modules/@types/PluginsProvider";
+import { IPluginsContext } from "PluginsProvider";
 
 export interface Type<T> extends Function { new(...args: any[]): T; }
 
