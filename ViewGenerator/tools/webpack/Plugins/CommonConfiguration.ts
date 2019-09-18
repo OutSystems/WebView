@@ -1,4 +1,5 @@
-﻿import MiniCssExtractPlugin from "mini-css-extract-plugin";
+﻿import ForkTsCheckerWebpackPlugin from "fork-ts-checker-webpack-plugin";
+import MiniCssExtractPlugin from "mini-css-extract-plugin";
 import { sync } from "glob";
 import { join, parse, resolve } from "path";
 import { Configuration } from "webpack";
@@ -7,14 +8,14 @@ import ManifestPlugin from "webpack-manifest-plugin";
 // Plugins / Resources
 import RenameChunksPlugin from "./RenameChunksPlugin";
 import { CssPlaceholder, CssChunkPlaceholder, DtsExtension, OutputDirectoryDefault, JsChunkPlaceholder, NamePlaceholder } from "./Resources";
-import { Dictionary, generateManifest, getCurrentDirectory, getFileName } from "./Utils";
+import { Dictionary, customErrorFormatter, generateManifest, getCurrentDirectory, getFileName } from "./Utils";
 
 // Rules
 import ResourcesRuleSet from "../Rules/Files";
 import SassRuleSet from "../Rules/Sass";
-import TypeScriptRuleSet from "../Rules/TypeScript";
+import getTypeScriptRuleSet from "../Rules/TypeScript";
 
-let getCommonConfiguration = (libraryName: string): Configuration => {
+let getCommonConfiguration = (libraryName: string, useCache: boolean): Configuration => {
 
     const entryMap: Dictionary<string> = {}
     const outputMap: Dictionary<string> = {};
@@ -42,6 +43,7 @@ let getCommonConfiguration = (libraryName: string): Configuration => {
     // however, webpack typings only allow strings at the moment. 🔨
     let getOutputFileName: any = (chunkData) => getFileName(outputMap, chunkData);
 
+    let currentDirectory: string = getCurrentDirectory();
     const Configuration: Configuration = {
 
         entry: entryMap,
@@ -56,7 +58,7 @@ let getCommonConfiguration = (libraryName: string): Configuration => {
         },
 
         output: {
-            path: getCurrentDirectory(),
+            path: currentDirectory,
             filename: getOutputFileName,
             chunkFilename: OutputDirectoryDefault + JsChunkPlaceholder,
             library: [libraryName, NamePlaceholder],
@@ -85,11 +87,17 @@ let getCommonConfiguration = (libraryName: string): Configuration => {
             rules: [
                 SassRuleSet,
                 ResourcesRuleSet,
-                TypeScriptRuleSet
+                getTypeScriptRuleSet(useCache)
             ]
         },
 
         plugins: [
+            new ForkTsCheckerWebpackPlugin({
+                checkSyntacticErrors: true,
+                formatter: (msg, useColors) => customErrorFormatter(msg, useColors, currentDirectory),
+                measureCompilationTime: true
+            }),
+
             new RenameChunksPlugin(),
 
             new MiniCssExtractPlugin({

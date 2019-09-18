@@ -80,18 +80,18 @@
   
   <Target Name="VG_GenerateDefaultStyleSheet" DependsOnTargets="VG_SetupViewPacker;VG_SetVariables;VG_LinkNodeModules;VG_CleanLegacyCSSFiles" Inputs="@(DefaultStyleSheet)" Outputs="%(DefaultStyleSheet.Filename).css" >
     <PropertyGroup>
-      <WebpackBuildMode>development</WebpackBuildMode>
+      <WP_Mode>development</WP_Mode>
     </PropertyGroup>
     
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-      <WebpackDevTool>inline-source-map</WebpackDevTool>
+      <WP_DevTool>inline-source-map</WP_DevTool>
     </PropertyGroup>
       
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-      <WebpackDevTool>false</WebpackDevTool>
+        <WP_DevTool>false</WP_DevTool>
     </PropertyGroup>
       
-    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config '$(ViewGeneratorToolsPath)\webpack\webpack_stylesheets.config.js' --mode $(WebpackBuildMode) --devtool $(WebpackDevTool) --entryPath &quot;%(DefaultStyleSheet.Identity)&quot;" />
+    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config='$(ViewGeneratorToolsPath)\webpack\webpack_stylesheets.config.js' --mode=$(WP_Mode) --devtool=$(WP_DevTool) --entryPath='%(DefaultStyleSheet.Identity)'" />
   </Target>
 
   <Target Name="VG_EnsureViewPackerInstalled" Condition="'$(ViewPackerToolScript)' == ''">
@@ -100,22 +100,24 @@
   
   <Target Name="VG_GenerateBundle" DependsOnTargets="VG_SetupViewPacker;VG_SetVariables;VG_CopyContentFiles;VG_GenerateDefaultStyleSheet;VG_CleanLegacyEntryFiles;VG_CleanLegacyJSFiles;VG_CleanLegacyCSSFiles">
     <PropertyGroup>
-      <WebpackBuildMode>development</WebpackBuildMode>
+      <WP_Mode>development</WP_Mode>
     </PropertyGroup>
 
-    <PropertyGroup Condition="'$(WebpackConfigFileName)' == ''">
-      <WebpackConfigFileName>webpack_views</WebpackConfigFileName>
+    <PropertyGroup Condition="'$(WP_ConfigFileName)' == ''">
+      <WP_ConfigFileName>webpack_views</WP_ConfigFileName>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-      <WebpackDevTool>inline-source-map</WebpackDevTool>
+      <WP_DevTool>inline-source-map</WP_DevTool>
+      <WP_UseCache>true</WP_UseCache>
     </PropertyGroup>
       
     <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-      <WebpackDevTool>false</WebpackDevTool>
+      <WP_DevTool>false</WP_DevTool>
+      <WP_UseCache>false</WP_UseCache>
     </PropertyGroup>
 
-    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config '$(ViewGeneratorToolsPath)\webpack\$(WebpackConfigFileName).config.js' --mode $(WebpackBuildMode) --devtool $(WebpackDevTool) --pluginsRelativePath '$(PluginsRelativePath)'" />
+    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config='$(ViewGeneratorToolsPath)\webpack\$(WP_ConfigFileName).config.js' --mode=$(WP_Mode) --devtool=$(WP_DevTool) --useCache=$(WP_UseCache) --pluginsRelativePath='$(PluginsRelativePath)'" />
   </Target>
 
   <Target Name="VG_IncludeGeneratedResources" DependsOnTargets="VG_GenerateBundle">

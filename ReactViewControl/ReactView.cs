@@ -11,9 +11,7 @@ namespace ReactViewControl {
 
     public delegate void ResourceRequestedEventHandler(ResourceHandler resourceHandler);
 
-    public delegate Stream CustomResourceRequestedEventHandler(string url);
-
-    public delegate Stream CustomResourceWithKeyRequestedEventHandler(string resourceKey);
+    public delegate Stream CustomResourceRequestedEventHandler(string resourceKey);
 
     public abstract class ReactView : UserControl, IDisposable {
 
@@ -184,7 +182,8 @@ namespace ReactViewControl {
         }
 
         /// <summary>
-        /// Handle custom resource requests. Use this event to load the resource based on the url.
+        /// Handle custom resource requests. Use this event to load the resource based on the provided key.
+        /// This handler will be called before the frame handler.
         /// </summary>
         public event CustomResourceRequestedEventHandler CustomResourceRequested {
             add { View.CustomResourceRequested += value; }
@@ -195,7 +194,7 @@ namespace ReactViewControl {
         /// Add an handler for custom resources from main frame.
         /// </summary>
         /// <param name="handler"></param>
-        public void AddCustomResourceRequestedHandler(CustomResourceWithKeyRequestedEventHandler handler) {
+        public void AddCustomResourceRequestedHandler(CustomResourceRequestedEventHandler handler) {
             AddCustomResourceRequestedHandler(ReactViewRender.MainViewFrameName, handler);
         }
 
@@ -204,7 +203,7 @@ namespace ReactViewControl {
         /// </summary>
         /// <param name="frameName"></param>
         /// <param name="handler"></param>
-        public void AddCustomResourceRequestedHandler(string frameName, CustomResourceWithKeyRequestedEventHandler handler) {
+        public void AddCustomResourceRequestedHandler(string frameName, CustomResourceRequestedEventHandler handler) {
             View.AddCustomResourceRequestedHandler(frameName, handler);
         }
 
@@ -212,7 +211,7 @@ namespace ReactViewControl {
         /// Remve the handler for custom resources from the main frame.
         /// </summary>
         /// <param name="handler"></param>
-        public void RemoveCustomResourceRequestedHandler(CustomResourceWithKeyRequestedEventHandler handler) {
+        public void RemoveCustomResourceRequestedHandler(CustomResourceRequestedEventHandler handler) {
             RemoveCustomResourceRequestedHandler(ReactViewRender.MainViewFrameName, handler);
         }
 
@@ -221,7 +220,7 @@ namespace ReactViewControl {
         /// </summary>
         /// <param name="frameName"></param>
         /// <param name="handler"></param>
-        public void RemoveCustomResourceRequestedHandler(string frameName, CustomResourceWithKeyRequestedEventHandler handler) {
+        public void RemoveCustomResourceRequestedHandler(string frameName, CustomResourceRequestedEventHandler handler) {
             View.RemoveCustomResourceRequestedHandler(frameName, handler);
         }
 

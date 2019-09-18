@@ -3,11 +3,7 @@ import { ObservableListCollection } from "./ObservableCollection";
 import { Task } from "./Task";
 import { ViewContext } from "./ViewContext";
 import { ViewMetadata } from "./ViewMetadata";
-
-interface IViewFrameProps {
-    name: string;
-    className: string;
-}
+import { IViewFrameProps } from "ViewFrame";
 
 /**
  * Placeholder were a child view is mounted.

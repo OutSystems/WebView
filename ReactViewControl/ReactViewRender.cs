@@ -76,8 +76,6 @@ namespace ReactViewControl {
             };
 
             WebView.LoadResource(new ResourceUrl(ResourcesAssembly, ReactViewResources.Resources.DefaultUrl + "?" + string.Join("&", urlParams)));
-
-            CustomResourceRequested += OnCustomResourceRequested;
         }
 
         public IInputElement FocusableElement => WebView.FocusableElement;
@@ -147,7 +145,7 @@ namespace ReactViewControl {
         public event ResourceRequestedEventHandler EmbeddedResourceRequested;
 
         /// <summary>
-        /// Handle custom resource requests. Use this event to load the resource based on the url.
+        /// Handle custom resource requests. Use this event to load the resource based on provied key.
         /// </summary>
         public event CustomResourceRequestedEventHandler CustomResourceRequested;
 
@@ -398,7 +396,7 @@ namespace ReactViewControl {
         /// </summary>
         /// <param name="frameName"></param>
         /// <param name="handler"></param>
-        public void AddCustomResourceRequestedHandler(string frameName, CustomResourceWithKeyRequestedEventHandler handler) {
+        public void AddCustomResourceRequestedHandler(string frameName, CustomResourceRequestedEventHandler handler) {
             var frame = GetOrCreateFrame(frameName);
             frame.CustomResourceRequested += handler;
         }
@@ -408,7 +406,7 @@ namespace ReactViewControl {
         /// </summary>
         /// <param name="frameName"></param>
         /// <param name="handler"></param>
-        public void RemoveCustomResourceRequestedHandler(string frameName, CustomResourceWithKeyRequestedEventHandler handler) {
+        public void RemoveCustomResourceRequestedHandler(string frameName, CustomResourceRequestedEventHandler handler) {
             // do not create if frame does not exist
             if (Frames.TryGetValue(frameName, out var frame)) {
                 frame.CustomResourceRequested -= handler;
@@ -489,22 +487,7 @@ namespace ReactViewControl {
 
             switch (scheme.ToLowerInvariant()) {
                 case ResourceUrl.CustomScheme:
-                    var customResourceRequestedHandlers = CustomResourceRequested?.GetInvocationList().ToArray();
-                    if (customResourceRequestedHandlers?.Any() == true) {
-                        resourceHandler.BeginAsyncResponse(() => {
-                            var response = customResourceRequestedHandlers.Cast<CustomResourceRequestedEventHandler>().Select(h => h(url)).FirstOrDefault(r => r != null);
-
-                            if (response != null) {
-                                string extension = null;
-                                if (Uri.TryCreate(url, UriKind.Absolute, out var uri)) {
-                                    var path = uri.AbsolutePath;
-                                    extension = Path.GetExtension(path).TrimStart('.');
-                                }
-
-                                resourceHandler.RespondWith(response, extension);
-                            }
-                        });
-                    }
+                    HandleCustomResourceRequested(resourceHandler);
                     break;
 
                 case ResourceUrl.EmbeddedScheme:
@@ -519,19 +502,42 @@ namespace ReactViewControl {
             }
         }
 
+        private CustomResourceRequestedEventHandler[] GetCustomResourceHandlers(FrameInfo frame) {
+            var globalHandlers = CustomResourceRequested?.GetInvocationList().Cast<CustomResourceRequestedEventHandler>() ?? Enumerable.Empty<CustomResourceRequestedEventHandler>();
+            var frameHandlers = frame.CustomResourceRequested?.GetInvocationList().Cast<CustomResourceRequestedEventHandler>() ?? Enumerable.Empty<CustomResourceRequestedEventHandler>();
+            return globalHandlers.Concat(frameHandlers).ToArray();
+        }
+
         /// <summary>
         /// Handle custom resource request and forward it to the appropriate frame.
         /// </summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        private Stream OnCustomResourceRequested(string url) {
+        private void HandleCustomResourceRequested(WebView.ResourceHandler resourceHandler) {
+            var url = resourceHandler.Url;
+            
             if (Uri.TryCreate(url, UriKind.Absolute, out var uri) && uri.Segments.Length > 1 && uri.Host.Equals(CustomResourceBaseUrl, StringComparison.InvariantCultureIgnoreCase)) {
                 var frameName = uri.Segments.ElementAt(1).TrimEnd(ResourceUrl.PathSeparator.ToCharArray());
                 if (frameName != null && Frames.TryGetValue(frameName, out var frame)) {
-                    return frame.CustomResourceRequested?.Invoke(uri.Query.TrimStart('?'));
+                    var customResourceRequestedHandlers = GetCustomResourceHandlers(frame);
+                    if (customResourceRequestedHandlers.Any()) {
+                        resourceHandler.BeginAsyncResponse(() => {
+                            // get resource key from the query params
+                            var resourceKey = uri.Query.TrimStart('?');
+                            // get response from first handler that returns a stream
+                            var response = customResourceRequestedHandlers.Select(h => h(resourceKey)).FirstOrDefault(r => r != null);
+
+                            if (response != null) {
+                                var path = uri.AbsolutePath;
+                                var extension = Path.GetExtension(path).TrimStart('.');
+                                resourceHandler.RespondWith(response, extension);
+                            } else {
+                                resourceHandler.RespondWith(MemoryStream.Null);
+                            }
+                        });
+                    }
                 }
             }
-            return null;
         }
 
         /// <summary>

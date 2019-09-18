@@ -1,8 +1,9 @@
 ﻿import * as React from "react";
+import { IPluginsContext } from "PluginsProvider";
 
 export interface Type<T> extends Function { new(...args: any[]): T; }
 
-export class PluginsContextHolder {
+export class PluginsContextHolder implements IPluginsContext {
 
     private pluginInstances: Map<string, any> = new Map<string, any>();
 

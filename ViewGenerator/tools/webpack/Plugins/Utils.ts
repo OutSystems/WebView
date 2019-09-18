@@ -1,5 +1,7 @@
-﻿import { outputFileSync } from "fs-extra";
+﻿import Chalk from "chalk";
+import { outputFileSync } from "fs-extra";
 import { resolve } from "path";
+import { NormalizedMessage } from "fork-ts-checker-webpack-plugin/lib/NormalizedMessage";
 import { FileDescriptor } from "webpack-manifest-plugin";
 
 import { CssExtension, EntryExtension, JsExtension, JsPlaceholder, OutputDirectoryDefault } from "./Resources";
@@ -84,16 +86,33 @@ export function generateManifest(
 /*
  * Custom typescript error formater for Visual Studio.
  * */
-export function customErrorFormatter(error, colors) {
-    let messageColor = error.severity === "warning" ? colors.bold.yellow : colors.bold.red;
-    let errorMsg =
-        colors.bold.white('(') +
-        colors.bold.cyan(error.line.toString() + "," + error.character.toString()) +
-        colors.bold.white(')') +
-        messageColor(": " + error.severity.toString() + " " + error.code.toString() + ": ") +
-        messageColor(error.content);
+export function customErrorFormatter(message: NormalizedMessage, enableColors: boolean, namespace: string) {
+    const colors = Chalk.constructor({ enabled: enableColors })
+    const messageColor = message.severity === "warning" ? colors.bold.yellow : colors.bold.red;
+    const locationColor = colors.bold.cyan;
+    const codeColor = colors.grey;
 
-    return messageColor(error.file) + errorMsg;
+    if (message.file && message.line && message.character) {
+
+        // e.g. file.ts(17,20): error TS0168: The variable 'foo' is declared but never used.
+        return locationColor(message.file + "(" + message.line + "," + message.character + ")") +
+            messageColor(":") + " " +
+            messageColor(message.severity.toUpperCase()) + " " +
+            codeColor("TS" + message.code) +
+            messageColor(":") + " " +
+            messageColor(message.content);
+    }
+
+    if (!message.file) {
+        // some messages do not have file specified, although logger needs it
+        (message as any).file = namespace;
+    }
+
+    // e.g. error TS6053: File 'file.ts' not found.
+    return messageColor(message.severity.toUpperCase()) + " " +
+        codeColor("TS" + message.code) +
+        messageColor(":") + " " +
+        messageColor(message.content);
 }
 
 /*

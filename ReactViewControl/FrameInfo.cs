@@ -18,6 +18,6 @@
 
         public bool PluginsLoaded { get; set; }
 
-        public CustomResourceWithKeyRequestedEventHandler CustomResourceRequested;
+        public CustomResourceRequestedEventHandler CustomResourceRequested;
     }
 }

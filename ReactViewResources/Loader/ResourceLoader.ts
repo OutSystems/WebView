@@ -1,6 +1,5 @@
 ﻿import * as React from "react";
-
-type ResourceLoaderUrlFormatter = (resourceKey: string) => string;
+import { ResourceLoaderUrlFormatter } from "ResourceLoader";
 
 export const ResourceLoader = React.createContext<ResourceLoaderUrlFormatter>(() => "");
 
