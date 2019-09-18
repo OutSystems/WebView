@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
-    <id>ReactViewControl</id>
-    <version>1.67.87</version>
+    <id>ReactViewControl-CefGlue</id>
+    <version>1.72.87</version>
     <title>ReactViewControl</title>
     <authors>OutSystems</authors>
     <owners>OutSystems</owners>
@@ -10,7 +10,7 @@
     <description>Description</description>
     <copyright>Copyright ©  2018</copyright>
     <dependencies>
-      <dependency id="WebViewControl" version="1.67.62" />
+      <dependency id="WebViewControl-CefGlue" version="1.72.62" />
     </dependencies>
   </metadata>
 </package>

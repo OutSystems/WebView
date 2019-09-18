@@ -1,8 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
-    <id>WebViewControl</id>
-    <version>1.67.62</version>
+    <id>WebViewControl-CefGlue</id>
+    <version>1.72.62</version>
     <title>WebViewControl</title>
     <authors>OutSystems</authors>
     <owners>OutSystems</owners>
