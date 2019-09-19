@@ -329,15 +329,11 @@ namespace WebViewControl {
                     IsSecurityDisabled = true;
                 }
 
-                chromium.Address = address;
-                // must wait for the browser to be initialized otherwise navigation will be aborted
-                //ExecuteWhenInitialized(() => {
-                //    if (frameName == MainFrameName) {
-                //        chromium.Address = address;
-                //    } else {
-                //        GetFrame(frameName)?.LoadUrl(address);
-                //    }
-                //});
+                if (frameName == MainFrameName) {
+                    chromium.Address = address;
+                } else {
+                    GetFrame(frameName)?.LoadUrl(address);
+                }
             } else {
                 var userAssembly = GetUserCallingMethod().ReflectedType.Assembly;
                 LoadUrl(new ResourceUrl(userAssembly, address).WithDomain(CurrentDomainId), frameName);
