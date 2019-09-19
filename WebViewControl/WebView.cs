@@ -33,7 +33,7 @@ namespace WebViewControl {
 
         private const string AboutBlankUrl = "about:blank";
 
-        private const string MainFrameName = null;
+        internal const string MainFrameName = null;
 
         private static string[] CustomSchemes { get; } = new[] {
             ResourceUrl.LocalScheme,
