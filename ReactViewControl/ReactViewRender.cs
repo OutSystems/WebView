@@ -513,7 +513,7 @@ namespace ReactViewControl {
         /// </summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        private void HandleCustomResourceRequested(WebView.ResourceHandler resourceHandler) {
+        private void HandleCustomResourceRequested(ResourceHandler resourceHandler) {
             var url = resourceHandler.Url;
             
             if (Uri.TryCreate(url, UriKind.Absolute, out var uri) && uri.Segments.Length > 1 && uri.Host.Equals(CustomResourceBaseUrl, StringComparison.InvariantCultureIgnoreCase)) {

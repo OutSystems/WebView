@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using Xilium.CefGlue.Common.Events;
 
 namespace WebViewControl {
 
@@ -25,7 +26,7 @@ namespace WebViewControl {
 
             private static string FormatStackFrame(JavascriptStackFrame frame) {
                 var functionName = string.IsNullOrEmpty(frame.FunctionName) ? "<anonymous>" : frame.FunctionName;
-                var location = string.IsNullOrEmpty(frame.SourceName) ? "" : ($" in {frame.SourceName}:line {frame.LineNumber} {frame.ColumnNumber}");
+                var location = string.IsNullOrEmpty(frame.ScriptNameOrSourceUrl) ? "" : ($" in {frame.ScriptNameOrSourceUrl}:line {frame.LineNumber} {frame.Column}");
                 return $"   at {functionName}{location}";
             }
 

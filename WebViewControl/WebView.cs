@@ -194,6 +194,7 @@ namespace WebViewControl {
             chromium.PreviewKeyDown += OnPreviewKeyDown;
             chromium.JavascriptContextCreated += OnJavascriptContextCreated;
             chromium.JavascriptContextReleased += OnJavascriptContextReleased;
+            chromium.JavascriptUncaughException += OnJavascriptUncaughException;
 
             chromium.RequestHandler = requestHandler;
             chromium.LifeSpanHandler = new InternalLifeSpanHandler(this);
@@ -542,7 +543,7 @@ namespace WebViewControl {
                 htmlToLoad = null;
             } else {
                 // js context created event is not called for child frames
-                // TODO OnJavascriptContextCreated(e.Frame.Name);
+                HandleJavascriptContextCreated(e.Frame);
             }
             var navigated = Navigated;
             if (navigated != null) {
@@ -720,13 +721,17 @@ namespace WebViewControl {
         }
 
         private void OnJavascriptContextCreated(object sender, JavascriptContextLifetimeEventArgs e) {
+            HandleJavascriptContextCreated(e.Frame);
+        }
+
+        private void HandleJavascriptContextCreated(CefFrame frame) {
             ExecuteWithAsyncErrorHandling(() => {
-                if (UrlHelper.IsChromeInternalUrl(e.Frame.Url)) {
+                if (UrlHelper.IsChromeInternalUrl(frame.Url)) {
                     return;
                 }
 
                 lock (JsExecutors) {
-                    var frameName = e.Frame.Name;
+                    var frameName = frame.Name;
 
                     if (frameName == MainFrameName) {
                         // when a new main frame in created, dispose all running executors -> since they should not be valid anymore
@@ -735,7 +740,7 @@ namespace WebViewControl {
                     }
 
                     var jsExecutor = GetJavascriptExecutor(frameName);
-                    jsExecutor.StartFlush(e.Frame);
+                    jsExecutor.StartFlush(frame);
 
                     JavascriptContextCreated?.Invoke(frameName);
                 }
@@ -758,6 +763,15 @@ namespace WebViewControl {
             });
         }
 
+        private void OnJavascriptUncaughException(object sender, JavascriptUncaughtExceptionEventArgs e) {
+            if (JavascriptExecutor.IsInternalException(e.Message)) {
+                // ignore internal exceptions, they will be handled by the EvaluateScript caller
+                return;
+            }
+            var javascriptException = new JavascriptException(e.Message, e.StackFrames);
+            ForwardUnhandledAsyncException(javascriptException, e.Frame.Name);
+        }
+
         private void OnRenderProcessCrashed() {
             lock (JsExecutors) {
                 DisposeJavascriptExecutors(JsExecutors.Keys.ToArray());
@@ -771,15 +785,5 @@ namespace WebViewControl {
                 JsExecutors.Remove(indexedExecutorKey);
             }
         }
-
-        // TODO
-        //protected override void OnUncaughtException(CefBrowser browser, CefFrame frame, CefV8Context context, CefV8Exception exception, CefV8StackTrace stackTrace) {
-        //    if (JavascriptExecutor.IsInternalException(exception.Message)) {
-        //        // ignore internal exceptions, they will be handled by the EvaluateScript caller
-        //        return;
-        //    }
-        //    var javascriptException = new JavascriptException(exception.Message, exception.StackTrace);
-        //    OwnerWebView.ForwardUnhandledAsyncException(javascriptException, frame.Name);
-        //}
     }
 }
