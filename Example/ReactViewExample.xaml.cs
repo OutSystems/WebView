@@ -65,11 +65,11 @@ namespace Example {
             Application.Current.Dispatcher.Invoke(() => status.Text = log + Environment.NewLine + status.Text);
         }
 
-        private Stream OnViewResourceRequested(string resourceKey) {
+        private Stream OnViewResourceRequested(string resourceKey, params string[] options) {
             return ResourcesManager.GetResource(GetType().Assembly, new[] { "ExampleView", "ExampleView", resourceKey });
         }
 
-        private Stream OnInnerViewResourceRequested(string resourceKey) {
+        private Stream OnInnerViewResourceRequested(string resourceKey, params string[] options) {
             return ResourcesManager.GetResource(GetType().Assembly, new[] { "ExampleView", "SubExampleView", resourceKey });
         }
     }
