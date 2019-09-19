@@ -523,9 +523,12 @@ namespace ReactViewControl {
                     if (customResourceRequestedHandlers.Any()) {
                         resourceHandler.BeginAsyncResponse(() => {
                             // get resource key from the query params
-                            var resourceKey = uri.Query.TrimStart('?');
+                            var resourceKeyAndOptions = uri.Query.TrimStart('?').Split(new[] { '&' }, StringSplitOptions.RemoveEmptyEntries).Select(p => Uri.UnescapeDataString(p));
+                            var resourceKey = resourceKeyAndOptions.FirstOrDefault();
+                            var options = resourceKeyAndOptions.Skip(1).ToArray();
+
                             // get response from first handler that returns a stream
-                            var response = customResourceRequestedHandlers.Select(h => h(resourceKey)).FirstOrDefault(r => r != null);
+                            var response = customResourceRequestedHandlers.Select(h => h(resourceKey, options)).FirstOrDefault(r => r != null);
 
                             if (response != null) {
                                 var path = uri.AbsolutePath;

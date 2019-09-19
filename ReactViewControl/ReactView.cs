@@ -11,7 +11,7 @@ namespace ReactViewControl {
 
     public delegate void ResourceRequestedEventHandler(ResourceHandler resourceHandler);
 
-    public delegate Stream CustomResourceRequestedEventHandler(string resourceKey);
+    public delegate Stream CustomResourceRequestedEventHandler(string resourceKey, params string[] options);
 
     public abstract class ReactView : UserControl, IDisposable {
 

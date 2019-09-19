@@ -51,7 +51,7 @@ declare module "PluginsProvider" {
 }
 
 declare module "ResourceLoader" {
-    export type ResourceLoaderUrlFormatter = (resourceKey: string) => string;
+    export type ResourceLoaderUrlFormatter = (resourceKey: string, ...params: string[]) => string;
 
     export const ResourceLoader: React.Context<ResourceLoaderUrlFormatter>;
 }

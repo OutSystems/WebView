@@ -69,7 +69,7 @@ namespace Tests.ReactView {
             var mainThread = Thread.CurrentThread.ManagedThreadId;
             var customResourceRequestThread = -1;
 
-            TargetView.AddCustomResourceRequestedHandler((req) => {
+            TargetView.AddCustomResourceRequestedHandler((_, __) => {
                 customResourceRequestThread = Thread.CurrentThread.ManagedThreadId;
                 requestHandlerCalled = true;
                 return null;
