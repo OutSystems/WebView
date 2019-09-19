@@ -215,7 +215,8 @@ namespace ReactViewControl {
         /// </summary>
         /// <param name="frameName"></param>
         private void OnWebViewJavascriptContextReleased(string frameName) {
-            if (frameName != MainViewFrameName) {
+            if (frameName != WebView.MainFrameName) {
+                // ignore, its an iframe saying goodbye
                 return;
             }
 
