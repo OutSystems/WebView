@@ -63,8 +63,6 @@ namespace ReactViewControl {
 
             FocusManager.SetIsFocusScope(this, true);
             FocusManager.SetFocusedElement(this, View.FocusableElement);
-
-            PresentationSource.AddSourceChangedHandler(this, OnPresentationSourceChanged);
         }
 
         ~ReactView() {
@@ -72,7 +70,6 @@ namespace ReactViewControl {
         }
 
         public void Dispose() {
-            PresentationSource.RemoveSourceChangedHandler(this, OnPresentationSourceChanged);
             View.Dispose();
             GC.SuppressFinalize(this);
         }
@@ -82,13 +79,18 @@ namespace ReactViewControl {
         /// </summary>
         protected virtual ReactViewFactory Factory => new ReactViewFactory();
 
+        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e) {
+            base.OnPropertyChanged(e);
 
-        private void OnPresentationSourceChanged(object sender, SourceChangedEventArgs e) {
-            if (e.OldSource?.RootVisual is Window oldWindow) {
-                oldWindow.IsVisibleChanged -= OnWindowIsVisibleChanged;
-            }
-            if (e.NewSource?.RootVisual is Window newWindow) {
-                newWindow.IsVisibleChanged += OnWindowIsVisibleChanged;
+            // IWindowService is a WPF internal property set when component is loaded into a new window, even if the window isn't shown
+            if (e.Property.Name == "IWindowService") {
+                if (e.OldValue is Window oldWindow) {
+                    oldWindow.IsVisibleChanged -= OnWindowIsVisibleChanged;
+                }
+
+                if (e.NewValue is Window newWindow) {
+                    newWindow.IsVisibleChanged += OnWindowIsVisibleChanged;
+                }
             }
         }
 
@@ -246,7 +248,7 @@ namespace ReactViewControl {
         public void CloseDeveloperTools() {
             View.CloseDeveloperTools();
         }
-        
+
         /// <summary>
         /// View module of this control.
         /// </summary>

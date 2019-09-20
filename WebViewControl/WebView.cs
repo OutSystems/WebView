@@ -206,14 +206,15 @@ namespace WebViewControl {
 
             Content = chromium;
 
-            GlobalWebViewInitialized?.Invoke(this);
+            Loaded += OnLoaded;
+            Unloaded += OnUnloaded;
 
             RenderProcessCrashed += OnRenderProcessCrashed;
 
             FocusManager.SetIsFocusScope(this, true);
             FocusManager.SetFocusedElement(this, FocusableElement);
 
-            PresentationSource.AddSourceChangedHandler(this, OnPresentationSourceChanged);
+            GlobalWebViewInitialized?.Invoke(this);
         }
 
         private static void OnApplicationExit(object sender, ExitEventArgs e) {
@@ -243,8 +244,6 @@ namespace WebViewControl {
                 }
 
                 disposed = true;
-
-                PresentationSource.RemoveSourceChangedHandler(this, OnPresentationSourceChanged);
 
                 AsyncCancellationTokenSource.Cancel();
 
@@ -676,12 +675,28 @@ namespace WebViewControl {
 
         internal bool IsDisposing => isDisposing;
 
+        private void OnLoaded(object sender, RoutedEventArgs e) {
+            PresentationSource.AddSourceChangedHandler(this, OnPresentationSourceChanged);
+            var source = PresentationSource.FromVisual(this);
+            UpdatePresentationSource(source, source); // pass same source, to make sure events are not registerer more than once
+        }
+
+        private void OnUnloaded(object sender, RoutedEventArgs e) {
+            PresentationSource.RemoveSourceChangedHandler(this, OnPresentationSourceChanged);
+        }
+
         private void OnPresentationSourceChanged(object sender, SourceChangedEventArgs e) {
-            if (e.OldSource?.RootVisual is Window oldWindow) {
+            UpdatePresentationSource(e.OldSource, e.NewSource);
+        }
+
+        private void UpdatePresentationSource(PresentationSource oldSource, PresentationSource newSource) {
+            if (oldSource?.RootVisual is Window oldWindow) {
                 oldWindow.Closed -= OnHostWindowClosed;
             }
-            if (e.NewSource?.RootVisual is Window newWindow) {
-                newWindow.Closed += OnHostWindowClosed;
+            if (newSource != null) {
+                if (newSource?.RootVisual is Window newWindow) {
+                    newWindow.Closed += OnHostWindowClosed;
+                }
             }
         }
 
