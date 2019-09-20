@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Xilium.CefGlue;
+using Xilium.CefGlue.Common.Events;
 
 namespace WebViewControl {
 
@@ -97,11 +98,6 @@ namespace WebViewControl {
                     StoppedFlushHandle.WaitOne();
                 }
 
-                // signal any pending js evaluations
-                foreach (var pendingScript in PendingScripts.ToArray()) {
-                    // TODO pendingScript.WaitHandle?.Set();
-                }
-
                 PendingScripts.Dispose();
                 FlushTaskCancelationToken.Dispose();
             }
@@ -150,12 +146,13 @@ namespace WebViewControl {
                     var script = string.Join(";" + Environment.NewLine, scriptsToExecute.Select(s => s.Script));
                     if (frame.IsValid) {
                         var frameName = frame.Name;
-                        var task = OwnerWebView.chromium.EvaluateJavaScript<object>(WrapScriptWithErrorHandling(script));
-                        var timeout = OwnerWebView.DefaultScriptsExecutionTimeout ?? DefaultTimeout;
-                        task.Wait((int) timeout.TotalMilliseconds, FlushTaskCancelationToken.Token);
-                        if (task.IsFaulted) {
+                        try {
+                            var task = OwnerWebView.chromium.EvaluateJavaScript<object>(WrapScriptWithErrorHandling(script));
+                            var timeout = OwnerWebView.DefaultScriptsExecutionTimeout ?? DefaultTimeout;
+                            task.Wait((int)timeout.TotalMilliseconds, FlushTaskCancelationToken.Token);
+                        } catch (Exception e) {
                             var evaluatedScriptFunctions = scriptsToExecute.Select(s => s.FunctionName);
-                            OwnerWebView.ExecuteWithAsyncErrorHandlingOnFrame(() => throw new Exception(), frameName); // TODO ParseResponseException(response, evaluatedScriptFunctions), frameName);
+                            OwnerWebView.ExecuteWithAsyncErrorHandlingOnFrame(() => throw ParseException(e, evaluatedScriptFunctions), frameName);
                         }
                     }
                 }
@@ -199,22 +196,20 @@ namespace WebViewControl {
                 if (scriptTask != null) {
                     if (!isFlushRunning) {
                         var initializationTimeout = timeout ?? TimeSpan.FromSeconds(15);
-                        var succeeded = waitHandle.WaitOne(initializationTimeout); // wait with timeout if flush is not running yet to avoid hanging forever
-                        if (!succeeded) {
+                        var succeededWaitHandleIndex = WaitHandle.WaitAny(new[] { waitHandle, FlushTaskCancelationToken.Token.WaitHandle }, initializationTimeout); // wait with timeout if flush is not running yet to avoid hanging forever
+                        if (succeededWaitHandleIndex == WaitHandle.WaitTimeout) {
                             throw new JavascriptException("Timeout", $"Javascript engine is not initialized after {initializationTimeout.Seconds}s");
                         }
                     } else {
-                        waitHandle.WaitOne();
+                        WaitHandle.WaitAny(new[] { waitHandle, FlushTaskCancelationToken.Token.WaitHandle });
                     }
 
                     if (exception != null) {
-                        throw exception;
+                        throw ParseException(exception, new[] { functionName });
                     }
                 }
 
                 return GetResult<T>(result);
-            
-                throw new Exception(); // TODO ParseResponseException(scriptTask.Result, new[] { functionName });
             }
 
             public T EvaluateScriptFunction<T>(string functionName, bool serializeParams, params object[] args) {
@@ -279,52 +274,47 @@ namespace WebViewControl {
                 return new JavascriptException("Timeout", $"More than {timeout.TotalMilliseconds}ms elapsed evaluating: '{functionName}'");
             }
 
-            //private static Exception ParseResponseException(JavascriptResponse response, IEnumerable<string> evaluatedScriptFunctions) {
-            //    var jsErrorJSON = response.Message;
+            private static Exception ParseException(Exception exception, IEnumerable<string> evaluatedScriptFunctions) {
+                var jsErrorJSON = ((exception is AggregateException aggregateException) ? aggregateException.InnerExceptions.FirstOrDefault(e => IsInternalException(e.Message))?.Message : exception.Message) ?? "";
 
-            //    // try parse js exception
-            //    jsErrorJSON = jsErrorJSON.Substring(Math.Max(0, jsErrorJSON.IndexOf("{")));
-            //    jsErrorJSON = jsErrorJSON.Substring(0, jsErrorJSON.LastIndexOf("}") + 1);
+                // try parse js exception
+                jsErrorJSON = jsErrorJSON.Substring(Math.Max(0, jsErrorJSON.IndexOf("{")));
+                jsErrorJSON = jsErrorJSON.Substring(0, jsErrorJSON.LastIndexOf("}") + 1);
 
-            //    var evaluatedStackFrames = evaluatedScriptFunctions.Where(f => !string.IsNullOrEmpty(f))
-            //                                                       .Select(f => new JavascriptStackFrame() { FunctionName = f, SourceName = "eval" });
+                var evaluatedStackFrames = evaluatedScriptFunctions.Where(f => !string.IsNullOrEmpty(f))
+                                                                   .Select(f => new JavascriptStackFrame(f, "eval", 0, 0));
 
-            //    if (!string.IsNullOrEmpty(jsErrorJSON)) {
-            //        JsError jsError = null;
-            //        try {
-            //            jsError = DeserializeJSON<JsError>(jsErrorJSON);
-            //        } catch {
-            //            // ignore will throw error at the end   
-            //        }
-            //        if (jsError != null) {
-            //            jsError.Name = jsError.Name ?? "";
-            //            jsError.Message = jsError.Message ?? "";
-            //            jsError.Stack = jsError.Stack ?? "";
-            //            var jsStack = jsError.Stack.Substring(Math.Min(jsError.Stack.Length, (jsError.Name + ": " + jsError.Message).Length))
-            //                                       .Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                if (!string.IsNullOrEmpty(jsErrorJSON)) {
+                    JsError jsError = null;
+                    try {
+                        jsError = DeserializeJSON<JsError>(jsErrorJSON);
+                    } catch {
+                        // ignore will throw error at the end   
+                    }
+                    if (jsError != null) {
+                        jsError.Name = jsError.Name ?? "";
+                        jsError.Message = jsError.Message ?? "";
+                        jsError.Stack = jsError.Stack ?? "";
+                        var jsStack = jsError.Stack.Substring(Math.Min(jsError.Stack.Length, (jsError.Name + ": " + jsError.Message).Length))
+                                                   .Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
-            //            var parsedStack = new List<JavascriptStackFrame>();
+                        var parsedStack = new List<JavascriptStackFrame>();
 
-            //            parsedStack.AddRange(evaluatedStackFrames);
+                        parsedStack.AddRange(evaluatedStackFrames);
 
-            //            foreach(var stackFrame in jsStack) {
-            //                var frameParts = StackFrameRegex.Match(stackFrame);
-            //                if (frameParts.Success) {
-            //                    parsedStack.Add(new JavascriptStackFrame() {
-            //                        FunctionName = frameParts.Groups["method"].Value,
-            //                        SourceName = frameParts.Groups["location"].Value,
-            //                        LineNumber = int.Parse(frameParts.Groups["line"].Value),
-            //                        ColumnNumber = int.Parse(frameParts.Groups["column"].Value)
-            //                    });
-            //                }
-            //            }
+                        foreach (var stackFrame in jsStack) {
+                            var frameParts = StackFrameRegex.Match(stackFrame);
+                            if (frameParts.Success) {
+                                parsedStack.Add(new JavascriptStackFrame(frameParts.Groups["method"].Value, frameParts.Groups["location"].Value, int.Parse(frameParts.Groups["column"].Value), int.Parse(frameParts.Groups["line"].Value)));
+                            }
+                        }
 
-            //            return new JavascriptException(jsError.Name, jsError.Message, parsedStack);
-            //        }
-            //    }
+                        return new JavascriptException(jsError.Name, jsError.Message, parsedStack);
+                    }
+                }
 
-            //    return new JavascriptException("Javascript Error", response.Message, evaluatedStackFrames);
-            //}
+                return new JavascriptException("Javascript Error", exception.Message, evaluatedStackFrames);
+            }
 
             internal static bool IsInternalException(string exceptionMessage) {
                 return exceptionMessage.EndsWith(InternalException);
