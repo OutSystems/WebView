@@ -1,4 +1,7 @@
 #tool "nuget:?package=Microsoft.TestPlatform&version=15.7.0"
+#addin nuget:?package=Cake.Json&version=4.0.0
+#addin nuget:?package=Newtonsoft.Json&version=9.0.1
+#addin nuget:?package=Cake.Incubator&version=5.1.0
 
 ////////////////////////////////////////////////////////////////
 // Use always this structure. If you don't need to run some   //
@@ -6,18 +9,54 @@
 ////////////////////////////////////////////////////////////////
 
 var target = Argument("target", "Default");
-var configuration = Argument("configuration", "Release"); //Here you can configure if you want do debug or release
-var solutionPath=@"../WebView.sln";// Here you put the location of csproj file. If your csproj have dependencies with other, put the location of sln file instead.
+var configuration = Argument("configuration", "Release");
+string solutionPath;
+string testsdllFilePath;
+string nuspecFilePath;
+string csprojFilePath;
+string packageRootPath;
+var config=Task("Configuration")
+    .Does(()=>
+    {
+        Information("Starting Configuration");
+        var conf = ParseJsonFromFile("config.json");
+        if(conf["csprojFilePath"]!=null){
+            csprojFilePath=solutionPath=conf["csprojFilePath"].ToString();
+        }
+        else if(conf["slnFilePath"]!=null)
+            solutionPath=conf["slnFilePath"].ToString();
+        else{
+            Information("No .csproj or .sln file found");
+        }
+        if(conf["configuration"]!=null)
+            configuration=conf["configuration"].ToString();
+        if(conf["testsdllFilePath"]!=null){
+            testsdllFilePath=conf["testsdllFilePath"].ToString();
+        }else{
+            Information("Tests didn't found");
+        }
+        if(conf["nuspecFilePath"]!=null)
+            nuspecFilePath=conf["nuspecFilePath"].ToString();
+        if(conf["packageRootPath"]!=null){
+            packageRootPath=conf["packageRootPath"].ToString();
+        }else{
+            throw new Exception(String.Format("You need to specify the root path of the package in the config file!"));
+        }
+        Information("Ending Configuration");
+    });
 
 var restore=Task("Restore-NuGet-Packages")
+    .IsDependentOn("Configuration")
     .Does(() =>
-{
-    Information("Starting Restore");
-    NuGetRestore(solutionPath); 
-    Information("Ending Restore");
-});
+    {
+        Information("Starting Restore");
+        if(solutionPath!=null)
+            NuGetRestore(solutionPath); 
+        Information("Ending Restore");
+    });
 
 var build = Task("Build")
+    .IsDependentOn("Configuration")
     .Does(()=>
     {
         Information("Starting Build");
@@ -28,47 +67,45 @@ var build = Task("Build")
     });
 
 var tests = Task("Tests")
+    .IsDependentOn("Configuration")
     .Does(()=>
     {
         Information("Starting Tests");
         var testSettings = new VSTestSettings{
             ToolPath = Context.Tools.Resolve("vstest.console.exe")
         };
-        VSTest(@"../Release/Tests.dll", testSettings); //Here you need to put your tests dll for the NuGet built. If you don't have, let the String empty.
+        if(testsdllFilePath!=null)
+            VSTest(testsdllFilePath, testSettings);
         Information("Ending Tests");
     });
 
-////////////////////////////////////////////////////////////////
-// If you have a Nuspecfile, comment task packageNoNuspecFile //
-// If you don't, comment packageNuspecFile                    //
-////////////////////////////////////////////////////////////////
 
 var packageNuspecFile = Task("Package")
+    .IsDependentOn("Configuration")
     .Does(()=>
     {
         Information("Starting Package");
-         var testSettings = new NuGetPackSettings{ //Define NuGet metadata. 
-            OutputDirectory =  @"..\artifacts\"
-        };
-        NuGetPack(@"ViewGenerator.nuspec",testSettings); //Here you need to put nuspec file location.
+        if(nuspecFilePath!=null){
+            var settings = new NuGetPackSettings();
+            
+            if(packageRootPath.EndsWithIgnoreCase("\\") || packageRootPath.EndsWithIgnoreCase("/"))
+                settings.OutputDirectory =  packageRootPath+@"artifacts\";
+            else
+                settings.OutputDirectory =  packageRootPath+@"\artifacts\";
+            NuGetPack(nuspecFilePath,settings);
+        }else{
+            var settings = new DotNetCorePackSettings();
+            settings.Configuration = configuration;
+            if(packageRootPath.EndsWithIgnoreCase("\\") || packageRootPath.EndsWithIgnoreCase("/"))
+                settings.OutputDirectory =  packageRootPath+@"artifacts\";
+            else
+                settings.OutputDirectory =  packageRootPath+@"\artifacts\";
+            DotNetCorePack(csprojFilePath,settings);
+        }
+         
         Information("Ending Package");
     });
 
-/*var packageNoNuspecFile = Task("Package")
-    .Does(()=>
-    {
-        Information("Starting Package");
-         var settings = new DotNetCorePackSettings
-        {
-            Configuration = "Release",
-            OutputDirectory = "./artifacts/"
-        };
-
-        DotNetCorePack(@"PATH",settings);  //Here you need to put your csproj location
-       
-        Information("Ending Package");
-    });
-*/
 Task("Default")
     .IsDependentOn("Package");
 
