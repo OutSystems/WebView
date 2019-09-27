@@ -227,10 +227,11 @@ export function loadComponent(
 
             const componentCacheKey = getComponentCacheKey(componentHash);
             const enableHtmlCache = view.isMain; // disable cache retrieval for inner views, since react does not currently support portals hydration
-            const cachedElementHtml = enableHtmlCache ? localStorage.getItem(componentCacheKey) : null; 
-            if (cachedElementHtml) {
+            const cachedComponentHtml = enableHtmlCache ? localStorage.getItem(componentCacheKey) : null; 
+            const shouldStoreComponentHtml = enableHtmlCache && !cachedComponentHtml && maxPreRenderedCacheEntries > 0;
+            if (cachedComponentHtml) {
                 // render cached component html to reduce time to first render
-                rootElement.innerHTML = cachedElementHtml;
+                rootElement.innerHTML = cachedComponentHtml;
                 await waitForNextPaint();
             }
 
@@ -249,8 +250,10 @@ export function loadComponent(
             // main component script should be the last to be loaded, otherwise errors might occur
             await loadScript(componentSource, view);
 
+            const renderTask = shouldStoreComponentHtml ? new Task<void>() : undefined;
+
             // create proxy for properties obj to delay its methods execution until native object is ready
-            const properties = createPropertiesProxy(componentNativeObject, componentNativeObjectName);
+            const properties = createPropertiesProxy(componentNativeObject, componentNativeObjectName, renderTask);
             view.nativeObjectNames.push(componentNativeObjectName); // add to the native objects collection
 
             const componentClass = window[viewsBundleName][componentName].default;
@@ -270,11 +273,14 @@ export function loadComponent(
 
             await waitForNextPaint();
 
-            if (enableHtmlCache && !cachedElementHtml && maxPreRenderedCacheEntries > 0) {
+            if (shouldStoreComponentHtml) {
                 // cache view html for further use
                 const elementHtml = rootElement.innerHTML;
                 // get all stylesheets except the stick ones (which will be loaded by the time the html gets rendered) otherwise we could be loading them twice
                 const stylesheets = getStylesheets(head).filter(l => l.dataset.sticky !== "true").map(l => l.outerHTML).join("");
+
+                // pending native calls can now be resolved, first html snapshot was grabbed
+                renderTask!.setResult();
 
                 localStorage.setItem(componentCacheKey, stylesheets + elementHtml); // insert html into the cache
 
@@ -353,7 +359,7 @@ async function loadFramework(): Promise<void> {
     define("react-dom", [], () => window[reactDOMLib]);
 }
 
-function createPropertiesProxy(basePropertiesObj: {}, nativeObjName: string): {} {
+function createPropertiesProxy(basePropertiesObj: {}, nativeObjName: string, componentRenderedWaitTask?: Task<void>): {} {
     const proxy = Object.assign({}, basePropertiesObj);
     Object.keys(proxy).forEach(key => {
         const value = basePropertiesObj[key];
@@ -364,12 +370,16 @@ function createPropertiesProxy(basePropertiesObj: {}, nativeObjName: string): {}
                 let nativeObject = window[nativeObjName];
                 if (!nativeObject) {
                     nativeObject = await new Promise(async (resolve) => {
-                        await waitForNextPaint();
                         const nativeObject = await bindNativeObject(nativeObjName);
                         resolve(nativeObject);
                     });
                 }
-                return nativeObject[key].apply(window, arguments);
+                const result = nativeObject[key].apply(window, arguments);
+                if (componentRenderedWaitTask) {
+                    // wait until component is rendered, first render should only render static data
+                    await componentRenderedWaitTask.promise;
+                }
+                return result;
             };
         }
     });
