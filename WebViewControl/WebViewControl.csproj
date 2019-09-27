@@ -130,6 +130,7 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="RenderProcessException.cs" />
     <Compile Include="ResourcesProvider.cs" />
     <Compile Include="UrlHelper.cs" />
     <Compile Include="ChromiumBrowser.cs" />

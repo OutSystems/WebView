@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -51,12 +52,13 @@ namespace WebViewControl {
 
         private Dictionary<string, JavascriptExecutor> JsExecutors { get; } = new Dictionary<string, JavascriptExecutor>();
 
+        private CountdownEvent JavascriptPendingCalls { get; } = new CountdownEvent(1);
+
         private ChromiumBrowser chromium;
-        private bool isDeveloperToolsOpened = false;
+        private bool isDeveloperToolsOpened;
         private Action pendingInitialization;
         private string htmlToLoad;
         private volatile bool isDisposing;
-        private volatile int javascriptPendingCalls;
         private IDisposable[] disposables;
 
         private BrowserObjectListener EventsListener { get; } = new BrowserObjectListener();
@@ -89,7 +91,6 @@ namespace WebViewControl {
         internal event JavascriptContextReleasedEventHandler JavascriptContextReleased;
 
         private event Action RenderProcessCrashed;
-        private event Action JavascriptCallFinished;
 
         private static int domainId = 1;
 
@@ -195,6 +196,7 @@ namespace WebViewControl {
             chromium.JavascriptContextCreated += OnJavascriptContextCreated;
             chromium.JavascriptContextReleased += OnJavascriptContextReleased;
             chromium.JavascriptUncaughException += OnJavascriptUncaughException;
+            chromium.RenderProcessUnhandledException += OnRenderProcessUnhandledException;
 
             chromium.RequestHandler = requestHandler;
             chromium.LifeSpanHandler = new InternalLifeSpanHandler(this);
@@ -271,16 +273,13 @@ namespace WebViewControl {
                 Disposed?.Invoke();
             }
 
-            // avoid dead-lock, wait for all pending calls to finish
-            JavascriptCallFinished += () => {
-                if (javascriptPendingCalls == 0) {
-                    Dispatcher.BeginInvoke((Action)InternalDispose);
-                }
-            };
-
-            if (javascriptPendingCalls > 0) {
-                // JavascriptCallFinished event will trigger InternalDispose, 
-                // this check must come after registering event to avoid losing the event call
+            if (JavascriptPendingCalls.CurrentCount > 1) {
+                // avoid dead-lock, wait for all pending calls to finish
+                Task.Run(() => {
+                    JavascriptPendingCalls.Signal(); // remove dummy entry
+                    JavascriptPendingCalls.Wait();
+                    InternalDispose();
+                });
                 return;
             }
 
@@ -403,15 +402,14 @@ namespace WebViewControl {
                     return null;
                 }
                 try {
-                    javascriptPendingCalls++;
+                    JavascriptPendingCalls.AddCount();
                     if (isDisposing) {
                         // check again, to avoid concurrency problems with dispose
                         return null;
                     }
                     return interceptCall(target);
                 } finally {
-                    javascriptPendingCalls--;
-                    JavascriptCallFinished?.Invoke();
+                    JavascriptPendingCalls.Signal();
                 }
             }
 
@@ -785,6 +783,11 @@ namespace WebViewControl {
             }
             var javascriptException = new JavascriptException(e.Message, e.StackFrames);
             ForwardUnhandledAsyncException(javascriptException, e.Frame.Name);
+        }
+
+        private void OnRenderProcessUnhandledException(object sender, RenderProcessUnhandledExceptionEventArgs e) {
+            var exception = new RenderProcessException(e.ExceptionType, e.Message, e.StackTrace);
+            ForwardUnhandledAsyncException(exception);
         }
 
         private void OnRenderProcessCrashed() {
