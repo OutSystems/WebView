@@ -1,54 +1,42 @@
 ﻿using System;
-using System.Security.Cryptography.X509Certificates;
 using CefSharp;
+using CefSharp.Handler;
 
 namespace WebViewControl {
 
     partial class WebView {
 
-        private class CefRequestHandler : IRequestHandler {
+        private class CefRequestHandler : RequestHandler, IDisposable {
 
             private WebView OwnerWebView { get; }
+            private CefResourceRequestHandler ResourceRequestHandler { get; }
 
             public CefRequestHandler(WebView webView) {
                 OwnerWebView = webView;
+                ResourceRequestHandler = new CefResourceRequestHandler(OwnerWebView);
             }
 
-            bool IRequestHandler.OnOpenUrlFromTab(IWebBrowser browserControl, IBrowser browser, IFrame frame, string targetUrl, WindowOpenDisposition targetDisposition, bool userGesture) {
-                return false;
+            public void Dispose() {
+                ResourceRequestHandler.Dispose();
             }
 
-            bool IRequestHandler.OnProtocolExecution(IWebBrowser browserControl, IBrowser browser, string url) {
-                return false;
-            }
-
-            bool IRequestHandler.OnQuotaRequest(IWebBrowser browserControl, IBrowser browser, string originUrl, long newSize, IRequestCallback callback) {
-                callback.Continue(true);
-                return true;
-            }
-
-            void IRequestHandler.OnRenderViewReady(IWebBrowser browserControl, IBrowser browser) {
-            }
-
-            void IRequestHandler.OnResourceLoadComplete(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, IResponse response, UrlRequestStatus status, long receivedContentLength) {
-            }
-
-            bool IRequestHandler.OnResourceResponse(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, IResponse response) {
-                return false;
-            }
-
-            bool IRequestHandler.GetAuthCredentials(IWebBrowser browserControl, IBrowser browser, IFrame frame, bool isProxy, string host, int port, string realm, string scheme, IAuthCallback callback) {
-                if (OwnerWebView.ProxyAuthentication != null) {
-                    callback.Continue(OwnerWebView.ProxyAuthentication.UserName, OwnerWebView.ProxyAuthentication.Password);
+            protected override bool OnQuotaRequest(IWebBrowser chromiumWebBrowser, IBrowser browser, string originUrl, long newSize, IRequestCallback callback) {
+                using (callback) {
+                    callback.Continue(true);
                 }
                 return true;
             }
 
-            IResponseFilter IRequestHandler.GetResourceResponseFilter(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, IResponse response) {
-                return null;
+            protected override bool GetAuthCredentials(IWebBrowser chromiumWebBrowser, IBrowser browser, string originUrl, bool isProxy, string host, int port, string realm, string scheme, IAuthCallback callback) {
+                using (callback) {
+                    if (OwnerWebView.ProxyAuthentication != null) {
+                        callback.Continue(OwnerWebView.ProxyAuthentication.UserName, OwnerWebView.ProxyAuthentication.Password);
+                    }
+                }
+                return true;
             }
 
-            bool IRequestHandler.OnBeforeBrowse(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, bool userGesture, bool isRedirect) {
+            protected override bool OnBeforeBrowse(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, IRequest request, bool userGesture, bool isRedirect) {
                 if (OwnerWebView.FilterUrl(request.Url)) {
                     return false;
                 }
@@ -67,22 +55,17 @@ namespace WebViewControl {
                 return cancel;
             }
 
-            CefReturnValue IRequestHandler.OnBeforeResourceLoad(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, IRequestCallback callback) { 
-                return CefReturnValue.Continue;
-            }
-
-            bool IRequestHandler.OnCertificateError(IWebBrowser browserControl, IBrowser browser, CefErrorCode errorCode, string requestUrl, ISslInfo sslInfo, IRequestCallback callback) {
-                if (OwnerWebView.IgnoreCertificateErrors) {
-                    callback.Continue(true);
-                    return true;
+            protected override bool OnCertificateError(IWebBrowser chromiumWebBrowser, IBrowser browser, CefErrorCode errorCode, string requestUrl, ISslInfo sslInfo, IRequestCallback callback) {
+                using (callback) {
+                    if (OwnerWebView.IgnoreCertificateErrors) {
+                        callback.Continue(true);
+                        return true;
+                    }
                 }
                 return false;
             }
 
-            void IRequestHandler.OnPluginCrashed(IWebBrowser browserControl, IBrowser browser, string pluginPath) {
-            }
-
-            void IRequestHandler.OnRenderProcessTerminated(IWebBrowser browserControl, IBrowser browser, CefTerminationStatus status) {
+            protected override void OnRenderProcessTerminated(IWebBrowser chromiumWebBrowser, IBrowser browser, CefTerminationStatus status) {
                 OwnerWebView.RenderProcessCrashed?.Invoke();
 
                 const string ExceptionPrefix = "WebView render process ";
@@ -96,6 +79,9 @@ namespace WebViewControl {
                     case CefTerminationStatus.ProcessWasKilled:
                         exception = new RenderProcessKilledException(ExceptionPrefix + "was killed");
                         break;
+                    case CefTerminationStatus.OutOfMemory:
+                        exception = new RenderProcessKilledException(ExceptionPrefix + "ran out-of-memory");
+                        break;
                     default:
                         exception = new RenderProcessCrashedException(ExceptionPrefix + "terminated with an unknown reason");
                         break;
@@ -104,19 +90,8 @@ namespace WebViewControl {
                 OwnerWebView.ExecuteWithAsyncErrorHandling(() => throw exception);
             }
 
-            bool IRequestHandler.OnSelectClientCertificate(IWebBrowser browserControl, IBrowser browser, bool isProxy, string host, int port, X509Certificate2Collection certificates, ISelectClientCertificateCallback callback) {
-                return false;
-            }
-
-            void IRequestHandler.OnResourceRedirect(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, IResponse response, ref string newUrl) {
-            }
-
-            bool IRequestHandler.CanGetCookies(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request) {
-                return true;
-            }
-
-            bool IRequestHandler.CanSetCookie(IWebBrowser browserControl, IBrowser browser, IFrame frame, IRequest request, Cookie cookie) {
-                return true;
+            protected override IResourceRequestHandler GetResourceRequestHandler(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, IRequest request, bool isNavigation, bool isDownload, string requestInitiator, ref bool disableDefaultHandling) {
+                return ResourceRequestHandler;
             }
         }
     }
