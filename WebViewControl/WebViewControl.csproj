@@ -151,6 +151,7 @@
     <Compile Include="WebView.InternalContextMenuHandler.cs" />
     <Compile Include="SchemeHandlerFactory.cs" />
     <Compile Include="WebView.cs" />
+    <Compile Include="WebView.InternalResourceRequestHandler.cs" />
     <Compile Include="WebView.JavascriptException.cs" />
     <Compile Include="WebView.JavascriptExecutor.cs" />
     <Compile Include="Request.cs" />

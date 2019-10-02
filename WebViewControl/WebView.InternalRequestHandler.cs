@@ -9,26 +9,36 @@ namespace WebViewControl {
         private class InternalRequestHandler : RequestHandler, IDisposable {
 
             private WebView OwnerWebView { get; }
-            private ResourcesProvider ResourcesProvider { get; } = new ResourcesProvider();
+            
+            private InternalResourceRequestHandler ResourceRequestHandler { get; }
 
             public InternalRequestHandler(WebView webView) {
                 OwnerWebView = webView;
+                ResourceRequestHandler = new InternalResourceRequestHandler(OwnerWebView);
+            }
+
+            public void Dispose() {
+                ResourceRequestHandler.Dispose();
             }
 
             protected override bool OnQuotaRequest(CefBrowser browser, string originUrl, long newSize, CefRequestCallback callback) {
-                callback.Continue(true);
-                return true;
+                using (callback) {
+                    callback.Continue(true);
+                    return true;
+                }
             }
 
-            protected override bool GetAuthCredentials(CefBrowser browser, CefFrame frame, bool isProxy, string host, int port, string realm, string scheme, CefAuthCallback callback) {
-                if (OwnerWebView.ProxyAuthentication != null) {
-                    callback.Continue(OwnerWebView.ProxyAuthentication.UserName, OwnerWebView.ProxyAuthentication.Password);
+            protected override bool GetAuthCredentials(CefBrowser browser, string originUrl, bool isProxy, string host, int port, string realm, string scheme, CefAuthCallback callback) {
+                using (callback) {
+                    if (OwnerWebView.ProxyAuthentication != null) {
+                        callback.Continue(OwnerWebView.ProxyAuthentication.UserName, OwnerWebView.ProxyAuthentication.Password);
+                    }
+                    return true;
                 }
-                return true;
             }
 
             protected override bool OnBeforeBrowse(CefBrowser browser, CefFrame frame, CefRequest request, bool userGesture, bool isRedirect) {
-                if (FilterUrl(request.Url)) {
+                if (UrlHelper.IsInternalUrl(request.Url)) {
                     return false;
                 }
                 
@@ -47,59 +57,14 @@ namespace WebViewControl {
                 return cancel;
             }
 
-            protected override CefResourceHandler GetResourceHandler(CefBrowser browser, CefFrame frame, CefRequest request) {
-                if (request.Url == OwnerWebView.DefaultLocalUrl) {
-                    return OwnerWebView.htmlToLoad != null ? AsyncResourceHandler.FromText(OwnerWebView.htmlToLoad) : null;
-                }
-
-                if (FilterUrl(request.Url)) {
-                    return null;
-                }
-
-                var resourceHandler = new ResourceHandler(request, OwnerWebView.GetRequestUrl(request.Url, (ResourceType)request.ResourceType));
-
-                void TriggerBeforeResourceLoadEvent() {
-                    var beforeResourceLoad = OwnerWebView.BeforeResourceLoad;
-                    if (beforeResourceLoad != null) {
-                        OwnerWebView.ExecuteWithAsyncErrorHandling(() => beforeResourceLoad(resourceHandler));
-                    }
-                }
-
-                if (Uri.TryCreate(resourceHandler.Url, UriKind.Absolute, out var url) && url.Scheme == ResourceUrl.EmbeddedScheme) {
-                    resourceHandler.BeginAsyncResponse(() => {
-                        var urlWithoutQuery = new UriBuilder(url);
-                        if (!string.IsNullOrEmpty(url.Query)) {
-                            urlWithoutQuery.Query = string.Empty;
-                        }
-
-                        OwnerWebView.ExecuteWithAsyncErrorHandling(() => ResourcesProvider.LoadEmbeddedResource(resourceHandler, urlWithoutQuery.Uri));
-
-                        TriggerBeforeResourceLoadEvent();
-
-                        if (resourceHandler.Handled || OwnerWebView.IgnoreMissingResources) {
-                            return;
-                        }
-
-                        var resourceLoadFailed = OwnerWebView.ResourceLoadFailed;
-                        if (resourceLoadFailed != null) {
-                            resourceLoadFailed(url.ToString());
-                        } else {
-                            OwnerWebView.ExecuteWithAsyncErrorHandling(() => throw new InvalidOperationException("Resource not found: " + url));
-                        }
-                    });
-                } else {
-                    TriggerBeforeResourceLoadEvent();
-                }
-                
-                return resourceHandler.Handler;
-            }
-
             protected override bool OnCertificateError(CefBrowser browser, CefErrorCode certError, string requestUrl, CefSslInfo sslInfo, CefRequestCallback callback) {
-                if (OwnerWebView.IgnoreCertificateErrors) {
-                    callback.Continue(true);
-                    return true;
+                using (callback) {
+                    if (OwnerWebView.IgnoreCertificateErrors) {
+                        callback.Continue(true);
+                        return true;
+                    }
+                    return false;
                 }
-                return false;
             }
 
             protected override void OnRenderProcessTerminated(CefBrowser browser, CefTerminationStatus status) {
@@ -127,12 +92,8 @@ namespace WebViewControl {
                 OwnerWebView.ExecuteWithAsyncErrorHandling(() => throw exception);
             }
 
-            public void Dispose() {
-                ResourcesProvider.Dispose();
-            }
-
-            private bool FilterUrl(string url) {
-                return UrlHelper.IsChromeInternalUrl(url) || url.Equals(OwnerWebView.DefaultLocalUrl, StringComparison.InvariantCultureIgnoreCase);
+            protected override CefResourceRequestHandler GetResourceRequestHandler(CefBrowser browser, CefFrame frame, CefRequest request, bool isNavigation, bool isDownload, string requestInitiator, ref bool disableDefaultHandling) {
+                return ResourceRequestHandler;
             }
         }
     }

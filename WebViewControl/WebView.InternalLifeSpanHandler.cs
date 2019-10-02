@@ -15,8 +15,8 @@ namespace WebViewControl {
                 OwnerWebView = webView;
             }
 
-            protected override bool OnBeforePopup(CefBrowser browser, CefFrame frame, string targetUrl, string targetFrameName, CefWindowOpenDisposition targetDisposition, bool userGesture, CefPopupFeatures popupFeatures, CefWindowInfo windowInfo, ref CefClient client, CefBrowserSettings settings, ref bool noJavascriptAccess) {
-                if (UrlHelper.IsChromeInternalUrl(targetUrl)) {
+            protected override bool OnBeforePopup(CefBrowser browser, CefFrame frame, string targetUrl, string targetFrameName, CefWindowOpenDisposition targetDisposition, bool userGesture, CefPopupFeatures popupFeatures, CefWindowInfo windowInfo, ref CefClient client, CefBrowserSettings settings, ref CefDictionaryValue extraInfo, ref bool noJavascriptAccess) {     
+               if (UrlHelper.IsChromeInternalUrl(targetUrl)) {
                     return false;
                 }
 

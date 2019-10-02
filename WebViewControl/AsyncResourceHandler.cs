@@ -10,13 +10,12 @@ namespace WebViewControl {
         private CefCallback responseCallback;
         private bool autoDisposeStream;
 
-        protected override bool ProcessRequest(CefRequest request, CefCallback callback) {
+        protected override RequestHandlingFashion ProcessRequestAsync(CefRequest request, CefCallback callback) {
             if (Response == null && string.IsNullOrEmpty(RedirectUrl)) {
                 responseCallback = callback;
-            } else {
-                callback.Continue();
+                return RequestHandlingFashion.ContinueAsync;
             }
-            return true;
+            return RequestHandlingFashion.Continue;
         }
 
         public void SetResponse(string response, string mimeType = null) {
@@ -35,7 +34,11 @@ namespace WebViewControl {
         }
 
         public void Continue() {
-            responseCallback?.Continue();
+            if (responseCallback != null) {
+                using (responseCallback) {
+                    responseCallback.Continue();
+                }
+            }
         }
 
         public static DefaultResourceHandler FromText(string text) {

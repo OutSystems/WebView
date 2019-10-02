@@ -115,7 +115,7 @@ namespace WebViewControl {
             cefSettings.LogSeverity = string.IsNullOrWhiteSpace(LogFile) ? CefLogSeverity.Disable : (EnableErrorLogOnly ? CefLogSeverity.Error : CefLogSeverity.Verbose);
             cefSettings.LogFile = LogFile;
             cefSettings.UncaughtExceptionStackSize = 100; // enable stack capture
-            cefSettings.CachePath = CachePath; // enable cache for external resources to speedup loading
+            cefSettings.RootCachePath = CachePath; // enable cache for external resources to speedup loading
 
             var customSchemes = CustomSchemes.Select(s => new CustomScheme() { SchemeName = s, SchemeHandlerFactory = new SchemeHandlerFactory() }).ToArray();
 
@@ -166,7 +166,7 @@ namespace WebViewControl {
                 domainId++;
             }
 
-            DefaultLocalUrl = new ResourceUrl(ResourceUrl.LocalScheme, "index.html").WithDomain(CurrentDomainId);
+            DefaultLocalUrl = UrlHelper.DefaultLocalUrl.WithDomain(CurrentDomainId);
 
             Initialize();
         }
@@ -181,12 +181,6 @@ namespace WebViewControl {
                 subscribedApplicationExit = true;
             }
 
-            var requestHandler = new InternalRequestHandler(this);
-
-            disposables = new IDisposable[] {
-                requestHandler
-            };
-
             chromium = new ChromiumBrowser();
             chromium.BrowserInitialized += OnWebViewBrowserInitialized;
             chromium.LoadEnd += OnWebViewLoadEnd;
@@ -198,11 +192,17 @@ namespace WebViewControl {
             chromium.JavascriptUncaughException += OnJavascriptUncaughException;
             chromium.RenderProcessUnhandledException += OnRenderProcessUnhandledException;
 
-            chromium.RequestHandler = requestHandler;
+            chromium.RequestHandler = new InternalRequestHandler(this);
             chromium.LifeSpanHandler = new InternalLifeSpanHandler(this);
             chromium.ContextMenuHandler = new InternalContextMenuHandler(this);
             chromium.DialogHandler = new InternalDialogHandler(this);
             chromium.DownloadHandler = new InternalDownloadHandler(this);
+
+            disposables = new IDisposable[] {
+                (IDisposable) chromium.RequestHandler,
+                chromium,
+                AsyncCancellationTokenSource
+            };
 
             RegisterJavascriptObject(Listener.EventListenerObjName, EventsListener);
 
@@ -266,9 +266,6 @@ namespace WebViewControl {
                 foreach (var disposable in disposables.Concat(JsExecutors.Values)) {
                     disposable.Dispose();
                 }
-
-                chromium?.Dispose();
-                AsyncCancellationTokenSource.Dispose();
 
                 Disposed?.Invoke();
             }
@@ -565,10 +562,6 @@ namespace WebViewControl {
 
         private void OnWebViewTitleChanged(object sender, string title) {
             TitleChanged?.Invoke();
-        }
-
-        public static string CookiesPath {
-            set { CefRequestContext.GetGlobalContext().GetDefaultCookieManager(null).SetStoragePath(value, true, null); }
         }
 
         private static bool IsFrameworkAssemblyName(string name) {

@@ -8,8 +8,14 @@ namespace WebViewControl {
 
         public const string AboutBlankUrl = "about:blank";
 
+        public static ResourceUrl DefaultLocalUrl = new ResourceUrl(ResourceUrl.LocalScheme, "index.html");
+
         public static bool IsChromeInternalUrl(string url) {
             return url != null && url.StartsWith(ChromeInternalProtocol, StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        public static bool IsInternalUrl(string url) {
+            return IsChromeInternalUrl(url) || url.StartsWith(DefaultLocalUrl.ToString(), StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }
