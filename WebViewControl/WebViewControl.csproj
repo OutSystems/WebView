@@ -143,8 +143,8 @@
     <Compile Include="WebView.cs" />
     <Compile Include="WebView.JavascriptException.cs" />
     <Compile Include="WebView.JavascriptExecutor.cs" />
-    <Compile Include="WebView.Request.cs" />
-    <Compile Include="WebView.ResourceHandler.cs" />
+    <Compile Include="Request.cs" />
+    <Compile Include="ResourceHandler.cs" />
     <Compile Include="ResourcesManager.cs" />
   </ItemGroup>
   <ItemGroup>
