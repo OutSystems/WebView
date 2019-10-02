@@ -9,7 +9,7 @@ using WebViewControl;
 
 namespace ReactViewControl {
 
-    public delegate void ResourceRequestedEventHandler(WebView.ResourceHandler resourceHandler);
+    public delegate void ResourceRequestedEventHandler(ResourceHandler resourceHandler);
 
     public delegate Stream CustomResourceRequestedEventHandler(string resourceKey, params string[] options);
 
