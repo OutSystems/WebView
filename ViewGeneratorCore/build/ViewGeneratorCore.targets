@@ -55,7 +55,14 @@
     <ItemGroup>
       <GeneratedTs2LangFiles Include="$(ViewGeneratorGeneratedFolder)\**\*.cs" />
     </ItemGroup>
-    <Delete Files="@(GeneratedTs2LangFiles)"/>
+    <Choose>
+      <When Condition="$(ViewGeneratorGeneratedFolder) == ''">
+        <Error Text="Generated folder is not set." />
+      </When>
+      <Otherwise>
+        <Delete Files="@(GeneratedTs2LangFiles)" />
+      </Otherwise>
+    </Choose>
   </Target>
 
 </Project>
