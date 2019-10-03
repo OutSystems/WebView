@@ -421,24 +421,19 @@ namespace WebViewControl {
         /// <param name="name"></param>
         /// <param name="objectToBind"></param>
         /// <param name="interceptCall"></param>
-        /// <param name="bind"></param>
         /// <param name="executeCallsInUI"></param>
         /// <returns>True if the object was registered or false if the object was already registered before</returns>
-        public bool RegisterJavascriptObject(string name, object objectToBind, Func<Func<object>, object> interceptCall = null, Func<object, Type, object> bind = null, bool executeCallsInUI = false) {
+        public bool RegisterJavascriptObject(string name, object objectToBind, Func<Func<object>, object> interceptCall = null, bool executeCallsInUI = false) {
             if (chromium.JavascriptObjectRepository.IsBound(name)) {
                 return false;
             }
 
             if (executeCallsInUI) {
-                return RegisterJavascriptObject(name, objectToBind, target => Dispatcher.Invoke(target), bind, false);
+                return RegisterJavascriptObject(name, objectToBind, target => Dispatcher.Invoke(target), false);
 
             } else {
                 var bindingOptions = new BindingOptions();
-                if (bind != null) {
-                    bindingOptions.Binder = new LambdaMethodBinder(bind);
-                } else {
-                    bindingOptions.Binder = Binder;
-                }
+                bindingOptions.Binder = Binder;
 
                 if (interceptCall == null) {
                     interceptCall = target => target();

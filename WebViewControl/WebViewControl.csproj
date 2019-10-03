@@ -122,7 +122,6 @@
     <Compile Include="InternalChromiumBrowser.cs" />
     <Compile Include="JavascriptSerializationHelper.cs" />
     <Compile Include="BrowserObjectListener.cs" />
-    <Compile Include="LambdaMethodBinder.cs" />
     <Compile Include="LambdaMethodInterceptor.cs" />
     <Compile Include="Listener.cs" />
     <Compile Include="ModuleInitializer.cs" />
