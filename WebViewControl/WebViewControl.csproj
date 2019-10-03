@@ -3,13 +3,18 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <AssemblyTitle>WebViewControl</AssemblyTitle>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <FileVersion>2.0.0.0</FileVersion>
     <Description></Description>
     <Configuration></Configuration>
     <Company></Company>
     <Product>WebViewControl</Product>
     <Copyright>Copyright ©  2017</Copyright>
-    <FileVersion>2.0.0.0</FileVersion>
-    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>1.72.64</Version>
+    <PackageId>WebViewControl-CefGlue</PackageId>
+    <Authors>OutSystems</Authors>
+    <PackageOutputPath>$(MSBuildProjectDirectory)\..\nuget</PackageOutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <OutputPath>..\Debug\</OutputPath>
@@ -53,17 +58,10 @@
     <None Include="WebViewControl.props" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="CefGlue.Common" Version="1.0.7" />
-    <PackageReference Include="CefGlue.Wpf" Version="1.0.4" />
+    <PackageReference Include="CefGlue.Common" Version="1.0.8" />
+    <PackageReference Include="CefGlue.Wpf" Version="1.0.5" />
   </ItemGroup>
   <PropertyGroup>
     <PreBuildEvent>"$(MSBuildProjectDirectory)\..\kill_testsengine.bat"</PreBuildEvent>
-  </PropertyGroup>
-  <PropertyGroup>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.72.64</Version>
-    <PackageId>WebViewControl-CefGlue</PackageId>
-    <Authors>OutSystems</Authors>
-    <PackageOutputPath>;$(MSBuildProjectDirectory)\..\nuget</PackageOutputPath>
   </PropertyGroup>
 </Project>
