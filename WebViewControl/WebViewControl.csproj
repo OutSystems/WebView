@@ -1,107 +1,32 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
-  <Import Project="..\packages\Microsoft.TypeScript.MSBuild.2.3.1\build\Microsoft.TypeScript.MSBuild.props" Condition="Exists('..\packages\Microsoft.TypeScript.MSBuild.2.3.1\build\Microsoft.TypeScript.MSBuild.props')" />
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{A1C2A0C7-DF81-4A8F-AEB5-B5375D5D1B47}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>WebViewControl</RootNamespace>
-    <AssemblyName>WebViewControl</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
-    <CefSharpAnyCpuSupport>true</CefSharpAnyCpuSupport>
-    <ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>None</ResolveAssemblyWarnOrErrorOnTargetArchitectureMismatch>
-    <TargetFrameworkProfile />
+    <TargetFramework>net472</TargetFramework>
+    <AssemblyTitle>WebViewControl</AssemblyTitle>
+    <Description></Description>
+    <Configuration></Configuration>
+    <Company></Company>
+    <Product>WebViewControl</Product>
+    <Copyright>Copyright ©  2017</Copyright>
+    <FileVersion>2.0.0.0</FileVersion>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
     <OutputPath>..\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
+  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <OutputPath>..\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x64'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>..\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutputPath>..\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>..\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
-    <OutputPath>..\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <Optimize>true</Optimize>
-    <DebugType>pdbonly</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Tests|x64'">
-    <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\x64\Tests\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x64</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Tests|AnyCPU'">
-    <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\Tests\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Tests|x86'">
-    <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\x86\Tests\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>x86</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="NLog">
-      <HintPath>..\..\cefglue\CefGlue.WPF\bin\Debug\NLog.dll</HintPath>
-    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
@@ -116,46 +41,6 @@
     <Reference Include="System.Net.Http" />
     <Reference Include="System.Xml" />
     <Reference Include="WindowsBase" />
-    <Reference Include="Xilium.CefGlue">
-      <HintPath>..\..\cefglue\CefGlue.WPF\bin\Debug\Xilium.CefGlue.dll</HintPath>
-    </Reference>
-    <Reference Include="Xilium.CefGlue.BrowserProcess">
-      <HintPath>..\..\cefglue\CefGlue.BrowserProcess\bin\Debug\net45\Xilium.CefGlue.BrowserProcess.exe</HintPath>
-    </Reference>
-    <Reference Include="Xilium.CefGlue.Common">
-      <HintPath>..\..\cefglue\CefGlue.WPF\bin\Debug\Xilium.CefGlue.Common.dll</HintPath>
-    </Reference>
-    <Reference Include="Xilium.CefGlue.WPF">
-      <HintPath>..\..\cefglue\CefGlue.WPF\bin\Debug\Xilium.CefGlue.WPF.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="ResourcesProvider.cs" />
-    <Compile Include="UrlHelper.cs" />
-    <Compile Include="ChromiumBrowser.cs" />
-    <Compile Include="JavascriptSerializationHelper.cs" />
-    <Compile Include="BrowserObjectListener.cs" />
-    <Compile Include="Listener.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ProxyAuthentication.cs" />
-    <Compile Include="RenderProcessTerminatedException.cs" />
-    <Compile Include="ResourceType.cs" />
-    <Compile Include="ResourceUrl.cs" />
-    <Compile Include="UnhandledAsyncExceptionEventArgs.cs" />
-    <Compile Include="WebView.InternalDownloadHandler.cs" />
-    <Compile Include="WebView.InternalLifeSpanHandler.cs" />
-    <Compile Include="WebView.InternalRequestHandler.cs" />
-    <Compile Include="AsyncResourceHandler.cs" />
-    <Compile Include="WebView.InternalDialogHandler.cs" />
-    <Compile Include="WebView.InternalContextMenuHandler.cs" />
-    <Compile Include="SchemeHandlerFactory.cs" />
-    <Compile Include="WebView.cs" />
-    <Compile Include="WebView.InternalResourceRequestHandler.cs" />
-    <Compile Include="WebView.JavascriptException.cs" />
-    <Compile Include="WebView.JavascriptExecutor.cs" />
-    <Compile Include="Request.cs" />
-    <Compile Include="WebView.ResourceHandler.cs" />
-    <Compile Include="ResourcesManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
@@ -167,24 +52,18 @@
     </None>
     <None Include="WebViewControl.props" />
   </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <PackageReference Include="CefGlue.Common" Version="1.0.7" />
+    <PackageReference Include="CefGlue.Wpf" Version="1.0.4" />
+  </ItemGroup>
   <PropertyGroup>
-    <PreBuildEvent>"$(ProjectDir)..\kill_testsengine.bat"</PreBuildEvent>
+    <PreBuildEvent>"$(MSBuildProjectDirectory)\..\kill_testsengine.bat"</PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <AfterBuild>
-      $(AfterBuild);
-      CreateNugetPackage
-    </AfterBuild>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>1.72.64</Version>
+    <PackageId>WebViewControl-CefGlue</PackageId>
+    <Authors>OutSystems</Authors>
+    <PackageOutputPath>;$(MSBuildProjectDirectory)\..\nuget</PackageOutputPath>
   </PropertyGroup>
-  <Target Name="CreateNugetPackage">
-    <Exec Command="&quot;$(ProjectDir)..\nuget&quot; pack &quot;$(ProjectPath)&quot; -OutputDirectory &quot;$(ProjectDir)..\Nuget&quot; -Properties Configuration=$(ConfigurationName)" />
-  </Target>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
 </Project>
