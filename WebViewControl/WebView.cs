@@ -190,7 +190,7 @@ namespace WebViewControl {
             chromium.JavascriptContextCreated += OnJavascriptContextCreated;
             chromium.JavascriptContextReleased += OnJavascriptContextReleased;
             chromium.JavascriptUncaughException += OnJavascriptUncaughException;
-            chromium.RenderProcessUnhandledException += OnRenderProcessUnhandledException;
+            chromium.UnhandledException += OnUnhandledException;
 
             chromium.RequestHandler = new InternalRequestHandler(this);
             chromium.LifeSpanHandler = new InternalLifeSpanHandler(this);
@@ -778,9 +778,8 @@ namespace WebViewControl {
             ForwardUnhandledAsyncException(javascriptException, e.Frame.Name);
         }
 
-        private void OnRenderProcessUnhandledException(object sender, RenderProcessUnhandledExceptionEventArgs e) {
-            var exception = new RenderProcessException(e.ExceptionType, e.Message, e.StackTrace);
-            ForwardUnhandledAsyncException(exception);
+        private void OnUnhandledException(object sender, AsyncUnhandledExceptionEventArgs e) {
+            ForwardUnhandledAsyncException(e.Exception);
         }
 
         private void OnRenderProcessCrashed() {
