@@ -49,13 +49,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="WebViewControl.targets">
-      <SubType>Designer</SubType>
-    </None>
     <None Include="WebViewControl.nuspec">
       <SubType>Designer</SubType>
     </None>
-    <None Include="WebViewControl.props" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="CefGlue.Wpf" Version="75.1.14" />

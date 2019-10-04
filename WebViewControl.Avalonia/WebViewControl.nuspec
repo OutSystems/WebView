@@ -10,7 +10,7 @@
     <description>Description</description>
     <copyright>$copyright$</copyright>
     <dependencies>
-      <dependency id="CefGlue.Wpf" version="1.0.2" />
+      <dependency id="CefGlue.Avalonia" version="75.1.0" />
     </dependencies>
   </metadata>
 </package>

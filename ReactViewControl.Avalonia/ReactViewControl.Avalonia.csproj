@@ -26,4 +26,13 @@
     <ProjectReference Include="..\WebViewControl.Avalonia\WebViewControl.Avalonia.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="ReactViewControl.nuspec">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+
+  <Target Name="PackNuget" AfterTargets="AfterBuild">
+    <Exec Command="&quot;$(ProjectDir)..\nuget&quot; pack &quot;$(ProjectPath)&quot; -OutputDirectory &quot;$(ProjectDir)..\Nuget&quot; -Properties Configuration=$(ConfigurationName) -IncludeReferencedProjects" />
+  </Target>
 </Project>
