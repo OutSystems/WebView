@@ -58,7 +58,7 @@
     <None Include="WebViewControl.props" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="CefGlue.Wpf" Version="75.1.14" />
+    <PackageReference Include="CefGlue.Wpf" Version="75.1.15" />
   </ItemGroup>
   <PropertyGroup>
     <PreBuildEvent>"$(MSBuildProjectDirectory)\..\kill_testsengine.bat"</PreBuildEvent>
