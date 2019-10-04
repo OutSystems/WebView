@@ -35,3 +35,8 @@ ViewPacker/tools/node_modules/
 !ReactViewResources/AMDLoader/AMDLoaderExports.js
 Example/.wpcache/
 Example/global.d.ts
+Example.Avalonia/.wpcache/
+Example.Avalonia/Generated/
+Example.Avalonia/node_modules/
+Example.Avalonia/viewgenerator.cache
+Example.Avalonia/global.d.ts

@@ -24,7 +24,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebViewControl.Avalonia", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReactViewControl.Avalonia", "ReactViewControl.Avalonia\ReactViewControl.Avalonia.csproj", "{6A17926A-BD42-4C4D-8255-07C847B23C01}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ReactViewResources", "ReactViewResources\ReactViewResources.csproj", "{6A3B80C3-A44C-4494-A16B-75D2281B0A5D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReactViewResources", "ReactViewResources\ReactViewResources.csproj", "{6A3B80C3-A44C-4494-A16B-75D2281B0A5D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example.Avalonia", "Example.Avalonia\Example.Avalonia.csproj", "{673FE866-B80C-4DB2-AFD7-301222C4F66E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -211,6 +213,24 @@ Global
 		{6A3B80C3-A44C-4494-A16B-75D2281B0A5D}.Tests|x64.Build.0 = Debug|Any CPU
 		{6A3B80C3-A44C-4494-A16B-75D2281B0A5D}.Tests|x86.ActiveCfg = Debug|Any CPU
 		{6A3B80C3-A44C-4494-A16B-75D2281B0A5D}.Tests|x86.Build.0 = Debug|Any CPU
+		{673FE866-B80C-4DB2-AFD7-301222C4F66E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{673FE866-B80C-4DB2-AFD7-301222C4F66E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{673FE866-B80C-4DB2-AFD7-301222C4F66E}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{673FE866-B80C-4DB2-AFD7-301222C4F66E}.Debug|x64.Build.0 = Debug|Any CPU
+		{673FE866-B80C-4DB2-AFD7-301222C4F66E}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{673FE866-B80C-4DB2-AFD7-301222C4F66E}.Debug|x86.Build.0 = Debug|Any CPU
+		{673FE866-B80C-4DB2-AFD7-301222C4F66E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{673FE866-B80C-4DB2-AFD7-301222C4F66E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{673FE866-B80C-4DB2-AFD7-301222C4F66E}.Release|x64.ActiveCfg = Release|Any CPU
+		{673FE866-B80C-4DB2-AFD7-301222C4F66E}.Release|x64.Build.0 = Release|Any CPU
+		{673FE866-B80C-4DB2-AFD7-301222C4F66E}.Release|x86.ActiveCfg = Release|Any CPU
+		{673FE866-B80C-4DB2-AFD7-301222C4F66E}.Release|x86.Build.0 = Release|Any CPU
+		{673FE866-B80C-4DB2-AFD7-301222C4F66E}.Tests|Any CPU.ActiveCfg = Debug|Any CPU
+		{673FE866-B80C-4DB2-AFD7-301222C4F66E}.Tests|Any CPU.Build.0 = Debug|Any CPU
+		{673FE866-B80C-4DB2-AFD7-301222C4F66E}.Tests|x64.ActiveCfg = Debug|Any CPU
+		{673FE866-B80C-4DB2-AFD7-301222C4F66E}.Tests|x64.Build.0 = Debug|Any CPU
+		{673FE866-B80C-4DB2-AFD7-301222C4F66E}.Tests|x86.ActiveCfg = Debug|Any CPU
+		{673FE866-B80C-4DB2-AFD7-301222C4F66E}.Tests|x86.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

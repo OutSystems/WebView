@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="ViewGenerator" Version="1.0.244">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="ViewGeneratorCore" Version="1.0.189">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="ExampleView\beach.jpg" />
+    <Resource Include="ExampleView\ExampleView\Ok.png" />
+    <Resource Include="ExampleView\SubExampleView\Completed.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Update="tsconfig.json">
+      <Visible>True</Visible>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="ts2lang.json">
+      <Visible>True</Visible>
+    </None>
+  </ItemGroup>
+
+</Project>
