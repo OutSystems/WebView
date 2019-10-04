@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
-    <id>ReactViewControl-CefGlue</id>
+    <id>ReactViewControl-Avalonia</id>
     <version>1.72.87</version>
     <title>ReactViewControl</title>
     <authors>OutSystems</authors>
@@ -10,7 +10,7 @@
     <description>Description</description>
     <copyright>Copyright ©  2018</copyright>
     <dependencies>
-      <dependency id="WebViewControl-CefGlue" version="1.72.62" />
+      <dependency id="WebViewControl-Avalonia" version="2.75.1" />
     </dependencies>
   </metadata>
 </package>

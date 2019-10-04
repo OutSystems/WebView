@@ -10,7 +10,7 @@
     <description>Description</description>
     <copyright>Copyright ©  2018</copyright>
     <dependencies>
-      <dependency id="WebViewControl-CefGlue" version="1.72.62" />
+      <dependency id="WebViewControl-CefGlue" version="2.75.1" />
     </dependencies>
   </metadata>
 </package>
