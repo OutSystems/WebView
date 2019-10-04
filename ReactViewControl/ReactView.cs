@@ -1,10 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Threading;
 using WebViewControl;
 
 namespace ReactViewControl {
@@ -13,7 +9,7 @@ namespace ReactViewControl {
 
     public delegate Stream CustomResourceRequestedEventHandler(string resourceKey, params string[] options);
 
-    public abstract class ReactView : UserControl, IDisposable {
+    public abstract partial class ReactView : IDisposable {
 
         private static Dictionary<Type, ReactViewRender> CachedViews { get; } = new Dictionary<Type, ReactViewRender>();
 
@@ -36,11 +32,11 @@ namespace ReactViewControl {
                 }
 
                 // create a new view in the background and put it in the cache
-                Dispatcher.CurrentDispatcher.BeginInvoke((Action)(() => {
-                    if (!CachedViews.ContainsKey(factoryType) && !Dispatcher.CurrentDispatcher.HasShutdownStarted) {
+                AsyncExecuteInUI(() => {
+                    if (!CachedViews.ContainsKey(factoryType)) {
                         CachedViews.Add(factoryType, InnerCreateView());
                     }
-                }), DispatcherPriority.Background);
+                }, lowPriority: true);
 
                 if (cachedView != null) {
                     return cachedView;
@@ -52,18 +48,14 @@ namespace ReactViewControl {
 
         protected ReactView(IViewModule mainModule) {
             View = CreateReactViewInstance(Factory);
-            SetResourceReference(StyleProperty, typeof(ReactView)); // force styles to be inherited, must be called after view is created otherwise view might be null
 
             View.BindModule(mainModule, ReactViewRender.MainViewFrameName);
             MainModule = mainModule;
 
-            IsVisibleChanged += OnIsVisibleChanged;
-
-            Content = View;
-
-            FocusManager.SetIsFocusScope(this, true);
-            FocusManager.SetFocusedElement(this, View.FocusableElement);
+            ExtraInitialize();
         }
+
+        partial void ExtraInitialize();
 
         ~ReactView() {
             Dispose();
@@ -78,39 +70,6 @@ namespace ReactViewControl {
         /// Factory used to configure the initial properties of the control.
         /// </summary>
         protected virtual ReactViewFactory Factory => new ReactViewFactory();
-
-        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e) {
-            base.OnPropertyChanged(e);
-
-            // IWindowService is a WPF internal property set when component is loaded into a new window, even if the window isn't shown
-            if (e.Property.Name == "IWindowService") {
-                if (e.OldValue is Window oldWindow) {
-                    oldWindow.IsVisibleChanged -= OnWindowIsVisibleChanged;
-                }
-
-                if (e.NewValue is Window newWindow) {
-                    newWindow.IsVisibleChanged += OnWindowIsVisibleChanged;
-                }
-            }
-        }
-
-        private void OnWindowIsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e) {
-            var window = (Window)sender;
-            // this is the first event that we have available with guarantees that all the component properties have been set
-            // since its not supposed to change properties once the component has been shown
-            if (window.IsVisible) {
-                window.IsVisibleChanged -= OnWindowIsVisibleChanged;
-                LoadComponent();
-            }
-        }
-
-        private void OnIsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e) {
-            // fallback when window was already shown
-            if (IsVisible) {
-                IsVisibleChanged -= OnIsVisibleChanged;
-                LoadComponent();
-            }
-        }
 
         private void LoadComponent() {
             if (!View.IsMainComponentLoaded) {

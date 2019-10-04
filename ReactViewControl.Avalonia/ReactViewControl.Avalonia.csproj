@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>ReactViewControl.Avalonia</AssemblyName>
+    <RootNamespace>ReactViewControl</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\ReactViewControl\ExecutionEngine.cs" Link="ExecutionEngine.cs" />
+    <Compile Include="..\ReactViewControl\FrameInfo.cs" Link="FrameInfo.cs" />
+    <Compile Include="..\ReactViewControl\IExecutionEngine.cs" Link="IExecutionEngine.cs" />
+    <Compile Include="..\ReactViewControl\IViewModule.cs" Link="IViewModule.cs" />
+    <Compile Include="..\ReactViewControl\LoadStatus.cs" Link="LoadStatus.cs" />
+    <Compile Include="..\ReactViewControl\ReactView.cs" Link="ReactView.cs" />
+    <Compile Include="..\ReactViewControl\ReactViewFactory.cs" Link="ReactViewFactory.cs" />
+    <Compile Include="..\ReactViewControl\ReactViewRender.cs" Link="ReactViewRender.cs" />
+    <Compile Include="..\ReactViewControl\ReactViewRender.InternalWebView.cs" Link="ReactViewRender.InternalWebView.cs" />
+    <Compile Include="..\ReactViewControl\ReactViewRender.LoaderModule.cs" Link="ReactViewRender.LoaderModule.cs" />
+    <Compile Include="..\ReactViewControl\ViewModuleContainer.cs" Link="ViewModuleContainer.cs" />
+    <Compile Include="..\ReactViewControl\ViewModuleExtensions.cs" Link="ViewModuleExtensions.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ReactViewResources\ReactViewResources.csproj" />
+    <ProjectReference Include="..\WebViewControl.Avalonia\WebViewControl.Avalonia.csproj" />
+  </ItemGroup>
+
+</Project>

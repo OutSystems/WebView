@@ -1,103 +1,117 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{22DEE138-81D6-486A-B50A-DC1B87399835}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>ReactViewResources</RootNamespace>
-    <AssemblyName>ReactViewResources</AssemblyName>
-    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <Deterministic>true</Deterministic>
-    <NuGetPackageImportStamp>
-    </NuGetPackageImportStamp>
-    <TargetFrameworkProfile />
+    <TargetFramework>netstandard2.0</TargetFramework>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Tests|AnyCPU'">
-    <DebugSymbols>true</DebugSymbols>
-    <OutputPath>bin\Tests\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <DebugType>full</DebugType>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-    <ErrorReport>prompt</ErrorReport>
-    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
+    <Compile Remove="node_modules\%40types\**" />
+    <Compile Remove="node_modules\csstype\**" />
+    <Compile Remove="node_modules\js-tokens\**" />
+    <Compile Remove="node_modules\loose-envify\**" />
+    <Compile Remove="node_modules\object-assign\**" />
+    <Compile Remove="node_modules\prop-types\lib\**" />
+    <Compile Remove="node_modules\react-dom\**" />
+    <Compile Remove="node_modules\react-is\**" />
+    <Compile Remove="node_modules\react\cjs\**" />
+    <Compile Remove="node_modules\react\umd\**" />
+    <Compile Remove="node_modules\scheduler\**" />
+    <EmbeddedResource Remove="node_modules\%40types\**" />
+    <EmbeddedResource Remove="node_modules\csstype\**" />
+    <EmbeddedResource Remove="node_modules\js-tokens\**" />
+    <EmbeddedResource Remove="node_modules\loose-envify\**" />
+    <EmbeddedResource Remove="node_modules\object-assign\**" />
+    <EmbeddedResource Remove="node_modules\prop-types\lib\**" />
+    <EmbeddedResource Remove="node_modules\react-dom\**" />
+    <EmbeddedResource Remove="node_modules\react-is\**" />
+    <EmbeddedResource Remove="node_modules\react\cjs\**" />
+    <EmbeddedResource Remove="node_modules\react\umd\**" />
+    <EmbeddedResource Remove="node_modules\scheduler\**" />
+    <None Remove="node_modules\%40types\**" />
+    <None Remove="node_modules\csstype\**" />
+    <None Remove="node_modules\js-tokens\**" />
+    <None Remove="node_modules\loose-envify\**" />
+    <None Remove="node_modules\object-assign\**" />
+    <None Remove="node_modules\prop-types\lib\**" />
+    <None Remove="node_modules\react-dom\**" />
+    <None Remove="node_modules\react-is\**" />
+    <None Remove="node_modules\react\cjs\**" />
+    <None Remove="node_modules\react\umd\**" />
+    <None Remove="node_modules\scheduler\**" />
+    <TypeScriptCompile Remove="node_modules\%40types\**" />
+    <TypeScriptCompile Remove="node_modules\csstype\**" />
+    <TypeScriptCompile Remove="node_modules\js-tokens\**" />
+    <TypeScriptCompile Remove="node_modules\loose-envify\**" />
+    <TypeScriptCompile Remove="node_modules\object-assign\**" />
+    <TypeScriptCompile Remove="node_modules\prop-types\lib\**" />
+    <TypeScriptCompile Remove="node_modules\react-dom\**" />
+    <TypeScriptCompile Remove="node_modules\react-is\**" />
+    <TypeScriptCompile Remove="node_modules\react\cjs\**" />
+    <TypeScriptCompile Remove="node_modules\react\umd\**" />
+    <TypeScriptCompile Remove="node_modules\scheduler\**" />
   </ItemGroup>
+
   <ItemGroup>
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Resources.cs" />
+    <None Remove="AMDLoader\AMDLoader.js" />
+    <None Remove="AMDLoader\AMDLoaderExports.js" />
+    <None Remove="AMDLoader\tsconfig.json" />
+    <None Remove="index.html" />
+    <None Remove="Loader.js" />
+    <None Remove="Loader\tsconfig.json" />
+    <None Remove="Loader\_Loader.js" />
+    <None Remove="node_modules\prop-types\CHANGELOG.md" />
+    <None Remove="node_modules\prop-types\checkPropTypes.js" />
+    <None Remove="node_modules\prop-types\factory.js" />
+    <None Remove="node_modules\prop-types\factoryWithThrowingShims.js" />
+    <None Remove="node_modules\prop-types\factoryWithTypeCheckers.js" />
+    <None Remove="node_modules\prop-types\index.js" />
+    <None Remove="node_modules\prop-types\LICENSE" />
+    <None Remove="node_modules\prop-types\package.json" />
+    <None Remove="node_modules\prop-types\prop-types.js" />
+    <None Remove="node_modules\prop-types\prop-types.min.js" />
+    <None Remove="node_modules\prop-types\README.md" />
+    <None Remove="node_modules\react\build-info.json" />
+    <None Remove="node_modules\react\index.js" />
+    <None Remove="node_modules\react\LICENSE" />
+    <None Remove="node_modules\react\package.json" />
+    <None Remove="node_modules\react\README.md" />
   </ItemGroup>
+
   <ItemGroup>
-    <EmbeddedResource Include="index.html" />
-  </ItemGroup>
-  <ItemGroup>
-    <TypeScriptCompile Include="Loader\Loader.ts" />
-    <TypeScriptCompile Include="Loader\Loader.View.tsx" />
-    <TypeScriptCompile Include="Loader\ObservableCollection.ts" />
-    <TypeScriptCompile Include="Loader\PluginsContext.ts" />
-    <TypeScriptCompile Include="Loader\ResourceLoader.ts" />
-    <TypeScriptCompile Include="Loader\Task.ts" />
-    <TypeScriptCompile Include="Loader\ViewContext.ts" />
-    <TypeScriptCompile Include="Loader\ViewMetadata.ts" />
-    <TypeScriptCompile Include="Loader\ViewPortal.tsx" />
-    <TypeScriptCompile Include="Loader\ViewPortalsCollection.tsx" />
-  </ItemGroup>
-  <ItemGroup>
-    <TypeScriptCompile Include="Loader\LoaderCommon.ts" />
-    <TypeScriptCompile Include="Loader\ViewFrame.tsx" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="node_modules\react-dom\umd\react-dom.production.min.js" />
-    <EmbeddedResource Include="node_modules\react\umd\react.production.min.js" />
-    <EmbeddedResource Include="node_modules\prop-types\prop-types.min.js" />
-    <EmbeddedResource Include="Loader.js" />
-    <TypeScriptCompile Include="AMDLoader\AMDLoader.ts" />
     <Content Include="AMDLoader\AMDLoaderExports.js" />
+    <Content Include="AMDLoader\tsconfig.json" />
     <Content Include="Loader\tsconfig.json" />
   </ItemGroup>
+
   <ItemGroup>
-    <PackageReference Include="Microsoft.TypeScript.MSBuild">
-      <Version>3.6.0</Version>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    <EmbeddedResource Include="index.html" />
+    <EmbeddedResource Include="Loader.js" />
+    <EmbeddedResource Include="node_modules\prop-types\prop-types.min.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="node_modules\react\umd\react.production.min.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="node_modules\react-dom\umd\react-dom.production.min.js" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="3.6.3">
       <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
-  <ItemGroup>
-    <Content Include="AMDLoader\tsconfig.json" />
-  </ItemGroup>
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <PropertyGroup>
-    <PreBuildEvent>npm ci</PreBuildEvent>
-  </PropertyGroup>
+
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="npm ci" />
+  </Target>
+
   <Target Name="MergeLoaderFiles" AfterTargets="CompileTypeScriptWithTSConfig" BeforeTargets="AssignTargetPath">
     <Exec Command="copy /b &quot;$(ProjectDir)AMDLoader\AMDLoaderExports.js&quot; + &quot;$(ProjectDir)AMDLoader\AMDLoader.js&quot; + &quot;$(ProjectDir)Loader\_Loader.js&quot; &quot;$(ProjectDir)Loader.js&quot;" />
   </Target>

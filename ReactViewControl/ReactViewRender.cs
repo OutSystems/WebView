@@ -3,14 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Web;
-using System.Windows;
-using System.Windows.Controls;
 using WebViewControl;
 
 namespace ReactViewControl {
 
-    internal partial class ReactViewRender : UserControl, IDisposable {
+    internal partial class ReactViewRender : IDisposable {
 
         private object SyncRoot { get; } = new object();
 
@@ -62,7 +61,7 @@ namespace ReactViewControl {
             WebView.JavascriptContextReleased += OnWebViewJavascriptContextReleased;
             WebView.BeforeResourceLoad += OnWebViewBeforeResourceLoad;
 
-            Content = WebView;
+            ExtraInitialize();
 
             var urlParams = new string[] {
                 new ResourceUrl(ResourcesAssembly).ToString(),
@@ -78,7 +77,7 @@ namespace ReactViewControl {
             WebView.LoadResource(new ResourceUrl(ResourcesAssembly, ReactViewResources.Resources.DefaultUrl + "?" + string.Join("&", urlParams)));
         }
 
-        public IInputElement FocusableElement => WebView.FocusableElement;
+        partial void ExtraInitialize();
 
         public bool IsDisposing => WebView.IsDisposing;
 
@@ -425,7 +424,7 @@ namespace ReactViewControl {
             }
 
             var basePath = Path.GetDirectoryName(mainModuleFullPath);
-            var mainModuleResourcePathParts = ResourceUrl.GetEmbeddedResourcePath(new Uri(ToFullUrl(VirtualPathUtility.GetDirectory(mainModuleResourcePath))));
+            var mainModuleResourcePathParts = ResourceUrl.GetEmbeddedResourcePath(new Uri(ToFullUrl(mainModuleResourcePath.Substring(0, mainModuleFullPath.LastIndexOf("/")))));
 
             var relativePath = string.Join(Path.DirectorySeparatorChar.ToString(), mainModuleResourcePathParts);
 
@@ -451,12 +450,12 @@ namespace ReactViewControl {
                     // TODO visual studio reports a change in a file with a (strange) temporary name
                     //if (fileExtensionsToWatch.Any(e => eventArgs.Name.EndsWith(e))) {
                     filesChanged = true;
-                    Dispatcher.BeginInvoke((Action)(() => {
+                    Task.Run(() => {
                         if (IsReady && !IsDisposing) {
                             cacheInvalidationTimestamp = DateTime.UtcNow.Ticks.ToString();
                             WebView.Reload(true);
                         }
-                    }));
+                    });
                     //}
                 }
             };

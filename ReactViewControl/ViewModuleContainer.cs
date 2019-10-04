@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Web;
 using WebViewControl;
 
 namespace ReactViewControl {
@@ -70,8 +69,8 @@ namespace ReactViewControl {
         }
 
         private string[] GetDependenciesFromEntriesFile(string extension) {
-            var entriesFilePath = VirtualPathUtility.GetDirectory(MainJsSource) + Path.GetFileNameWithoutExtension(MainJsSource) + extension;
-            var resource = entriesFilePath.Split(new[] { ResourceUrl.PathSeparator }, StringSplitOptions.RemoveEmptyEntries);
+            var entriesFilePath = Path.Combine(Path.GetDirectoryName(MainJsSource), Path.GetFileNameWithoutExtension(MainJsSource) + extension);
+            var resource = entriesFilePath.Split(new[] { Path.PathSeparator }, StringSplitOptions.RemoveEmptyEntries);
 
             var stream = ResourcesManager.TryGetResourceWithFullPath(resource.First(), resource);
             if (stream != null) {

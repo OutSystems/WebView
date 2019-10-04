@@ -63,6 +63,8 @@
     <Compile Include="IExecutionEngine.cs" />
     <Compile Include="IViewModule.cs" />
     <Compile Include="LoadStatus.cs" />
+    <Compile Include="ReactView.Wpf.cs" />
+    <Compile Include="ReactViewRender.Wpf.cs" />
     <Compile Include="ReactViewRender.LoaderModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReactView.cs" />
@@ -74,7 +76,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ReactViewResources\ReactViewResources.csproj">
-      <Project>{22dee138-81d6-486a-b50a-dc1b87399835}</Project>
+      <Project>{6a3b80c3-a44c-4494-a16b-75d2281b0a5d}</Project>
       <Name>ReactViewResources</Name>
     </ProjectReference>
     <ProjectReference Include="..\WebViewControl\WebViewControl.csproj">
