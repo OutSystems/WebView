@@ -68,7 +68,7 @@ namespace WebViewControl {
             }
 
             protected override void OnRenderProcessTerminated(CefBrowser browser, CefTerminationStatus status) {
-                OwnerWebView.RenderProcessCrashed?.Invoke();
+                OwnerWebView.HandleRenderProcessCrashed();
 
                 const string ExceptionPrefix = "WebView render process ";
 

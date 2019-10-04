@@ -1,0 +1,41 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2</TargetFramework>
+    <RootNamespace>WebViewControl</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\WebViewControl\AsyncResourceHandler.cs" Link="AsyncResourceHandler.cs" />
+    <Compile Include="..\WebViewControl\BrowserObjectListener.cs" Link="BrowserObjectListener.cs" />
+    <Compile Include="..\WebViewControl\ChromiumBrowser.cs" Link="ChromiumBrowser.cs" />
+    <Compile Include="..\WebViewControl\JavascriptSerializationHelper.cs" Link="JavascriptSerializationHelper.cs" />
+    <Compile Include="..\WebViewControl\Listener.cs" Link="Listener.cs" />
+    <Compile Include="..\WebViewControl\ProxyAuthentication.cs" Link="ProxyAuthentication.cs" />
+    <Compile Include="..\WebViewControl\RenderProcessTerminatedException.cs" Link="RenderProcessTerminatedException.cs" />
+    <Compile Include="..\WebViewControl\Request.cs" Link="Request.cs" />
+    <Compile Include="..\WebViewControl\ResourcesManager.cs" Link="ResourcesManager.cs" />
+    <Compile Include="..\WebViewControl\ResourcesProvider.cs" Link="ResourcesProvider.cs" />
+    <Compile Include="..\WebViewControl\ResourceType.cs" Link="ResourceType.cs" />
+    <Compile Include="..\WebViewControl\ResourceUrl.cs" Link="ResourceUrl.cs" />
+    <Compile Include="..\WebViewControl\SchemeHandlerFactory.cs" Link="SchemeHandlerFactory.cs" />
+    <Compile Include="..\WebViewControl\UnhandledAsyncExceptionEventArgs.cs" Link="UnhandledAsyncExceptionEventArgs.cs" />
+    <Compile Include="..\WebViewControl\UrlHelper.cs" Link="UrlHelper.cs" />
+    <Compile Include="..\WebViewControl\WebView.cs" Link="WebView.cs" />
+    <Compile Include="..\WebViewControl\WebView.InternalContextMenuHandler.cs" Link="WebView.InternalContextMenuHandler.cs" />
+    <Compile Include="..\WebViewControl\WebView.InternalDialogHandler.cs" Link="WebView.InternalDialogHandler.cs" />
+    <Compile Include="..\WebViewControl\WebView.InternalDownloadHandler.cs" Link="WebView.InternalDownloadHandler.cs" />
+    <Compile Include="..\WebViewControl\WebView.InternalLifeSpanHandler.cs" Link="WebView.InternalLifeSpanHandler.cs" />
+    <Compile Include="..\WebViewControl\WebView.InternalRequestHandler.cs" Link="WebView.InternalRequestHandler.cs" />
+    <Compile Include="..\WebViewControl\WebView.InternalResourceRequestHandler.cs" Link="WebView.InternalResourceRequestHandler.cs" />
+    <Compile Include="..\WebViewControl\WebView.JavascriptException.cs" Link="WebView.JavascriptException.cs" />
+    <Compile Include="..\WebViewControl\WebView.JavascriptExecutor.cs" Link="WebView.JavascriptExecutor.cs" />
+    <Compile Include="..\WebViewControl\WebView.ResourceHandler.cs" Link="WebView.ResourceHandler.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="0.8.2" />
+    <PackageReference Include="CefGlue.Avalonia" Version="75.1.14" />
+  </ItemGroup>
+
+</Project>

@@ -8,7 +8,7 @@ using Xilium.CefGlue;
 
 namespace WebViewControl {
 
-    public static class ResourcesManager {
+    public static partial class ResourcesManager {
 
         private static Stream InternalTryGetResource(string assemblyName, string defaultNamespace, IEnumerable<string> resourcePath, bool failOnMissingResource) {
             var assembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a => a.GetName().Name == assemblyName);
@@ -36,7 +36,7 @@ namespace WebViewControl {
                 var assemblyName = assembly.GetName().Name;
                 var alternativeResourceName = string.Join(ResourceUrl.PathSeparator, resourcePath);
                 try {
-                    stream = Application.GetResourceStream(new Uri($"/{assemblyName};component/{alternativeResourceName}", UriKind.Relative))?.Stream;
+                    stream = GetApplicationResource(assemblyName, alternativeResourceName);
                 } catch (IOException) {
                     // ignore
                 }

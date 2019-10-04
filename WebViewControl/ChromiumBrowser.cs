@@ -1,9 +1,8 @@
 ﻿using Xilium.CefGlue;
-using Xilium.CefGlue.WPF;
 
 namespace WebViewControl {
 
-    internal class ChromiumBrowser : WpfCefBrowser {
+    internal partial class ChromiumBrowser {
 
         internal void CreateBrowser() {
             CreateOrUpdateBrowser(200, 200);

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -9,10 +8,6 @@ using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Threading;
 using Xilium.CefGlue;
 using Xilium.CefGlue.Common;
 using Xilium.CefGlue.Common.Events;
@@ -30,7 +25,7 @@ namespace WebViewControl {
     internal delegate void JavascriptContextReleasedEventHandler(string frameName);
     public delegate void UnhandledAsyncExceptionEventHandler(UnhandledAsyncExceptionEventArgs eventArgs);
 
-    public partial class WebView : UserControl, IDisposable {
+    public partial class WebView : IDisposable {
 
         private const string AboutBlankUrl = "about:blank";
 
@@ -45,8 +40,6 @@ namespace WebViewControl {
         // converts cef zoom percentage to css zoom (between 0 and 1)
         // from https://code.google.com/p/chromium/issues/detail?id=71484
         private const float PercentageToZoomFactor = 1.2f;
-
-        private static bool subscribedApplicationExit = false;
 
         private object SyncRoot { get; } = new object();
 
@@ -90,8 +83,6 @@ namespace WebViewControl {
         internal event Action Disposed;
         internal event JavascriptContextReleasedEventHandler JavascriptContextReleased;
 
-        private event Action RenderProcessCrashed;
-
         private static int domainId = 1;
 
         // cef maints same zoom level for all browser instances under the same domain
@@ -121,10 +112,7 @@ namespace WebViewControl {
 
             CefRuntimeLoader.Initialize(new string[0], cefSettings, customSchemes);
 
-            if (Application.Current != null) {
-                Application.Current.Exit += OnApplicationExit;
-                subscribedApplicationExit = true;
-            }
+            AppDomain.CurrentDomain.ProcessExit += delegate { Cleanup(); };
         }
 
         /// <summary>
@@ -149,7 +137,7 @@ namespace WebViewControl {
         }
 
         public WebView() {
-            if (DesignerProperties.GetIsInDesignMode(this)) {
+            if (IsInDesignMode) {
                 return;
             }
 
@@ -175,18 +163,11 @@ namespace WebViewControl {
         private void Initialize() {
             InitializeCef();
 
-            if (!subscribedApplicationExit) {
-                // subscribe exit again, first time might have failed if Application.Current was null
-                Application.Current.Exit += OnApplicationExit;
-                subscribedApplicationExit = true;
-            }
-
             chromium = new ChromiumBrowser();
             chromium.BrowserInitialized += OnWebViewBrowserInitialized;
             chromium.LoadEnd += OnWebViewLoadEnd;
             chromium.LoadError += OnWebViewLoadError;
             chromium.TitleChanged += OnWebViewTitleChanged;
-            chromium.PreviewKeyDown += OnPreviewKeyDown;
             chromium.JavascriptContextCreated += OnJavascriptContextCreated;
             chromium.JavascriptContextReleased += OnJavascriptContextReleased;
             chromium.JavascriptUncaughException += OnJavascriptUncaughException;
@@ -206,22 +187,12 @@ namespace WebViewControl {
 
             RegisterJavascriptObject(Listener.EventListenerObjName, EventsListener);
 
-            Content = chromium;
-
-            Loaded += OnLoaded;
-            Unloaded += OnUnloaded;
-
-            RenderProcessCrashed += OnRenderProcessCrashed;
-
-            FocusManager.SetIsFocusScope(this, true);
-            FocusManager.SetFocusedElement(this, FocusableElement);
+            ExtraInitialize();
 
             GlobalWebViewInitialized?.Invoke(this);
         }
 
-        private static void OnApplicationExit(object sender, ExitEventArgs e) {
-            Cleanup();
-        }
+        partial void ExtraInitialize();
 
         ~WebView() {
             Dispose();
@@ -260,7 +231,6 @@ namespace WebViewControl {
                 JavascriptContextCreated = null;
                 TitleChanged = null;
                 UnhandledAsyncException = null;
-                RenderProcessCrashed = null;
                 JavascriptContextReleased = null;
 
                 foreach (var disposable in disposables.Concat(JsExecutors.Values)) {
@@ -281,17 +251,6 @@ namespace WebViewControl {
             }
 
             InternalDispose();
-        }
-
-        private void OnPreviewKeyDown(object sender, KeyEventArgs e) {
-            if (AllowDeveloperTools && e.Key == Key.F12) {
-                if (isDeveloperToolsOpened) {
-                    CloseDeveloperTools();
-                } else {
-                    ShowDeveloperTools();
-                }
-                e.Handled = true;
-            }
         }
 
         public void ShowDeveloperTools() {
@@ -387,7 +346,7 @@ namespace WebViewControl {
             }
 
             if (executeCallsInUI) {
-                return RegisterJavascriptObject(name, objectToBind, target => Dispatcher.Invoke(target), false);
+                return RegisterJavascriptObject(name, objectToBind, target => ExecuteInUI<object>(target), false);
             }
 
             if (interceptCall == null) {
@@ -510,7 +469,7 @@ namespace WebViewControl {
             void HandleEvent(ListenerEventHandler handler, object[] args, bool executeInUI) {
                 if (!isDisposing) {
                     if (executeInUI) {
-                        Dispatcher.BeginInvoke(handler, new object[] { args });
+                        AsyncExecuteInUI(() => handler(new object[] { args }));
                     } else {
                         ExecuteWithAsyncErrorHandling(handler, new object[] { args });
                     }
@@ -564,10 +523,6 @@ namespace WebViewControl {
             TitleChanged?.Invoke();
         }
 
-        private static bool IsFrameworkAssemblyName(string name) {
-            return name == "PresentationFramework" || name == "PresentationCore" || name == "mscorlib" || name == "System.Xaml" || name == "WindowsBase";
-        }
-
         internal static MethodBase GetUserCallingMethod(bool captureFilenames = false) {
             var currentAssembly = typeof(WebView).Assembly;
             var callstack = new StackTrace(captureFilenames).GetFrames().Select(f => f.GetMethod()).Where(m => m.ReflectedType.Assembly != currentAssembly);
@@ -584,21 +539,6 @@ namespace WebViewControl {
             } else {
                 pendingInitialization += action;
             }
-        }
-
-        private void AsyncExecuteInUI(Action action) {
-            if (isDisposing) {
-                return;
-            }
-            // use async call to avoid dead-locks, otherwise if the source action tries to to evaluate js it would block
-            Dispatcher.InvokeAsync(
-                () => {
-                    if (!isDisposing) {
-                        ExecuteWithAsyncErrorHandling(action);
-                    }
-                },
-                DispatcherPriority.Normal,
-                AsyncCancellationTokenSource.Token);
         }
 
         private void ExecuteWithAsyncErrorHandling(Action action) {
@@ -638,18 +578,8 @@ namespace WebViewControl {
             }
 
             if (!handled) {
-                var exceptionInfo = ExceptionDispatchInfo.Capture(e);
-                // don't use invoke async, as it won't forward the exception to the dispatcher unhandled exception event
-                Dispatcher.BeginInvoke((Action)(() => {
-                    if (!isDisposing) {
-                        exceptionInfo?.Throw();
-                    }
-                }));
+                ForwardException(ExceptionDispatchInfo.Capture(e));
             }
-        }
-
-        internal IInputElement FocusableElement {
-            get { return chromium; }
         }
 
         protected void InitializeBrowser() {
@@ -665,36 +595,6 @@ namespace WebViewControl {
         public static bool EnableErrorLogOnly { get; set; } = false;
 
         internal bool IsDisposing => isDisposing;
-
-        private void OnLoaded(object sender, RoutedEventArgs e) {
-            PresentationSource.AddSourceChangedHandler(this, OnPresentationSourceChanged);
-            var source = PresentationSource.FromVisual(this);
-            UpdatePresentationSource(source, source); // pass same source, to make sure events are not registerer more than once
-        }
-
-        private void OnUnloaded(object sender, RoutedEventArgs e) {
-            PresentationSource.RemoveSourceChangedHandler(this, OnPresentationSourceChanged);
-        }
-
-        private void OnPresentationSourceChanged(object sender, SourceChangedEventArgs e) {
-            UpdatePresentationSource(e.OldSource, e.NewSource);
-        }
-
-        private void UpdatePresentationSource(PresentationSource oldSource, PresentationSource newSource) {
-            if (oldSource?.RootVisual is Window oldWindow) {
-                oldWindow.Closed -= OnHostWindowClosed;
-            }
-            if (newSource != null) {
-                if (newSource?.RootVisual is Window newWindow) {
-                    newWindow.Closed += OnHostWindowClosed;
-                }
-            }
-        }
-
-        private void OnHostWindowClosed(object sender, EventArgs e) {
-            ((Window)sender).Closed -= OnHostWindowClosed;
-            Dispose();
-        }
 
         protected virtual string GetRequestUrl(string url, ResourceType resourceType) {
             return url;
@@ -782,7 +682,7 @@ namespace WebViewControl {
             ForwardUnhandledAsyncException(e.Exception);
         }
 
-        private void OnRenderProcessCrashed() {
+        private void HandleRenderProcessCrashed() {
             lock (JsExecutors) {
                 DisposeJavascriptExecutors(JsExecutors.Keys.ToArray());
             }
@@ -793,6 +693,14 @@ namespace WebViewControl {
                 var indexedExecutorKey = executorKey ?? "";
                 JsExecutors[indexedExecutorKey].Dispose();
                 JsExecutors.Remove(indexedExecutorKey);
+            }
+        }
+
+        private void ToggleDeveloperTools() {
+            if (isDeveloperToolsOpened) {
+                CloseDeveloperTools();
+            } else {
+                ShowDeveloperTools();
             }
         }
     }
