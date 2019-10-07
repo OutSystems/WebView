@@ -5,13 +5,16 @@
     <AssemblyTitle>WebViewControl</AssemblyTitle>
     <Description></Description>
     <Configuration></Configuration>
-    <Company></Company>
+    <Company>OutSystems</Company>
     <Product>WebViewControl</Product>
     <Copyright>Copyright ©  2017</Copyright>
     <FileVersion>2.0.0.0</FileVersion>
     <AssemblyVersion>2.0.0.0</AssemblyVersion>
-    <NuspecFile>WebViewControl.nuspec</NuspecFile>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageId>WebViewControl-CefGlue</PackageId>
+    <PackageVersion>1.72.65</PackageVersion>
+    <Version>1.72.65</Version>
+    <Authors>OutSystems</Authors>
     <PackageOutputPath>$(MSBuildProjectDirectory)\..\Nuget</PackageOutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -57,11 +60,4 @@
   <PropertyGroup>
     <PreBuildEvent>"$(MSBuildProjectDirectory)\..\kill_testsengine.bat"</PreBuildEvent>
   </PropertyGroup>
-  <Target Name="SetNuspecProperties" BeforeTargets="GenerateNuspec">
-    <PropertyGroup>
-      <NuspecProperties>$(NuspecProperties);configuration=$(Configuration)</NuspecProperties>
-      <NuspecProperties>$(NuspecProperties);targetFramework=$(TargetFramework)</NuspecProperties>
-      <NuspecProperties>$(NuspecProperties);targetFileName=$(TargetFileName)</NuspecProperties>
-    </PropertyGroup>
-  </Target>
 </Project>

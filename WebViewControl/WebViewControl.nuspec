@@ -1,19 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
-    <id>WebViewControl-CefGlue</id>
-    <version>1.72.65</version>
+    <id>$id$</id>
+    <version>$version$</version>
     <title>WebViewControl</title>
-    <authors>OutSystems</authors>
-    <owners>OutSystems</owners>
+    <authors>$authors$</authors>
+    <owners>$authors$</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Description</description>
-    <copyright>Copyright ©  2017</copyright>
+    <description>$description$</description>
+    <copyright>$copyright$</copyright>
     <dependencies>
       <dependency id="CefGlue.Wpf" version="75.1.15" />
     </dependencies>
   </metadata>
-    <files>
-        <file src="..\$configuration$\$targetFramework$\$targetFileName$" target="lib\$targetFramework$" />
-    </files>
 </package>
