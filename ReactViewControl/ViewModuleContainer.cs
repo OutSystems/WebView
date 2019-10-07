@@ -70,7 +70,7 @@ namespace ReactViewControl {
 
         private string[] GetDependenciesFromEntriesFile(string extension) {
             var entriesFilePath = Path.Combine(Path.GetDirectoryName(MainJsSource), Path.GetFileNameWithoutExtension(MainJsSource) + extension);
-            var resource = entriesFilePath.Split(new[] { Path.PathSeparator }, StringSplitOptions.RemoveEmptyEntries);
+            var resource = entriesFilePath.Split(new[] { Path.DirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
 
             var stream = ResourcesManager.TryGetResourceWithFullPath(resource.First(), resource);
             if (stream != null) {

@@ -424,7 +424,7 @@ namespace ReactViewControl {
             }
 
             var basePath = Path.GetDirectoryName(mainModuleFullPath);
-            var mainModuleResourcePathParts = ResourceUrl.GetEmbeddedResourcePath(new Uri(ToFullUrl(mainModuleResourcePath.Substring(0, mainModuleFullPath.LastIndexOf("/")))));
+            var mainModuleResourcePathParts = ResourceUrl.GetEmbeddedResourcePath(new Uri(ToFullUrl(mainModuleResourcePath.Substring(0, mainModuleResourcePath.LastIndexOf("/")))));
 
             var relativePath = string.Join(Path.DirectorySeparatorChar.ToString(), mainModuleResourcePathParts);
 
