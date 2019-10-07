@@ -3,9 +3,26 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.2</TargetFramework>
+    <RootNamespace>Example</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="App.xaml" />
+    <None Remove="MainWindow.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="App.xaml">
+      <Generator></Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainWindow.xaml">
+      <Generator></Generator>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Desktop" Version="0.8.2" />
+    <PackageReference Include="CefGlue.Avalonia" Version="75.1.15" />
     <PackageReference Include="ReactViewControl-Avalonia" Version="2.75.4" />
     <PackageReference Include="ViewGenerator" Version="1.0.244">
       <PrivateAssets>all</PrivateAssets>

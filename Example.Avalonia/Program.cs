@@ -1,9 +1,14 @@
-﻿using System;
+﻿using Avalonia;
+using Xilium.CefGlue.Avalonia;
 
 namespace Example.Avalonia {
     class Program {
         static void Main(string[] args) {
-            Console.WriteLine("Hello World!");
+            AppBuilder.Configure<App>()
+                      .UsePlatformDetect()
+                      .UseSkia()
+                      .ConfigureCefGlue(args)
+                      .Start<MainWindow>();
         }
     }
 }
