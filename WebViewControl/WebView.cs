@@ -110,7 +110,7 @@ namespace WebViewControl {
 
             var customSchemes = CustomSchemes.Select(s => new CustomScheme() { SchemeName = s, SchemeHandlerFactory = new SchemeHandlerFactory() }).ToArray();
 
-            CefRuntimeLoader.Initialize(new string[0], cefSettings, customSchemes);
+            CefRuntimeLoader.Initialize(cefSettings, customSchemes);
 
             AppDomain.CurrentDomain.ProcessExit += delegate { Cleanup(); };
         }
