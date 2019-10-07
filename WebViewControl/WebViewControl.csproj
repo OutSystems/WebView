@@ -11,7 +11,7 @@
     <Product>WebViewControl</Product>
     <Copyright>Copyright ©  2019</Copyright>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.75.1</Version>
+    <Version>2.75.2</Version>
     <PackageId>WebViewControl-WPF</PackageId>
     <Authors>OutSystems</Authors>
     <PackageOutputPath>$(MSBuildProjectDirectory)\..\nuget</PackageOutputPath>
@@ -42,7 +42,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="CefGlue.Wpf" Version="75.1.16" />
+    <PackageReference PrivateAssets="None" Include="CefGlue.Wpf" Version="75.1.17" />
   </ItemGroup>
   
   <PropertyGroup>
