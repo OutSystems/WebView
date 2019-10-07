@@ -1,23 +1,16 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
-    <id>ReactViewControl-CefGlue</id>
-    <version>1.72.88</version>
+    <id>$id$</id>
+    <version>$version$</version>
     <title>ReactViewControl</title>
-    <authors>OutSystems</authors>
-    <owners>OutSystems</owners>
+    <authors>$authors$</authors>
+    <owners>$authors$</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Description</description>
-    <copyright>Copyright ©  2019</copyright>
+    <description>$description$</description>
+    <copyright>$copyright$</copyright>
     <dependencies>
       <dependency id="WebViewControl-CefGlue" version="2.75.1" />
     </dependencies>
   </metadata>
-  <files>
-    <file src="..\ReactViewResources\AMDLoader\AMDLoaderExports.js" target="content\AMDLoader\AMDLoaderExports.js" />
-    <file src="..\ReactViewResources\AMDLoader\tsconfig.json" target="content\AMDLoader\tsconfig.json" />
-    <file src="..\ReactViewResources\Loader\tsconfig.json" target="content\Loader\tsconfig.json" />
-    <file src="bin\$configuration$\$targetFramework$\$targetFileName$" target="lib\$targetFramework$" />
-    <file src="bin\$configuration$\$targetFramework$\ReactViewResources.dll" target="lib\$targetFramework$" />
-  </files>
 </package>

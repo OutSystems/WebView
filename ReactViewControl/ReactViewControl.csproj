@@ -5,15 +5,18 @@
     <AssemblyTitle>ReactViewControl</AssemblyTitle>
     <Description></Description>
     <Configuration></Configuration>
-    <Company></Company>
+    <Company>OutSystems</Company>
     <Product>ReactViewControl</Product>
     <Copyright>Copyright ©  2019</Copyright>
     <FileVersion>2.0.0.0</FileVersion>
     <AssemblyVersion>2.0.0.0</AssemblyVersion>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <NuspecFile>ReactViewControl.nuspec</NuspecFile>
     <PackageOutputPath>$(MSBuildProjectDirectory)\..\Nuget</PackageOutputPath>
     <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
+    <Version>1.72.88</Version>
+    <Authors>OutSystems</Authors>
+    <PackageId>ReactViewControl-CefGlue</PackageId>
+    <PackageVersion>1.72.88</PackageVersion>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="PresentationCore" />
@@ -34,12 +37,12 @@
     <ProjectReference Include="..\ReactViewResources\ReactViewResources.csproj">
       <Project>{6a3b80c3-a44c-4494-a16b-75d2281b0a5d}</Project>
       <Name>ReactViewResources</Name>
+      <PrivateAssets>all</PrivateAssets>
       <IncludeInNugetPackage>true</IncludeInNugetPackage>
     </ProjectReference>
     <ProjectReference Include="..\WebViewControl\WebViewControl.csproj">
       <Project>{a1c2a0c7-df81-4a8f-aeb5-b5375d5d1b47}</Project>
       <Name>WebViewControl-CefGlue</Name>
-      <PrivateAssets>all</PrivateAssets>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
@@ -47,16 +50,9 @@
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
-    <Target Name="SetNuspecProperties" BeforeTargets="GenerateNuspec">
-        <PropertyGroup>
-            <NuspecProperties>$(NuspecProperties);configuration=$(Configuration)</NuspecProperties>
-            <NuspecProperties>$(NuspecProperties);targetFramework=$(TargetFramework)</NuspecProperties>
-            <NuspecProperties>$(NuspecProperties);targetFileName=$(TargetFileName)</NuspecProperties>
-        </PropertyGroup>
-    </Target>
-    <Target Name="CopyProjectReferencesToPackage" DependsOnTargets="ResolveReferences">
-      <ItemGroup>
-        <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths->WithMetadataValue('ReferenceSourceTarget', 'ProjectReference')->WithMetadataValue('IncludeInNugetPackage', 'true'))"/>
-      </ItemGroup>
-    </Target>
+  <Target Name="CopyProjectReferencesToPackage" DependsOnTargets="ResolveReferences">
+    <ItemGroup>
+      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths-&gt;WithMetadataValue('ReferenceSourceTarget', 'ProjectReference')-&gt;WithMetadataValue('IncludeInNugetPackage', 'true'))" />
+    </ItemGroup>
+  </Target>
 </Project>
