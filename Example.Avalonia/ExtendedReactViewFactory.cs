@@ -1,7 +1,7 @@
 ﻿using ReactViewControl;
 using WebViewControl;
 
-namespace Example {
+namespace Example.Avalonia {
 
     internal class ExtendedReactViewFactory : ReactViewFactory {
 

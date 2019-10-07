@@ -2,10 +2,16 @@
         Title="Example">
     <DockPanel>
         <Menu DockPanel.Dock="Top">
-            <MenuItem Header="_File">
-                <MenuItem Header="_Open Dev Tools..." Click="OnOpenDevToolsMenuItemClick"/>
+            <MenuItem Header="Actions">
+                <MenuItem Header="Call Main View" Click="OnCallMainViewMenuItemClick"></MenuItem>
+                <MenuItem Header="Call Inner View" Click="OnCallInnerViewMenuItemClick"></MenuItem>
+                <MenuItem Header="Call Inner View Plugin" Click="OnCallInnerViewPluginMenuItemClick"></MenuItem>
+                <MenuItem Header="Show dev tools" Click="OnShowDevTools"></MenuItem>
             </MenuItem>
         </Menu>
+        
+        <TextBox Name="status" DockPanel.Dock="Bottom" Height="50"></TextBox>
+
         <Decorator Name="browserWrapper"/>
     </DockPanel>
 </Window>

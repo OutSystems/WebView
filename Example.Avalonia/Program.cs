@@ -1,5 +1,4 @@
 ﻿using Avalonia;
-using Xilium.CefGlue.Avalonia;
 
 namespace Example.Avalonia {
     class Program {
@@ -7,7 +6,6 @@ namespace Example.Avalonia {
             AppBuilder.Configure<App>()
                       .UsePlatformDetect()
                       .UseSkia()
-                      .ConfigureCefGlue(args)
                       .Start<MainWindow>();
         }
     }

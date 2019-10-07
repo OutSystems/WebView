@@ -42,7 +42,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="CefGlue.Wpf" Version="75.1.15" />
+    <PackageReference Include="CefGlue.Wpf" Version="75.1.16" />
   </ItemGroup>
   
   <PropertyGroup>

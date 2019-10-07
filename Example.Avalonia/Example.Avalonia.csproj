@@ -3,7 +3,8 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.2</TargetFramework>
-    <RootNamespace>Example</RootNamespace>
+    <RootNamespace>Example.Avalonia</RootNamespace>
+    <AssemblyName>Example.Avalonia</AssemblyName>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,8 +23,7 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia.Desktop" Version="0.8.2" />
-    <PackageReference Include="CefGlue.Avalonia" Version="75.1.15" />
-    <PackageReference Include="ReactViewControl-Avalonia" Version="2.75.4" />
+    <PackageReference Include="CefGlue.Avalonia" Version="75.1.16" />
     <PackageReference Include="ViewGenerator" Version="1.0.244">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -35,9 +35,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Resource Include="ExampleView\beach.jpg" />
-    <Resource Include="ExampleView\ExampleView\Ok.png" />
-    <Resource Include="ExampleView\SubExampleView\Completed.png" />
+    <ProjectReference Include="..\ReactViewControl.Avalonia\ReactViewControl.Avalonia.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="ExampleView\beach.jpg" />
+    <EmbeddedResource Include="ExampleView\ExampleView\Ok.png" />
+    <EmbeddedResource Include="ExampleView\SubExampleView\Completed.png" />
   </ItemGroup>
 
   <ItemGroup>

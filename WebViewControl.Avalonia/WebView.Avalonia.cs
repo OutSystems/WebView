@@ -73,8 +73,7 @@ namespace WebViewControl {
         }
 
         private static bool IsFrameworkAssemblyName(string name) {
-            // TODO
-            return name == "PresentationFramework" || name == "PresentationCore" || name == "mscorlib" || name == "System.Xaml" || name == "WindowsBase";
+            return name.StartsWith("Avalonia") || name == "mscorlib";
         }
     }
 }

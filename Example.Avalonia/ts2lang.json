@@ -5,8 +5,8 @@
             "output": "Generated/",
             "template": "",
             "parameters": {
-                "namespace": "Example",
-                "baseComponentClass": "Example.ExtendedReactView",
+                "namespace": "Example.Avalonia",
+                "baseComponentClass": "Example.Avalonia.ExtendedReactView",
                 "baseComponentInterface": "",
                 "javascriptDistPath": "",
                 "emitComponent": true,
@@ -20,7 +20,7 @@
             "output": "Generated/",
             "template": "",
             "parameters": {
-                "namespace": "Example",
+                "namespace": "Example.Avalonia",
                 "baseComponentClass": "ReactViewControl.ViewModuleContainer",
                 "baseComponentInterface": "",
                 "javascriptDistPath": "",

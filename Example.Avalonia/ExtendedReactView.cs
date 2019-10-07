@@ -1,7 +1,7 @@
 ﻿using System;
 using ReactViewControl;
 
-namespace Example {
+namespace Example.Avalonia {
 
     public abstract class ExtendedReactView : ReactView {
 
