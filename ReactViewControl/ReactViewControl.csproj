@@ -6,7 +6,7 @@
     <AssemblyTitle>ReactViewControl WPF</AssemblyTitle>
     <AssemblyVersion>2.0.0.0</AssemblyVersion>
     <FileVersion>2.0.0.0</FileVersion>
-    <Description></Description>
+    <Description>ReactViewControl for WPF powered by CefGlue</Description>
     <Configuration></Configuration>
     <Company></Company>
     <Product>ReactViewControl</Product>
