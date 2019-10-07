@@ -158,10 +158,6 @@
     <EmbeddedResource Include="Resources\EmbeddedJavascriptFile.js" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ReactViewControl\ReactViewControl.csproj">
-      <Project>{e7083d15-8ff2-4d8f-8505-d4cb9ba050dc}</Project>
-      <Name>ReactViewControl</Name>
-    </ProjectReference>
     <ProjectReference Include="..\WebViewControl\WebViewControl.csproj">
       <Project>{a1c2a0c7-df81-4a8f-aeb5-b5375d5d1b47}</Project>
       <Name>WebViewControl</Name>

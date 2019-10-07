@@ -1,36 +1,22 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
-    <AssemblyTitle>WebViewControl</AssemblyTitle>
+    <AssemblyTitle>WebViewControl WPF</AssemblyTitle>
     <AssemblyVersion>2.0.0.0</AssemblyVersion>
     <FileVersion>2.0.0.0</FileVersion>
     <Description></Description>
     <Configuration></Configuration>
     <Company></Company>
     <Product>WebViewControl</Product>
-    <Copyright>Copyright ©  2017</Copyright>
+    <Copyright>Copyright ©  2019</Copyright>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>1.72.64</Version>
-    <PackageId>WebViewControl-CefGlue</PackageId>
+    <Version>2.75.1</Version>
+    <PackageId>WebViewControl-WPF</PackageId>
     <Authors>OutSystems</Authors>
     <PackageOutputPath>$(MSBuildProjectDirectory)\..\nuget</PackageOutputPath>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-    <OutputPath>..\Debug\</OutputPath>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-    <OutputPath>..\Release\</OutputPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Tests|x64'">
-    <OutputPath>bin\x64\Tests\</OutputPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Tests|AnyCPU'">
-    <OutputPath>bin\Tests\</OutputPath>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Tests|x86'">
-    <OutputPath>bin\x86\Tests\</OutputPath>
-  </PropertyGroup>
+  
   <ItemGroup>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -47,16 +33,20 @@
     <Reference Include="System.Xml" />
     <Reference Include="WindowsBase" />
   </ItemGroup>
+  
   <ItemGroup>
     <None Include="app.config" />
     <None Include="WebViewControl.nuspec">
       <SubType>Designer</SubType>
     </None>
   </ItemGroup>
+  
   <ItemGroup>
     <PackageReference Include="CefGlue.Wpf" Version="75.1.15" />
   </ItemGroup>
+  
   <PropertyGroup>
     <PreBuildEvent>"$(MSBuildProjectDirectory)\..\kill_testsengine.bat"</PreBuildEvent>
   </PropertyGroup>
+  
 </Project>

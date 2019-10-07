@@ -3,6 +3,19 @@
   <PropertyGroup>
     <TargetFramework>netstandard2</TargetFramework>
     <RootNamespace>WebViewControl</RootNamespace>
+    <AssemblyTitle>WebViewControl Avalonia</AssemblyTitle>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <FileVersion>2.0.0.0</FileVersion>
+    <Description></Description>
+    <Configuration></Configuration>
+    <Company></Company>
+    <Product>WebViewControl</Product>
+    <Copyright>Copyright ©  2019</Copyright>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>2.75.1</Version>
+    <PackageId>WebViewControl-Avalonia</PackageId>
+    <Authors>OutSystems</Authors>
+    <PackageOutputPath>$(MSBuildProjectDirectory)\..\nuget</PackageOutputPath>
   </PropertyGroup>
 
   <ItemGroup>

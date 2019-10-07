@@ -1,14 +1,14 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
-    <id>ReactViewControl-Avalonia</id>
-    <version>1.72.87</version>
-    <title>ReactViewControl</title>
-    <authors>OutSystems</authors>
+    <id>$id$</id>
+    <version>$version$</version>
+    <title>$title$</title>
+    <authors>$authors$</authors>
     <owners>OutSystems</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Description</description>
-    <copyright>Copyright ©  2018</copyright>
+    <copyright>$copyright$</copyright>
     <dependencies>
       <dependency id="WebViewControl-Avalonia" version="2.75.1" />
     </dependencies>

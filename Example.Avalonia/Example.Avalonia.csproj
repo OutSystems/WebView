@@ -6,11 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="ReactViewControl-Avalonia" Version="2.75.4" />
     <PackageReference Include="ViewGenerator" Version="1.0.244">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="ViewGeneratorCore" Version="1.0.189">
+    <PackageReference Include="ViewGeneratorCore" Version="1.0.191">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

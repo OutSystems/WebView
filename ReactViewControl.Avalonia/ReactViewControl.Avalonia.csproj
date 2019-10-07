@@ -2,8 +2,21 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <AssemblyName>ReactViewControl.Avalonia</AssemblyName>
     <RootNamespace>ReactViewControl</RootNamespace>
+    <AssemblyTitle>ReactViewControl Avalonia</AssemblyTitle>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <FileVersion>2.0.0.0</FileVersion>
+    <Description></Description>
+    <Configuration></Configuration>
+    <Company></Company>
+    <Product>ReactViewControl</Product>
+    <Copyright>Copyright ©  2019</Copyright>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>2.75.4</Version>
+    <PackageId>ReactViewControl-Avalonia</PackageId>
+    <Authors>OutSystems</Authors>
+    <PackageOutputPath>$(MSBuildProjectDirectory)\..\nuget</PackageOutputPath>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);CopyProjectReferencesToPackage</TargetsForTfmSpecificBuildOutput>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,7 +35,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ReactViewResources\ReactViewResources.csproj" />
+    <ProjectReference Include="..\ReactViewResources\ReactViewResources.csproj">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeInNugetPackage>true</IncludeInNugetPackage>
+    </ProjectReference>
     <ProjectReference Include="..\WebViewControl.Avalonia\WebViewControl.Avalonia.csproj" />
   </ItemGroup>
 
@@ -32,7 +48,9 @@
     </None>
   </ItemGroup>
 
-  <Target Name="PackNuget" AfterTargets="AfterBuild">
-    <Exec Command="&quot;$(ProjectDir)..\nuget&quot; pack &quot;$(ProjectPath)&quot; -OutputDirectory &quot;$(ProjectDir)..\Nuget&quot; -Properties Configuration=$(ConfigurationName) -IncludeReferencedProjects" />
+  <Target Name="CopyProjectReferencesToPackage" DependsOnTargets="ResolveReferences">
+    <ItemGroup>
+      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths-&gt;WithMetadataValue('ReferenceSourceTarget', 'ProjectReference')-&gt;WithMetadataValue('IncludeInNugetPackage', 'true'))" />
+    </ItemGroup>
   </Target>
 </Project>

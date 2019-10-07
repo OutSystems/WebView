@@ -45,7 +45,7 @@
     <Exec Command="&quot;$(ViewGeneratorCoreNodeJsExe)&quot; &quot;$(MSBuildThisFileDirectory)..\tools\node_modules\@outsystems\ts2lang\ts2lang-main.js&quot; -f &quot;$(MSBuildProjectDirectory)\ts2lang.json&quot; -t &quot;$(MSBuildThisFileDirectory)..\tools\ViewGenerator.js&quot;" />
   </Target>
 
-  <Target Name="VGC_IncludeGeneratedFiles" BeforeTargets="PrepareForBuild;CoreCompile">
+  <Target Name="VGC_IncludeGeneratedFiles" Condition="'$(UsingMicrosoftNETSdk)' != 'true'" BeforeTargets="PrepareForBuild;CoreCompile">
     <ItemGroup>
       <Compile Include="$(ViewGeneratorGeneratedFolder)\**\*.cs" />
     </ItemGroup>
