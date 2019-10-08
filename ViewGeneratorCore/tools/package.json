@@ -9,5 +9,8 @@
   "license": "ISC",
   "devDependencies": {
     "@outsystems/ts2lang": "1.0.12"
+  },
+  "dependencies": {
+    "@types/node": "^12.6.8"
   }
 }

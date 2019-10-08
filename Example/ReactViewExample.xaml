@@ -1,0 +1,23 @@
+﻿<Window x:Class="Example.ReactViewExample"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Example"
+        mc:Ignorable="d"
+        Title="ReactViewExample" Height="450" Width="800">
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="Actions">
+                <MenuItem Header="Call Main View" Click="OnCallMainViewMenuItemClick"></MenuItem>
+                <MenuItem Header="Call Inner View" Click="OnCallInnerViewMenuItemClick"></MenuItem>
+                <MenuItem Header="Call Inner View Plugin" Click="OnCallInnerViewPluginMenuItemClick"></MenuItem>
+                <MenuItem Header="Show dev tools" Click="OnShowDevTools"></MenuItem>
+            </MenuItem>
+        </Menu>
+
+        <TextBlock x:Name="status" DockPanel.Dock="Bottom" Height="50"></TextBlock>
+
+        <local:ExampleView x:Name="exampleView" Click="OnExampleViewClick" GetTime="OnExampleViewGetTime" ConstantMessage="This is an example" Image="Beach" ViewMounted="OnViewMounted" />
+    </DockPanel>
+</Window>
