@@ -1,7 +1,0 @@
-{
-	"slnFilePath": "../WebView.sln",
-	"configuration": "Release",
-	"testsdllFilePath": "../Release/Tests.dll",
-	"nuspecFilePath": "ReactViewResources.nuspec",
-	"packageRootPath":"../"
-}

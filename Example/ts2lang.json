@@ -1,0 +1,35 @@
+{
+    "tasks": [
+        {
+            "input": "**/*.tsx",
+            "output": "Generated/",
+            "template": "",
+            "parameters": {
+                "namespace": "Example",
+                "baseComponentClass": "Example.ExtendedReactView",
+                "baseComponentInterface": "",
+                "javascriptDistPath": "",
+                "emitComponent": true,
+                "emitComponentInterface": true,
+                "emitComponentAdapter": true,
+                "emitViewObjects": true
+            }
+        },
+        {
+            "input": "**/*.ts",
+            "output": "Generated/",
+            "template": "",
+            "parameters": {
+                "namespace": "Example",
+                "baseComponentClass": "ReactViewControl.ViewModuleContainer",
+                "baseComponentInterface": "",
+                "javascriptDistPath": "",
+                "isModule": true,
+                "emitComponent": true,
+                "emitComponentInterface": true,
+                "emitComponentAdapter": false,
+                "emitViewObjects": true
+            }
+        }
+    ]
+}
