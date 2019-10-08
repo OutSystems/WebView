@@ -33,7 +33,7 @@ namespace WebViewControl {
             var stream = assembly.GetManifestResourceStream(resourceName);
             if (stream == null) {
                 var assemblyName = assembly.GetName().Name;
-                var alternativeResourceName = string.Join(ResourceUrl.PathSeparator, resourcePath);
+                var alternativeResourceName = string.Join("/", resourcePath);
                 try {
                     stream = Application.GetResourceStream(new Uri($"/{assemblyName};component/{alternativeResourceName}", UriKind.Relative))?.Stream;
                 } catch (IOException) {

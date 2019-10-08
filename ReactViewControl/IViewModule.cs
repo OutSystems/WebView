@@ -4,11 +4,7 @@ namespace ReactViewControl {
 
     public interface IViewModule {
 
-        string MainJsSource { get; }
-
-        string[] DependencyJsSources { get; }
-
-        string[] CssSources { get; }
+        string JavascriptSource { get; }
 
         string NativeObjectName { get; }
 

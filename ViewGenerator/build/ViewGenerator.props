@@ -8,6 +8,6 @@
     </None>
   </ItemGroup>
   <PropertyGroup>
-    <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>
+    <TypeScriptBuildMode>true</TypeScriptBuildMode>
   </PropertyGroup>
 </Project>

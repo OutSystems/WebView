@@ -13,7 +13,9 @@ namespace Tests.ReactView {
 
         private class ReactViewWithPlugin : TestReactView {
 
-            public ReactViewWithPlugin() { }
+            public ReactViewWithPlugin() {
+                AddMappings(new SimpleViewModule("SimpleModuleWithAlias", new ResourceUrl(typeof(ReactViewWithPlugin).Assembly, "ReactViewResources", "Test", "AliasedModule.js")));
+            }
 
             protected override ReactViewFactory Factory => new ViewFactoryWithPlugin();
         }
@@ -34,7 +36,7 @@ namespace Tests.ReactView {
                 }
             }
 
-            protected override string MainJsSource => "/Tests/ReactViewResources/Test/PluginModule.js";
+            protected override string JavascriptSource => "/Tests/ReactViewResources/Test/PluginModule.js";
             protected override string NativeObjectName => "Common";
             protected override string ModuleName => "Plugin/With/Slashes/On/Name";
             protected override object CreateNativeObject() {

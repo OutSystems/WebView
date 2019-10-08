@@ -84,7 +84,7 @@ namespace WebViewControl {
 
             public void StartFlush(IFrame frame) {
                 lock (FlushTaskCancelationToken) {
-                    if (this.frame != null || !frame.IsValid || FlushTaskCancelationToken.IsCancellationRequested) {
+                    if (this.frame != null || FlushTaskCancelationToken.IsCancellationRequested) {
                         return;
                     }
                     this.frame = frame;

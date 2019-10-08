@@ -58,18 +58,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ExecutionEngine.cs" />
-    <Compile Include="FrameInfo.cs" />
     <Compile Include="IExecutionEngine.cs" />
     <Compile Include="IViewModule.cs" />
-    <Compile Include="LoadStatus.cs" />
-    <Compile Include="ReactViewRender.LoaderModule.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ReactView.cs" />
     <Compile Include="ReactViewFactory.cs" />
     <Compile Include="ReactViewRender.cs" />
     <Compile Include="ReactViewRender.InternalWebView.cs" />
+    <Compile Include="SimpleViewModule.cs" />
     <Compile Include="ViewModuleContainer.cs" />
-    <Compile Include="ViewModuleExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\ReactViewResources\ReactViewResources.csproj">

@@ -17,6 +17,7 @@ Tests/ReactViewResources/dist/
 .vs/
 ViewGenerator/tools/dist/
 *.js
+ViewGenerator/content/node_modules/
 ReactViewResources/node_modules/
 *.tgz
 ViewGenerator/tools/node_modules/
@@ -24,12 +25,6 @@ ViewGenerator/tools/node_modules/
 Example/Generated/
 Example/node_modules/
 ViewGeneratorCore/tools/node_modules/
+ViewGenerator/contentFiles/node_modules/
 Tests/TestResult.xml
 ViewGenerator/declarations/
-manifest.json
-ViewGenerator/contentFiles/node_modules/@types/
-ViewGenerator/contentFiles/node_modules/
-Example/package-lock.json
-Example/viewgenerator.cache
-ViewPacker/tools/node_modules/
-!ReactViewResources/AMDLoader/AMDLoaderExports.js

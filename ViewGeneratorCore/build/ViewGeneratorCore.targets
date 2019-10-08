@@ -2,12 +2,12 @@
   <PropertyGroup>
 
     <BuildDependsOn>
-      VGC_GenerateView;
+      GenerateView;
       $(BuildDependsOn)
     </BuildDependsOn>
 
     <CleanDependsOn>
-      VGC_CleanGenerated;
+      CleanGenerated;
       $(CleanDependsOn);
     </CleanDependsOn>
 
@@ -15,43 +15,20 @@
     <TransformDuringBuild>
       $(TransformDuringBuild)
     </TransformDuringBuild>
-
   </PropertyGroup>
-
-  <Target Name="ESLint_SetVariables">
-    <ItemGroup>
-      <_ESLintNodeExe Include="$(MSBuildThisFileDirectory)..\..\..\Node.js.redist\*\tools\win-x64\node.exe"/>
-      <_ESLintNodeExe Include="$(MSBuildThisFileDirectory)..\..\Node.js.redist*\tools\win-x64\node.exe"/>
-    </ItemGroup>
-    <PropertyGroup>
-      <__ESLintNodeExe>@(_ESLintNodeExe);</__ESLintNodeExe>
-      <ESLintNodeExe>$(__ESLintNodeExe.Substring(0, $(__ESLintNodeExe.IndexOf(';'))))</ESLintNodeExe>
-    </PropertyGroup>
-  </Target>
   
-  <Target Name="VGC_SetVariables">
-    <ItemGroup>
-      <_ViewGeneratorCoreNodeJsExe Include="$(MSBuildThisFileDirectory)..\..\..\Node.js.redist\*\tools\win-x64\node.exe"/>
-      <_ViewGeneratorCoreNodeJsExe Include="$(MSBuildThisFileDirectory)..\..\Node.js.redist*\tools\win-x64\node.exe"/>
-    </ItemGroup>
-    <PropertyGroup>
-      <__ViewGeneratorCoreNodeJsExe>@(_ViewGeneratorCoreNodeJsExe);</__ViewGeneratorCoreNodeJsExe>
-      <ViewGeneratorCoreNodeJsExe>$(__ViewGeneratorCoreNodeJsExe.Substring(0, $(__ViewGeneratorCoreNodeJsExe.IndexOf(';'))))</ViewGeneratorCoreNodeJsExe>
-    </PropertyGroup>
-  </Target>
-  
-  <Target Name="VGC_GenerateView" BeforeTargets="TransformDuringBuild;PrepareForBuild;CoreCompile" DependsOnTargets="VGC_SetVariables;VGC_CleanGenerated">
+  <Target Name="GenerateView" BeforeTargets="TransformDuringBuild;PrepareForBuild;CoreCompile" DependsOnTargets="CleanGenerated">
     <Message Importance="Normal" Text="Generating View files" />
-    <Exec Command="&quot;$(ViewGeneratorCoreNodeJsExe)&quot; &quot;$(MSBuildThisFileDirectory)..\tools\node_modules\@outsystems\ts2lang\ts2lang-main.js&quot; -f &quot;$(MSBuildProjectDirectory)\ts2lang.json&quot; -t &quot;$(MSBuildThisFileDirectory)..\tools\ViewGenerator.js&quot;" />
+    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(MSBuildThisFileDirectory)..\tools\node_modules\@outsystems\ts2lang\ts2lang-main.js&quot; -f &quot;$(MSBuildProjectDirectory)\ts2lang.json&quot; -t &quot;$(MSBuildThisFileDirectory)..\tools\ViewGenerator.js&quot;" />
   </Target>
 
-  <Target Name="VGC_IncludeGeneratedFiles" BeforeTargets="PrepareForBuild;CoreCompile">
+  <Target Name="IncludeGeneratedFiles" BeforeTargets="PrepareForBuild;CoreCompile">
     <ItemGroup>
       <Compile Include="$(ViewGeneratorGeneratedFolder)\**\*.cs" />
     </ItemGroup>
   </Target>
   
-  <Target Name="VGC_CleanGenerated">
+  <Target Name="CleanGenerated">
     <ItemGroup>
       <GeneratedTs2LangFiles Include="$(ViewGeneratorGeneratedFolder)\**\*.cs" />
     </ItemGroup>

@@ -1,7 +1,7 @@
 ﻿{
     "compilerOptions": {
         "outDir": ".",
-        "module": "amd",
+        "module": "es6",
         "target": "es2017",
         "sourceMap": false,
         "moduleResolution": "node",
@@ -11,15 +11,13 @@
         "noImplicitReturns": true,
         "noImplicitThis": true,
         "strictNullChecks": true,
-        "noImplicitAny": false,
+        "noImplicitAny": true,
         "suppressImplicitAnyIndexErrors": true,
-        "removeComments": true,
-        "allowSyntheticDefaultImports": true,
-        "outFile": "_Loader.js",
-        "allowUmdGlobalAccess": true
+        "removeComments": true
     },
-    "compileOnSave": false,
+    "compileOnSave": true,
     "exclude": [
+        "libs",
         "node_modules"
     ]
 }

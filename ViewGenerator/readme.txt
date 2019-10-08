@@ -12,10 +12,11 @@ Edit your .csproj file and search for the following:
 
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
 
-Add the following snippet to your csproj file with the path of the folder where to place the C# generated files (optional):
+Add the following snippet to your csproj file with the path of the nodejs executable and the folder where to place the C# generated files (optional):
 
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
+      <ViewGeneratorNodeJsExe>$(ProjectDir)CustomNodeJs\node.exe</ViewGeneratorNodeJsExe>
 	  <ViewGeneratorGeneratedFolder>Generated</ViewGeneratorGeneratedFolder>
     </PropertyGroup>
 
