@@ -40,7 +40,7 @@
     </PropertyGroup>
   </Target>
   
-  <Target Name="VGC_GenerateView" Condition="$(DesignTimeBuild) != true And $(BuildingProject) == true" BeforeTargets="TransformDuringBuild;PrepareForBuild;CoreCompile" DependsOnTargets="VGC_SetVariables;VGC_CleanGenerated">
+  <Target Name="VGC_GenerateView" Condition="'$(UsingMicrosoftNETSdk)' != 'true' Or ($(DesignTimeBuild) != 'true' And $(BuildingProject) == 'true')" BeforeTargets="TransformDuringBuild;PrepareForBuild;CoreCompile" DependsOnTargets="VGC_SetVariables;VGC_CleanGenerated">
     <Message Importance="Normal" Text="Generating View files" />
     <Exec Command="&quot;$(ViewGeneratorCoreNodeJsExe)&quot; &quot;$(MSBuildThisFileDirectory)..\tools\node_modules\@outsystems\ts2lang\ts2lang-main.js&quot; -f &quot;$(MSBuildProjectDirectory)\ts2lang.json&quot; -t &quot;$(MSBuildThisFileDirectory)..\tools\ViewGenerator.js&quot;" />
   </Target>
