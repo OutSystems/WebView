@@ -384,6 +384,7 @@ namespace WebViewControl {
         }
 
         public bool IsSecurityDisabled {
+            get => chromium.BrowserSettings.WebSecurity == CefState.Disabled;
             set {
                 var settings = chromium.BrowserSettings;
                 if (settings == null || settings.IsDisposed) {
@@ -467,8 +468,8 @@ namespace WebViewControl {
         /// Unregisters an object with the specified name in the window context of the browser
         /// </summary>
         /// <param name="name"></param>
-        public bool UnregisterJavascriptObject(string name) {
-            return chromium.JavascriptObjectRepository.UnRegister(name);
+        public void UnregisterJavascriptObject(string name) {
+            chromium.JavascriptObjectRepository.UnRegister(name);
         }
 
         public T EvaluateScript<T>(string script, string frameName = MainFrameName, TimeSpan? timeout = null) {
@@ -610,7 +611,7 @@ namespace WebViewControl {
             TitleChanged?.Invoke();
         }
 
-        public static void SetCookie(string url, string domain, string name, string value, DateTime expires) {
+        internal static void SetCookie(string url, string domain, string name, string value, DateTime expires) {
             var cookie = new Cookie() {
                 Domain = domain,
                 Name = name,
@@ -730,7 +731,7 @@ namespace WebViewControl {
 
         public static bool EnableErrorLogOnly { get; set; } = false;
 
-        public static bool DisableGPU { get; set; } = false;
+        internal static bool DisableGPU { get; set; } = false;
 
         internal bool IsDisposing => isDisposing;
 

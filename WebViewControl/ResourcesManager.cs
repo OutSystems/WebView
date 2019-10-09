@@ -76,6 +76,11 @@ namespace WebViewControl {
 
         public static string GetMimeType(string resourceName) {
             var extension = Path.GetExtension(resourceName);
+            return GetExtensionMimeType(extension);
+        }
+
+        public static string GetExtensionMimeType(string extension) {
+            extension = string.IsNullOrEmpty(extension) ? "html" : extension.TrimStart('.');
             return CefSharp.ResourceHandler.GetMimeType(extension);
         }
     }
