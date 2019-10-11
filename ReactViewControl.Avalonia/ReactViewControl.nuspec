@@ -7,10 +7,10 @@
     <authors>$authors$</authors>
     <owners>OutSystems</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Description</description>
+    <description>$description$</description>
     <copyright>$copyright$</copyright>
     <dependencies>
-      <dependency id="WebViewControl-Avalonia" version="2.75.2" />
+      <dependency id="WebViewControl-Avalonia" version="2.75.3" />
     </dependencies>
   </metadata>
 </package>

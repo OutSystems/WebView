@@ -107,6 +107,7 @@ namespace WebViewControl {
             cefSettings.LogFile = LogFile;
             cefSettings.UncaughtExceptionStackSize = 100; // enable stack capture
             cefSettings.RootCachePath = CachePath; // enable cache for external resources to speedup loading
+            cefSettings.BrowserSubprocessPath = CefLoader.GetBrowserSubProcessPath();
 
             var customSchemes = CustomSchemes.Select(s => new CustomScheme() { SchemeName = s, SchemeHandlerFactory = new SchemeHandlerFactory() }).ToArray();
 

@@ -11,7 +11,7 @@
     <Product>WebViewControl</Product>
     <Copyright>Copyright ©  2019</Copyright>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.75.3</Version>
+    <Version>2.75.8</Version>
     <PackageId>WebViewControl-WPF</PackageId>
     <Authors>OutSystems</Authors>
     <PackageOutputPath>$(MSBuildProjectDirectory)\..\nuget</PackageOutputPath>
@@ -42,11 +42,19 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference PrivateAssets="None" Include="CefGlue.Wpf" Version="75.1.17" />
+    <PackageReference PrivateAssets="None" Include="CefGlue.Wpf" Version="75.1.24" />
+    <PackageReference Include="InjectModuleInitializer" Version="2.0.3">
+      <PrivateAssets>all</PrivateAssets>
+      <ExcludeAssets>all</ExcludeAssets>
+    </PackageReference>
   </ItemGroup>
-  
+    
   <PropertyGroup>
     <PreBuildEvent>"$(MSBuildProjectDirectory)\..\kill_testsengine.bat"</PreBuildEvent>
   </PropertyGroup>
   
+  <Target Name="InjectModuleInitializer" AfterTargets="AfterBuild">
+    <Exec Command="..\packages\injectmoduleinitializer\2.0.3\tools\net35\InjectModuleInitializer.exe &quot;$(TargetPath)&quot;" />
+  </Target>
+    
 </Project>

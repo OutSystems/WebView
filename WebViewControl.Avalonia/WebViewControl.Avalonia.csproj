@@ -12,7 +12,7 @@
     <Product>WebViewControl</Product>
     <Copyright>Copyright ©  2019</Copyright>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.75.2</Version>
+    <Version>2.75.3</Version>
     <PackageId>WebViewControl-Avalonia</PackageId>
     <Authors>OutSystems</Authors>
     <PackageOutputPath>$(MSBuildProjectDirectory)\..\nuget</PackageOutputPath>
@@ -21,9 +21,11 @@
   <ItemGroup>
     <Compile Include="..\WebViewControl\AsyncResourceHandler.cs" Link="AsyncResourceHandler.cs" />
     <Compile Include="..\WebViewControl\BrowserObjectListener.cs" Link="BrowserObjectListener.cs" />
+    <Compile Include="..\WebViewControl\CefLoader.cs" Link="CefLoader.cs" />
     <Compile Include="..\WebViewControl\ChromiumBrowser.cs" Link="ChromiumBrowser.cs" />
     <Compile Include="..\WebViewControl\JavascriptSerializationHelper.cs" Link="JavascriptSerializationHelper.cs" />
     <Compile Include="..\WebViewControl\Listener.cs" Link="Listener.cs" />
+    <Compile Include="..\WebViewControl\ModuleInitializer.cs" Link="ModuleInitializer.cs" />
     <Compile Include="..\WebViewControl\ProxyAuthentication.cs" Link="ProxyAuthentication.cs" />
     <Compile Include="..\WebViewControl\RenderProcessTerminatedException.cs" Link="RenderProcessTerminatedException.cs" />
     <Compile Include="..\WebViewControl\Request.cs" Link="Request.cs" />
@@ -48,7 +50,15 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia" Version="0.8.2" />
-    <PackageReference PrivateAssets="None" Include="CefGlue.Avalonia" Version="75.1.17" />
+    <PackageReference PrivateAssets="None" Include="CefGlue.Avalonia" Version="75.1.24" />
+    <PackageReference Include="InjectModuleInitializer" Version="2.0.3">
+      <PrivateAssets>all</PrivateAssets>
+      <ExcludeAssets>all</ExcludeAssets>
+    </PackageReference>
   </ItemGroup>
+
+  <Target Name="InjectModuleInitializer" AfterTargets="AfterBuild">
+    <Exec Command="..\packages\injectmoduleinitializer\2.0.3\tools\net35\InjectModuleInitializer.exe &quot;$(TargetPath)&quot;" />
+  </Target>
 
 </Project>

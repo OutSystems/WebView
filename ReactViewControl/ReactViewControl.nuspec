@@ -7,10 +7,10 @@
     <authors>$authors$</authors>
     <owners>OutSystems</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Description</description>
+    <description>$description$</description>
     <copyright>$copyright$</copyright>
     <dependencies>
-      <dependency id="WebViewControl-WPF" version="2.75.2" />
+      <dependency id="WebViewControl-WPF" version="2.75.8" />
     </dependencies>
   </metadata>
 </package>

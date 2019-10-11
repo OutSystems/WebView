@@ -7,10 +7,10 @@
     <authors>$authors$</authors>
     <owners>OutSystems</owners>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <description>Description</description>
+    <description>$description$</description>
     <copyright>$copyright$</copyright>
     <dependencies>
-      <dependency id="CefGlue.Wpf" version="75.1.17" />
+      <dependency id="CefGlue.Wpf" version="75.1.24" />
     </dependencies>
   </metadata>
 </package>
