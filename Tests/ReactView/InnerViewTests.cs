@@ -2,6 +2,7 @@
 
 namespace Tests.ReactView {
 
+    [Ignore("Needs browser setup")]
     public class InnerViewTests : ReactViewTestBase {
 
         protected override void InitializeView() {
