@@ -4,6 +4,7 @@ using WebViewControl;
 
 namespace Tests.ReactView {
 
+    [Ignore("Needs browser setup")]
     public class DefaultStyleSheetLoadTests : ReactViewTestBase {
 
         protected class ViewFactoryWithStyleSheet : TestReactViewFactory {
