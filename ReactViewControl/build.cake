@@ -85,22 +85,16 @@ var packageNuspecFile = Task("Package")
     .Does(()=>
     {
         Information("Starting Package");
-        if(nuspecFilePath!=null){
+
+        if(csprojFilePath != null) {
             var settings = new NuGetPackSettings();
-            
             if(packageRootPath.EndsWithIgnoreCase("\\") || packageRootPath.EndsWithIgnoreCase("/"))
                 settings.OutputDirectory =  packageRootPath+@"artifacts\";
             else
                 settings.OutputDirectory =  packageRootPath+@"\artifacts\";
-            NuGetPack(nuspecFilePath,settings);
-        }else{
-            var settings = new DotNetCorePackSettings();
-            settings.Configuration = configuration;
-            if(packageRootPath.EndsWithIgnoreCase("\\") || packageRootPath.EndsWithIgnoreCase("/"))
-                settings.OutputDirectory =  packageRootPath+@"artifacts\";
-            else
-                settings.OutputDirectory =  packageRootPath+@"\artifacts\";
-            DotNetCorePack(csprojFilePath,settings);
+
+            settings.IncludeReferencedProjects =  true;
+            NuGetPack(csprojFilePath,settings);
         }
          
         Information("Ending Package");

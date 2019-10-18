@@ -2,6 +2,6 @@
 	"slnFilePath": "../WebView.sln",
 	"configuration": "Release",
 	"testsdllFilePath": "../Release/Tests.dll",
-	"nuspecFilePath": "ReactViewControl.nuspec",
+	"csprojFilePath": "./ReactViewControl.csproj",
 	"packageRootPath":"../"
 }
