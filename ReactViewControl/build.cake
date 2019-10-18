@@ -21,7 +21,11 @@ var config=Task("Configuration")
         Information("Starting Configuration");
         var conf = ParseJsonFromFile("config.json");
         if(conf["csprojFilePath"]!=null){
-            csprojFilePath=solutionPath=conf["csprojFilePath"].ToString();
+            csprojFilePath=conf["csprojFilePath"].ToString();
+            if(conf["slnFilePath"]!=null)
+                solutionPath=conf["slnFilePath"].ToString();
+            else
+                solutionPath=conf["csprojFilePath"].ToString();
         }
         else if(conf["slnFilePath"]!=null)
             solutionPath=conf["slnFilePath"].ToString();
