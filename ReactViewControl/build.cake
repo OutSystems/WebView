@@ -98,7 +98,7 @@ var packageNuspecFile = Task("Package")
                 settings.OutputDirectory =  packageRootPath+@"\artifacts\";
 
             settings.IncludeReferencedProjects =  true;
-            settings.ArgumentCustomization = args => args.Append("-Prop Configuration=" + configuration)
+            settings.ArgumentCustomization = args => args.Append("-Prop Configuration=" + configuration);
             NuGetPack(csprojFilePath,settings);
         }
          
