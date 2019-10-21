@@ -63,9 +63,10 @@ var build = Task("Build")
     .Does(()=>
     {
         Information("Starting Build");
-        MSBuild(solutionPath, settings =>
-            settings.SetConfiguration(configuration)
-        );
+        MSBuild(solutionPath, settings => {
+            settings.WithTarget("Rebuild");
+            settings.SetConfiguration(configuration);
+        });
         Information("Ending Build");
     });
 
