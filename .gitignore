@@ -35,7 +35,9 @@ ViewPacker/tools/node_modules/
 !ReactViewResources/AMDLoader/AMDLoaderExports.js
 Example/.wpcache/
 Example/global.d.ts
-ReactViewControl/tools/
-ReactViewResources/tools/
-WebViewControl/tools/
+ReactViewControl/cake_tools/
+ReactViewResources/cake_tools/
+WebViewControl/cake_tools/
+ViewGenerator/cake_tools/
 ViewGeneratorCore/cake_tools/
+ViewPacker/cake_tools/

@@ -1,7 +1,7 @@
 {
+	"slnFilePath": "../WebView.sln",
 	"csprojFilePath": "./ViewGeneratorCore.csproj",
 	"configuration": "Release",
-	"testsdllFilePath": "../Release/Tests.dll",
 	"nuspecFilePath": "ViewGeneratorCore.nuspec",
 	"packageRootPath":"../"
 }
