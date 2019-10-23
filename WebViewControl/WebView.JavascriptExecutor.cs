@@ -238,15 +238,15 @@ namespace WebViewControl {
 
             private T GetResult<T>(object result) {
                 var targetType = typeof(T);
-                if (IsBasicType(targetType)) {
-                    if (result == null) {
-                        return default(T);
+                if (result == null) {
+                    if (targetType.IsArray) {
+                        // return empty arrays when value is null and return type is array
+                        return (T)(object)Array.CreateInstance(targetType.GetElementType(), 0);
                     }
-                    return (T)result;
+                    return default(T); // return default T (its safer, because we allow returning null and converting into a default struct value)
                 }
-                if (result == null && targetType.IsArray) {
-                    // return empty arrays when value is null and return type is array
-                    return (T)(object)Array.CreateInstance(targetType.GetElementType(), 0);
+                if (IsBasicType(targetType)) {
+                    return (T)result;
                 }
                 return (T)OwnerWebView.Binder.Bind(result, targetType);
             }
