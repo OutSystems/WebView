@@ -4,6 +4,7 @@ using NUnit.Framework;
 
 namespace Tests.WebView {
 
+    [Ignore("Needs browser setup")]
     public class RequestInterception : WebViewTestBase {
 
         private const string ResourceJs = "resource.js";

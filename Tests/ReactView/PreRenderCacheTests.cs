@@ -5,6 +5,7 @@ using NUnit.Framework;
 
 namespace Tests.ReactView {
 
+    [Ignore("Needs browser setup")]
     public class ReactViewPreRenderCacheTests : TestBase<TestReactView> {
 
         protected override TestReactView CreateView() {

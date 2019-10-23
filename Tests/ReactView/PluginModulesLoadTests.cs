@@ -4,6 +4,7 @@ using WebViewControl;
 
 namespace Tests.ReactView {
 
+    [Ignore("Needs browser setup")]
     public class PluginModulesLoadTests : ReactViewTestBase {
 
         private class ViewFactoryWithPlugin : TestReactViewFactory {
