@@ -3,6 +3,5 @@
 	"csprojFilePath": "./WebViewControl.csproj",
 	"configuration": "Release",
 	"testsdllFilePath": "../Release/Tests.dll",
-	"nuspecFilePath": "WebViewControl.nuspec",
 	"packageRootPath":"../"
 }

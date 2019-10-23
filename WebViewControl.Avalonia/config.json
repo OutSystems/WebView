@@ -3,6 +3,5 @@
 	"csprojFilePath": "./WebViewControl.Avalonia.csproj",
 	"configuration": "Release",
 	"testsdllFilePath": "../Release/Tests.dll",
-	"nuspecFilePath": "WebViewControl.nuspec",
 	"packageRootPath":"../"
 }
