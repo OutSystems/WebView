@@ -29,7 +29,7 @@ namespace WebViewControl {
 
         private const string AboutBlankUrl = "about:blank";
 
-        internal const string MainFrameName = null;
+        private const string MainFrameName = null;
 
         private static string[] CustomSchemes { get; } = new[] {
             ResourceUrl.LocalScheme,
@@ -276,7 +276,7 @@ namespace WebViewControl {
         }
 
         public void LoadUrl(string address, string frameName) {
-            if (frameName == MainFrameName && address != DefaultLocalUrl) {
+            if (IsMainFrame(frameName) && address != DefaultLocalUrl) {
                 htmlToLoad = null;
             }
             if (address.Contains(Uri.SchemeDelimiter) || address == UrlHelper.AboutBlankUrl || address.StartsWith("data:")) {
@@ -285,7 +285,7 @@ namespace WebViewControl {
                     IsSecurityDisabled = true;
                 }
 
-                if (frameName == MainFrameName) {
+                if (IsMainFrame(frameName)) {
                     chromium.Address = address;
                 } else {
                     GetFrame(frameName)?.LoadUrl(address);
@@ -605,7 +605,7 @@ namespace WebViewControl {
 
         public string[] GetFrameNames() {
             var browser = chromium.GetBrowser();
-            return browser?.GetFrameNames().Where(n => n != MainFrameName).ToArray() ?? new string[0];
+            return browser?.GetFrameNames().Where(n => !IsMainFrame(n)).ToArray() ?? new string[0];
         }
 
         internal bool HasFrame(string name) {
@@ -640,7 +640,7 @@ namespace WebViewControl {
                 lock (JsExecutors) {
                     var frameName = frame.Name;
 
-                    if (frameName == MainFrameName) {
+                    if (IsMainFrame(frameName)) {
                         // when a new main frame in created, dispose all running executors -> since they should not be valid anymore
                         // all child iframes were gone
                         DisposeJavascriptExecutors(JsExecutors.Where(je => !je.Value.IsValid).Select(je => je.Key).ToArray());
@@ -703,6 +703,10 @@ namespace WebViewControl {
             } else {
                 ShowDeveloperTools();
             }
+        }
+
+        internal static bool IsMainFrame(string frameName) {
+            return string.IsNullOrEmpty(frameName);
         }
     }
 }
