@@ -90,16 +90,8 @@ var packageNuspecFile = Task("Package")
     .Does(()=>
     {
         Information("Starting Package");
-        if(nuspecFilePath!=null){
-            var settings = new NuGetPackSettings();
-            
-            if(packageRootPath.EndsWithIgnoreCase("\\") || packageRootPath.EndsWithIgnoreCase("/"))
-                settings.OutputDirectory =  packageRootPath+@"artifacts\";
-            else
-                settings.OutputDirectory =  packageRootPath+@"\artifacts\";
-            settings.ArgumentCustomization = args => args.Append("-Prop Configuration=" + configuration);
-            NuGetPack(nuspecFilePath,settings);
-        }else{
+
+        if(csprojFilePath != null){
             var settings = new DotNetCorePackSettings();
             settings.Configuration = configuration;
             if(packageRootPath.EndsWithIgnoreCase("\\") || packageRootPath.EndsWithIgnoreCase("/"))

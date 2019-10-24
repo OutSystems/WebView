@@ -40,3 +40,11 @@ Example.Avalonia/Generated/
 Example.Avalonia/node_modules/
 Example.Avalonia/viewgenerator.cache
 Example.Avalonia/global.d.ts
+ReactViewControl/cake_tools
+ReactViewControl.Avalonia/cake_tools
+ReactViewResources/cake_tools
+WebViewControl/cake_tools
+WebViewControl.Avalonia/cake_tools
+ViewGenerator/cake_tools
+ViewGeneratorCore/cake_tools
+ViewPacker/cake_tools
