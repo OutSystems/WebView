@@ -10,7 +10,7 @@
     <description>$description$</description>
     <copyright>$copyright$</copyright>
     <dependencies>
-      <dependency id="WebViewControl-WPF" version="2.75.8" />
+      <dependency id="WebViewControl-WPF" version="2.75.9" />
     </dependencies>
   </metadata>
 </package>
