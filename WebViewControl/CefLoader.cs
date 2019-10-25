@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 
 namespace Xilium.CefGlue {
@@ -28,10 +30,13 @@ namespace Xilium.CefGlue {
         /// </summary>
         public static string GetBrowserSubProcessPath() {
             const string BrowserProcessName = "Xilium.CefGlue.BrowserProcess.exe";
-            var path = Path.Combine("x64", BrowserProcessName);
-            if (!File.Exists(path)) {
-                throw new FileNotFoundException("Unable to locate", path);
+
+            var path = GetProbingPaths().Select(p => Path.Combine(p, BrowserProcessName)).FirstOrDefault(File.Exists);
+
+            if (path == null) {
+                throw new FileNotFoundException("Unable to locate", BrowserProcessName);
             }
+
             return path;
         }
 
@@ -39,21 +44,22 @@ namespace Xilium.CefGlue {
         {
             if (args.Name.StartsWith("Xilium.CefGlue")) {
                 var assemblyName = args.Name.Split(new[] { ',' }, 2)[0] + ".dll";
-                var archSpecificPath = Path.Combine(GetBasePath(), "x64", assemblyName);
+                if (!assemblyName.EndsWith(".resources.dll")) {
+                    var archSpecificPath = GetProbingPaths().Select(p => Path.Combine(p, assemblyName)).FirstOrDefault(File.Exists);
 
-                if (!File.Exists(archSpecificPath)) {
-                    if (!archSpecificPath.EndsWith(".resources.dll")) {
-                        throw new FileNotFoundException("Unable to locate", archSpecificPath);
+                    if (archSpecificPath == null) {
+                        throw new FileNotFoundException("Unable to locate", assemblyName);
                     }
-                } else {
+
                     return Assembly.LoadFile(archSpecificPath);
                 }
             }
             return null;
         }
 
-        private static string GetBasePath() {
-            return Path.GetDirectoryName(typeof(CefLoader).Assembly.Location);
+        private static IEnumerable<string> GetProbingPaths() {
+            var basePath = Path.GetDirectoryName(typeof(CefLoader).Assembly.Location); ;
+            yield return Path.Combine(basePath, "x64");
         }
     }
 }

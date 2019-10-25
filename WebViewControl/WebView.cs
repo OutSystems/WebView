@@ -280,13 +280,14 @@ namespace WebViewControl {
                 htmlToLoad = null;
             }
             if (address.Contains(Uri.SchemeDelimiter) || address == UrlHelper.AboutBlankUrl || address.StartsWith("data:")) {
-                if (CustomSchemes.Any(s => address.StartsWith(s + Uri.SchemeDelimiter))) {
+                if (!IsBrowserInitialized && CustomSchemes.Any(s => address.StartsWith(s + Uri.SchemeDelimiter))) {
                     // custom schemes -> turn off security ... to enable full access without problems to local resources
                     IsSecurityDisabled = true;
                 }
 
                 if (IsMainFrame(frameName)) {
-                    chromium.Address = address;
+                    // execute when initialized, otherwise navigation will be aborted
+                    ExecuteWhenInitialized(() => chromium.Address = address);
                 } else {
                     GetFrame(frameName)?.LoadUrl(address);
                 }
@@ -482,11 +483,13 @@ namespace WebViewControl {
 
         private void OnWebViewBrowserInitialized() {
             if (chromium.IsBrowserInitialized) {
-                if (pendingInitialization != null) {
-                    pendingInitialization();
-                    pendingInitialization = null;
-                }
-                WebViewInitialized?.Invoke();
+                AsyncExecuteInUI(() => {
+                    if (pendingInitialization != null) {
+                        pendingInitialization();
+                        pendingInitialization = null;
+                    }
+                    WebViewInitialized?.Invoke();
+                });
             } else {
                 Dispose();
             }
