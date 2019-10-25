@@ -92,15 +92,14 @@ var packageNuspecFile = Task("Package")
         Information("Starting Package");
 
         if(csprojFilePath != null) {
-            var settings = new NuGetPackSettings();
+
+            var settings = new DotNetCorePackSettings();
+            settings.Configuration = configuration;
             if(packageRootPath.EndsWithIgnoreCase("\\") || packageRootPath.EndsWithIgnoreCase("/"))
                 settings.OutputDirectory =  packageRootPath+@"artifacts\";
             else
                 settings.OutputDirectory =  packageRootPath+@"\artifacts\";
-
-            settings.IncludeReferencedProjects =  true;
-            settings.ArgumentCustomization = args => args.Append("-Prop Configuration=" + configuration);
-            NuGetPack(csprojFilePath,settings);
+            DotNetCorePack(csprojFilePath,settings);
         }
          
         Information("Ending Package");
