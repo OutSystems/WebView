@@ -4,6 +4,7 @@ using WebViewControl;
 
 namespace Tests.WebView {
 
+    [Ignore("Needs browser setup")]
     public class ResourcesLoading : WebViewTestBase {
 
         [Test(Description = "Html load encoding is well handled")]

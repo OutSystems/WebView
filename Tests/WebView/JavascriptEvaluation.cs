@@ -6,6 +6,7 @@ using JavascriptException = WebViewControl.WebView.JavascriptException;
 
 namespace Tests.WebView {
 
+    [Ignore("Needs browser setup")]
     public class JavascriptEvaluation : WebViewTestBase {
 
         [Test(Description = "A simple script evaluates correctly")]
