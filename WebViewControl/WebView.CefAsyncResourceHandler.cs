@@ -6,18 +6,17 @@ namespace WebViewControl {
 
     partial class WebView {
 
-        internal class CefAsyncResourceHandler : CefSharp.ResourceHandler {
+        internal class CefAsyncResourceHandler : CefSharp.ResourceHandler, IResourceHandler {
 
             private ICallback responseCallback;
             private string redirectUrl;
 
-            public override bool ProcessRequestAsync(IRequest request, ICallback callback) {
+            public override CefReturnValue ProcessRequestAsync(IRequest request, ICallback callback) {
                 if (Stream == null && string.IsNullOrEmpty(redirectUrl)) {
                     responseCallback = callback;
-                } else {
-                    callback.Continue();
+                    return CefReturnValue.ContinueAsync;
                 }
-                return true;
+                return CefReturnValue.Continue;
             }
 
             public void SetResponse(Stream response, string mimeType = CefSharp.ResourceHandler.DefaultMimeType, bool autoDisposeStream = false) {
@@ -35,16 +34,33 @@ namespace WebViewControl {
             }
 
             public void Continue() {
-                responseCallback?.Continue();
+                if (responseCallback != null) {
+                    using (responseCallback) {
+                        responseCallback.Continue();
+                    }
+                }
             }
 
-            public override Stream GetResponse(IResponse response, out long responseLength, out string redirectUrl) {
-                if (!string.IsNullOrEmpty(this.redirectUrl)) {
-                    responseLength = 0;
-                    redirectUrl = this.redirectUrl;
-                    return null;
+            void IResourceHandler.GetResponseHeaders(IResponse response, out long responseLength, out string redirectUrl) {
+                // copied from cefsharp implementation, because there's no overridable method
+                redirectUrl = this.redirectUrl;
+                responseLength = -1;
+
+                response.MimeType = MimeType;
+                response.StatusCode = StatusCode;
+                response.StatusText = StatusText;
+                response.Headers = Headers;
+
+                if (!string.IsNullOrEmpty(Charset)) {
+                    response.Charset = Charset;
                 }
-                return base.GetResponse(response, out responseLength, out redirectUrl);
+
+                if (ResponseLength.HasValue) {
+                    responseLength = ResponseLength.Value;
+                } else if (Stream != null && Stream.CanSeek) {
+                    //If no ResponseLength provided then attempt to infer the length
+                    responseLength = Stream.Length;
+                }
             }
         }
     }

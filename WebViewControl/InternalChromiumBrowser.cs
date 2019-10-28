@@ -1,4 +1,4 @@
-﻿using System.Windows;
+﻿using System;
 using System.Windows.Input;
 using CefSharp.Wpf;
 
@@ -12,7 +12,13 @@ namespace WebViewControl {
         }
 
         internal void CreateBrowser() {
-            CreateOffscreenBrowser(new Size(200, 200));
+            CreateOffscreenBrowser(new System.Windows.Size(200, 200));
+        }
+
+        protected override CefSharp.Structs.Rect GetViewRect() {
+            // prevent returning negative values that will cause cef crash https://github.com/cefsharp/CefSharp/pull/2879#pullrequestreview-295628479
+            var rect = base.GetViewRect();
+            return new CefSharp.Structs.Rect(rect.X, rect.Y, Math.Max(0, rect.Width), Math.Max(0, rect.Height));
         }
     }
 }

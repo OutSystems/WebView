@@ -18,8 +18,8 @@ using CefSharp.Wpf;
 
 namespace WebViewControl {
 
-    public delegate void BeforeNavigateEventHandler(WebView.Request request);
-    public delegate void BeforeResourceLoadEventHandler(WebView.ResourceHandler resourceHandler);
+    public delegate void BeforeNavigateEventHandler(Request request);
+    public delegate void BeforeResourceLoadEventHandler(ResourceHandler resourceHandler);
     public delegate void NavigatedEventHandler(string url, string frameName);
     public delegate void LoadFailedEventHandler(string url, int errorCode, string frameName);
     public delegate void ResourceLoadFailedEventHandler(string resourceUrl);
@@ -57,10 +57,10 @@ namespace WebViewControl {
         private bool isDeveloperToolsOpened = false;
         private Action pendingInitialization;
         private CefLifeSpanHandler lifeSpanHandler;
-        private CefResourceHandlerFactory resourceHandlerFactory;
         private string htmlToLoad;
         private volatile bool isDisposing;
         private volatile int javascriptPendingCalls;
+        private IDisposable[] disposables;
 
         private DefaultBinder Binder { get; } = new DefaultBinder(new DefaultFieldNameConverter());
         private BrowserObjectListener EventsListener { get; } = new BrowserObjectListener();
@@ -114,7 +114,7 @@ namespace WebViewControl {
                 cefSettings.LogSeverity = string.IsNullOrWhiteSpace(LogFile) ? LogSeverity.Disable : (EnableErrorLogOnly ? LogSeverity.Error : LogSeverity.Verbose);
                 cefSettings.LogFile = LogFile;
                 cefSettings.UncaughtExceptionStackSize = 100; // enable stack capture
-                cefSettings.CachePath = CachePath; // enable cache for external resources to speedup loading
+                cefSettings.RootCachePath = CachePath; // enable cache for external resources to speedup loading
                 cefSettings.WindowlessRenderingEnabled = true;
 
                 if (DisableGPU) {
@@ -128,8 +128,7 @@ namespace WebViewControl {
 
                 foreach (var scheme in CustomSchemes) {
                     cefSettings.RegisterScheme(new CefCustomScheme() {
-                        SchemeName = scheme,
-                        SchemeHandlerFactory = new CefSchemeHandlerFactory()
+                        SchemeName = scheme
                     });
                 }
 
@@ -203,7 +202,6 @@ namespace WebViewControl {
             }
 
             lifeSpanHandler = new CefLifeSpanHandler(this);
-            resourceHandlerFactory = new CefResourceHandlerFactory(this);
 
             chromium = new InternalChromiumBrowser();
             chromium.IsBrowserInitializedChanged += OnWebViewIsBrowserInitializedChanged;
@@ -212,13 +210,18 @@ namespace WebViewControl {
             chromium.TitleChanged += OnWebViewTitleChanged;
             chromium.PreviewKeyDown += OnPreviewKeyDown;
             chromium.RequestHandler = new CefRequestHandler(this);
-            chromium.ResourceHandlerFactory = resourceHandlerFactory;
             chromium.LifeSpanHandler = lifeSpanHandler;
             chromium.RenderProcessMessageHandler = new CefRenderProcessMessageHandler(this);
             chromium.MenuHandler = new CefMenuHandler(this);
             chromium.DialogHandler = new CefDialogHandler(this);
             chromium.DownloadHandler = new CefDownloadHandler(this);
             chromium.CleanupElement = new FrameworkElement(); // prevent chromium to listen to default cleanup element unload events, this will be controlled manually
+
+            disposables = new[] {
+                AsyncCancellationTokenSource,
+                (IDisposable) chromium.RequestHandler,
+                chromium
+            };
 
             RegisterJavascriptObject(Listener.EventListenerObjName, EventsListener);
 
@@ -278,8 +281,6 @@ namespace WebViewControl {
                 RenderProcessCrashed = null;
                 JavascriptContextReleased = null;
 
-                resourceHandlerFactory?.Dispose();
-
                 try {
                     foreach (var jsExecutor in JsExecutors.Values) {
                         jsExecutor.Dispose();
@@ -288,8 +289,11 @@ namespace WebViewControl {
                     throw new Exception("Exception ocurred while disposing " + nameof(JsExecutors), e);
                 }
 
-                chromium?.Dispose();
-                AsyncCancellationTokenSource.Dispose();
+                if (disposables != null) {
+                    foreach (var disposable in disposables) {
+                        disposable.Dispose();
+                    }
+                }
 
                 Disposed?.Invoke();
             }
@@ -348,7 +352,7 @@ namespace WebViewControl {
             }
             if (address.Contains(Uri.SchemeDelimiter) || address == AboutBlankUrl || address.StartsWith("data:")) {
                 var settings = chromium.BrowserSettings;
-                if (settings != null /* TODO uncomment after upgrade to 71+ && !settings.IsDisposed*/) {
+                if (settings != null && !settings.IsDisposed) {
                     if (CustomSchemes.Any(s => address.StartsWith(s + Uri.SchemeDelimiter))) {
                         // custom schemes -> turn off security ... to enable full access without problems to local resources
                         IsSecurityDisabled = true;
@@ -380,9 +384,10 @@ namespace WebViewControl {
         }
 
         public bool IsSecurityDisabled {
+            get => chromium.BrowserSettings.WebSecurity == CefState.Disabled;
             set {
                 var settings = chromium.BrowserSettings;
-                if (settings == null /* TODO uncomment after upgrade to 71+ || settings.IsDisposed*/) {
+                if (settings == null || settings.IsDisposed) {
                     throw new InvalidOperationException("Cannot change webview settings after initialized");
                 }
                 settings.WebSecurity = (value ? CefState.Disabled : CefState.Enabled);
@@ -417,24 +422,19 @@ namespace WebViewControl {
         /// <param name="name"></param>
         /// <param name="objectToBind"></param>
         /// <param name="interceptCall"></param>
-        /// <param name="bind"></param>
         /// <param name="executeCallsInUI"></param>
         /// <returns>True if the object was registered or false if the object was already registered before</returns>
-        public bool RegisterJavascriptObject(string name, object objectToBind, Func<Func<object>, object> interceptCall = null, Func<object, Type, object> bind = null, bool executeCallsInUI = false) {
+        public bool RegisterJavascriptObject(string name, object objectToBind, Func<Func<object>, object> interceptCall = null, bool executeCallsInUI = false) {
             if (chromium.JavascriptObjectRepository.IsBound(name)) {
                 return false;
             }
 
             if (executeCallsInUI) {
-                return RegisterJavascriptObject(name, objectToBind, target => Dispatcher.Invoke(target), bind, false);
+                return RegisterJavascriptObject(name, objectToBind, target => Dispatcher.Invoke(target), false);
 
             } else {
                 var bindingOptions = new BindingOptions();
-                if (bind != null) {
-                    bindingOptions.Binder = new LambdaMethodBinder(bind);
-                } else {
-                    bindingOptions.Binder = Binder;
-                }
+                bindingOptions.Binder = Binder;
 
                 if (interceptCall == null) {
                     interceptCall = target => target();
@@ -468,8 +468,8 @@ namespace WebViewControl {
         /// Unregisters an object with the specified name in the window context of the browser
         /// </summary>
         /// <param name="name"></param>
-        public bool UnregisterJavascriptObject(string name) {
-            return chromium.JavascriptObjectRepository.UnRegister(name);
+        public void UnregisterJavascriptObject(string name) {
+            chromium.JavascriptObjectRepository.UnRegister(name);
         }
 
         public T EvaluateScript<T>(string script, string frameName = MainFrameName, TimeSpan? timeout = null) {
@@ -611,7 +611,7 @@ namespace WebViewControl {
             TitleChanged?.Invoke();
         }
 
-        public static void SetCookie(string url, string domain, string name, string value, DateTime expires) {
+        internal static void SetCookie(string url, string domain, string name, string value, DateTime expires) {
             var cookie = new Cookie() {
                 Domain = domain,
                 Name = name,
@@ -619,10 +619,6 @@ namespace WebViewControl {
                 Expires = expires
             };
             Cef.GetGlobalCookieManager().SetCookieAsync(url, cookie);
-        }
-
-        public static string CookiesPath {
-            set { Cef.GetGlobalCookieManager().SetStoragePath(value, true); }
         }
 
         private bool FilterUrl(string url) {
@@ -735,7 +731,7 @@ namespace WebViewControl {
 
         public static bool EnableErrorLogOnly { get; set; } = false;
 
-        public static bool DisableGPU { get; set; } = false;
+        internal static bool DisableGPU { get; set; } = false;
 
         internal bool IsDisposing => isDisposing;
 
@@ -757,15 +753,6 @@ namespace WebViewControl {
         private void OnHostWindowClosed(object sender, EventArgs e) {
             ((Window)sender).Closed -= OnHostWindowClosed;
             Dispose();
-        }
-
-        protected void RegisterProtocolHandler(string protocol, CefResourceHandlerFactory handler) {
-            if (chromium.RequestContext == null) {
-                chromium.RequestContext = new RequestContext(new RequestContextSettings() {
-                    CachePath = CachePath
-                });
-            }
-            chromium.RequestContext.RegisterSchemeHandlerFactory(protocol, "", handler);
         }
 
         protected virtual string GetRequestUrl(string url, ResourceType resourceType) {

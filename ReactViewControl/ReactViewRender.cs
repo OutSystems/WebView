@@ -460,7 +460,7 @@ namespace ReactViewControl {
                     //}
                 }
             };
-            WebView.BeforeResourceLoad += (WebView.ResourceHandler resourceHandler) => {
+            WebView.BeforeResourceLoad += (ResourceHandler resourceHandler) => {
                 if (filesChanged) {
                     var url = new Uri(resourceHandler.Url);
                     var resourcePath = ResourceUrl.GetEmbeddedResourcePath(url);
@@ -482,7 +482,7 @@ namespace ReactViewControl {
         /// Handles the webview load of resources
         /// </summary>
         /// <param name="resourceHandler"></param>
-        private void OnWebViewBeforeResourceLoad(WebView.ResourceHandler resourceHandler) {
+        private void OnWebViewBeforeResourceLoad(ResourceHandler resourceHandler) {
             var url = resourceHandler.Url;
             var scheme = url.Substring(0, Math.Max(0, url.IndexOf(Uri.SchemeDelimiter)));
 
@@ -514,7 +514,7 @@ namespace ReactViewControl {
         /// </summary>
         /// <param name="url"></param>
         /// <returns></returns>
-        private void HandleCustomResourceRequested(WebView.ResourceHandler resourceHandler) {
+        private void HandleCustomResourceRequested(ResourceHandler resourceHandler) {
             var url = resourceHandler.Url;
             
             if (Uri.TryCreate(url, UriKind.Absolute, out var uri) && uri.Segments.Length > 1 && uri.Host.Equals(CustomResourceBaseUrl, StringComparison.InvariantCultureIgnoreCase)) {
