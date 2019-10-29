@@ -530,7 +530,7 @@ namespace ReactViewControl {
                             var response = customResourceRequestedHandlers.Select(h => h(resourceKey, options)).FirstOrDefault(r => r != null);
 
                             if (response != null) {
-                                var path = uri.AbsolutePath;
+                                var path = uri.AbsoluteUri;
                                 var extension = Path.GetExtension(path).TrimStart('.');
                                 resourceHandler.RespondWith(response, extension);
                             } else {
