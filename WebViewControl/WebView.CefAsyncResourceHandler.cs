@@ -20,7 +20,7 @@ namespace WebViewControl {
             }
 
             public void SetResponse(Stream response, string mimeType = CefSharp.ResourceHandler.DefaultMimeType, bool autoDisposeStream = false) {
-                if (response.CanSeek) {
+                if (response?.CanSeek == true) {
                     // move stream to the beginning
                     response.Position = 0;
                 }
