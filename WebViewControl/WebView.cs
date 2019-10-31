@@ -137,7 +137,11 @@ namespace WebViewControl {
             }
         }
 
-        public WebView() {
+        public WebView() : this(false) { }
+
+        /// <param name="useSharedDomain">Shared domains means that the webview default domain will always be the same. When <see cref="useSharedDomain"/> is false a
+        /// unique domain is used for every webview.</param>
+        internal WebView(bool useSharedDomain) {
             if (IsInDesignMode) {
                 return;
             }
@@ -148,7 +152,7 @@ namespace WebViewControl {
             }
 #endif
 
-            if (UseSharedDomain) {
+            if (useSharedDomain) {
                 CurrentDomainId = string.Empty;
             } else {
                 CurrentDomainId = domainId.ToString();
@@ -280,14 +284,8 @@ namespace WebViewControl {
                 htmlToLoad = null;
             }
             if (address.Contains(Uri.SchemeDelimiter) || address == UrlHelper.AboutBlankUrl || address.StartsWith("data:")) {
-                if (!IsBrowserInitialized && CustomSchemes.Any(s => address.StartsWith(s + Uri.SchemeDelimiter))) {
-                    // custom schemes -> turn off security ... to enable full access without problems to local resources
-                    IsSecurityDisabled = true;
-                }
-
                 if (IsMainFrame(frameName)) {
-                    // execute when initialized, otherwise navigation will be aborted
-                    ExecuteWhenInitialized(() => chromium.Address = address);
+                    chromium.Address = address;
                 } else {
                     GetFrame(frameName)?.LoadUrl(address);
                 }
@@ -453,7 +451,7 @@ namespace WebViewControl {
         }
 
         public void Reload(bool ignoreCache = false) {
-            if (chromium.IsBrowserInitialized && !chromium.IsLoading) {
+            if (IsBrowserInitialized && !chromium.IsLoading) {
                 chromium.Reload(ignoreCache);
             }
         }
@@ -482,11 +480,13 @@ namespace WebViewControl {
         }
 
         private void OnWebViewBrowserInitialized() {
-            if (chromium.IsBrowserInitialized) {
+            if (IsBrowserInitialized) {
                 AsyncExecuteInUI(() => {
-                    if (pendingInitialization != null) {
-                        pendingInitialization();
-                        pendingInitialization = null;
+                    lock (SyncRoot) {
+                        if (pendingInitialization != null) {
+                            pendingInitialization();
+                            pendingInitialization = null;
+                        }
                     }
                     WebViewInitialized?.Invoke();
                 });
@@ -496,6 +496,10 @@ namespace WebViewControl {
         }
 
         private void OnWebViewLoadEnd(object sender, LoadEndEventArgs e) {
+            if (UrlHelper.IsChromeInternalUrl(e.Frame.Url)) {
+                return;
+            }
+
             if (e.Frame.IsMain) {
                 htmlToLoad = null;
             } else {
@@ -512,6 +516,10 @@ namespace WebViewControl {
         }
 
         private void OnWebViewLoadError(object sender, LoadErrorEventArgs e) {
+            if (UrlHelper.IsChromeInternalUrl(e.Frame.Url)) {
+                return;
+            }
+
             if (e.Frame.IsMain) {
                 htmlToLoad = null;
             }
@@ -541,7 +549,13 @@ namespace WebViewControl {
             if (IsBrowserInitialized) {
                 action();
             } else {
-                pendingInitialization += action;
+                lock (SyncRoot) {
+                    if (IsBrowserInitialized) {
+                        action();
+                    } else {
+                        pendingInitialization += action;
+                    }
+                }
             }
         }
 
@@ -586,7 +600,7 @@ namespace WebViewControl {
             }
         }
 
-        protected void InitializeBrowser() {
+        internal void InitializeBrowser() {
             chromium.CreateBrowser();
         }
 
@@ -603,8 +617,6 @@ namespace WebViewControl {
         protected virtual string GetRequestUrl(string url, ResourceType resourceType) {
             return url;
         }
-
-        protected virtual bool UseSharedDomain => false;
 
         public string[] GetFrameNames() {
             var browser = chromium.GetBrowser();

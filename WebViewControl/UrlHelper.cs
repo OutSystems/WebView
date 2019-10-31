@@ -11,7 +11,7 @@ namespace WebViewControl {
         public static ResourceUrl DefaultLocalUrl = new ResourceUrl(ResourceUrl.LocalScheme, "index.html");
 
         public static bool IsChromeInternalUrl(string url) {
-            return url == AboutBlankUrl || (url != null && url.StartsWith(ChromeInternalProtocol, StringComparison.InvariantCultureIgnoreCase));
+            return url != null && url.StartsWith(ChromeInternalProtocol, StringComparison.InvariantCultureIgnoreCase);
         }
 
         public static bool IsInternalUrl(string url) {

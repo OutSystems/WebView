@@ -37,8 +37,10 @@ namespace ReactViewControl {
         public ReactViewRender(ResourceUrl defaultStyleSheet, Func<IViewModule[]> initializePlugins, bool preloadWebView, bool enableDebugMode) {
             UserCallingAssembly = WebView.GetUserCallingMethod().ReflectedType.Assembly;
 
-            WebView = new InternalWebView(this, preloadWebView) {
+            // must useSharedDomain for the local storage to be shared
+            WebView = new WebView(useSharedDomain: true) {
                 DisableBuiltinContextMenus = true,
+                IsSecurityDisabled = true,
                 IgnoreMissingResources = false
             };
 
@@ -59,6 +61,7 @@ namespace ReactViewControl {
             WebView.Disposed += OnWebViewDisposed;
             WebView.JavascriptContextReleased += OnWebViewJavascriptContextReleased;
             WebView.BeforeResourceLoad += OnWebViewBeforeResourceLoad;
+            WebView.LoadFailed += OnWebViewLoadFailed;
 
             ExtraInitialize();
 
@@ -74,6 +77,10 @@ namespace ReactViewControl {
             };
 
             WebView.LoadResource(new ResourceUrl(ResourcesAssembly, ReactViewResources.Resources.DefaultUrl + "?" + string.Join("&", urlParams)));
+
+            if (preloadWebView) {
+                WebView.InitializeBrowser();
+            }
         }
 
         partial void ExtraInitialize();
@@ -499,6 +506,16 @@ namespace ReactViewControl {
                     ExternalResourceRequested?.Invoke(resourceHandler);
                     break;
             }
+        }
+
+        /// <summary>
+        /// Handles webview load errors.
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="errorCode"></param>
+        /// <param name="frameName"></param>
+        private void OnWebViewLoadFailed(string url, int errorCode, string frameName) {
+            throw new Exception($"Failed to load view (error: ${errorCode})");
         }
 
         private CustomResourceRequestedEventHandler[] GetCustomResourceHandlers(FrameInfo frame) {
