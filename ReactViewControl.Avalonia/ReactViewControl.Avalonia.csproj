@@ -28,7 +28,6 @@
     <Compile Include="..\ReactViewControl\ReactView.cs" Link="ReactView.cs" />
     <Compile Include="..\ReactViewControl\ReactViewFactory.cs" Link="ReactViewFactory.cs" />
     <Compile Include="..\ReactViewControl\ReactViewRender.cs" Link="ReactViewRender.cs" />
-    <Compile Include="..\ReactViewControl\ReactViewRender.InternalWebView.cs" Link="ReactViewRender.InternalWebView.cs" />
     <Compile Include="..\ReactViewControl\ReactViewRender.LoaderModule.cs" Link="ReactViewRender.LoaderModule.cs" />
     <Compile Include="..\ReactViewControl\ViewModuleContainer.cs" Link="ViewModuleContainer.cs" />
     <Compile Include="..\ReactViewControl\ViewModuleExtensions.cs" Link="ViewModuleExtensions.cs" />
