@@ -1,4 +1,5 @@
 {
+	"slnFilePath": "../WebView.sln",
 	"csprojFilePath": "./ViewGenerator.csproj",
 	"configuration": "Release",
 	"nuspecFilePath": "ViewGenerator.nuspec",
