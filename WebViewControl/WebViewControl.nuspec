@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2013/05/nuspec.xsd">
   <metadata>
     <id>WebViewControl</id>
-    <version>1.75.8</version>
+    <version>1.75.9</version>
     <title>WebViewControl</title>
     <authors>OutSystems</authors>
     <owners>OutSystems</owners>
@@ -10,7 +10,7 @@
     <description>WebViewControl for WPF powered by CefSharp</description>
     <copyright>Copyright ©  2018</copyright>
     <dependencies>
-      <dependency id="CefSharp.Wpf" version="75.1.144" />
+      <dependency id="CefSharp.Wpf" version="75.1.145" />
     </dependencies>
   </metadata>
   <files>
