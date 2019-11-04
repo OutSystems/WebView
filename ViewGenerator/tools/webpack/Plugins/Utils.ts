@@ -87,8 +87,9 @@ export function generateManifest(
  * Custom typescript error formater for Visual Studio.
  * */
 export function customErrorFormatter(message: NormalizedMessage, enableColors: boolean, namespace: string) {
-    const colors = Chalk.constructor({ enabled: enableColors })
-    const messageColor = message.severity === "warning" ? colors.bold.yellow : colors.bold.red;
+    const colors = Chalk.constructor({ enabled: enableColors });
+    const defaultSeverity = "error";
+    const defaultColor = colors.bold.red;
     const locationColor = colors.bold.cyan;
     const codeColor = colors.grey;
 
@@ -96,11 +97,11 @@ export function customErrorFormatter(message: NormalizedMessage, enableColors: b
 
         // e.g. file.ts(17,20): error TS0168: The variable 'foo' is declared but never used.
         return locationColor(message.file + "(" + message.line + "," + message.character + ")") +
-            messageColor(":") + " " +
-            messageColor(message.severity.toUpperCase()) + " " +
+            defaultColor(":") + " " +
+            defaultColor(defaultSeverity.toUpperCase()) + " " +
             codeColor("TS" + message.code) +
-            messageColor(":") + " " +
-            messageColor(message.content);
+            defaultColor(":") + " " +
+            defaultColor(message.content);
     }
 
     if (!message.file) {
@@ -109,10 +110,10 @@ export function customErrorFormatter(message: NormalizedMessage, enableColors: b
     }
 
     // e.g. error TS6053: File 'file.ts' not found.
-    return messageColor(message.severity.toUpperCase()) + " " +
+    return defaultColor(defaultSeverity.toUpperCase()) + " " +
         codeColor("TS" + message.code) +
-        messageColor(":") + " " +
-        messageColor(message.content);
+        defaultColor(":") + " " +
+        defaultColor(message.content);
 }
 
 /*
