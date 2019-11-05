@@ -107,6 +107,13 @@ namespace WebViewControl {
         /// </summary>
         public static event Action<WebView> GlobalWebViewInitialized;
 
+        private class CefSchemeHandlerFactory : ISchemeHandlerFactory {
+
+            public IResourceHandler Create(IBrowser browser, IFrame frame, string schemeName, IRequest request) {
+                return null;
+            }
+        }
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void InitializeCef() {
             if (!Cef.IsInitialized) {
@@ -116,6 +123,7 @@ namespace WebViewControl {
                 cefSettings.UncaughtExceptionStackSize = 100; // enable stack capture
                 cefSettings.RootCachePath = CachePath; // enable cache for external resources to speedup loading
                 cefSettings.WindowlessRenderingEnabled = true;
+                cefSettings.CefCommandLineArgs.Add("disable-features", "NetworkService,VizDisplayCompositor");
 
                 if (DisableGPU) {
                     cefSettings.CefCommandLineArgs.Add("disable-gpu", "1"); // Disable GPU acceleration
@@ -128,7 +136,8 @@ namespace WebViewControl {
 
                 foreach (var scheme in CustomSchemes) {
                     cefSettings.RegisterScheme(new CefCustomScheme() {
-                        SchemeName = scheme
+                        SchemeName = scheme,
+                        SchemeHandlerFactory = new CefSchemeHandlerFactory()
                     });
                 }
 
@@ -168,7 +177,11 @@ namespace WebViewControl {
             }
         }
 
-        public WebView() {
+        public WebView() : this(null, false) { }
+
+        /// <param name="useSharedDomain">Shared domains means that the webview default domain will always be the same. When <see cref="useSharedDomain"/> is false a
+        /// unique domain is used for every webview.</param>
+        internal WebView(ResourceUrl initialAddress, bool useSharedDomain) {
             if (DesignerProperties.GetIsInDesignMode(this)) {
                 return;
             }
@@ -179,7 +192,7 @@ namespace WebViewControl {
             }
 #endif
 
-            if (UseSharedDomain) {
+            if (useSharedDomain) {
                 CurrentDomainId = string.Empty;
             } else {
                 CurrentDomainId = domainId.ToString();
@@ -188,11 +201,11 @@ namespace WebViewControl {
 
             DefaultLocalUrl = new ResourceUrl(ResourceUrl.LocalScheme, "index.html").WithDomain(CurrentDomainId);
 
-            Initialize();
+            Initialize(initialAddress?.WithDomain(CurrentDomainId));
         }
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        private void Initialize() {
+        private void Initialize(string initialAddress) {
             InitializeCef();
 
             if (!subscribedApplicationExit) {
@@ -203,7 +216,7 @@ namespace WebViewControl {
 
             lifeSpanHandler = new CefLifeSpanHandler(this);
 
-            chromium = new InternalChromiumBrowser();
+            chromium = new InternalChromiumBrowser(initialAddress);
             chromium.IsBrowserInitializedChanged += OnWebViewIsBrowserInitializedChanged;
             chromium.FrameLoadEnd += OnWebViewFrameLoadEnd;
             chromium.LoadError += OnWebViewLoadError;
@@ -351,23 +364,11 @@ namespace WebViewControl {
                 htmlToLoad = null;
             }
             if (address.Contains(Uri.SchemeDelimiter) || address == AboutBlankUrl || address.StartsWith("data:")) {
-                var settings = chromium.BrowserSettings;
-                if (settings != null && !settings.IsDisposed) {
-                    if (CustomSchemes.Any(s => address.StartsWith(s + Uri.SchemeDelimiter))) {
-                        // custom schemes -> turn off security ... to enable full access without problems to local resources
-                        IsSecurityDisabled = true;
-                    } else {
-                        IsSecurityDisabled = false;
-                    }
+                if (frameName == MainFrameName) {
+                    ExecuteWhenInitialized(() => chromium.Address = address);
+                } else {
+                    GetFrame(frameName)?.LoadUrl(address);
                 }
-                // must wait for the browser to be initialized otherwise navigation will be aborted
-                ExecuteWhenInitialized(() => {
-                    if (frameName == MainFrameName) {
-                        chromium.Load(address);
-                    } else {
-                        GetFrame(frameName)?.LoadUrl(address);
-                    }
-                });
             } else {
                 var userAssembly = GetUserCallingMethod().ReflectedType.Assembly;
                 LoadUrl(new ResourceUrl(userAssembly, address).WithDomain(CurrentDomainId), frameName);
@@ -541,7 +542,7 @@ namespace WebViewControl {
         }
 
         public void Reload(bool ignoreCache = false) {
-            if (chromium.IsBrowserInitialized && !chromium.IsLoading) {
+            if (IsBrowserInitialized && !chromium.IsLoading) {
                 chromium.Reload(ignoreCache);
             }
         }
@@ -571,9 +572,11 @@ namespace WebViewControl {
 
         private void OnWebViewIsBrowserInitializedChanged(object sender, DependencyPropertyChangedEventArgs e) {
             if (chromium.IsBrowserInitialized) {
-                if (pendingInitialization != null) {
-                    pendingInitialization();
-                    pendingInitialization = null;
+                lock (SyncRoot) {
+                    if (pendingInitialization != null) {
+                        pendingInitialization();
+                        pendingInitialization = null;
+                    }
                 }
                 WebViewInitialized?.Invoke();
             } else {
@@ -596,9 +599,14 @@ namespace WebViewControl {
         }
 
         private void OnWebViewLoadError(object sender, LoadErrorEventArgs e) {
+            if (e.Frame.Url.StartsWith(ChromeInternalProtocol, StringComparison.InvariantCultureIgnoreCase)) {
+                return;
+            }
+
             if (e.Frame.IsMain) {
                 htmlToLoad = null;
             }
+
             var loadFailed = LoadFailed;
             if (e.ErrorCode != CefErrorCode.Aborted && loadFailed != null) {
                 var frameName = e.Frame.Name; // store frame name beforehand (cannot do it later, since frame might be disposed)
@@ -644,7 +652,13 @@ namespace WebViewControl {
             if (IsBrowserInitialized) {
                 action();
             } else {
-                pendingInitialization += action;
+                lock (SyncRoot) {
+                    if (IsBrowserInitialized) {
+                        action();
+                    } else {
+                        pendingInitialization += action;
+                    }
+                }
             }
         }
 
@@ -719,7 +733,7 @@ namespace WebViewControl {
             get { return chromium; }
         }
 
-        protected void InitializeBrowser() {
+        internal void InitializeBrowser() {
             chromium.CreateBrowser();
         }
 
@@ -759,8 +773,6 @@ namespace WebViewControl {
             return url;
         }
 
-        protected virtual bool UseSharedDomain => false;
-
         public string[] GetFrameNames() {
             var browser = chromium.GetBrowser();
             return browser?.GetFrameNames().Where(n => n != MainFrameName).ToArray() ?? new string[0];
@@ -775,7 +787,7 @@ namespace WebViewControl {
         }
 
         private JavascriptExecutor GetJavascriptExecutor(string frameName) {
-            lock(JsExecutors) {
+            lock (JsExecutors) {
                 if (!JsExecutors.TryGetValue(frameName, out var jsExecutor)) {
                     jsExecutor = new JavascriptExecutor(this, GetFrame(frameName));
                     JsExecutors.Add(frameName, jsExecutor);

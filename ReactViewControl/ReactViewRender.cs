@@ -16,7 +16,7 @@ namespace ReactViewControl {
 
         internal const string MainViewFrameName = "";
         internal const string ModulesObjectName = "__Modules__";
-        
+
         private const string ViewInitializedEventName = "ViewInitialized";
         private const string ViewDestroyedEventName = "ViewDestroyed";
         private const string ViewLoadedEventName = "ViewLoaded";
@@ -39,11 +39,26 @@ namespace ReactViewControl {
         public ReactViewRender(ResourceUrl defaultStyleSheet, Func<IViewModule[]> initializePlugins, bool preloadWebView, bool enableDebugMode) {
             UserCallingAssembly = WebView.GetUserCallingMethod().ReflectedType.Assembly;
 
-            WebView = new InternalWebView(this, preloadWebView) {
-                DisableBuiltinContextMenus = true,
-                IgnoreMissingResources = false
+            var urlParams = new string[] {
+                new ResourceUrl(ResourcesAssembly).ToString(),
+                enableDebugMode ? "1" : "0",
+                ModulesObjectName,
+                Listener.EventListenerObjName,
+                ViewInitializedEventName,
+                ViewDestroyedEventName,
+                ViewLoadedEventName,
+                ResourceUrl.CustomScheme +  Uri.SchemeDelimiter + CustomResourceBaseUrl
             };
 
+            var url = new ResourceUrl(ResourcesAssembly, ReactViewResources.Resources.DefaultUrl + "?" + string.Join("&", urlParams));
+
+            // must useSharedDomain for the local storage to be shared
+            WebView = new WebView(url, useSharedDomain: true) {
+                DisableBuiltinContextMenus = true,
+                IsSecurityDisabled = true,
+                IgnoreMissingResources = false
+            };
+            
             Loader = new LoaderModule(this);
 
             DefaultStyleSheet = defaultStyleSheet;
@@ -61,21 +76,13 @@ namespace ReactViewControl {
             WebView.Disposed += OnWebViewDisposed;
             WebView.JavascriptContextReleased += OnWebViewJavascriptContextReleased;
             WebView.BeforeResourceLoad += OnWebViewBeforeResourceLoad;
-            
+            WebView.LoadFailed += OnWebViewLoadFailed;
+
             Content = WebView;
 
-            var urlParams = new string[] {
-                new ResourceUrl(ResourcesAssembly).ToString(),
-                enableDebugMode ? "1" : "0",
-                ModulesObjectName,
-                Listener.EventListenerObjName,
-                ViewInitializedEventName,
-                ViewDestroyedEventName,
-                ViewLoadedEventName,
-                ResourceUrl.CustomScheme +  Uri.SchemeDelimiter + CustomResourceBaseUrl
-            };
-
-            WebView.LoadResource(new ResourceUrl(ResourcesAssembly, ReactViewResources.Resources.DefaultUrl + "?" + string.Join("&", urlParams)));
+            if (preloadWebView) {
+                WebView.InitializeBrowser();
+            }
         }
 
         public IInputElement FocusableElement => WebView.FocusableElement;
@@ -180,7 +187,7 @@ namespace ReactViewControl {
             lock (SyncRoot) {
                 var frame = GetOrCreateFrame(frameName);
                 frame.LoadStatus = LoadStatus.Ready;
-                
+
                 // start component execution engine
                 if (frame.Component != null) {
                     if (frame.Component.Engine is ExecutionEngine engine) {
@@ -258,7 +265,7 @@ namespace ReactViewControl {
             lock (SyncRoot) {
                 var frame = GetOrCreateFrame(frameName);
                 frame.Component = component;
-                
+
                 BindModule(component, frame);
                 if (frame.LoadStatus == LoadStatus.ViewInitialized) {
                     Load(frame);
@@ -291,7 +298,7 @@ namespace ReactViewControl {
             }
 
             if (frame.Component != null) {
-                frame.LoadStatus =  LoadStatus.ComponentLoading;
+                frame.LoadStatus = LoadStatus.ComponentLoading;
 
                 RegisterNativeObject(frame.Component, frame.Name);
 
@@ -352,7 +359,7 @@ namespace ReactViewControl {
         /// <param name="module"></param>
         /// <param name="frameName"></param>
         internal void BindModule(IViewModule module, string frameName) {
-            lock(SyncRoot) {
+            lock (SyncRoot) {
                 var frame = GetOrCreateFrame(frameName);
                 BindModule(module, frame);
             }
@@ -369,7 +376,7 @@ namespace ReactViewControl {
             if (!Frames.TryGetValue(frameName, out var frame)) {
                 throw new InvalidOperationException($"Frame {frameName} is not loaded");
             }
-            
+
             var plugin = frame.Plugins.OfType<T>().FirstOrDefault();
             if (plugin == null) {
                 throw new InvalidOperationException($"Plugin {typeof(T).Name} not found in {frameName}");
@@ -501,6 +508,16 @@ namespace ReactViewControl {
                     ExternalResourceRequested?.Invoke(resourceHandler);
                     break;
             }
+        }
+
+        /// <summary>
+        /// Handles webview load errors.
+        /// </summary>
+        /// <param name="url"></param>
+        /// <param name="errorCode"></param>
+        /// <param name="frameName"></param>
+        private void OnWebViewLoadFailed(string url, int errorCode, string frameName) {
+            throw new Exception($"Failed to load view (error: ${errorCode})");
         }
 
         private CustomResourceRequestedEventHandler[] GetCustomResourceHandlers(FrameInfo frame) {

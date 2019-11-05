@@ -1,32 +1,49 @@
-﻿using System.IO;
+﻿using System;
+using System.Collections.Specialized;
+using System.IO;
 using System.Text;
 using CefSharp;
+using CefSharp.Callback;
 
 namespace WebViewControl {
 
     partial class WebView {
 
-        internal class CefAsyncResourceHandler : CefSharp.ResourceHandler, IResourceHandler {
+        internal class CefAsyncResourceHandler : IResourceHandler {
 
+            private class CallbackWrapper : IResourceReadCallback {
+
+                private readonly ICallback callback;
+
+                public CallbackWrapper(ICallback callback) {
+                    this.callback = callback;
+                }
+                bool IResourceReadCallback.IsDisposed => callback.IsDisposed;
+
+                void IResourceReadCallback.Continue(int bytesRead) {
+                    callback.Continue();
+                }
+
+                void IDisposable.Dispose() {
+                    callback.Dispose();
+                }
+            }
+
+            private readonly CefSharp.ResourceHandler resourceHandler = new CefSharp.ResourceHandler();  
             private ICallback responseCallback;
             private string redirectUrl;
 
-            public override CefReturnValue ProcessRequestAsync(IRequest request, ICallback callback) {
-                if (Stream == null && string.IsNullOrEmpty(redirectUrl)) {
-                    responseCallback = callback;
-                    return CefReturnValue.ContinueAsync;
-                }
-                return CefReturnValue.Continue;
-            }
+            public Stream Stream => resourceHandler.Stream;
+            public NameValueCollection Headers => resourceHandler.Headers;
 
             public void SetResponse(Stream response, string mimeType = CefSharp.ResourceHandler.DefaultMimeType, bool autoDisposeStream = false) {
                 if (response?.CanSeek == true) {
                     // move stream to the beginning
                     response.Position = 0;
                 }
-                Stream = response;
-                MimeType = mimeType;
-                AutoDisposeStream = autoDisposeStream;
+                resourceHandler.Stream = response;
+                resourceHandler.MimeType = mimeType;
+                resourceHandler.AutoDisposeStream = autoDisposeStream;
             }
 
             public void SetResponse(string response) {
@@ -45,27 +62,67 @@ namespace WebViewControl {
                 }
             }
 
-            void IResourceHandler.GetResponseHeaders(IResponse response, out long responseLength, out string redirectUrl) {
-                // copied from cefsharp implementation, because there's no overridable method
-                redirectUrl = this.redirectUrl;
-                responseLength = -1;
-
-                response.MimeType = MimeType;
-                response.StatusCode = StatusCode;
-                response.StatusText = StatusText;
-                response.Headers = Headers;
-
-                if (!string.IsNullOrEmpty(Charset)) {
-                    response.Charset = Charset;
+            private CefReturnValue ProcessRequestAsync(IRequest request, ICallback callback) {
+                if (resourceHandler.Stream == null && string.IsNullOrEmpty(redirectUrl)) {
+                    responseCallback = callback;
+                    return CefReturnValue.ContinueAsync;
                 }
-
-                if (ResponseLength.HasValue) {
-                    responseLength = ResponseLength.Value;
-                } else if (Stream != null && Stream.CanSeek) {
-                    //If no ResponseLength provided then attempt to infer the length
-                    responseLength = Stream.Length;
-                }
+                return CefReturnValue.Continue;
             }
+
+            bool IResourceHandler.ProcessRequest(IRequest request, ICallback callback) {
+                var processRequest = ProcessRequestAsync(request, callback);
+                if (processRequest == CefReturnValue.Continue) {
+                    callback.Continue();
+                }
+                return processRequest != CefReturnValue.Cancel;
+            }
+
+            bool IResourceHandler.ReadResponse(Stream dataOut, out int bytesRead, ICallback callback) {
+                 return ResourceHandler.Read(dataOut, out bytesRead, new CallbackWrapper(callback));
+            }
+
+            void IResourceHandler.GetResponseHeaders(IResponse response, out long responseLength, out string redirectUrl) {
+                redirectUrl = this.redirectUrl;
+                ResourceHandler.GetResponseHeaders(response, out responseLength, out _);
+            }
+
+            bool IResourceHandler.Open(IRequest request, out bool handleRequest, ICallback callback) {
+                var processRequest = ProcessRequestAsync(request, callback);
+
+                //Process the request in an async fashion
+                switch (processRequest) {
+                    case CefReturnValue.ContinueAsync:
+                        handleRequest = false;
+                        return true;
+                    case CefReturnValue.Continue:
+                        handleRequest = true;
+                        return true;
+                }
+
+                //Cancel Request
+                handleRequest = true;
+
+                return false;
+            }
+
+            bool IResourceHandler.Skip(long bytesToSkip, out long bytesSkipped, IResourceSkipCallback callback) {
+                return ResourceHandler.Skip(bytesToSkip, out bytesSkipped, callback);
+            }
+
+            bool IResourceHandler.Read(Stream dataOut, out int bytesRead, IResourceReadCallback callback) {
+                return ResourceHandler.Read(dataOut, out bytesRead, callback);
+            }
+
+            void IResourceHandler.Cancel() {
+                ResourceHandler.Cancel();
+            }
+
+            void IDisposable.Dispose() {
+                ResourceHandler.Dispose();
+            }
+
+            private IResourceHandler ResourceHandler => (IResourceHandler)resourceHandler;
         }
     }
 }
