@@ -365,7 +365,7 @@ namespace WebViewControl {
             }
             if (address.Contains(Uri.SchemeDelimiter) || address == AboutBlankUrl || address.StartsWith("data:")) {
                 if (frameName == MainFrameName) {
-                    ExecuteWhenInitialized(() => chromium.Address = address);
+                    ExecuteWhenInitialized(() => chromium.Load(address));
                 } else {
                     GetFrame(frameName)?.LoadUrl(address);
                 }
