@@ -19,7 +19,7 @@ namespace WebViewControl {
         }
 
         public void SetResponse(string response, string mimeType = null) {
-            Response = GetMemoryStream(response, Encoding.UTF8, false);
+            Response = GetMemoryStream(response, Encoding.UTF8, includePreamble: true);
             MimeType = mimeType;
         }
 

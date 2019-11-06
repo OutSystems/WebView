@@ -170,10 +170,6 @@ namespace WebViewControl {
             InitializeCef();
 
             chromium = new ChromiumBrowser();
-
-            // By default, charset encoding is ISO-8859-1, which does not work properly with a few special characters
-            chromium.Settings.DefaultEncoding = Encoding.UTF8.WebName;
-
             chromium.BrowserInitialized += OnWebViewBrowserInitialized;
             chromium.LoadEnd += OnWebViewLoadEnd;
             chromium.LoadError += OnWebViewLoadError;
