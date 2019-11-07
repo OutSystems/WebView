@@ -6,6 +6,9 @@ namespace WebViewControl {
 
     internal class InternalChromiumBrowser : ChromiumWebBrowser {
 
+        public InternalChromiumBrowser(string initialAddress) : base(initialAddress) {
+        }
+
         protected override void OnMouseUp(MouseButtonEventArgs e) {
             base.OnMouseUp(e);
             e.Handled = false; // let the mouse event be fired

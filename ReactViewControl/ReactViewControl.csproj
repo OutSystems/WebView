@@ -67,7 +67,6 @@
     <Compile Include="ReactView.cs" />
     <Compile Include="ReactViewFactory.cs" />
     <Compile Include="ReactViewRender.cs" />
-    <Compile Include="ReactViewRender.InternalWebView.cs" />
     <Compile Include="ViewModuleContainer.cs" />
     <Compile Include="ViewModuleExtensions.cs" />
   </ItemGroup>

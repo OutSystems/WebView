@@ -74,6 +74,6 @@ namespace WebViewControl {
 
         public bool Handled => Handler != null;
 
-        public Stream Response => (Handler as CefSharp.ResourceHandler)?.Stream;
+        public Stream Response => Handler?.Stream;
     }
 }
