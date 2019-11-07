@@ -106,7 +106,7 @@ namespace WebViewControl {
             cefSettings.LogSeverity = string.IsNullOrWhiteSpace(LogFile) ? CefLogSeverity.Disable : (EnableErrorLogOnly ? CefLogSeverity.Error : CefLogSeverity.Verbose);
             cefSettings.LogFile = LogFile;
             cefSettings.UncaughtExceptionStackSize = 100; // enable stack capture
-            cefSettings.RootCachePath = CachePath; // enable cache for external resources to speedup loading
+            cefSettings.CachePath = CachePath; // enable cache for external resources to speedup loading
             cefSettings.BrowserSubprocessPath = CefLoader.GetBrowserSubProcessPath();
 
             var customSchemes = CustomSchemes.Select(s => new CustomScheme() { SchemeName = s, SchemeHandlerFactory = new SchemeHandlerFactory() }).ToArray();
