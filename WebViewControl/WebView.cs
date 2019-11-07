@@ -121,7 +121,7 @@ namespace WebViewControl {
                 cefSettings.LogSeverity = string.IsNullOrWhiteSpace(LogFile) ? LogSeverity.Disable : (EnableErrorLogOnly ? LogSeverity.Error : LogSeverity.Verbose);
                 cefSettings.LogFile = LogFile;
                 cefSettings.UncaughtExceptionStackSize = 100; // enable stack capture
-                cefSettings.RootCachePath = CachePath; // enable cache for external resources to speedup loading
+                cefSettings.CachePath = CachePath; // enable cache for external resources to speedup loading
                 cefSettings.WindowlessRenderingEnabled = true;
                 cefSettings.CefCommandLineArgs.Add("disable-features", "NetworkService,VizDisplayCompositor");
 
