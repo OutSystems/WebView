@@ -9,8 +9,5 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
     <copyright>$copyright$</copyright>
-    <dependencies>
-      <dependency id="CefGlue.Wpf" version="75.1.28" />
-    </dependencies>
   </metadata>
 </package>
