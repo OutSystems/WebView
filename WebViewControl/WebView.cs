@@ -496,11 +496,13 @@ namespace WebViewControl {
         }
 
         private void OnWebViewLoadEnd(object sender, LoadEndEventArgs e) {
-            if (UrlHelper.IsChromeInternalUrl(e.Frame.Url)) {
+            var url = e.Frame.Url;
+            if (UrlHelper.IsChromeInternalUrl(url)) {
                 return;
             }
 
-            if (e.Frame.IsMain) {
+            if (e.Frame.IsMain && url == DefaultLocalUrl) {
+                // finished loading local url, discard html
                 htmlToLoad = null;
             } else {
                 // js context created event is not called for child frames
@@ -509,25 +511,26 @@ namespace WebViewControl {
             var navigated = Navigated;
             if (navigated != null) {
                 // store frame name and url beforehand (cannot do it later, since frame might be disposed)
-                var url = e.Frame.Url;
                 var frameName = e.Frame.Name;
                 AsyncExecuteInUI(() => navigated(url, frameName));
             }
         }
 
         private void OnWebViewLoadError(object sender, LoadErrorEventArgs e) {
-            if (UrlHelper.IsChromeInternalUrl(e.Frame.Url)) {
+            var url = e.FailedUrl;
+            if (UrlHelper.IsChromeInternalUrl(url)) {
                 return;
             }
 
-            if (e.Frame.IsMain) {
+            if (e.Frame.IsMain && url == DefaultLocalUrl) {
+                // failed loading default local url, discard html
                 htmlToLoad = null;
             }
             var loadFailed = LoadFailed;
             if (e.ErrorCode != CefErrorCode.Aborted && loadFailed != null) {
                 var frameName = e.Frame.Name; // store frame name beforehand (cannot do it later, since frame might be disposed)
                 // ignore aborts, to prevent situations where we try to load an address inside Load failed handler (and its aborted)
-                AsyncExecuteInUI(() => loadFailed(e.FailedUrl, (int)e.ErrorCode, frameName));
+                AsyncExecuteInUI(() => loadFailed(url, (int)e.ErrorCode, frameName));
             }
         }
 
@@ -707,8 +710,10 @@ namespace WebViewControl {
         private void DisposeJavascriptExecutors(string[] executorsKeys) {
             foreach (var executorKey in executorsKeys) {
                 var indexedExecutorKey = executorKey ?? "";
-                JsExecutors[indexedExecutorKey].Dispose();
-                JsExecutors.Remove(indexedExecutorKey);
+                if (JsExecutors.TryGetValue(indexedExecutorKey, out var executor)) {
+                    executor.Dispose();
+                    JsExecutors.Remove(indexedExecutorKey);
+                }
             }
         }
 

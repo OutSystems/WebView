@@ -25,7 +25,7 @@ namespace WebViewControl {
 
             protected override CefResourceHandler GetResourceHandler(CefBrowser browser, CefFrame frame, CefRequest request) {
                 if (request.Url == OwnerWebView.DefaultLocalUrl) {
-                    return OwnerWebView.htmlToLoad != null ? AsyncResourceHandler.FromText(OwnerWebView.htmlToLoad) : null;
+                    return AsyncResourceHandler.FromText(OwnerWebView.htmlToLoad  ?? "");
                 }
 
                 if (UrlHelper.IsChromeInternalUrl(request.Url)) {
