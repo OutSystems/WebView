@@ -23,7 +23,7 @@ namespace WebViewControl {
 
             protected override IResourceHandler GetResourceHandler(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, IRequest request) {
                 if (request.Url == OwnerWebView.DefaultLocalUrl) {
-                    return OwnerWebView.htmlToLoad != null ? CefSharp.ResourceHandler.FromString(OwnerWebView.htmlToLoad) : null;
+                    return CefSharp.ResourceHandler.FromString(OwnerWebView.htmlToLoad ?? "");
                 }
 
                 if (OwnerWebView.FilterUrl(request.Url)) {

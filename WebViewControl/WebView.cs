@@ -585,7 +585,13 @@ namespace WebViewControl {
         }
 
         private void OnWebViewFrameLoadEnd(object sender, FrameLoadEndEventArgs e) {
-            if (e.Frame.IsMain) {
+            var url = e.Frame.Url;
+            if (IsChromeInternalUrl(url)) {
+                return;
+            }
+
+            if (e.Frame.IsMain && url == DefaultLocalUrl) {
+                // finished loading local url, discard html
                 htmlToLoad = null;
             } else {
                 // js context created event is not called for child frames
@@ -599,11 +605,13 @@ namespace WebViewControl {
         }
 
         private void OnWebViewLoadError(object sender, LoadErrorEventArgs e) {
-            if (e.Frame.Url.StartsWith(ChromeInternalProtocol, StringComparison.InvariantCultureIgnoreCase)) {
+            var url = e.FailedUrl;
+            if (IsChromeInternalUrl(url)) {
                 return;
             }
 
-            if (e.Frame.IsMain) {
+            if (e.Frame.IsMain && url == DefaultLocalUrl) {
+                // failed loading default local url, discard html
                 htmlToLoad = null;
             }
 
@@ -611,7 +619,7 @@ namespace WebViewControl {
             if (e.ErrorCode != CefErrorCode.Aborted && loadFailed != null) {
                 var frameName = e.Frame.Name; // store frame name beforehand (cannot do it later, since frame might be disposed)
                 // ignore aborts, to prevent situations where we try to load an address inside Load failed handler (and its aborted)
-                AsyncExecuteInUI(() => loadFailed(e.FailedUrl, (int)e.ErrorCode, frameName));
+                AsyncExecuteInUI(() => loadFailed(url, (int)e.ErrorCode, frameName));
             }
         }
 
@@ -630,8 +638,7 @@ namespace WebViewControl {
         }
 
         private bool FilterUrl(string url) {
-            return url.StartsWith(ChromeInternalProtocol, StringComparison.InvariantCultureIgnoreCase) ||
-                   url.Equals(DefaultLocalUrl, StringComparison.InvariantCultureIgnoreCase);
+            return IsChromeInternalUrl(url) || url.Equals(DefaultLocalUrl, StringComparison.InvariantCultureIgnoreCase);
         }
 
         private static bool IsFrameworkAssemblyName(string name) {
@@ -823,9 +830,15 @@ namespace WebViewControl {
 
         private void DisposeJavascriptExecutors(string[] executorsKeys) {
             foreach (var executorKey in executorsKeys) {
-                JsExecutors[executorKey].Dispose();
-                JsExecutors.Remove(executorKey);
+                if (JsExecutors.TryGetValue(executorKey, out var executor)) {
+                    executor.Dispose();
+                    JsExecutors.Remove(executorKey);
+                }
             }
+        }
+
+        private static bool IsChromeInternalUrl(string url) {
+            return url.StartsWith(ChromeInternalProtocol, StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }
