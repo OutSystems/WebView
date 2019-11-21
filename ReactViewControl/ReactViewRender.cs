@@ -255,20 +255,31 @@ namespace ReactViewControl {
         /// </summary>
         /// <param name="component"></param>
         public void LoadComponent(IViewModule component) {
-            LoadComponent(component, MainViewFrameName);
+            BindComponent(component, MainViewFrameName);
+            LoadComponent(MainViewFrameName);
         }
 
         /// <summary>
-        /// Load the specified component into the specified frame.
+        /// Binds the specified component into the specified frame.
         /// </summary>
-        public void LoadComponent(IViewModule component, string frameName) {
+        public void BindComponent(IViewModule component, string frameName) {
             lock (SyncRoot) {
                 var frame = GetOrCreateFrame(frameName);
                 frame.Component = component;
 
                 BindModule(component, frame);
-                if (frame.LoadStatus == LoadStatus.ViewInitialized) {
-                    Load(frame);
+            }
+        }
+
+        /// <summary>
+        /// Load the specified component into the specified frame.
+        /// </summary>
+        public void LoadComponent(string frameName) {
+            lock (SyncRoot) {
+                if (Frames.TryGetValue(frameName, out var frame)) {
+                    if (frame.LoadStatus == LoadStatus.ViewInitialized) {
+                        Load(frame);
+                    }
                 }
             }
         }
