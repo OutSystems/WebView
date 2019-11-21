@@ -42,8 +42,8 @@
     </PropertyGroup>
   </Target>
 
-  <Target Name="VG_LinkNodeModules" Condition="'$(PluginsRelativePath)' != '' AND !Exists('$(ProjectDir)node_modules\webview.plugins')" >
-    <Exec Command="mklink /J &quot;$(ProjectDir)node_modules\webview.plugins&quot; &quot;$(ProjectDir)$(PluginsRelativePath)node_modules&quot;" />
+  <Target Name="VG_LinkNodeModules" Condition="'$(PluginsRelativePath)' != ''" >
+    <Exec Condition="!Exists('$(ProjectDir)node_modules\webview.plugins')" Command="mklink /J &quot;$(ProjectDir)node_modules\webview.plugins&quot; &quot;$(ProjectDir)$(PluginsRelativePath)node_modules&quot;" />
   </Target>
 
   <Target Name="VG_UnlinkNodeModules" Condition="Exists('$(ProjectDir)node_modules\webview.plugins')">
