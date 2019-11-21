@@ -221,13 +221,21 @@ namespace ReactViewControl {
         public static int PreloadedCacheEntriesSize { get; set; } = 6;
 
         /// <summary>
-        /// Loads the view module into the specified frame when the frame is rendered.
+        /// Binds the view module into the specified frame.
         /// </summary>
         /// <param name="viewModule"></param>
         /// <param name="frameName"></param>
         public void AttachInnerView(IViewModule viewModule, string frameName) {
             View.AddPlugins(frameName, Factory.InitializePlugins());
-            View.LoadComponent(viewModule, frameName);
+            View.BindComponent(viewModule, frameName);
+        }
+
+        /// <summary>
+        /// Loads the view module into the specified frame when the frame is rendered.
+        /// </summary>
+        /// <param name="frameName"></param>
+        public void LoadInnerView(string frameName) {
+            View.LoadComponent(frameName);
         }
     }
 }
