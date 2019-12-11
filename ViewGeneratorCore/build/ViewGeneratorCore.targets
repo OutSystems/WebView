@@ -47,7 +47,7 @@
 
   <Target Name="VGC_IncludeGeneratedFiles" BeforeTargets="PrepareForBuild;CoreCompile">
     <ItemGroup>
-      <Compile Include="$(ViewGeneratorGeneratedFolder)\**\*.cs" />
+      <Compile Include="$(ViewGeneratorGeneratedFolder)\**\*.cs" Exclude="@(Compile)" />
     </ItemGroup>
   </Target>
   
