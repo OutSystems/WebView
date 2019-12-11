@@ -15,7 +15,7 @@ import ResourcesRuleSet from "../Rules/Files";
 import SassRuleSet from "../Rules/Sass";
 import getTypeScriptRuleSet from "../Rules/TypeScript";
 
-let getCommonConfiguration = (libraryName: string, useCache: boolean): Configuration => {
+let getCommonConfiguration = (libraryName: string, useCache: boolean, projectDir: string): Configuration => {
 
     const entryMap: Dictionary<string> = {}
     const outputMap: Dictionary<string> = {};
@@ -96,7 +96,7 @@ let getCommonConfiguration = (libraryName: string, useCache: boolean): Configura
         plugins: [
             new ForkTsCheckerWebpackPlugin({
                 checkSyntacticErrors: true,
-                formatter: (msg, useColors) => customErrorFormatter(msg, useColors, currentDirectory),
+                formatter: (msg, useColors) => customErrorFormatter(msg, useColors, projectDir || currentDirectory),
                 measureCompilationTime: true
             }),
 
