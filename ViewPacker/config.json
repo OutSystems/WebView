@@ -1,7 +1,0 @@
-{
-	"slnFilePath": "../WebView.sln",
-	"csprojFilePath": "./ViewPacker.csproj",
-	"configuration": "Release",
-	"nuspecFilePath": "ViewPacker.nuspec",
-	"packageRootPath":"../"
-}
