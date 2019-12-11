@@ -39,15 +39,15 @@
       <ViewGeneratorCoreNodeJsExe>$(__ViewGeneratorCoreNodeJsExe.Substring(0, $(__ViewGeneratorCoreNodeJsExe.IndexOf(';'))))</ViewGeneratorCoreNodeJsExe>
     </PropertyGroup>
   </Target>
-  
-  <Target Name="VGC_GenerateView" Condition="$(DesignTimeBuild) != true And $(BuildingProject) == true" BeforeTargets="TransformDuringBuild;PrepareForBuild;CoreCompile" DependsOnTargets="VGC_SetVariables;VGC_CleanGenerated">
+
+  <Target Name="VGC_GenerateView" Condition="'$(UsingMicrosoftNETSdk)' != 'true' Or ($(DesignTimeBuild) != 'true' And $(BuildingProject) == 'true')" BeforeTargets="TransformDuringBuild;PrepareForBuild;CoreCompile" DependsOnTargets="VGC_SetVariables;VGC_CleanGenerated">
     <Message Importance="Normal" Text="Generating View files" />
     <Exec Command="&quot;$(ViewGeneratorCoreNodeJsExe)&quot; &quot;$(MSBuildThisFileDirectory)..\tools\node_modules\@outsystems\ts2lang\ts2lang-main.js&quot; -f &quot;$(MSBuildProjectDirectory)\ts2lang.json&quot; -t &quot;$(MSBuildThisFileDirectory)..\tools\ViewGenerator.js&quot;" />
   </Target>
 
   <Target Name="VGC_IncludeGeneratedFiles" BeforeTargets="PrepareForBuild;CoreCompile">
     <ItemGroup>
-      <Compile Include="$(ViewGeneratorGeneratedFolder)\**\*.cs" />
+      <Compile Include="$(ViewGeneratorGeneratedFolder)\**\*.cs" Exclude="@(Compile)" />
     </ItemGroup>
   </Target>
   
@@ -55,7 +55,8 @@
     <ItemGroup>
       <GeneratedTs2LangFiles Include="$(ViewGeneratorGeneratedFolder)\**\*.cs" />
     </ItemGroup>
-    <Delete Files="@(GeneratedTs2LangFiles)"/>
+    <Error Condition="$(ViewGeneratorGeneratedFolder) == ''" Text="Generated folder is not set." />
+    <Delete Files="@(GeneratedTs2LangFiles)" />
   </Target>
 
 </Project>
