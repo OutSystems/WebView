@@ -8,7 +8,7 @@ import ManifestPlugin from "webpack-manifest-plugin";
 // Plugins / Resources
 import RenameChunksPlugin from "./RenameChunksPlugin";
 import { CssPlaceholder, CssChunkPlaceholder, DtsExtension, OutputDirectoryDefault, JsChunkPlaceholder, NamePlaceholder } from "./Resources";
-import { Dictionary, customErrorFormatter, generateManifest, getCurrentDirectory, getFileName } from "./Utils";
+import { Dictionary, customErrorFormatter, generateManifest, getCurrentDirectory, getFileName, getPublicPath } from "./Utils";
 
 // Rules
 import ResourcesRuleSet from "../Rules/Files";
@@ -35,7 +35,7 @@ let getCommonConfiguration = (libraryName: string, useCache: boolean, projectDir
             }
         });
     }
-    
+
     // Gets input and output entries from ts2lang file
     require(resolve("./ts2lang.json")).tasks.forEach(t => getConfiguration(t.input, t.output, t.parameters.namespace));
 
@@ -44,6 +44,7 @@ let getCommonConfiguration = (libraryName: string, useCache: boolean, projectDir
     let getOutputFileName: any = (chunkData) => getFileName(outputMap, chunkData);
 
     let currentDirectory: string = getCurrentDirectory();
+    let assemblyPublicPath = getPublicPath();
     const Configuration: Configuration = {
 
         entry: entryMap,
@@ -64,7 +65,8 @@ let getCommonConfiguration = (libraryName: string, useCache: boolean, projectDir
             library: [libraryName, NamePlaceholder],
             libraryTarget: "window",
             globalObject: "window",
-            devtoolNamespace: libraryName
+            devtoolNamespace: libraryName,
+            publicPath: assemblyPublicPath
         },
 
         optimization: {
@@ -76,7 +78,7 @@ let getCommonConfiguration = (libraryName: string, useCache: boolean, projectDir
         node: false,
 
         resolveLoader: {
-            modules: [ join(__dirname, "/../node_modules") ],
+            modules: [join(__dirname, "/../node_modules")],
         },
 
         resolve: {

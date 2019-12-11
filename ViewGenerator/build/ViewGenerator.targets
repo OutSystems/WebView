@@ -26,9 +26,9 @@
       $(PrepareResourceNamesDependsOn)
     </PrepareResourceNamesDependsOn>
   </PropertyGroup>
-  
+
   <Target Name="VG_SetVariables">
-    <ItemGroup>     
+    <ItemGroup>
       <_ViewGeneratorNodeJsExe Include="$(MSBuildThisFileDirectory)..\..\..\Node.js.redist\*\tools\win-x64\node.exe"/>
       <_ViewGeneratorNodeJsExe Include="$(MSBuildThisFileDirectory)..\..\Node.js.redist*\tools\win-x64\node.exe"/>
     </ItemGroup>
@@ -49,7 +49,7 @@
   <Target Name="VG_UnlinkNodeModules" Condition="Exists('$(ProjectDir)node_modules\webview.plugins')">
     <RemoveDir Directories="$(ProjectDir)node_modules\webview.plugins" />
   </Target>
-    
+
   <Target Name="VG_CleanLegacyEntryFiles" >
     <ItemGroup>
       <EntryFilesToDelete Include="**\*.entry" />
@@ -77,7 +77,7 @@
   <Target Name="VG_SetupViewPacker" DependsOnTargets="VG_EnsureViewPackerInstalled" Condition="!Exists('$(ViewGeneratorToolsPath)\webpack\node_modules')">
     <Exec Command="mklink /J &quot;$(ViewGeneratorToolsPath)\webpack\node_modules&quot; &quot;$(ViewPackerToolNodeModules)&quot;" />
   </Target>
-  
+
   <Target Name="VG_GenerateDefaultStyleSheet" DependsOnTargets="VG_SetupViewPacker;VG_SetVariables;VG_LinkNodeModules;VG_CleanLegacyCSSFiles" Inputs="@(DefaultStyleSheet)" Outputs="%(DefaultStyleSheet.Filename).css" >
     <PropertyGroup>
       <WP_Mode>development</WP_Mode>
@@ -90,7 +90,7 @@
     <PropertyGroup Condition=" '$(Configuration.Split(&quot;_&quot;)[0])' == 'Release' ">
       <WP_DevTool>false</WP_DevTool>
     </PropertyGroup>
-      
+
     <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config='$(ViewGeneratorToolsPath)\webpack\webpack_stylesheets.config.js' --mode=$(WP_Mode) --devtool=$(WP_DevTool) --entryPath='%(DefaultStyleSheet.Identity)'" />
       
   </Target>
@@ -98,7 +98,7 @@
   <Target Name="VG_EnsureViewPackerInstalled" Condition="'$(ViewPackerToolScript)' == ''">
     <Error Text="View Packer dependency is not installed" />
   </Target>
-  
+
   <Target Name="VG_GenerateBundle" DependsOnTargets="VG_SetupViewPacker;VG_SetVariables;VG_CopyContentFiles;VG_GenerateDefaultStyleSheet;VG_CleanLegacyEntryFiles;VG_CleanLegacyJSFiles;VG_CleanLegacyCSSFiles">
     <PropertyGroup>
       <WP_Mode>development</WP_Mode>
@@ -112,14 +112,16 @@
       <WP_DevTool>inline-source-map</WP_DevTool>
       <WP_UseCache>true</WP_UseCache>
     </PropertyGroup>
-      
+
     <PropertyGroup Condition=" '$(Configuration.Split(&quot;_&quot;)[0])' == 'Release' ">
       <WP_DevTool>false</WP_DevTool>
       <WP_UseCache>false</WP_UseCache>
     </PropertyGroup>
 
+    <Exec Condition="'$(WP_ConfigFileName)' == 'webpack_plugins'" Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config='$(ViewGeneratorToolsPath)\webpack\webpack_workers.config.js' --mode=$(WP_Mode) --devtool=$(WP_DevTool) --useCache=$(WP_UseCache)" />
+
     <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config='$(ViewGeneratorToolsPath)\webpack\$(WP_ConfigFileName).config.js' --mode=$(WP_Mode) --devtool=$(WP_DevTool) --useCache=$(WP_UseCache) --pluginsRelativePath='$(PluginsRelativePath)' --projectDir='$(WP_OverrideProjectDir)'" />
-      
+
   </Target>
 
   <Target Name="VG_IncludeGeneratedResources" DependsOnTargets="VG_GenerateBundle">
@@ -129,7 +131,7 @@
       <EmbeddedResource Include="**\*.entry" />
     </ItemGroup>
   </Target>
-  
+
   <Target Name="VG_CopyContentFiles" DependsOnTargets="VG_SetVariables" Condition="!Exists('$(ProjectDir)viewgenerator.cache') OR $([System.IO.File]::GetLastWriteTime('$(ViewGeneratorContentFilesPath)viewgenerator.cache').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(ProjectDir)viewgenerator.cache').Ticks)">
     <CreateItem Include="$(ViewGeneratorContentFilesPath)viewgenerator.cache">
       <Output TaskParameter="Include" ItemName="CacheFile"/>
@@ -145,5 +147,5 @@
     <Copy SourceFiles="@(TemplatesToCopy)" DestinationFolder="$(ProjectDir)%(TemplatesToCopy.RecursiveDir)" Condition="!Exists('%(FullPath)')" />
     <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(ProjectDir)%(FilesToCopy.RecursiveDir)" SkipUnchangedFiles="true" />
   </Target>
-  
+
 </Project>
