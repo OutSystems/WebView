@@ -32,7 +32,8 @@ const config = (_, argv) => {
         }
     };
 
-    let standardConfig: Configuration = getCommonConfiguration("Views", argv.useCache);
+    let projectDir = argv.projectDir ? resolve(argv.projectDir) : "";
+    let standardConfig: Configuration = getCommonConfiguration("Views", argv.useCache, projectDir);
 
     // SplitChunksOptions
     standardConfig.optimization.splitChunks = {
