@@ -83,12 +83,12 @@
       <WP_Mode>development</WP_Mode>
     </PropertyGroup>
     
-    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <PropertyGroup Condition=" '$(Configuration.Split('_')[0])' == 'Debug' ">
       <WP_DevTool>inline-source-map</WP_DevTool>
     </PropertyGroup>
       
-    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
-        <WP_DevTool>false</WP_DevTool>
+    <PropertyGroup Condition=" '$(Configuration.Split('_')[0])' == 'Release' ">
+      <WP_DevTool>false</WP_DevTool>
     </PropertyGroup>
       
     <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config='$(ViewGeneratorToolsPath)\webpack\webpack_stylesheets.config.js' --mode=$(WP_Mode) --devtool=$(WP_DevTool) --entryPath='%(DefaultStyleSheet.Identity)'" />
@@ -107,12 +107,12 @@
       <WP_ConfigFileName>webpack_views</WP_ConfigFileName>
     </PropertyGroup>
 
-    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <PropertyGroup Condition=" '$(Configuration.Split('_')[0])' == 'Debug' ">
       <WP_DevTool>inline-source-map</WP_DevTool>
       <WP_UseCache>true</WP_UseCache>
     </PropertyGroup>
       
-    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+    <PropertyGroup Condition=" '$(Configuration.Split('_')[0])' == 'Release' ">
       <WP_DevTool>false</WP_DevTool>
       <WP_UseCache>false</WP_UseCache>
     </PropertyGroup>
