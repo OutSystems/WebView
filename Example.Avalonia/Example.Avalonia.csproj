@@ -23,7 +23,7 @@
 
   <ItemGroup>
     <PackageReference Include="Avalonia.Desktop" Version="0.8.2" />
-    <PackageReference Include="CefGlue.Avalonia" Version="75.1.24" />
+    <PackageReference Include="CefGlue.Avalonia" Version="75.1.32" />
     <PackageReference Include="NLog" Version="4.6.2" />
     <PackageReference Include="ViewGenerator" Version="1.0.244">
       <PrivateAssets>all</PrivateAssets>
