@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace Xilium.CefGlue {
 
@@ -15,7 +16,9 @@ namespace Xilium.CefGlue {
         /// RegisterCefGlueAssemblyResolver
         /// </summary>
         public static void RegisterCefGlueAssemblyResolver() {
-            AppDomain.CurrentDomain.AssemblyResolve += Resolver;
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+                AppDomain.CurrentDomain.AssemblyResolve += Resolver;
+            }
         }
 
         /// <summary>
@@ -25,23 +28,7 @@ namespace Xilium.CefGlue {
             AppDomain.CurrentDomain.AssemblyResolve -= Resolver;
         }
 
-        /// <summary>
-        /// Helper method to get the Xilium.CefGlue.BrowserProcess.exe file path
-        /// </summary>
-        public static string GetBrowserSubProcessPath() {
-            const string BrowserProcessName = "Xilium.CefGlue.BrowserProcess.exe";
-
-            var path = GetProbingPaths().Select(p => Path.Combine(p, BrowserProcessName)).FirstOrDefault(File.Exists);
-
-            if (path == null) {
-                throw new FileNotFoundException("Unable to locate", BrowserProcessName);
-            }
-
-            return path;
-        }
-
-        private static Assembly Resolver(object sender, ResolveEventArgs args)
-        {
+        private static Assembly Resolver(object sender, ResolveEventArgs args) {
             if (args.Name.StartsWith("Xilium.CefGlue")) {
                 var assemblyName = args.Name.Split(new[] { ',' }, 2)[0] + ".dll";
                 if (!assemblyName.EndsWith(".resources.dll")) {

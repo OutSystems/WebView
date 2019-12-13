@@ -79,8 +79,10 @@ namespace Example.Avalonia {
         }
 
         private void AppendLog(string log) {
-            var status = this.FindControl<TextBox>("status");
-            Dispatcher.UIThread.Post(() => status.Text = log + Environment.NewLine + status.Text);
+            Dispatcher.UIThread.Post(() => {
+                var status = this.FindControl<TextBox>("status");
+                status.Text = log + Environment.NewLine + status.Text;
+            });
         }
 
         private Stream OnViewResourceRequested(string resourceKey, params string[] options) {

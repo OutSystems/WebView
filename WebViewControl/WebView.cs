@@ -98,7 +98,7 @@ namespace WebViewControl {
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static void InitializeCef() {
-            if (CefRuntimeLoader.IsInitialized) {
+            if (CefRuntimeLoader.IsLoaded) {
                 return;
             }
 
@@ -107,7 +107,7 @@ namespace WebViewControl {
             cefSettings.LogFile = LogFile;
             cefSettings.UncaughtExceptionStackSize = 100; // enable stack capture
             cefSettings.CachePath = CachePath; // enable cache for external resources to speedup loading
-            cefSettings.BrowserSubprocessPath = CefLoader.GetBrowserSubProcessPath();
+            cefSettings.WindowlessRenderingEnabled = OsrEnabled;
 
             var customSchemes = CustomSchemes.Select(s => new CustomScheme() { SchemeName = s, SchemeHandlerFactory = new SchemeHandlerFactory() }).ToArray();
 

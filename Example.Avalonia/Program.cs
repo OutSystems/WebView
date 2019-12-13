@@ -5,8 +5,7 @@ namespace Example.Avalonia {
         static void Main(string[] args) {
             AppBuilder.Configure<App>()
                       .UsePlatformDetect()
-                      .UseSkia()
-                      .Start<MainWindow>();
+                      .StartWithClassicDesktopLifetime(args);
         }
     }
 }

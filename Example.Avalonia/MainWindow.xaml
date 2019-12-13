@@ -1,4 +1,6 @@
 ﻿<Window xmlns="https://github.com/avaloniaui" MinWidth="500" MinHeight="300"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Example.Avalonia.MainWindow"
         Title="Example">
     <DockPanel>
         <Menu DockPanel.Dock="Top">
@@ -12,6 +14,8 @@
         
         <TextBox Name="status" DockPanel.Dock="Bottom" Height="50"></TextBox>
 
-        <Decorator Name="browserWrapper"/>
+        <Decorator Name="browserWrapper">
+            
+        </Decorator>
     </DockPanel>
 </Window>

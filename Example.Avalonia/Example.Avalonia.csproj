@@ -22,10 +22,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia.Desktop" Version="0.8.2" />
-    <PackageReference Include="CefGlue.Avalonia" Version="75.1.24" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.9.0-rc.1" />
     <PackageReference Include="NLog" Version="4.6.2" />
-    <PackageReference Include="ViewGenerator" Version="1.0.244">
+    <PackageReference Include="ViewGenerator" Version="1.0.249">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
@@ -34,7 +33,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
-
+  
   <ItemGroup>
     <ProjectReference Include="..\ReactViewControl.Avalonia\ReactViewControl.Avalonia.csproj" />
   </ItemGroup>

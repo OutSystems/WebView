@@ -5,7 +5,7 @@ namespace WebViewControl {
     internal partial class ChromiumBrowser {
 
         internal void CreateBrowser() {
-            CreateOrUpdateBrowser(1, 1);
+            CreateOrUpdateBrowser(0, 0, 1, 1);
         }
 
         internal CefBrowser GetBrowser() => UnderlyingBrowser;

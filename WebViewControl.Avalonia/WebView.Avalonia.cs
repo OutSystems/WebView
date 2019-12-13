@@ -5,10 +5,13 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Threading;
+using Xilium.CefGlue.Common;
 
 namespace WebViewControl {
 
     partial class WebView : TemplatedControl {
+
+        private static bool osrEnabled = true;
 
         partial void ExtraInitialize() {
             VisualChildren.Add(chromium);
@@ -18,6 +21,16 @@ namespace WebViewControl {
 
             // TODO needed ? FocusManager.SetIsFocusScope(this, true);
             // FocusManager.SetFocusedElement(this, FocusableElement);
+        }
+        
+        public static bool OsrEnabled { 
+            get => osrEnabled;
+            set {
+                if (CefRuntimeLoader.IsLoaded) {
+                    throw new InvalidOperationException($"Cannot set {nameof(OsrEnabled)} after WebView engine has been loaded");
+                }
+                osrEnabled = value;
+            }
         }
 
         internal IInputElement FocusableElement => chromium;

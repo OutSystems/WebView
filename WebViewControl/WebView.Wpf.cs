@@ -22,6 +22,8 @@ namespace WebViewControl {
 
         internal IInputElement FocusableElement => chromium;
 
+        private static bool OsrEnabled => true;
+
         private bool IsInDesignMode => DesignerProperties.GetIsInDesignMode(this);
 
         protected override void OnPreviewKeyDown(KeyEventArgs e) {
