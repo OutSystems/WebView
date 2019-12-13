@@ -60,6 +60,9 @@
     <Touch Files="viewgeneratorcorebuild.cache" AlwaysCreate="true" />
   </Target>
 
+  <!-- old-format and new-format projects have different built-in targets. In order to support both we need to have two
+       different alternative ways of adding the generated code to the target project :( -->
+       
   <Target Name="VGC_IncludeGeneratedFiles_a" BeforeTargets="CoreCompile">
     <ItemGroup>
       <Compile Include="$(ViewGeneratorGeneratedFolder)\**\*.cs" Exclude="@(Compile)" />
