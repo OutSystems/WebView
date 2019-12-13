@@ -55,6 +55,7 @@
       <PrivateAssets>all</PrivateAssets>
       <ExcludeAssets>all</ExcludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
   </ItemGroup>
 
   <Target Name="InjectModuleInitializer" AfterTargets="AfterBuild">
