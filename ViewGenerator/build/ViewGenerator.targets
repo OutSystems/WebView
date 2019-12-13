@@ -41,11 +41,21 @@
   </Target>
 
   <Target Name="VG_LinkNodeModules" Condition="'$(PluginsRelativePath)' != ''" >
-    <Exec Condition="!Exists('$(ProjectDir)node_modules\webview.plugins')" Command="mklink /J &quot;$(ProjectDir)node_modules\webview.plugins&quot; &quot;$(ProjectDir)$(PluginsRelativePath)node_modules&quot;" />
+    <PropertyGroup>
+      <ProjectDirectory>$(WP_OverrideProjectDir)</ProjectDirectory>
+      <ProjectDirectory Condition="'$(ProjectDirectory)' == ''">$(ProjectDir)</ProjectDirectory>
+    </PropertyGroup>
+      
+    <Exec Condition="!Exists('$(ProjectDirectory)node_modules\webview.plugins')" Command="mklink /J &quot;$(ProjectDirectory)node_modules\webview.plugins&quot; &quot;$(ProjectDirectory)$(PluginsRelativePath)node_modules&quot;" />
   </Target>
 
-  <Target Name="VG_UnlinkNodeModules" Condition="Exists('$(ProjectDir)node_modules\webview.plugins')">
-    <RemoveDir Directories="$(ProjectDir)node_modules\webview.plugins" />
+  <Target Name="VG_UnlinkNodeModules">
+    <PropertyGroup>
+      <ProjectDirectory>$(WP_OverrideProjectDir)</ProjectDirectory>
+      <ProjectDirectory Condition="'$(ProjectDirectory)' == ''">$(ProjectDir)</ProjectDirectory>
+    </PropertyGroup>
+      
+    <RemoveDir Condition="Exists('$(ProjectDirectory)node_modules\webview.plugins')" Directories="$(ProjectDirectory)node_modules\webview.plugins" />
   </Target>
 
   <Target Name="VG_CleanLegacyEntryFiles" >
@@ -144,7 +154,6 @@
     </PropertyGroup>
 
     <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config='$(ViewGeneratorToolsPath)\webpack\$(WP_ConfigFileName).config.js' --mode=$(WP_Mode) --devtool=$(WP_DevTool) --useCache=$(WP_UseCache) --pluginsRelativePath='$(PluginsRelativePath)' --projectDir='$(WP_OverrideProjectDir)'" />
-
     <Touch Files="viewgeneratorbuild.cache" AlwaysCreate="true" />
   </Target>
 
