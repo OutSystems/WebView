@@ -76,6 +76,7 @@
     <None Include="build\ViewGenerator.targets">
       <SubType>Designer</SubType>
     </None>
+    <TypeScriptCompile Include="tools\webpack\webpack_workers.config.ts" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
