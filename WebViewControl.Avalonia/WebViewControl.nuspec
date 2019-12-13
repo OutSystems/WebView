@@ -10,7 +10,7 @@
     <description>$description$</description>
     <copyright>$copyright$</copyright>
     <dependencies>
-      <dependency id="CefGlue.Avalonia" version="75.1.24" />
+      <dependency id="CefGlue.Avalonia" version="75.1.37" />
     </dependencies>
   </metadata>
 </package>
