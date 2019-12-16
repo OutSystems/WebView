@@ -14,6 +14,7 @@ namespace WebViewControl {
         private static bool osrEnabled = true;
 
         partial void ExtraInitialize() {
+            LogicalChildren.Add(chromium);
             VisualChildren.Add(chromium);
 
             AttachedToVisualTree += OnAttachedToVisualTree;

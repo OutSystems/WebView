@@ -16,9 +16,7 @@ namespace Xilium.CefGlue {
         /// RegisterCefGlueAssemblyResolver
         /// </summary>
         public static void RegisterCefGlueAssemblyResolver() {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
-                AppDomain.CurrentDomain.AssemblyResolve += Resolver;
-            }
+            AppDomain.CurrentDomain.AssemblyResolve += Resolver;
         }
 
         /// <summary>
@@ -45,8 +43,12 @@ namespace Xilium.CefGlue {
         }
 
         private static IEnumerable<string> GetProbingPaths() {
-            var basePath = Path.GetDirectoryName(typeof(CefLoader).Assembly.Location); ;
-            yield return Path.Combine(basePath, "x64");
+            var basePath = Path.GetDirectoryName(typeof(CefLoader).Assembly.Location);
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+                yield return Path.Combine(basePath, "x64");
+            } else {
+                yield return basePath;
+            }
         }
     }
 }
