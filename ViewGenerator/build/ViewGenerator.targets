@@ -85,8 +85,14 @@
   <Target Name="VG_SetupViewPacker" DependsOnTargets="VG_EnsureViewPackerInstalled" Condition="!Exists('$(ViewGeneratorToolsPath)\webpack\node_modules')">
     <Exec Command="mklink /J &quot;$(ViewGeneratorToolsPath)\webpack\node_modules&quot; &quot;$(ViewPackerToolNodeModules)&quot;" />
   </Target>
-
-  <Target Name="VG_GenerateDefaultStyleSheet" DependsOnTargets="VG_SetupViewPacker;VG_SetVariables;VG_LinkNodeModules" Inputs="@(DefaultStyleSheet)" Outputs="%(DefaultStyleSheet.Filename).css" >
+  
+  <Target Name="VG_CalculateStylesheetInputs">
+    <ItemGroup>
+      <VG_StyleSheetInputs Include="**\*.scss" Exclude="node_modules\**\*.scss" />
+    </ItemGroup>
+  </Target>
+  
+  <Target Name="VG_GenerateDefaultStyleSheet" DependsOnTargets="VG_SetupViewPacker;VG_SetVariables;VG_LinkNodeModules;VG_CalculateStylesheetInputs" Inputs="@(VG_StyleSheetInputs)" Outputs="viewgeneratorcssbuild.cache" >
     <CallTarget Targets="VG_GenerateDefaultStyleSheetInner" />
   </Target>
 
@@ -104,6 +110,8 @@
     </PropertyGroup>
 
     <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config='$(ViewGeneratorToolsPath)\webpack\webpack_stylesheets.config.js' --mode=$(WP_Mode) --devtool=$(WP_DevTool) --entryPath='%(DefaultStyleSheet.Identity)'" />
+
+    <Touch Files="viewgeneratorcssbuild.cache" AlwaysCreate="true" />
   </Target>
 
   <Target Name="VG_EnsureViewPackerInstalled" Condition="'$(ViewPackerToolScript)' == ''">
@@ -115,7 +123,8 @@
     <ItemGroup>
       <VG_Inputs Include="**\*.tsx" Exclude="node_modules\**\*.tsx" />
       <VG_Inputs Include="**\*.ts" Exclude="node_modules\**\*.ts" />
-      <UpToDateCheckInput Include="$(VG_Inputs)" Exclude="@(UpToDateCheckInput)" />
+      <UpToDateCheckInput Include="@(VG_Inputs)" Exclude="@(UpToDateCheckInput)" />
+      <UpToDateCheckInput Include="@(DefaultStyleSheet)" Exclude="@(UpToDateCheckInput)" />
     </ItemGroup>
   </Target>
 
@@ -173,6 +182,6 @@
   </Target>
 
   <Target Name="VG_Clean" BeforeTargets="Clean">
-    <Delete Files="viewgeneratorbuild.cache" />
+    <Delete Files="viewgeneratorbuild.cache;viewgeneratorcssbuild.cache" />
   </Target>
 </Project>
