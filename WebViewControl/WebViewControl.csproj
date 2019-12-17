@@ -118,6 +118,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AssemblyCache.cs" />
     <Compile Include="CefLoader.cs" />
     <Compile Include="InternalChromiumBrowser.cs" />
     <Compile Include="JavascriptSerializationHelper.cs" />

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using CefSharp;
 using CefSharp.Handler;
@@ -13,9 +12,6 @@ namespace WebViewControl {
         protected class CefResourceRequestHandler : ResourceRequestHandler, IDisposable {
 
             private WebView OwnerWebView { get; }
-
-            private Dictionary<string, Assembly> assemblies;
-            private bool newAssembliesLoaded = true;
 
             public CefResourceRequestHandler(WebView webView) {
                 OwnerWebView = webView;
@@ -73,70 +69,18 @@ namespace WebViewControl {
             }
 
             protected void LoadEmbeddedResource(ResourceHandler resourceHandler, Uri url) {
-                var resourceAssembly = ResolveResourceAssembly(url);
-                var resourcePath = ResourceUrl.GetEmbeddedResourcePath(url);
+                var resource = ResourcesManager.LoadEmbeddedResource(url);
 
-                var extension = Path.GetExtension(resourcePath.Last()).ToLower();
-
-                var resourceStream = TryGetResourceWithFullPath(resourceAssembly, resourcePath);
-                if (resourceStream != null) {
-                    resourceHandler.RespondWith(resourceStream, extension);
+                if (resource.ResourceStream != null) {
+                    resourceHandler.RespondWith(resource.ResourceStream, resource.Extension);
                 }
-            }
-
-            protected Assembly ResolveResourceAssembly(Uri resourceUrl) {
-                if (assemblies == null) {
-                    assemblies = new Dictionary<string, Assembly>();
-                    AppDomain.CurrentDomain.AssemblyLoad += OnAssemblyLoaded;
-                }
-
-                var assemblyName = ResourceUrl.GetEmbeddedResourceAssemblyName(resourceUrl);
-                var assembly = GetAssemblyByName(assemblyName);
-
-                if (assembly == null) {
-                    if (newAssembliesLoaded) {
-                        // add loaded assemblies to cache
-                        newAssembliesLoaded = false;
-                        foreach (var domainAssembly in AppDomain.CurrentDomain.GetAssemblies()) {
-                            // replace if duplicated (can happen)
-                            assemblies[domainAssembly.GetName().Name] = domainAssembly;
-                        }
-                    }
-
-                    assembly = GetAssemblyByName(assemblyName);
-                    if (assembly == null) {
-                        // try load assembly from its name
-                        assembly = AppDomain.CurrentDomain.Load(new AssemblyName(assemblyName));
-                        if (assembly != null) {
-                            assemblies[assembly.GetName().Name] = assembly;
-                        }
-                    }
-                }
-
-                if (assembly != null) {
-                    return assembly;
-                }
-
-                throw new InvalidOperationException("Could not find assembly for: " + resourceUrl);
-            }
-
-            private Assembly GetAssemblyByName(string assemblyName) {
-                Assembly assembly;
-                assemblies.TryGetValue(assemblyName, out assembly);
-                return assembly;
             }
 
             protected Stream TryGetResourceWithFullPath(Assembly assembly, IEnumerable<string> resourcePath) {
                 return ResourcesManager.TryGetResourceWithFullPath(assembly, resourcePath);
             }
 
-            private void OnAssemblyLoaded(object sender, AssemblyLoadEventArgs args) {
-                newAssembliesLoaded = true;
-            }
-
-            public void Dispose() {
-                AppDomain.CurrentDomain.AssemblyLoad -= OnAssemblyLoaded;
-            }
+            public void Dispose() { }
         }
     }
 }
