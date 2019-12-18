@@ -4,7 +4,7 @@ import { Configuration } from "webpack";
 
 import getCommonConfiguration from "./Plugins/CommonConfiguration";
 import { Dictionary } from "./Plugins/Utils";
-import { TsConfigFileName } from "./Plugins/Resources";
+import { TsConfigDefaultFileName } from "./Plugins/Resources";
 
 const config = (_, argv) => {
 
