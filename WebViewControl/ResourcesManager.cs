@@ -11,26 +11,6 @@ namespace WebViewControl {
 
         private static readonly AssemblyCache cache = new AssemblyCache();
 
-        public class Resource {
-            public string Extension;
-            public Stream ResourceStream;
-
-            public Resource(string extension, Stream resourceStream) {
-                Extension = extension;
-                ResourceStream = resourceStream;
-            }
-        }
-
-        public static Resource LoadEmbeddedResource(Uri url) {
-            var resourceAssembly = cache.ResolveResourceAssembly(url);
-            var resourcePath = ResourceUrl.GetEmbeddedResourcePath(url);
-
-            var extension = Path.GetExtension(resourcePath.Last()).ToLower();
-            var resourceStream = TryGetResourceWithFullPath(resourceAssembly, resourcePath);
-
-            return new Resource(extension, resourceStream);
-        }
-
         private static Stream InternalTryGetResource(string assemblyName, string defaultNamespace, IEnumerable<string> resourcePath, bool failOnMissingResource) {
             var assembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a => a.GetName().Name == assemblyName);
             if (assembly == null) {
@@ -94,6 +74,20 @@ namespace WebViewControl {
 
         public static Stream TryGetResourceWithFullPath(string assemblyName, IEnumerable<string> resourcePath) {
             return InternalTryGetResource(assemblyName, resourcePath.First(), resourcePath.Skip(1), false);
+        }
+
+        public static Stream TryGetResource(Uri url, out string extension) {
+            var resourceAssembly = cache.ResolveResourceAssembly(url);
+            var resourcePath = ResourceUrl.GetEmbeddedResourcePath(url);
+
+            extension = Path.GetExtension(resourcePath.Last()).ToLower();
+            var resourceStream = TryGetResourceWithFullPath(resourceAssembly, resourcePath);
+
+            return resourceStream;
+        }
+
+        internal static Stream TryGetResource(Uri url) {
+            return TryGetResource(url, out _);
         }
 
         public static string GetMimeType(string resourceName) {

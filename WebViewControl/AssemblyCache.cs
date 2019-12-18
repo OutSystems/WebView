@@ -6,13 +6,18 @@ namespace WebViewControl {
 
     internal class AssemblyCache {
 
+        private static object SyncRoot { get; } = new object();
         private Dictionary<string, Assembly> assemblies;
         private bool newAssembliesLoaded = true;
 
         internal Assembly ResolveResourceAssembly(Uri resourceUrl) {
             if (assemblies == null) {
-                assemblies = new Dictionary<string, Assembly>();
-                AppDomain.CurrentDomain.AssemblyLoad += OnAssemblyLoaded;
+                lock (SyncRoot) {
+                    if (assemblies == null) {
+                        assemblies = new Dictionary<string, Assembly>();
+                        AppDomain.CurrentDomain.AssemblyLoad += OnAssemblyLoaded;
+                    }
+                }
             }
 
             var assemblyName = ResourceUrl.GetEmbeddedResourceAssemblyName(resourceUrl);
@@ -20,11 +25,15 @@ namespace WebViewControl {
 
             if (assembly == null) {
                 if (newAssembliesLoaded) {
-                    // add loaded assemblies to cache
-                    newAssembliesLoaded = false;
-                    foreach (var domainAssembly in AppDomain.CurrentDomain.GetAssemblies()) {
-                        // replace if duplicated (can happen)
-                        assemblies[domainAssembly.GetName().Name] = domainAssembly;
+                    lock (SyncRoot) {
+                        if (newAssembliesLoaded) {
+                            // add loaded assemblies to cache
+                            newAssembliesLoaded = false;
+                            foreach (var domainAssembly in AppDomain.CurrentDomain.GetAssemblies()) {
+                                // replace if duplicated (can happen)
+                                assemblies[domainAssembly.GetName().Name] = domainAssembly;
+                            }
+                        }
                     }
                 }
 
