@@ -89,7 +89,7 @@ let getCommonConfiguration = (libraryName: string, useCache: boolean, projectDir
             rules: [
                 SassRuleSet,
                 ResourcesRuleSet,
-                getTypeScriptRuleSet(useCache,tsConfigFile)
+                getTypeScriptRuleSet(useCache, tsConfigFile)
             ]
         },
 

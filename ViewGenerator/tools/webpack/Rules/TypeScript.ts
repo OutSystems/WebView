@@ -36,7 +36,7 @@ let getTypeScriptRuleSet = (useCache: boolean, configFilePath: string): RuleSetR
 
     let tsLoaderRule: RuleSetUseItem = {
         loader: "ts-loader",
-        configFile: configFilePath, //TODO jdt handle the case where this string is empty
+        configFile: configFilePath, 
         options: {
             happyPackMode: true
         }
