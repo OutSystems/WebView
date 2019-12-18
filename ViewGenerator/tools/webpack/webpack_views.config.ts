@@ -33,7 +33,7 @@ const config = (_, argv) => {
         }
     };
 
-    let tsConfigFile = argv.tsConfigFile ? argv.tsConfigFile : TsConfigFileName;
+    let tsConfigFile = argv.tsConfigFile || TsConfigFileName;
     let projectDir = argv.projectDir ? resolve(argv.projectDir) : "";
     let standardConfig: Configuration = getCommonConfiguration("Views", argv.useCache, projectDir, tsConfigFile);
 

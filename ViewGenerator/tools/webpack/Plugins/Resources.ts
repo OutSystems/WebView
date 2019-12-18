@@ -10,7 +10,7 @@ export const OutputDirectoryDefault: string = "Generated/";
 
 // Filenames
 export const DtsFileName: string = "@types/Plugins.d.ts";
-export const TsConfigFileName: string = "tsconfig.json";
+export const TsConfigDefaultFileName: string = "tsconfig.json";
 
 // Placeholders
 export const CssPlaceholder: string = "[name].css";
