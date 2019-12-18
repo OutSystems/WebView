@@ -15,7 +15,7 @@ import ResourcesRuleSet from "../Rules/Files";
 import SassRuleSet from "../Rules/Sass";
 import getTypeScriptRuleSet from "../Rules/TypeScript";
 
-let getCommonConfiguration = (libraryName: string, useCache: boolean, projectDir: string): Configuration => {
+let getCommonConfiguration = (libraryName: string, useCache: boolean, projectDir: string, tsConfigFile: string): Configuration => {
 
     const entryMap: Dictionary<string> = {}
     const outputMap: Dictionary<string> = {};
@@ -89,7 +89,7 @@ let getCommonConfiguration = (libraryName: string, useCache: boolean, projectDir
             rules: [
                 SassRuleSet,
                 ResourcesRuleSet,
-                getTypeScriptRuleSet(useCache)
+                getTypeScriptRuleSet(useCache,tsConfigFile)
             ]
         },
 

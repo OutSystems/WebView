@@ -6,7 +6,7 @@ import { CacheDirectoryDefault } from "../Plugins/Resources";
 import { getCurrentDirectory } from "../Plugins/Utils";
 
 // .ts / .tsx  files
-let getTypeScriptRuleSet = (useCache: boolean): RuleSetRule => {
+let getTypeScriptRuleSet = (useCache: boolean, configFilePath: string): RuleSetRule => {
 
     const TypeScriptRule: RuleSetRule = {
         test: /\.tsx?$/
@@ -36,6 +36,7 @@ let getTypeScriptRuleSet = (useCache: boolean): RuleSetRule => {
 
     let tsLoaderRule: RuleSetUseItem = {
         loader: "ts-loader",
+        configFile: configFilePath, //TODO jdt handle the case where this string is empty
         options: {
             happyPackMode: true
         }
