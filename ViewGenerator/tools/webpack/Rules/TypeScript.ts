@@ -36,9 +36,9 @@ let getTypeScriptRuleSet = (useCache: boolean, configFilePath: string): RuleSetR
 
     let tsLoaderRule: RuleSetUseItem = {
         loader: "ts-loader",
-        configFile: configFilePath, 
         options: {
-            happyPackMode: true
+            happyPackMode: true,
+            configFile: configFilePath 
         }
     };
 
