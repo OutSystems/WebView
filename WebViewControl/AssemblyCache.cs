@@ -6,7 +6,7 @@ namespace WebViewControl {
 
     internal class AssemblyCache {
 
-        private static object SyncRoot { get; } = new object();
+        private object SyncRoot { get; } = new object();
         private Dictionary<string, Assembly> assemblies;
         private bool newAssembliesLoaded = true;
 
