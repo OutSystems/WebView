@@ -4,7 +4,6 @@ import { Configuration } from "webpack";
 
 import getCommonConfiguration from "./Plugins/CommonConfiguration";
 import { Dictionary } from "./Plugins/Utils";
-import { TsConfigDefaultFileName } from "./Plugins/Resources";
 
 const config = (_, argv) => {
 
@@ -33,7 +32,7 @@ const config = (_, argv) => {
         }
     };
 
-    let tsConfigFile = argv.tsConfigFile || TsConfigDefaultFileName;
+    let tsConfigFile = argv.tsConfigFile;
     let projectDir = argv.projectDir ? resolve(argv.projectDir) : "";
     let standardConfig: Configuration = getCommonConfiguration("Views", argv.useCache, projectDir, tsConfigFile);
 
