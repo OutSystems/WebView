@@ -9,6 +9,8 @@ namespace WebViewControl {
 
     public static class ResourcesManager {
 
+        private static readonly AssemblyCache cache = new AssemblyCache();
+
         private static Stream InternalTryGetResource(string assemblyName, string defaultNamespace, IEnumerable<string> resourcePath, bool failOnMissingResource) {
             var assembly = AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a => a.GetName().Name == assemblyName);
             if (assembly == null) {
@@ -72,6 +74,20 @@ namespace WebViewControl {
 
         public static Stream TryGetResourceWithFullPath(string assemblyName, IEnumerable<string> resourcePath) {
             return InternalTryGetResource(assemblyName, resourcePath.First(), resourcePath.Skip(1), false);
+        }
+
+        internal static Stream TryGetResource(Uri url, out string extension) {
+            var resourceAssembly = cache.ResolveResourceAssembly(url);
+            var resourcePath = ResourceUrl.GetEmbeddedResourcePath(url);
+
+            extension = Path.GetExtension(resourcePath.Last()).ToLower();
+            var resourceStream = TryGetResourceWithFullPath(resourceAssembly, resourcePath);
+
+            return resourceStream;
+        }
+
+        public static Stream TryGetResource(Uri url) {
+            return TryGetResource(url, out _);
         }
 
         public static string GetMimeType(string resourceName) {
