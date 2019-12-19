@@ -231,8 +231,7 @@ namespace WebViewControl {
             chromium.CleanupElement = new FrameworkElement(); // prevent chromium to listen to default cleanup element unload events, this will be controlled manually
 
             disposables = new[] {
-                AsyncCancellationTokenSource,
-                (IDisposable) chromium.RequestHandler,
+                (IDisposable) AsyncCancellationTokenSource,
                 chromium
             };
 

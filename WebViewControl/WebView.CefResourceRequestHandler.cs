@@ -9,7 +9,7 @@ namespace WebViewControl {
 
     partial class WebView {
 
-        protected class CefResourceRequestHandler : ResourceRequestHandler, IDisposable {
+        protected class CefResourceRequestHandler : ResourceRequestHandler {
 
             private WebView OwnerWebView { get; }
 
@@ -79,8 +79,6 @@ namespace WebViewControl {
             protected Stream TryGetResourceWithFullPath(Assembly assembly, IEnumerable<string> resourcePath) {
                 return ResourcesManager.TryGetResourceWithFullPath(assembly, resourcePath);
             }
-
-            public void Dispose() { }
         }
     }
 }
