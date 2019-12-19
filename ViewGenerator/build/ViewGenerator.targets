@@ -88,7 +88,8 @@
   
   <Target Name="VG_CalculateStylesheetInputs">
     <ItemGroup>
-      <VG_StyleSheetInputs Include="**\*.scss" Exclude="node_modules\**\*.scss" />
+	  <VG_StyleSheetInputs Include="@(DefaultStyleSheet)"/>	
+	  <VG_StyleSheetInputs Condition="'@(DefaultStyleSheet)' != ''" Include="**\*.scss" Exclude="node_modules\**\*.scss" />
     </ItemGroup>
   </Target>
   
@@ -123,6 +124,7 @@
     <ItemGroup>
       <VG_Inputs Include="**\*.tsx" Exclude="node_modules\**\*.tsx" />
       <VG_Inputs Include="**\*.ts" Exclude="node_modules\**\*.ts" />
+      <VG_Inputs Include="**\*.scss" />
       <UpToDateCheckInput Include="@(VG_Inputs)" Exclude="@(UpToDateCheckInput)" />
       <UpToDateCheckInput Include="@(DefaultStyleSheet)" Exclude="@(UpToDateCheckInput)" />
     </ItemGroup>
@@ -159,9 +161,9 @@
 
   <Target Name="VG_IncludeGeneratedResources" AfterTargets="VG_GenerateBundle">
     <ItemGroup>
-      <EmbeddedResource Include="**\*.js" Exclude="node_modules\**\*.js" />
-      <EmbeddedResource Include="**\*.css" Exclude="node_modules\**\*.css;**\*.min.css" />
-      <EmbeddedResource Include="**\*.entry" />
+      <EmbeddedResource Include="**\*.js" Exclude="node_modules\**\*.js;@(EmbeddedResource)" />
+      <EmbeddedResource Include="**\*.css" Exclude="node_modules\**\*.css;**\*.min.css;@(EmbeddedResource)" />
+      <EmbeddedResource Include="**\*.entry" Exclude="@(EmbeddedResource)" />
     </ItemGroup>
   </Target>
 
