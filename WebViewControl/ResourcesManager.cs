@@ -76,7 +76,7 @@ namespace WebViewControl {
             return InternalTryGetResource(assemblyName, resourcePath.First(), resourcePath.Skip(1), false);
         }
 
-        public static Stream TryGetResource(Uri url, out string extension) {
+        internal static Stream TryGetResource(Uri url, out string extension) {
             var resourceAssembly = cache.ResolveResourceAssembly(url);
             var resourcePath = ResourceUrl.GetEmbeddedResourcePath(url);
 
