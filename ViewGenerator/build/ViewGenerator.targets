@@ -150,8 +150,6 @@
       <WP_UseCache>false</WP_UseCache>
     </PropertyGroup>
 
-    <Exec Condition="'$(PluginsRelativePath)' == ''" Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config='$(ViewGeneratorToolsPath)\webpack\webpack_workers.config.js' --mode=$(WP_Mode) --devtool=$(WP_DevTool) --useCache=$(WP_UseCache) --projectDir='$(WP_OverrideProjectDir)'" />
-
     <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config='$(ViewGeneratorToolsPath)\webpack\$(WP_ConfigFileName).config.js' --mode=$(WP_Mode) --devtool=$(WP_DevTool) --useCache=$(WP_UseCache) --pluginsRelativePath='$(PluginsRelativePath)' --projectDir='$(WP_OverrideProjectDir)' --tsConfigFile='$(TypeScriptConfigFile)'" />
     <Touch Files="viewgeneratorbuild.cache" AlwaysCreate="true" />
   </Target>
