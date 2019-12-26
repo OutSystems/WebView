@@ -13,9 +13,6 @@ namespace WebViewControl {
         partial void ExtraInitialize() {
             Content = chromium;
 
-            Loaded += OnLoaded;
-            Unloaded += OnUnloaded;
-
             FocusManager.SetIsFocusScope(this, true);
             FocusManager.SetFocusedElement(this, FocusableElement);
         }
@@ -33,26 +30,16 @@ namespace WebViewControl {
             }
         }
 
-        private void OnLoaded(object sender, RoutedEventArgs e) {
-            PresentationSource.AddSourceChangedHandler(this, OnPresentationSourceChanged);
-            var source = PresentationSource.FromVisual(this);
-            UpdatePresentationSource(source, source); // pass same source, to make sure events are not registerer more than once
-        }
+        protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e) {
+            base.OnPropertyChanged(e);
 
-        private void OnUnloaded(object sender, RoutedEventArgs e) {
-            PresentationSource.RemoveSourceChangedHandler(this, OnPresentationSourceChanged);
-        }
+            // IWindowService is a WPF internal property set when component is loaded into a new window, even if the window isn't shown
+            if (e.Property.Name == "IWindowService") {
+                if (e.OldValue is Window oldWindow) {
+                    oldWindow.Closed -= OnHostWindowClosed;
+                }
 
-        private void OnPresentationSourceChanged(object sender, SourceChangedEventArgs e) {
-            UpdatePresentationSource(e.OldSource, e.NewSource);
-        }
-
-        private void UpdatePresentationSource(PresentationSource oldSource, PresentationSource newSource) {
-            if (oldSource?.RootVisual is Window oldWindow) {
-                oldWindow.Closed -= OnHostWindowClosed;
-            }
-            if (newSource != null) {
-                if (newSource?.RootVisual is Window newWindow) {
+                if (e.NewValue is Window newWindow) {
                     newWindow.Closed += OnHostWindowClosed;
                 }
             }
