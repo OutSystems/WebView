@@ -2,7 +2,6 @@
   <PropertyGroup>
 
     <BuildDependsOn>
-      VGC_CalculateInputs;
       VGC_GenerateView;
       $(BuildDependsOn)
     </BuildDependsOn>
@@ -41,15 +40,14 @@
     </PropertyGroup>
   </Target>
 
-  <Target Name="VGC_CalculateInputs">
-    <!-- TODO: check if this includes all possible inputs -->
-    <ItemGroup>
-      <VGC_Inputs Include="**\*.tsx" Exclude="node_modules\**\*.tsx" />
-      <VGC_Inputs Include="**\*.ts" Exclude="node_modules\**\*.ts" />
-    </ItemGroup>
-  </Target>
+  <!-- TODO: check if this includes all possible inputs -->
+  <ItemGroup>
+    <VGC_Inputs Include="**\*.tsx" Exclude="node_modules\**\*.tsx" />
+    <VGC_Inputs Include="**\*.ts" Exclude="node_modules\**\*.ts" />
+    <UpToDateCheckInput Include="@(VGC_Inputs)" Exclude="@(UpToDateCheckInput)" />
+  </ItemGroup>
 
-  <Target Name="VGC_GenerateView" Inputs="@(VGC_Inputs)" Outputs="viewgeneratorcorebuild.cache" Condition="'$(UsingMicrosoftNETSdk)' != 'true' Or ($(DesignTimeBuild) != 'true' And $(BuildingProject) == 'true')" BeforeTargets="AfterResolveReferences" DependsOnTargets="VGC_SetVariables;VGC_CalculateInputs">
+  <Target Name="VGC_GenerateView" Inputs="@(VGC_Inputs)" Outputs="viewgeneratorcorebuild.cache" Condition="'$(UsingMicrosoftNETSdk)' != 'true' Or ($(DesignTimeBuild) != 'true' And $(BuildingProject) == 'true')" BeforeTargets="AfterResolveReferences" DependsOnTargets="VGC_SetVariables">
     <CallTarget Targets="VGC_GenerateViewInner" />
   </Target>
 
