@@ -59,7 +59,9 @@
   <ItemGroup>
     <Compile Include="ExecutionEngine.cs" />
     <Compile Include="FrameInfo.cs" />
+    <Compile Include="IChildViewHost.cs" />
     <Compile Include="IExecutionEngine.cs" />
+    <Compile Include="IFrame.cs" />
     <Compile Include="IViewModule.cs" />
     <Compile Include="LoadStatus.cs" />
     <Compile Include="ReactViewRender.LoaderModule.cs" />
@@ -67,6 +69,7 @@
     <Compile Include="ReactView.cs" />
     <Compile Include="ReactViewFactory.cs" />
     <Compile Include="ReactViewRender.cs" />
+    <Compile Include="SuspendedExecutionEngine.cs" />
     <Compile Include="ViewModuleContainer.cs" />
     <Compile Include="ViewModuleExtensions.cs" />
   </ItemGroup>

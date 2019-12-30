@@ -9,7 +9,7 @@ namespace Example {
     /// </summary>
     public partial class ReactViewExample : Window {
 
-        private const string InnerViewName = "test";
+        private const string InnerViewName = "test_frame";
         private int subViewCounter;
 
         private SubExampleViewModule subView;
@@ -18,9 +18,7 @@ namespace Example {
             InitializeComponent();
 
             exampleView.WithPlugin<ViewPlugin>().NotifyViewLoaded += OnNotifyViewLoaded;
-
-            exampleView.AddCustomResourceRequestedHandler(OnViewResourceRequested);
-            exampleView.AddCustomResourceRequestedHandler(InnerViewName, OnInnerViewResourceRequested);
+            exampleView.CustomResourceRequested += OnViewResourceRequested;
         }
 
         private void OnExampleViewClick(SomeType arg) {
@@ -36,7 +34,7 @@ namespace Example {
         }
 
         private void OnCallInnerViewPluginMenuItemClick(object sender, RoutedEventArgs e) {
-            exampleView.WithPlugin<ViewPlugin>(InnerViewName).Test();
+            subView.WithPlugin<ViewPlugin>().Test();
         }
 
         private void OnShowDevTools(object sender, RoutedEventArgs e) {
@@ -53,12 +51,15 @@ namespace Example {
 
         private void OnViewMounted() {
             var subViewId = subViewCounter++;
+            var oldView = subView;
             subView = new SubExampleViewModule();
             subView.ConstantMessage = "This is a sub view";
             subView.GetTime += () => DateTime.Now.AddHours(1).ToShortTimeString() + $"(Id: {subViewId})";
-            exampleView.AttachInnerView(subView, InnerViewName);
-            exampleView.WithPlugin<ViewPlugin>(InnerViewName).NotifyViewLoaded += (viewName) => AppendLog($"On sub view loaded (Id: {subViewId}): {viewName}");
+            subView.CustomResourceRequested += OnInnerViewResourceRequested;
+            subView.AttachTo(exampleView, InnerViewName);
             subView.CallMe();
+            subView.WithPlugin<ViewPlugin>().NotifyViewLoaded += (viewName) => AppendLog($"On sub view loaded (Id: {subViewId}): {viewName}");
+            oldView?.CallMe();
         }
 
         private void AppendLog(string log) {
