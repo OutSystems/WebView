@@ -51,6 +51,7 @@ namespace Example {
 
         private void OnViewMounted() {
             var subViewId = subViewCounter++;
+            var oldView = subView;
             subView = new SubExampleViewModule();
             subView.ConstantMessage = "This is a sub view";
             subView.GetTime += () => DateTime.Now.AddHours(1).ToShortTimeString() + $"(Id: {subViewId})";
@@ -58,6 +59,7 @@ namespace Example {
             subView.AttachTo(exampleView, InnerViewName);
             subView.CallMe();
             subView.WithPlugin<ViewPlugin>().NotifyViewLoaded += (viewName) => AppendLog($"On sub view loaded (Id: {subViewId}): {viewName}");
+            oldView?.CallMe();
         }
 
         private void AppendLog(string log) {

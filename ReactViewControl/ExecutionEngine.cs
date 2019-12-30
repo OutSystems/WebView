@@ -7,6 +7,7 @@ namespace ReactViewControl {
     internal class ExecutionEngine : IExecutionEngine {
 
         private bool isReady;
+        private string generation;
 
         public ExecutionEngine(WebView webview, string frameName) {
             WebView = webview;
@@ -17,18 +18,18 @@ namespace ReactViewControl {
 
         private string FrameName { get; }
 
-        private ConcurrentQueue<Tuple<string, object[]>> PendingScripts { get; } = new ConcurrentQueue<Tuple<string, object[]>>();
+        private ConcurrentQueue<Tuple<IViewModule, string, object[]>> PendingExecutions { get; } = new ConcurrentQueue<Tuple<IViewModule, string, object[]>>();
 
         private string FormatMethodInvocation(IViewModule module, string methodCall) {
-            return ReactViewRender.ModulesObjectName + "(\"" + FrameName + "\",\"" + module.Name + "\")." + methodCall;
+            return ReactViewRender.ModulesObjectName + "(\"" + FrameName + "\",\"" + generation + "\",\"" + module.Name + "\")." + methodCall;
         }
 
         public virtual void ExecuteMethod(IViewModule module, string methodCall, params object[] args) {
-            var method = FormatMethodInvocation(module, methodCall);
             if (isReady) {
+                var method = FormatMethodInvocation(module, methodCall);
                 WebView.ExecuteScriptFunctionWithSerializedParams(method, args);
             } else {
-                PendingScripts.Enqueue(Tuple.Create(method, args));
+                PendingExecutions.Enqueue(Tuple.Create(module, methodCall, args));
             }
         }
 
@@ -37,11 +38,13 @@ namespace ReactViewControl {
             return WebView.EvaluateScriptFunctionWithSerializedParams<T>(method, args);
         }
 
-        public virtual void Start() {
+        public virtual void Start(string generation) {
+            this.generation = generation;
             isReady = true;
             while (true) {
-                if (PendingScripts.TryDequeue(out var pendingScript)) {
-                    WebView.ExecuteScriptFunctionWithSerializedParams(pendingScript.Item1, pendingScript.Item2);
+                if (PendingExecutions.TryDequeue(out var pendingScript)) {
+                    var method = FormatMethodInvocation(pendingScript.Item1, pendingScript.Item2);
+                    WebView.ExecuteScriptFunctionWithSerializedParams(method, pendingScript.Item2);
                 } else {
                     // nothing else to execute
                     break;

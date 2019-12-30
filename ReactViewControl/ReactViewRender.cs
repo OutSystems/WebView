@@ -182,7 +182,7 @@ namespace ReactViewControl {
                 frame.LoadStatus = LoadStatus.Ready;
 
                 // start component execution engine
-                frame.ExecutionEngine?.Start();
+                frame.ExecutionEngine?.Start(args.ElementAt(1).ToString());
             }
         }
 

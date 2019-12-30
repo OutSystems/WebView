@@ -41,13 +41,22 @@ function getView(viewName: string): ViewMetadata {
     return view;
 }
 
-function getModule(viewName: string, moduleName: string) {
-    const view = getView(viewName);
-    const module = view.modules.get(moduleName);
-    if (!module) {
-        throw new Error(`Module "${moduleName}" not loaded in view "${viewName}"`);
+function getModule(viewName: string, generation: string, moduleName: string) {
+    const view = views.get(viewName);
+    if (view && view.generation.toString() === generation) {
+        // when generation requested != current generation, ignore (we don't want to interact with old views)
+        const module = view.modules.get(moduleName);
+        if (module) {
+            return module;
+        }
     }
-    return module;
+
+    return new Proxy({}, {
+        get: function () {
+            // return a dummy function, call will be ingored, but no exception thrown
+            return new Function();
+        }
+    });
 }
 
 window[modulesFunctionName] = getModule;
@@ -299,7 +308,7 @@ export function loadComponent(
 
             window.dispatchEvent(new Event('viewready'));
 
-            fireNativeNotification(viewLoadedEventName, frameName);
+            fireNativeNotification(viewLoadedEventName, view.name, view.generation.toString());
         } catch (error) {
             handleError(error);
         }

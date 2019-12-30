@@ -14,7 +14,7 @@ namespace ReactViewControl {
             throw new InvalidOperationException("Cannot execute javascript on a suspended execution engine");
         }
 
-        public override void Start() {
+        public override void Start(string generation) {
             throw new InvalidOperationException("Cannot start a suspended execution engine");
         }
     }
