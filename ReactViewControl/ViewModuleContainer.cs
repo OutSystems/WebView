@@ -11,11 +11,15 @@ namespace ReactViewControl {
         private const string JsEntryFileExtension = ".js.entry";
         private const string CssEntryFileExtension = ".css.entry";
 
-        private IExecutionEngine engine;
+        private IFrame frame;
 
         public ViewModuleContainer() {
             DependencyJsSourcesCache = new Lazy<string[]>(() => GetDependenciesFromEntriesFile(JsEntryFileExtension));
             CssSourcesCache = new Lazy<string[]>(() => GetDependenciesFromEntriesFile(CssEntryFileExtension));
+
+            frame = new FrameInfo("dummy") {
+                ExecutionEngine = new SuspendedExecutionEngine()
+            };
         }
 
         private Lazy<string[]> DependencyJsSourcesCache { get; }
@@ -54,13 +58,24 @@ namespace ReactViewControl {
 
         KeyValuePair<string, object>[] IViewModule.PropertiesValues => PropertiesValues;
 
-        void IViewModule.Bind(IExecutionEngine engine) => this.engine = engine;
+        void IViewModule.Bind(IFrame frame) {
+            frame.CustomResourceRequestedHandler += this.frame.CustomResourceRequestedHandler;
+            this.frame = frame;
+        }
 
-        IExecutionEngine IViewModule.Engine => ExecutionEngine;
+        public void AttachTo(IChildViewHost host, string frameName) => host.AttachChildView(this, frameName);
+
+        public event CustomResourceRequestedEventHandler CustomResourceRequested {
+            add => frame.CustomResourceRequestedHandler += value;
+            remove => frame.CustomResourceRequestedHandler -= value;
+        }
+
+        public T WithPlugin<T>() => frame.GetPlugin<T>();
 
         // ease access in generated code
         protected IExecutionEngine ExecutionEngine {
             get {
+                var engine = frame?.ExecutionEngine;
                 if (engine == null) {
                     throw new InvalidOperationException("View module must be bound to an execution engine ");
                 }

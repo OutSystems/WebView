@@ -22,8 +22,10 @@ namespace ReactViewControl {
 
         KeyValuePair<string, object>[] PropertiesValues { get; }
 
-        void Bind(IExecutionEngine engine);
+        void Bind(IFrame frame);
 
-        IExecutionEngine Engine { get; }
+        void AttachTo(IChildViewHost host, string frameName);
+
+        T WithPlugin<T>();
     }
 }

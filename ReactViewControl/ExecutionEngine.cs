@@ -23,7 +23,7 @@ namespace ReactViewControl {
             return ReactViewRender.ModulesObjectName + "(\"" + FrameName + "\",\"" + module.Name + "\")." + methodCall;
         }
 
-        public void ExecuteMethod(IViewModule module, string methodCall, params object[] args) {
+        public virtual void ExecuteMethod(IViewModule module, string methodCall, params object[] args) {
             var method = FormatMethodInvocation(module, methodCall);
             if (isReady) {
                 WebView.ExecuteScriptFunctionWithSerializedParams(method, args);
@@ -32,12 +32,12 @@ namespace ReactViewControl {
             }
         }
 
-        public T EvaluateMethod<T>(IViewModule module, string methodCall, params object[] args) {
+        public virtual T EvaluateMethod<T>(IViewModule module, string methodCall, params object[] args) {
             var method = FormatMethodInvocation(module, methodCall);
             return WebView.EvaluateScriptFunctionWithSerializedParams<T>(method, args);
         }
 
-        public void Start() {
+        public virtual void Start() {
             isReady = true;
             while (true) {
                 if (PendingScripts.TryDequeue(out var pendingScript)) {

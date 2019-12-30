@@ -419,12 +419,12 @@ function fireNativeNotification(eventName: string, ...args: string[]) {
 
 function onChildViewAdded(childView: ViewMetadata) {
     views.set(childView.name, childView);
-    fireNativeNotification(viewInitializedEventName, childView.name);
+    fireNativeNotification(viewInitializedEventName, childView.name, childView.generation.toString());
 }
 
 function onChildViewRemoved(childView: ViewMetadata) {
     views.delete(childView.name);
-    fireNativeNotification(viewDestroyedEventName, childView.name);
+    fireNativeNotification(viewDestroyedEventName, childView.name, childView.generation.toString());
 }
 
 bootstrap();
