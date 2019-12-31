@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Example.ViewAdapters;
+using System;
 using System.IO;
 using System.Windows;
 using WebViewControl;
@@ -8,69 +9,38 @@ namespace Example {
     /// Interaction logic for ReactViewExample.xaml
     /// </summary>
     public partial class ReactViewExample : Window {
+        private const string dragSourceViewId = "drag-source-view";
+        private const string dropTargetViewId = "drop-target-view";
+        private DragSourceViewModule dragSourceView;
+        private DropTargetViewModule dropTargetView;
 
-        private const string InnerViewName = "test";
-        private int subViewCounter;
-
-        private SubExampleViewModule subView;
+        private readonly ViewAdapter viewAdapter;
+        private readonly ViewAdapter dragSourceViewAdapter;
+        private readonly ViewAdapter dropTargetViewAdapter;
 
         public ReactViewExample() {
             InitializeComponent();
 
-            exampleView.WithPlugin<ViewPlugin>().NotifyViewLoaded += OnNotifyViewLoaded;
+            dragSourceView = new DragSourceViewModule();
+            dropTargetView = new DropTargetViewModule();
+            exampleView.AttachInnerView(dragSourceView, dragSourceViewId);
+            exampleView.AttachInnerView(dropTargetView, dropTargetViewId);
 
-            exampleView.AddCustomResourceRequestedHandler(OnViewResourceRequested);
-            exampleView.AddCustomResourceRequestedHandler(InnerViewName, OnInnerViewResourceRequested);
+            viewAdapter = new ViewAdapter(reactView: exampleView, frameName: string.Empty);
+            dragSourceViewAdapter = new ViewAdapter(reactView: exampleView, frameName: dragSourceViewId);
+            dropTargetViewAdapter = new ViewAdapter(reactView: exampleView, frameName: dropTargetViewId);
         }
 
         private void OnExampleViewClick(SomeType arg) {
-            AppendLog("Clicked on a button inside the React view");
-        }
 
-        private void OnCallMainViewMenuItemClick(object sender, RoutedEventArgs e) {
-            exampleView.CallMe();
-        }
-
-        private void OnCallInnerViewMenuItemClick(object sender, RoutedEventArgs e) {
-            subView.CallMe();
         }
 
         private void OnCallInnerViewPluginMenuItemClick(object sender, RoutedEventArgs e) {
-            exampleView.WithPlugin<ViewPlugin>(InnerViewName).Test();
+            exampleView.WithPlugin<ViewPlugin>(dragSourceViewId).Test();
         }
 
         private void OnShowDevTools(object sender, RoutedEventArgs e) {
             exampleView.ShowDeveloperTools();
-        }
-
-        private string OnExampleViewGetTime() {
-            return DateTime.Now.ToShortTimeString();
-        }
-
-        private void OnNotifyViewLoaded(string viewName) {
-            AppendLog("On view loaded: " + viewName);
-        }
-
-        private void OnViewMounted() {
-            var subViewId = subViewCounter++;
-            subView = new SubExampleViewModule();
-            subView.ConstantMessage = "This is a sub view";
-            subView.GetTime += () => DateTime.Now.AddHours(1).ToShortTimeString() + $"(Id: {subViewId})";
-            exampleView.AttachInnerView(subView, InnerViewName);
-            exampleView.WithPlugin<ViewPlugin>(InnerViewName).NotifyViewLoaded += (viewName) => AppendLog($"On sub view loaded (Id: {subViewId}): {viewName}");
-            subView.CallMe();
-        }
-
-        private void AppendLog(string log) {
-            Application.Current.Dispatcher.Invoke(() => status.Text = log + Environment.NewLine + status.Text);
-        }
-
-        private Stream OnViewResourceRequested(string resourceKey, params string[] options) {
-            return ResourcesManager.GetResource(GetType().Assembly, new[] { "ExampleView", "ExampleView", resourceKey });
-        }
-
-        private Stream OnInnerViewResourceRequested(string resourceKey, params string[] options) {
-            return ResourcesManager.GetResource(GetType().Assembly, new[] { "ExampleView", "SubExampleView", resourceKey });
         }
     }
 }

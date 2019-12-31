@@ -38,9 +38,9 @@ const views = new Map<string, ViewMetadata>();
 function getView(viewName: string): ViewMetadata {
     const view = views.get(viewName);
     if (!view) {
-        throw new Error(`View "${viewName}" not loaded`);
+        //throw new Error(`View "${viewName}" not loaded`);
     }
-    return view;
+    return view as ViewMetadata;
 }
 
 function getModule(viewName: string, moduleName: string) {
@@ -312,8 +312,8 @@ export function loadComponent(
 
 async function bootstrap() {
     // prevent browser from loading the dropped file
-    window.addEventListener("dragover", (e) => e.preventDefault());
-    window.addEventListener("drop", (e) => e.preventDefault());
+    //window.addEventListener("dragover", (e) => e.preventDefault());
+    //window.addEventListener("drop", (e) => e.preventDefault());
 
     await waitForDOMReady();
 
