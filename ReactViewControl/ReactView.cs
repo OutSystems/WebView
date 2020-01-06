@@ -145,8 +145,8 @@ namespace ReactViewControl {
         /// This handler will be called before the frame handler.
         /// </summary>
         public event CustomResourceRequestedEventHandler CustomResourceRequested {
-            add { View.AddCustomResourceRequestedHandler(ReactViewRender.MainViewFrameName, value); }
-            remove { View.RemoveCustomResourceRequestedHandler(ReactViewRender.MainViewFrameName, value); }
+            add { View.CustomResourceRequested += value; }
+            remove { View.CustomResourceRequested -= value; }
         }
 
         /// <summary>

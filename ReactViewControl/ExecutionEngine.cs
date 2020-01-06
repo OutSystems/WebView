@@ -44,7 +44,7 @@ namespace ReactViewControl {
             while (true) {
                 if (PendingExecutions.TryDequeue(out var pendingScript)) {
                     var method = FormatMethodInvocation(pendingScript.Item1, pendingScript.Item2);
-                    WebView.ExecuteScriptFunctionWithSerializedParams(method, pendingScript.Item2);
+                    WebView.ExecuteScriptFunctionWithSerializedParams(method, pendingScript.Item3);
                 } else {
                     // nothing else to execute
                     break;

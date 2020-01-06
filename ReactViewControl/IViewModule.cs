@@ -27,5 +27,7 @@ namespace ReactViewControl {
         void AttachTo(IChildViewHost host, string frameName);
 
         T WithPlugin<T>();
+
+        event CustomResourceRequestedEventHandler CustomResourceRequested;
     }
 }

@@ -156,6 +156,11 @@ namespace ReactViewControl {
         public event ResourceRequestedEventHandler ExternalResourceRequested;
 
         /// <summary>
+        /// Handle custom resource requests. Use this event to load the resource based on provided key.
+        /// </summary>
+        public event CustomResourceRequestedEventHandler CustomResourceRequested;
+
+        /// <summary>
         /// An view was initialized, load its component.
         /// </summary>
         /// <param name="args"></param>
@@ -499,8 +504,9 @@ namespace ReactViewControl {
         }
 
         private CustomResourceRequestedEventHandler[] GetCustomResourceHandlers(FrameInfo frame) {
+            var globalHandlers = CustomResourceRequested?.GetInvocationList().Cast<CustomResourceRequestedEventHandler>() ?? Enumerable.Empty<CustomResourceRequestedEventHandler>();
             var frameHandlers = frame.CustomResourceRequestedHandler?.GetInvocationList().Cast<CustomResourceRequestedEventHandler>() ?? Enumerable.Empty<CustomResourceRequestedEventHandler>();
-            return frameHandlers.ToArray();
+            return globalHandlers.Concat(frameHandlers).ToArray();
         }
 
         /// <summary>

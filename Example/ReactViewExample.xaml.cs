@@ -67,7 +67,7 @@ namespace Example {
         }
 
         private Stream OnViewResourceRequested(string resourceKey, params string[] options) {
-            return ResourcesManager.GetResource(GetType().Assembly, new[] { "ExampleView", "ExampleView", resourceKey });
+            return ResourcesManager.TryGetResource(GetType().Assembly, new[] { "ExampleView", "ExampleView", resourceKey });
         }
 
         private Stream OnInnerViewResourceRequested(string resourceKey, params string[] options) {
