@@ -12,7 +12,7 @@
     <Product>ReactViewControl</Product>
     <Copyright>Copyright ©  2019</Copyright>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.75.7</Version>
+    <Version>2.75.9</Version>
     <PackageId>ReactViewControl-Avalonia</PackageId>
     <Authors>OutSystems</Authors>
     <PackageOutputPath>$(MSBuildProjectDirectory)\..\nuget</PackageOutputPath>
@@ -22,7 +22,9 @@
   <ItemGroup>
     <Compile Include="..\ReactViewControl\ExecutionEngine.cs" Link="ExecutionEngine.cs" />
     <Compile Include="..\ReactViewControl\FrameInfo.cs" Link="FrameInfo.cs" />
+    <Compile Include="..\ReactViewControl\IChildViewHost.cs" Link="IChildViewHost.cs" />
     <Compile Include="..\ReactViewControl\IExecutionEngine.cs" Link="IExecutionEngine.cs" />
+    <Compile Include="..\ReactViewControl\IFrame.cs" Link="IFrame.cs" />
     <Compile Include="..\ReactViewControl\IViewModule.cs" Link="IViewModule.cs" />
     <Compile Include="..\ReactViewControl\LoadStatus.cs" Link="LoadStatus.cs" />
     <Compile Include="..\ReactViewControl\ReactView.cs" Link="ReactView.cs" />

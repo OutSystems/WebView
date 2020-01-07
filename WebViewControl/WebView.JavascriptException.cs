@@ -10,19 +10,23 @@ namespace WebViewControl {
         public class JavascriptException : Exception {
 
             private JavascriptStackFrame[] JsStack { get; }
+            private string InnerStack { get; }
 
-            internal JavascriptException(string message, IEnumerable<JavascriptStackFrame> stack = null)
+            internal JavascriptException(string message, IEnumerable<JavascriptStackFrame> stack = null, string innerStackTrace = null)
             : base(message, null) {
                 JsStack = stack?.ToArray() ?? new JavascriptStackFrame[0];
+                InnerStack = innerStackTrace;
             }
 
-            internal JavascriptException(string name, string message, IEnumerable<JavascriptStackFrame> stack = null)
-            : this((string.IsNullOrEmpty(name) ? "" : name + ": ") + message, stack) {
+            internal JavascriptException(string name, string message, IEnumerable<JavascriptStackFrame> stack = null, string baseStackTrace = null)
+            : this((string.IsNullOrEmpty(name) ? "" : name + ": ") + message, stack, baseStackTrace) {
             }
 
             public override string StackTrace {
-                get { return string.Join(Environment.NewLine, JsStack.Select(FormatStackFrame).Concat(new[] { base.StackTrace })); }
+                get { return string.Join(Environment.NewLine, JsStack.Select(FormatStackFrame).Concat(new[] { BaseStackTrace })); }
             }
+
+            private string BaseStackTrace => (InnerStack != null ? InnerStack + Environment.NewLine : "") + base.StackTrace;
 
             private static string FormatStackFrame(JavascriptStackFrame frame) {
                 var functionName = string.IsNullOrEmpty(frame.FunctionName) ? "<anonymous>" : frame.FunctionName;
