@@ -18,9 +18,7 @@ namespace ReactViewControl {
             DependencyJsSourcesCache = new Lazy<string[]>(() => GetDependenciesFromEntriesFile(JsEntryFileExtension));
             CssSourcesCache = new Lazy<string[]>(() => GetDependenciesFromEntriesFile(CssEntryFileExtension));
 
-            frame = new FrameInfo("dummy") {
-                ExecutionEngine = new SuspendedExecutionEngine()
-            };
+            frame = new FrameInfo("dummy");
         }
 
         private Lazy<string[]> DependencyJsSourcesCache { get; }
@@ -61,6 +59,7 @@ namespace ReactViewControl {
 
         void IViewModule.Bind(IFrame frame) {
             frame.CustomResourceRequestedHandler += this.frame.CustomResourceRequestedHandler;
+            frame.ExecutionEngine.MergeWorkload(this.frame.ExecutionEngine);
             this.frame = frame;
         }
 

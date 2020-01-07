@@ -158,6 +158,11 @@ namespace ReactViewControl {
         public event ResourceRequestedEventHandler ExternalResourceRequested;
 
         /// <summary>
+        /// Handle custom resource requests. Use this event to load the resource based on provided key.
+        /// </summary>
+        public event CustomResourceRequestedEventHandler CustomResourceRequested;
+
+        /// <summary>
         /// An view was initialized, load its component.
         /// </summary>
         /// <param name="args"></param>
@@ -184,7 +189,7 @@ namespace ReactViewControl {
                 frame.LoadStatus = LoadStatus.Ready;
 
                 // start component execution engine
-                frame.ExecutionEngine?.Start(args.ElementAt(1).ToString());
+                frame.ExecutionEngine.Start(WebView, frameName, args.ElementAt(1).ToString());
             }
         }
 
@@ -222,9 +227,7 @@ namespace ReactViewControl {
                 var mainFrame = Frames[MainViewFrameName];
                 Frames.Clear();
                 Frames.Add(MainViewFrameName, mainFrame);
-                mainFrame.LoadStatus = LoadStatus.Initialized;
-                mainFrame.PluginsLoaded = false;
-                mainFrame.ExecutionEngine = null;
+                mainFrame.Reset();
             }
         }
 
@@ -250,7 +253,7 @@ namespace ReactViewControl {
                 var frame = GetOrCreateFrame(frameName);
                 frame.Component = component;
 
-                BindModule(component, frame);
+                component.Bind(frame);
 
                 if (frame.LoadStatus == LoadStatus.ViewInitialized) {
                     Load(frame);
@@ -321,21 +324,9 @@ namespace ReactViewControl {
                 frame.Plugins = frame.Plugins.Concat(plugins).ToArray();
 
                 foreach (var plugin in plugins) {
-                    BindModule(plugin, frame);
+                    plugin.Bind(frame);
                 }
             }
-        }
-
-        /// <summary>
-        /// Binds a module with the spcified frame. When a module is bound to a frame, it will execute its methods on the frame instance.
-        /// </summary>
-        /// <param name="module"></param>
-        /// <param name="frameName"></param>
-        private void BindModule(IViewModule module, FrameInfo frame) {
-            if (frame.ExecutionEngine == null) {
-                frame.ExecutionEngine = new ExecutionEngine(WebView, frame.Name);
-            }
-            module.Bind(frame);
         }
 
         /// <summary>
@@ -346,7 +337,7 @@ namespace ReactViewControl {
         public void BindModule(IViewModule module, string frameName) {
             lock (SyncRoot) {
                 var frame = GetOrCreateFrame(frameName);
-                BindModule(module, frame);
+                module.Bind(frame);
             }
         }
 
@@ -501,8 +492,9 @@ namespace ReactViewControl {
         }
 
         private CustomResourceRequestedEventHandler[] GetCustomResourceHandlers(FrameInfo frame) {
+            var globalHandlers = CustomResourceRequested?.GetInvocationList().Cast<CustomResourceRequestedEventHandler>() ?? Enumerable.Empty<CustomResourceRequestedEventHandler>();
             var frameHandlers = frame.CustomResourceRequestedHandler?.GetInvocationList().Cast<CustomResourceRequestedEventHandler>() ?? Enumerable.Empty<CustomResourceRequestedEventHandler>();
-            return frameHandlers.ToArray();
+            return globalHandlers.Concat(frameHandlers).ToArray();
         }
 
         /// <summary>

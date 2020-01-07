@@ -69,7 +69,6 @@
     <Compile Include="ReactView.cs" />
     <Compile Include="ReactViewFactory.cs" />
     <Compile Include="ReactViewRender.cs" />
-    <Compile Include="SuspendedExecutionEngine.cs" />
     <Compile Include="ViewModuleContainer.cs" />
     <Compile Include="ViewModuleExtensions.cs" />
   </ItemGroup>
