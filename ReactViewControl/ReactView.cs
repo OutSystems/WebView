@@ -195,7 +195,7 @@ namespace ReactViewControl {
         }
 
         /// <summary>
-        /// Retrives the plugin instance of the child view.
+        /// Retrieves the plugin instance of the child view.
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="frameName"></param>
