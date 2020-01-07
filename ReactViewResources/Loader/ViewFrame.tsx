@@ -24,6 +24,11 @@ export class ViewFrame extends React.Component<IViewFrameProps, {}, ViewMetadata
             throw new Error("View Frame name must be specified (not empty)");
         }
 
+        if (!/^[A-Za-z_][A-Za-z0-9_]*/.test(props.name)) {
+            // must be a valid js symbol name
+            throw new Error("View Frame name can only contain letters, numbers or _");
+        }
+
         // keep track of this frame generation, so that we can keep tracking the most recent frame instance
         this.generation = ++ViewFrame.generation;
 

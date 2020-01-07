@@ -152,15 +152,15 @@ namespace ReactViewControl {
         public event ResourceRequestedEventHandler EmbeddedResourceRequested;
 
         /// <summary>
-        /// Handle custom resource requests. Use this event to load the resource based on provied key.
-        /// </summary>
-        public event CustomResourceRequestedEventHandler CustomResourceRequested;
-
-        /// <summary>
         /// Handle external resource requests. 
         /// Call <see cref="WebView.ResourceHandler.BeginAsyncResponse"/> to handle the request in an async way.
         /// </summary>
         public event ResourceRequestedEventHandler ExternalResourceRequested;
+
+        /// <summary>
+        /// Handle custom resource requests. Use this event to load the resource based on provided key.
+        /// </summary>
+        public event CustomResourceRequestedEventHandler CustomResourceRequested;
 
         /// <summary>
         /// An view was initialized, load its component.
@@ -189,11 +189,7 @@ namespace ReactViewControl {
                 frame.LoadStatus = LoadStatus.Ready;
 
                 // start component execution engine
-                if (frame.Component != null) {
-                    if (frame.Component.Engine is ExecutionEngine engine) {
-                        engine.Start();
-                    }
-                }
+                frame.ExecutionEngine.Start(WebView, frameName, args.ElementAt(1).ToString());
             }
         }
 
@@ -205,7 +201,7 @@ namespace ReactViewControl {
             var frameName = (string)args.FirstOrDefault();
             lock (SyncRoot) {
                 if (Frames.TryGetValue(frameName, out var frame)) {
-                    var modules = frame.Plugins ?? Enumerable.Empty<IViewModule>();
+                    IEnumerable<IViewModule> modules = frame.Plugins;
                     if (frame.Component != null) {
                         modules = modules.Concat(new[] { frame.Component });
                     }
@@ -231,9 +227,7 @@ namespace ReactViewControl {
                 var mainFrame = Frames[MainViewFrameName];
                 Frames.Clear();
                 Frames.Add(MainViewFrameName, mainFrame);
-                mainFrame.LoadStatus = LoadStatus.Initialized;
-                mainFrame.PluginsLoaded = false;
-                mainFrame.ExecutionEngine = null;
+                mainFrame.Reset();
             }
         }
 
@@ -251,35 +245,18 @@ namespace ReactViewControl {
         }
 
         /// <summary>
-        /// Load the specified component into the main frame.
+        /// Load the specified component into the specified frame.
         /// </summary>
         /// <param name="component"></param>
-        public void LoadComponent(IViewModule component) {
-            BindComponent(component, MainViewFrameName);
-            LoadComponent(MainViewFrameName);
-        }
-
-        /// <summary>
-        /// Binds the specified component into the specified frame.
-        /// </summary>
-        public void BindComponent(IViewModule component, string frameName) {
+        public void LoadComponent(IViewModule component, string frameName = MainViewFrameName) {
             lock (SyncRoot) {
                 var frame = GetOrCreateFrame(frameName);
                 frame.Component = component;
 
-                BindModule(component, frame);
-            }
-        }
+                component.Bind(frame);
 
-        /// <summary>
-        /// Load the specified component into the specified frame.
-        /// </summary>
-        public void LoadComponent(string frameName) {
-            lock (SyncRoot) {
-                if (Frames.TryGetValue(frameName, out var frame)) {
-                    if (frame.LoadStatus == LoadStatus.ViewInitialized) {
-                        Load(frame);
-                    }
+                if (frame.LoadStatus == LoadStatus.ViewInitialized) {
+                    Load(frame);
                 }
             }
         }
@@ -297,7 +274,7 @@ namespace ReactViewControl {
                     }
                 }
 
-                if (frame.Plugins?.Length > 0) {
+                if (frame.Plugins.Length > 0) {
                     foreach (var module in frame.Plugins) {
                         RegisterNativeObject(module, frame.Name);
                     }
@@ -313,7 +290,7 @@ namespace ReactViewControl {
 
                 RegisterNativeObject(frame.Component, frame.Name);
 
-                Loader.LoadComponent(frame.Component, frame.Name, DefaultStyleSheet != null, frame.Plugins?.Length > 0);
+                Loader.LoadComponent(frame.Component, frame.Name, DefaultStyleSheet != null, frame.Plugins.Length > 0);
             }
         }
 
@@ -344,10 +321,10 @@ namespace ReactViewControl {
                     throw new InvalidOperationException($"Cannot add plugins after component has been loaded");
                 }
 
-                frame.Plugins = frame.Plugins != null ? frame.Plugins.Concat(plugins).ToArray() : plugins;
+                frame.Plugins = frame.Plugins.Concat(plugins).ToArray();
 
                 foreach (var plugin in plugins) {
-                    BindModule(plugin, frame);
+                    plugin.Bind(frame);
                 }
             }
         }
@@ -357,22 +334,10 @@ namespace ReactViewControl {
         /// </summary>
         /// <param name="module"></param>
         /// <param name="frameName"></param>
-        private void BindModule(IViewModule module, FrameInfo frame) {
-            if (frame.ExecutionEngine == null) {
-                frame.ExecutionEngine = new ExecutionEngine(WebView, frame.Name);
-            }
-            module.Bind(frame.ExecutionEngine);
-        }
-
-        /// <summary>
-        /// Binds a module with the spcified frame. When a module is bound to a frame, it will execute its methods on the frame instance.
-        /// </summary>
-        /// <param name="module"></param>
-        /// <param name="frameName"></param>
-        internal void BindModule(IViewModule module, string frameName) {
+        public void BindModule(IViewModule module, string frameName) {
             lock (SyncRoot) {
                 var frame = GetOrCreateFrame(frameName);
-                BindModule(module, frame);
+                module.Bind(frame);
             }
         }
 
@@ -388,12 +353,7 @@ namespace ReactViewControl {
                 throw new InvalidOperationException($"Frame {frameName} is not loaded");
             }
 
-            var plugin = frame.Plugins.OfType<T>().FirstOrDefault();
-            if (plugin == null) {
-                throw new InvalidOperationException($"Plugin {typeof(T).Name} not found in {frameName}");
-            }
-
-            return plugin;
+            return frame.GetPlugin<T>();
         }
 
         /// <summary>
@@ -417,7 +377,7 @@ namespace ReactViewControl {
         /// <param name="handler"></param>
         public void AddCustomResourceRequestedHandler(string frameName, CustomResourceRequestedEventHandler handler) {
             var frame = GetOrCreateFrame(frameName);
-            frame.CustomResourceRequested += handler;
+            frame.CustomResourceRequestedHandler += handler;
         }
 
         /// <summary>
@@ -428,7 +388,7 @@ namespace ReactViewControl {
         public void RemoveCustomResourceRequestedHandler(string frameName, CustomResourceRequestedEventHandler handler) {
             // do not create if frame does not exist
             if (Frames.TryGetValue(frameName, out var frame)) {
-                frame.CustomResourceRequested -= handler;
+                frame.CustomResourceRequestedHandler -= handler;
             }
         }
 
@@ -533,7 +493,7 @@ namespace ReactViewControl {
 
         private CustomResourceRequestedEventHandler[] GetCustomResourceHandlers(FrameInfo frame) {
             var globalHandlers = CustomResourceRequested?.GetInvocationList().Cast<CustomResourceRequestedEventHandler>() ?? Enumerable.Empty<CustomResourceRequestedEventHandler>();
-            var frameHandlers = frame.CustomResourceRequested?.GetInvocationList().Cast<CustomResourceRequestedEventHandler>() ?? Enumerable.Empty<CustomResourceRequestedEventHandler>();
+            var frameHandlers = frame.CustomResourceRequestedHandler?.GetInvocationList().Cast<CustomResourceRequestedEventHandler>() ?? Enumerable.Empty<CustomResourceRequestedEventHandler>();
             return globalHandlers.Concat(frameHandlers).ToArray();
         }
 

@@ -6,45 +6,53 @@ namespace ReactViewControl {
 
     internal class ExecutionEngine : IExecutionEngine {
 
-        private bool isReady;
+        private string generation;
+        private string frameName;
+        private WebView webView;
 
-        public ExecutionEngine(WebView webview, string frameName) {
-            WebView = webview;
-            FrameName = frameName;
-        }
-
-        private WebView WebView { get; }
-
-        private string FrameName { get; }
-
-        private ConcurrentQueue<Tuple<string, object[]>> PendingScripts { get; } = new ConcurrentQueue<Tuple<string, object[]>>();
+        private ConcurrentQueue<Tuple<IViewModule, string, object[]>> PendingExecutions { get; } = new ConcurrentQueue<Tuple<IViewModule, string, object[]>>();
 
         private string FormatMethodInvocation(IViewModule module, string methodCall) {
-            return ReactViewRender.ModulesObjectName + "(\"" + FrameName + "\",\"" + module.Name + "\")." + methodCall;
+            return ReactViewRender.ModulesObjectName + "(\"" + frameName + "\",\"" + generation + "\",\"" + module.Name + "\")." + methodCall;
         }
 
         public void ExecuteMethod(IViewModule module, string methodCall, params object[] args) {
-            var method = FormatMethodInvocation(module, methodCall);
-            if (isReady) {
-                WebView.ExecuteScriptFunctionWithSerializedParams(method, args);
+            if (webView != null) {
+                var method = FormatMethodInvocation(module, methodCall);
+                webView.ExecuteScriptFunctionWithSerializedParams(method, args);
             } else {
-                PendingScripts.Enqueue(Tuple.Create(method, args));
+                PendingExecutions.Enqueue(Tuple.Create(module, methodCall, args));
             }
         }
 
         public T EvaluateMethod<T>(IViewModule module, string methodCall, params object[] args) {
+            if (webView == null) {
+                return default(T);
+            }
             var method = FormatMethodInvocation(module, methodCall);
-            return WebView.EvaluateScriptFunctionWithSerializedParams<T>(method, args);
+            return webView.EvaluateScriptFunctionWithSerializedParams<T>(method, args);
         }
 
-        public void Start() {
-            isReady = true;
+        public void Start(WebView webView, string frameName, string generation) {
+            this.generation = generation;
+            this.frameName = frameName;
+            this.webView = webView;
             while (true) {
-                if (PendingScripts.TryDequeue(out var pendingScript)) {
-                    WebView.ExecuteScriptFunctionWithSerializedParams(pendingScript.Item1, pendingScript.Item2);
+                if (PendingExecutions.TryDequeue(out var pendingScript)) {
+                    var method = FormatMethodInvocation(pendingScript.Item1, pendingScript.Item2);
+                    webView.ExecuteScriptFunctionWithSerializedParams(method, pendingScript.Item3);
                 } else {
                     // nothing else to execute
                     break;
+                }
+            }
+        }
+
+        public void MergeWorkload(IExecutionEngine executionEngine) {
+            if (this != executionEngine && executionEngine is ExecutionEngine otherEngine) {
+                var pendingExecutions = otherEngine.PendingExecutions.ToArray();
+                foreach (var execution in pendingExecutions) {
+                    PendingExecutions.Enqueue(execution);
                 }
             }
         }
