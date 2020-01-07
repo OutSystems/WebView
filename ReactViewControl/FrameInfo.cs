@@ -8,13 +8,14 @@ namespace ReactViewControl {
         public FrameInfo(string name) {
             Name = name;
             Plugins = new IViewModule[0];
+            ExecutionEngine = new ExecutionEngine();
         }
 
         public string Name {get; }
 
         public IViewModule Component { get; set; }
 
-        public ExecutionEngine ExecutionEngine { get; set; }
+        public ExecutionEngine ExecutionEngine { get; private set; }
 
         IExecutionEngine IFrame.ExecutionEngine => ExecutionEngine;
 
@@ -32,6 +33,12 @@ namespace ReactViewControl {
                 throw new InvalidOperationException($"Plugin {typeof(T).Name} not found in {Name}");
             }
             return plugin;
+        }
+
+        public void Reset() {
+            ExecutionEngine = new ExecutionEngine();
+            LoadStatus = LoadStatus.Initialized;
+            PluginsLoaded = false;
         }
     }
 }
