@@ -184,6 +184,14 @@ namespace WebViewControl {
                     } catch (TaskCanceledException) {
                         exception = MakeTimeoutException(functionName, effectiveTimeout);
 
+                    } catch (AggregateException e) {
+                        if (e.InnerExceptions.Count == 1) {
+                            // throw the only and wrapped exception
+                            exception = e.InnerException;
+                        } else {
+                            exception = e;
+                        }
+
                     } catch (Exception e) {
                         exception = e;
 
@@ -313,7 +321,7 @@ namespace WebViewControl {
                     }
                 }
 
-                return new JavascriptException("Javascript Error", exception.Message, evaluatedStackFrames);
+                return new JavascriptException(exception.Message, evaluatedStackFrames, exception.StackTrace);
             }
 
             internal static bool IsInternalException(string exceptionMessage) {
