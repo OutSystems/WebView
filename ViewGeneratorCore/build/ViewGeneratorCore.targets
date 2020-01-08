@@ -11,7 +11,7 @@
       $(CleanDependsOn);
     </CleanDependsOn>
 
-    <!-- If don't exist, create so that the targets won't fail -->
+    <!-- If does not exist, create it so that the targets won't fail -->
     <TransformDuringBuild>
       $(TransformDuringBuild)
     </TransformDuringBuild>
@@ -40,10 +40,9 @@
     </PropertyGroup>
   </Target>
 
-  <!-- TODO: check if this includes all possible inputs -->
   <ItemGroup>
-    <VGC_Inputs Include="**\*.tsx" Exclude="node_modules\**\*.tsx" />
-    <VGC_Inputs Include="**\*.ts" Exclude="node_modules\**\*.ts" />
+    <VGC_Inputs Include="$(OverrideProjectDir)**\*.tsx" Exclude="$(OverrideProjectDir)node_modules\**\*.tsx" />
+    <VGC_Inputs Include="$(OverrideProjectDir)**\*.ts" Exclude="$(OverrideProjectDir)node_modules\**\*.ts" />
     <UpToDateCheckInput Include="@(VGC_Inputs)" Exclude="@(UpToDateCheckInput)" />
   </ItemGroup>
 

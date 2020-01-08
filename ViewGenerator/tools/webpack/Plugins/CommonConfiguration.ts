@@ -7,7 +7,7 @@ import ManifestPlugin from "webpack-manifest-plugin";
 
 // Plugins / Resources
 import RenameChunksPlugin from "./RenameChunksPlugin";
-import { CssPlaceholder, CssChunkPlaceholder, DtsExtension, OutputDirectoryDefault, JsChunkPlaceholder, NamePlaceholder } from "./Resources";
+import { CssPlaceholder, CssChunkPlaceholder, DtsExtension, OutputDirectoryDefault, JsChunkPlaceholder, NamePlaceholder, TsConfigDefaultFileName } from "./Resources";
 import { Dictionary, customErrorFormatter, generateManifest, getCurrentDirectory, getFileName, getPublicPath } from "./Utils";
 
 // Rules
@@ -95,6 +95,7 @@ let getCommonConfiguration = (libraryName: string, useCache: boolean, projectDir
 
         plugins: [
             new ForkTsCheckerWebpackPlugin({
+                tsconfig: resolve("./" + (tsConfigFile || TsConfigDefaultFileName)),
                 checkSyntacticErrors: true,
                 formatter: (msg, useColors) => customErrorFormatter(msg, useColors, projectDir || currentDirectory),
                 measureCompilationTime: true
