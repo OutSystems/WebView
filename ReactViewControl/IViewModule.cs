@@ -2,7 +2,7 @@
 
 namespace ReactViewControl {
 
-    public interface IViewModule {
+    public interface IViewModule : IChildViewHost {
 
         string MainJsSource { get; }
 
@@ -23,10 +23,6 @@ namespace ReactViewControl {
         KeyValuePair<string, object>[] PropertiesValues { get; }
 
         void Bind(IFrame frame);
-
-        void AttachTo(IChildViewHost host, string frameName);
-
-        T WithPlugin<T>();
 
         event CustomResourceRequestedEventHandler CustomResourceRequested;
     }

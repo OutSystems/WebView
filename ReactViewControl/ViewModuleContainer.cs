@@ -62,21 +62,12 @@ namespace ReactViewControl {
             this.frame = frame;
         }
 
-        public void AttachTo(IChildViewHost host, string frameName) => host.AttachChildView(this, frameName);
-
-        public event CustomResourceRequestedEventHandler CustomResourceRequested {
-            add => frame.CustomResourceRequestedHandler += value;
-            remove => frame.CustomResourceRequestedHandler -= value;
-        }
-
-        public T WithPlugin<T>() => frame.GetPlugin<T>();
-
         // ease access in generated code
         protected IExecutionEngine ExecutionEngine {
             get {
-                var engine = frame?.ExecutionEngine;
+                var engine = frame.ExecutionEngine;
                 if (engine == null) {
-                    throw new InvalidOperationException("View module must be bound to an execution engine ");
+                    throw new InvalidOperationException("View module must be bound to an execution engine");
                 }
                 return engine;
             }
@@ -96,6 +87,23 @@ namespace ReactViewControl {
                 }
             }
             return new string[0];
+        }
+
+        public void AttachChildView(IViewModule viewModule, string frameName) {
+            var childViewHost = frame.ChildViewHost;
+            if (childViewHost == null) {
+                throw new InvalidOperationException("Parent view module must be attached before attaching a child view");
+            }
+            childViewHost.AttachChildView(viewModule, frameName);
+        }
+
+        public event CustomResourceRequestedEventHandler CustomResourceRequested {
+            add => frame.CustomResourceRequestedHandler += value;
+            remove => frame.CustomResourceRequestedHandler -= value;
+        }
+
+        public T WithPlugin<T>() {
+            return frame.GetPlugin<T>();
         }
     }
 }
