@@ -230,19 +230,8 @@ namespace ReactViewControl {
         /// </summary>
         /// <param name="viewModule"></param>
         /// <param name="frameName"></param>
-        void IChildViewHost.AttachChildView(IViewModule viewModule, string frameName) {
-            View.AddPlugins(frameName, Factory.InitializePlugins());
-            View.LoadComponent(viewModule, frameName);
-        }
-
-        /// <summary>
-        /// Retrives the plugin instance of the child view.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="frameName"></param>
-        /// <returns></returns>
-        T IChildViewHost.WithPlugin<T>(string frameName) {
-            return View.WithPlugin<T>(frameName);
+        public void AttachChildView(IViewModule viewModule, string frameName) {
+            View.AttachChildView(viewModule, frameName);
         }
     }
 }

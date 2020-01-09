@@ -5,10 +5,11 @@ namespace ReactViewControl {
 
     internal class FrameInfo : IFrame {
 
-        public FrameInfo(string name) {
+        public FrameInfo(string name, IChildViewHost childViewHost = null) {
             Name = name;
             Plugins = new IViewModule[0];
             ExecutionEngine = new ExecutionEngine();
+            ChildViewHost = childViewHost;
         }
 
         public string Name {get; }
@@ -16,6 +17,8 @@ namespace ReactViewControl {
         public IViewModule Component { get; set; }
 
         public ExecutionEngine ExecutionEngine { get; private set; }
+
+        public IChildViewHost ChildViewHost { get; }
 
         IExecutionEngine IFrame.ExecutionEngine => ExecutionEngine;
 

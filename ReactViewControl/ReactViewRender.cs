@@ -10,7 +10,7 @@ using WebViewControl;
 
 namespace ReactViewControl {
 
-    internal partial class ReactViewRender : UserControl, IDisposable {
+    internal partial class ReactViewRender : UserControl, IDisposable, IChildViewHost {
 
         private object SyncRoot { get; } = new object();
 
@@ -63,8 +63,9 @@ namespace ReactViewControl {
 
             DefaultStyleSheet = defaultStyleSheet;
             PluginsFactory = initializePlugins;
-            AddPlugins(MainViewFrameName, initializePlugins());
             EnableDebugMode = enableDebugMode;
+
+            AddPlugins(MainViewFrameName, initializePlugins());
 
             var loadedListener = WebView.AttachListener(ViewLoadedEventName);
             loadedListener.Handler += OnViewLoaded;
@@ -393,6 +394,16 @@ namespace ReactViewControl {
         }
 
         /// <summary>
+        /// Attached the specified module to the specified frame
+        /// </summary>
+        /// <param name="viewModule"></param>
+        /// <param name="frameName"></param>
+        public void AttachChildView(IViewModule viewModule, string frameName) {
+            AddPlugins(frameName, PluginsFactory());
+            LoadComponent(viewModule, frameName);
+        }
+
+        /// <summary>
         /// Starts watching for sources changes, reloading the webview when a change occurs.
         /// </summary>
         /// <param name="mainModuleFullPath"></param>
@@ -575,7 +586,7 @@ namespace ReactViewControl {
 
         private FrameInfo GetOrCreateFrame(string frameName) {
             if (!Frames.TryGetValue(frameName, out var frame)) {
-                frame = new FrameInfo(frameName);
+                frame = new FrameInfo(frameName, this);
                 Frames[frameName] = frame;
             }
             return frame;

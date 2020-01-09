@@ -56,7 +56,7 @@ namespace Example {
             subView.ConstantMessage = "This is a sub view";
             subView.GetTime += () => DateTime.Now.AddHours(1).ToShortTimeString() + $"(Id: {subViewId})";
             subView.CustomResourceRequested += OnInnerViewResourceRequested;
-            subView.AttachTo(exampleView, InnerViewName);
+            exampleView.AttachChildView(subView, InnerViewName);
             subView.CallMe();
             subView.WithPlugin<ViewPlugin>().NotifyViewLoaded += (viewName) => AppendLog($"On sub view loaded (Id: {subViewId}): {viewName}");
             oldView?.CallMe();
