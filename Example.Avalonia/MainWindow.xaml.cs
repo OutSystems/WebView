@@ -34,8 +34,7 @@ namespace Example.Avalonia {
 
             view.WithPlugin<ViewPlugin>().NotifyViewLoaded += OnNotifyViewLoaded;
 
-            view.AddCustomResourceRequestedHandler(OnViewResourceRequested);
-            view.AddCustomResourceRequestedHandler(InnerViewName, OnInnerViewResourceRequested);
+            view.CustomResourceRequested  += OnViewResourceRequested;
 
             browserWrapper.Child = view;
         }
@@ -53,7 +52,7 @@ namespace Example.Avalonia {
         }
 
         private void OnCallInnerViewPluginMenuItemClick(object sender, RoutedEventArgs e) {
-            view.WithPlugin<ViewPlugin>(InnerViewName).Test();
+            childView.WithPlugin<ViewPlugin>().Test();
         }
 
         private void OnShowDevTools(object sender, RoutedEventArgs e) {
@@ -73,8 +72,10 @@ namespace Example.Avalonia {
             childView = new SubExampleViewModule();
             childView.ConstantMessage = "This is a sub view";
             childView.GetTime += () => DateTime.Now.AddHours(1).ToShortTimeString() + $"(Id: {subViewId})";
-            view.AttachInnerView(childView, InnerViewName);
-            view.WithPlugin<ViewPlugin>(InnerViewName).NotifyViewLoaded += (viewName) => AppendLog($"On sub view loaded (Id: {subViewId}): {viewName}");
+            childView.CustomResourceRequested += OnInnerViewResourceRequested;
+            view.AttachChildView(childView, InnerViewName);
+
+            childView.WithPlugin<ViewPlugin>().NotifyViewLoaded += (viewName) => AppendLog($"On sub view loaded (Id: {subViewId}): {viewName}");
             childView.CallMe();
         }
 
@@ -86,7 +87,7 @@ namespace Example.Avalonia {
         }
 
         private Stream OnViewResourceRequested(string resourceKey, params string[] options) {
-            return ResourcesManager.GetResource(GetType().Assembly, new[] { "ExampleView", "ExampleView", resourceKey });
+            return ResourcesManager.TryGetResource(GetType().Assembly, new[] { "ExampleView", "ExampleView", resourceKey });
         }
 
         private Stream OnInnerViewResourceRequested(string resourceKey, params string[] options) {
