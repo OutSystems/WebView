@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 
 namespace WebViewControl {
@@ -39,10 +40,14 @@ namespace WebViewControl {
 
                 assembly = GetAssemblyByName(assemblyName);
                 if (assembly == null) {
-                    // try load assembly from its name
-                    assembly = AppDomain.CurrentDomain.Load(new AssemblyName(assemblyName));
-                    if (assembly != null) {
-                        assemblies[assembly.GetName().Name] = assembly;
+                    try {
+                        // try load assembly from its name
+                        assembly = AppDomain.CurrentDomain.Load(new AssemblyName(assemblyName));
+                        if (assembly != null) {
+                            assemblies[assembly.GetName().Name] = assembly;
+                        }
+                    } catch (IOException) { 
+                        // ignore
                     }
                 }
             }
