@@ -13,7 +13,7 @@ namespace ReactViewControl {
 
     public delegate Stream CustomResourceRequestedEventHandler(string resourceKey, params string[] options);
 
-    public abstract class ReactView : UserControl, IDisposable {
+    public abstract class ReactView : UserControl, IChildViewHost, IDisposable {
 
         private static Dictionary<Type, ReactViewRender> CachedViews { get; } = new Dictionary<Type, ReactViewRender>();
 
@@ -122,14 +122,12 @@ namespace ReactViewControl {
         }
 
         /// <summary>
-        /// Retrieves the specified plugin module instance for the spcifies frame.
+        /// Retrieves the specified plugin module instance.
         /// </summary>
         /// <typeparam name="T">Type of the plugin to retrieve.</typeparam>
-        /// <param name="frameName"></param>
-        /// <exception cref="InvalidOperationException">If the plugin hasn't been registered on the specified frame.</exception>
         /// <returns></returns>
-        public T WithPlugin<T>(string frameName = ReactViewRender.MainViewFrameName) {
-            return View.WithPlugin<T>(frameName);
+        public T WithPlugin<T>() {
+            return View.WithPlugin<T>();
         }
 
         /// <summary>
@@ -193,40 +191,6 @@ namespace ReactViewControl {
         }
 
         /// <summary>
-        /// Add an handler for custom resources from main frame.
-        /// </summary>
-        /// <param name="handler"></param>
-        public void AddCustomResourceRequestedHandler(CustomResourceRequestedEventHandler handler) {
-            AddCustomResourceRequestedHandler(ReactViewRender.MainViewFrameName, handler);
-        }
-
-        /// <summary>
-        /// Add an handler for custom resources from the specified frame.
-        /// </summary>
-        /// <param name="frameName"></param>
-        /// <param name="handler"></param>
-        public void AddCustomResourceRequestedHandler(string frameName, CustomResourceRequestedEventHandler handler) {
-            View.AddCustomResourceRequestedHandler(frameName, handler);
-        }
-
-        /// <summary>
-        /// Remve the handler for custom resources from the main frame.
-        /// </summary>
-        /// <param name="handler"></param>
-        public void RemoveCustomResourceRequestedHandler(CustomResourceRequestedEventHandler handler) {
-            RemoveCustomResourceRequestedHandler(ReactViewRender.MainViewFrameName, handler);
-        }
-
-        /// <summary>
-        /// Remve the handler for custom resources from the specified frame.
-        /// </summary>
-        /// <param name="frameName"></param>
-        /// <param name="handler"></param>
-        public void RemoveCustomResourceRequestedHandler(string frameName, CustomResourceRequestedEventHandler handler) {
-            View.RemoveCustomResourceRequestedHandler(frameName, handler);
-        }
-
-        /// <summary>
         /// Handle external resource requests. 
         /// Call <see cref="WebView.ResourceHandler.BeginAsyncResponse"/> to handle the request in an async way.
         /// </summary>
@@ -266,17 +230,19 @@ namespace ReactViewControl {
         /// </summary>
         /// <param name="viewModule"></param>
         /// <param name="frameName"></param>
-        public void AttachInnerView(IViewModule viewModule, string frameName) {
+        void IChildViewHost.AttachChildView(IViewModule viewModule, string frameName) {
             View.AddPlugins(frameName, Factory.InitializePlugins());
-            View.BindComponent(viewModule, frameName);
+            View.LoadComponent(viewModule, frameName);
         }
 
         /// <summary>
-        /// Loads the view module into the specified frame when the frame is rendered.
+        /// Retrives the plugin instance of the child view.
         /// </summary>
+        /// <typeparam name="T"></typeparam>
         /// <param name="frameName"></param>
-        public void LoadInnerView(string frameName) {
-            View.LoadComponent(frameName);
+        /// <returns></returns>
+        T IChildViewHost.WithPlugin<T>(string frameName) {
+            return View.WithPlugin<T>(frameName);
         }
     }
 }

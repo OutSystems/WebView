@@ -39,10 +39,15 @@
     </PropertyGroup>
   </Target>
 
-  <Target Name="VG_LinkNodeModules" Condition="'$(PluginsRelativePath)' != ''" >
+  <ItemGroup>
+    <_ProjectDirectory Include="$(OverrideProjectDir)" />
+    <_ProjectDirectory Include="$(ProjectDir)" />
+  </ItemGroup>
+ 
+  <Target Name="VG_LinkNodeModules" Condition="'$(PluginsRelativePath)' != ''" >  
     <PropertyGroup>
-      <ProjectDirectory>$(WP_OverrideProjectDir)</ProjectDirectory>
-      <ProjectDirectory Condition="'$(ProjectDirectory)' == ''">$(ProjectDir)</ProjectDirectory>
+      <__ProjectDirectory>@(_ProjectDirectory);</__ProjectDirectory>
+      <ProjectDirectory>$(__ProjectDirectory.Substring(0, $(__ProjectDirectory.IndexOf(';'))))</ProjectDirectory>
     </PropertyGroup>
       
     <Exec Condition="!Exists('$(ProjectDirectory)node_modules\webview.plugins')" Command="mklink /J &quot;$(ProjectDirectory)node_modules\webview.plugins&quot; &quot;$(ProjectDirectory)$(PluginsRelativePath)node_modules&quot;" />
@@ -50,8 +55,8 @@
 
   <Target Name="VG_UnlinkNodeModules">
     <PropertyGroup>
-      <ProjectDirectory>$(WP_OverrideProjectDir)</ProjectDirectory>
-      <ProjectDirectory Condition="'$(ProjectDirectory)' == ''">$(ProjectDir)</ProjectDirectory>
+      <__ProjectDirectory>@(_ProjectDirectory);</__ProjectDirectory>
+      <ProjectDirectory>$(__ProjectDirectory.Substring(0, $(__ProjectDirectory.IndexOf(';'))))</ProjectDirectory>
     </PropertyGroup>
       
     <RemoveDir Condition="Exists('$(ProjectDirectory)node_modules\webview.plugins')" Directories="$(ProjectDirectory)node_modules\webview.plugins" />
@@ -150,7 +155,9 @@
       <WP_UseCache>false</WP_UseCache>
     </PropertyGroup>
 
-    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config='$(ViewGeneratorToolsPath)\webpack\$(WP_ConfigFileName).config.js' --mode=$(WP_Mode) --devtool=$(WP_DevTool) --useCache=$(WP_UseCache) --pluginsRelativePath='$(PluginsRelativePath)' --projectDir='$(WP_OverrideProjectDir)' --tsConfigFile='$(TypeScriptConfigFile)'" />
+    <Exec Condition="'$(PluginsRelativePath)' == ''" Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config='$(ViewGeneratorToolsPath)\webpack\webpack_workers.config.js' --mode=$(WP_Mode) --devtool=$(WP_DevTool) --useCache=$(WP_UseCache) --projectDir='$(OverrideProjectDir)'" />
+
+    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config='$(ViewGeneratorToolsPath)\webpack\$(WP_ConfigFileName).config.js' --mode=$(WP_Mode) --devtool=$(WP_DevTool) --useCache=$(WP_UseCache) --pluginsRelativePath='$(PluginsRelativePath)' --projectDir='$(OverrideProjectDir)' --tsConfigFile='$(TypeScriptConfigFile)'" />
     <Touch Files="viewgeneratorbuild.cache" AlwaysCreate="true" />
   </Target>
 
