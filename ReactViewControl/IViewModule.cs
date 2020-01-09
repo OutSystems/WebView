@@ -25,5 +25,7 @@ namespace ReactViewControl {
         void Bind(IFrame frame);
 
         event CustomResourceRequestedEventHandler CustomResourceRequested;
+
+        T WithPlugin<T>();
     }
 }
