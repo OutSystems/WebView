@@ -10,7 +10,7 @@ namespace WebViewControl {
         private Dictionary<string, Assembly> assemblies;
         private bool newAssembliesLoaded = true;
 
-        internal Assembly ResolveResourceAssembly(Uri resourceUrl) {
+        internal Assembly ResolveResourceAssembly(Uri resourceUrl, bool failOnMissingAssembly) {
             if (assemblies == null) {
                 lock (SyncRoot) {
                     if (assemblies == null) {
@@ -47,11 +47,10 @@ namespace WebViewControl {
                 }
             }
 
-            if (assembly != null) {
-                return assembly;
+            if (failOnMissingAssembly && assembly == null) {
+                throw new InvalidOperationException("Could not find assembly for: " + resourceUrl);
             }
-
-            throw new InvalidOperationException("Could not find assembly for: " + resourceUrl);
+            return assembly;
         }
 
         private Assembly GetAssemblyByName(string assemblyName) {
