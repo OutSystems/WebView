@@ -151,6 +151,8 @@
 
   <Target Name="VG_GenerateWorkersBundle" Inputs="@(VG_Workers_Inputs)" Outputs="viewgeneratorworkersbuild.cache" >
     <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config='$(ViewGeneratorToolsPath)\webpack\webpack_workers.config.js' --mode=$(WP_Mode) --devtool=$(WP_DevTool) --useCache=$(WP_UseCache) --projectDir='$(OverrideProjectDir)'" />
+
+    <Touch Files="viewgeneratorworkersbuild.cache" AlwaysCreate="true" />
   </Target>
 
   <Target Name="VG_IncludeGeneratedResources" AfterTargets="VG_GenerateBundle">
