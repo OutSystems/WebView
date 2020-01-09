@@ -41,3 +41,4 @@ WebViewControl/cake_tools/
 ViewGenerator/cake_tools/
 ViewGeneratorCore/cake_tools/
 ViewPacker/cake_tools/
+*.cache
