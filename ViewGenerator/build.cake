@@ -54,8 +54,8 @@ var restore=Task("Restore-NuGet-Packages")
     .Does(() =>
     {
         Information("Starting Restore");
-        if(csprojFilePath!=null)
-            NuGetRestore(csprojFilePath); 
+        if(solutionPath!=null)
+            NuGetRestore(solutionPath); 
         Information("Ending Restore");
     });
 
