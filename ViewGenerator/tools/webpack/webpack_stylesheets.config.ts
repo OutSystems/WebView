@@ -11,13 +11,15 @@ import SassRuleSet from "./Rules/Sass";
 
 const config = (_, argv) => {
 
-    let entryPath: string = argv.entryPath; // should be only one path
-    let fileExtensionLen: number = entryPath.length - entryPath.lastIndexOf(".");
-    let entryName: string = entryPath.slice(entryPath.lastIndexOf("\\") + 1, -fileExtensionLen);
+    const getEntryName = (entryPath: string): string => {
+        let fileExtensionLen: number = entryPath.length - entryPath.lastIndexOf(".");
+        return entryPath.slice(entryPath.lastIndexOf("\\") + 1, -fileExtensionLen);
+    };
+
+    let entries: string = argv.entryPath;
     let entryMap: Dictionary<string> = {};
-
-    entryMap[entryName] = './' + entryPath;
-
+    entries.split(";").map(entryPath => entryMap[getEntryName(entryPath)] = './' + entryPath)
+    
     let stylesheetsConfig: Configuration = {
         entry: entryMap,
 
