@@ -116,9 +116,9 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <VG_Inputs Include="**\*.tsx" Exclude="node_modules\**\*.tsx" />
-    <VG_Inputs Include="**\*.ts" Exclude="node_modules\**\*.ts" />
-    <VG_Inputs Include="**\*.scss" Exclude="node_modules\**\*.scss" />
+    <VG_Inputs Include="$(OverrideProjectDir)**\*.tsx" Exclude="$(OverrideProjectDir)node_modules\**\*.tsx" />
+    <VG_Inputs Include="$(OverrideProjectDir)**\*.ts" Exclude="$(OverrideProjectDir)node_modules\**\*.ts" />
+    <VG_Inputs Include="$(OverrideProjectDir)**\*.scss" Exclude="$(OverrideProjectDir)node_modules\**\*.scss" />
     <VG_StyleSheet_Inputs Include="@(DefaultStyleSheet)"/>
     <VG_StyleSheet_Inputs Condition="'@(DefaultStyleSheet)' != ''" Include="**\*.scss" Exclude="node_modules\**\*.scss" />
     <VG_Workers_Inputs Include="@(Workers)" />    
