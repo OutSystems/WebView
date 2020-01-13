@@ -94,7 +94,7 @@
   </Target>
 
   <!-- /// -->
-  <!-- Beginning of Webpack related targets -->
+  <!-- Webpack related targets, property and item groups -->
   <!-- /// -->
 
   <PropertyGroup>
@@ -119,9 +119,16 @@
     <VG_Inputs Include="$(OverrideProjectDir)**\*.tsx" Exclude="$(OverrideProjectDir)node_modules\**\*.tsx" />
     <VG_Inputs Include="$(OverrideProjectDir)**\*.ts" Exclude="$(OverrideProjectDir)node_modules\**\*.ts" />
     <VG_Inputs Include="$(OverrideProjectDir)**\*.scss" Exclude="$(OverrideProjectDir)node_modules\**\*.scss" />
+    <VG_Inputs Condition="'$(PluginsRelativePath)' != ''" Include="$(PluginsRelativePath)VG_Build.cache" />
+  </ItemGroup>
+
+  <ItemGroup>
     <VG_StyleSheet_Inputs Include="@(DefaultStyleSheet)"/>
     <VG_StyleSheet_Inputs Condition="'@(DefaultStyleSheet)' != ''" Include="**\*.scss" Exclude="node_modules\**\*.scss" />
-    <VG_Workers_Inputs Include="@(Workers)" />    
+    <VG_Workers_Inputs Include="@(Workers)" />
+  </ItemGroup>
+    
+  <ItemGroup>
     <UpToDateCheckInput Include="@(VG_Inputs)" Exclude="@(UpToDateCheckInput)" />
     <UpToDateCheckInput Include="@(DefaultStyleSheet)" Exclude="@(UpToDateCheckInput)" />
     <UpToDateCheckInput Include="@(VG_Workers)" Exclude="@(UpToDateCheckInput)" />
@@ -158,7 +165,7 @@
   </Target>
 
   <!-- /// -->
-  <!-- End of Webpack related targets -->
+  <!-- End of Webpack related targets, property and item groups -->
   <!-- /// -->
 
   <Target Name="VG_IncludeGeneratedResources" AfterTargets="VG_GenerateBundle">
@@ -189,7 +196,7 @@
     <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(ProjectDir)%(FilesToCopy.RecursiveDir)" SkipUnchangedFiles="true" />
   </Target>
   
-  <Target Name="VG_Clean" BeforeTargets="Clean">
+  <Target Name="VG_Clean" BeforeTargets="Clean" >
     <Delete Files="VG_Build.cache" />
   </Target>
 </Project>
