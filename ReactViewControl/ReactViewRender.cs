@@ -50,6 +50,8 @@ namespace ReactViewControl {
             PluginsFactory = initializePlugins;
             EnableDebugMode = enableDebugMode;
 
+            GetOrCreateFrame(MainViewFrameName); // creates the main frame
+
             var loadedListener = WebView.AttachListener(ViewLoadedEventName);
             loadedListener.Handler += OnViewLoaded;
             loadedListener.UIHandler += OnViewLoadedUIHandler;
@@ -89,12 +91,12 @@ namespace ReactViewControl {
         /// <summary>
         /// True when the main component has been rendered.
         /// </summary>
-        public bool IsReady => Frames.Any() && Frames[MainViewFrameName].LoadStatus == LoadStatus.Ready;
+        public bool IsReady => Frames.TryGetValue(MainViewFrameName, out var frame) && frame.LoadStatus == LoadStatus.Ready;
 
         /// <summary>
         /// True when view component is loading or loaded
         /// </summary>
-        public bool IsMainComponentLoaded => Frames.Any() && Frames[MainViewFrameName].LoadStatus >= LoadStatus.ComponentLoading;
+        public bool IsMainComponentLoaded => Frames.TryGetValue(MainViewFrameName, out var frame) && frame.LoadStatus >= LoadStatus.ComponentLoading;
 
         /// <summary>
         /// Enables or disables debug mode. 
@@ -176,8 +178,8 @@ namespace ReactViewControl {
                 }
 
                 LoadPlugins(frame);
-                    
-                LoadComponent(frame);
+                
+                TryLoadComponent(frame);
             }
         }
 
@@ -222,7 +224,7 @@ namespace ReactViewControl {
         /// </summary>
         /// <param name="frameName"></param>
         private void OnWebViewJavascriptContextReleased(string frameName) {
-            if (!WebView.IsMainFrame(frameName) || Frames.Count == 0) {
+            if (!WebView.IsMainFrame(frameName)) {
                 // ignore, its an iframe saying goodbye
                 return;
             }
@@ -250,31 +252,15 @@ namespace ReactViewControl {
         }
 
         /// <summary>
-        /// Load the specified component into the specified frame.
+        /// Load the specified component into the main frame.
         /// </summary>
         /// <param name="component"></param>
-        public void LoadComponent(IViewModule component, string frameName = MainViewFrameName) {
+        public void LoadComponent(IViewModule component) {
             lock (SyncRoot) {
-                var frame = GetOrCreateFrame(frameName);
+                var frame = GetOrCreateFrame(MainViewFrameName);
                 BindComponentToFrame(component, frame);
-                frame.IsComponentReadyToLoad = frameName == MainViewFrameName;
-                if (frame.LoadStatus == LoadStatus.ViewInitialized) {
-                    LoadComponent(frame);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Loads the frame component.
-        /// </summary>
-        /// <param name="frame"></param>
-        private void LoadComponent(FrameInfo frame) {
-            if (frame.Component != null && frame.LoadStatus < LoadStatus.ComponentLoading && frame.IsComponentReadyToLoad) {
-                frame.LoadStatus = LoadStatus.ComponentLoading;
-
-                RegisterNativeObject(frame.Component, frame.Name);
-
-                Loader.LoadComponent(frame.Component, frame.Name, DefaultStyleSheet != null, frame.Plugins.Length > 0);
+                frame.IsComponentReadyToLoad = true;
+                TryLoadComponent(frame);
             }
         }
 
@@ -282,7 +268,21 @@ namespace ReactViewControl {
             lock (SyncRoot) {
                 var frame = GetOrCreateFrame(frameName);
                 frame.IsComponentReadyToLoad = true;
-                LoadComponent(frame);
+                TryLoadComponent(frame);
+            }
+        }
+
+        /// <summary>
+        /// Loads the frame component.
+        /// </summary>
+        /// <param name="frame"></param>
+        private void TryLoadComponent(FrameInfo frame) {
+            if (frame.Component != null && frame.LoadStatus == LoadStatus.ViewInitialized && frame.IsComponentReadyToLoad) {
+                frame.LoadStatus = LoadStatus.ComponentLoading;
+
+                RegisterNativeObject(frame.Component, frame.Name);
+
+                Loader.LoadComponent(frame.Component, frame.Name, DefaultStyleSheet != null, frame.Plugins.Length > 0);
             }
         }
 
@@ -341,18 +341,6 @@ namespace ReactViewControl {
         }
 
         /// <summary>
-        /// Binds a module with the spcified frame. When a module is bound to a frame, it will execute its methods on the frame instance.
-        /// </summary>
-        /// <param name="module"></param>
-        /// <param name="frameName"></param>
-        public void BindModule(IViewModule module, string frameName) {
-            lock (SyncRoot) {
-                var frame = GetOrCreateFrame(frameName);
-                module.Bind(frame);
-            }
-        }
-
-        /// <summary>
         /// Retrieves the specified plugin module instance for the spcifies frame.
         /// </summary>
         /// <typeparam name="T">Type of the plugin to retrieve.</typeparam>
@@ -387,8 +375,10 @@ namespace ReactViewControl {
         /// <param name="frameName"></param>
         /// <param name="handler"></param>
         public void AddCustomResourceRequestedHandler(string frameName, CustomResourceRequestedEventHandler handler) {
-            var frame = GetOrCreateFrame(frameName);
-            frame.CustomResourceRequestedHandler += handler;
+            lock (SyncRoot) {
+                var frame = GetOrCreateFrame(frameName);
+                frame.CustomResourceRequestedHandler += handler;
+            }
         }
 
         /// <summary>

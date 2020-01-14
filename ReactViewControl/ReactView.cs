@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
-using System.Threading.Tasks;
 using WebViewControl;
 
 namespace ReactViewControl {
@@ -50,8 +48,6 @@ namespace ReactViewControl {
 
         protected ReactView(IViewModule mainModule) {
             View = CreateReactViewInstance(Factory);
-
-            View.BindModule(mainModule, ReactViewRender.MainViewFrameName);
             MainModule = mainModule;
 
             ExtraInitialize();
