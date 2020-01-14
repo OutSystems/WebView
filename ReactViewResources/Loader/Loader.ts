@@ -234,6 +234,8 @@ export function loadComponent(
                 throw new Error(`View ${view.name} head or root is not set`);
             }
 
+            view.moduleId = componentName;
+
             const componentCacheKey = getComponentCacheKey(componentHash);
             const enableHtmlCache = view.isMain; // disable cache retrieval for inner views, since react does not currently support portals hydration
             const cachedComponentHtml = enableHtmlCache ? localStorage.getItem(componentCacheKey) : null; 
@@ -329,8 +331,11 @@ async function bootstrap() {
         throw new Error("Root element not found");
     }
 
+    const moduleId = "";
+
     const mainView: ViewMetadata = {
         name: mainFrameName,
+        moduleId: moduleId,
         generation: 0,
         isMain: true,
         placeholder: rootElement,
@@ -355,7 +360,7 @@ async function bootstrap() {
 
     bootstrapTask.setResult();
 
-    fireNativeNotification(viewInitializedEventName, mainFrameName);
+    fireNativeNotification(viewInitializedEventName, mainFrameName, moduleId);
 }
 
 async function loadFramework(): Promise<void> {
@@ -428,7 +433,7 @@ function fireNativeNotification(eventName: string, ...args: string[]) {
 
 function onChildViewAdded(childView: ViewMetadata) {
     views.set(childView.name, childView);
-    fireNativeNotification(viewInitializedEventName, childView.name, childView.generation.toString());
+    fireNativeNotification(viewInitializedEventName, childView.name, childView.moduleId);
 }
 
 function onChildViewRemoved(childView: ViewMetadata) {

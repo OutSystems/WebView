@@ -5,6 +5,7 @@ import { IPluginsContext } from "PluginsProvider";
 import "./ExampleView.scss";
 import * as Image from "./beach.jpg";
 import { ResourceLoader } from "ResourceLoader";
+import SubExampleView from "./SubExampleView";
 
 export interface ISomeType {
     name: string;
@@ -27,10 +28,19 @@ export interface IExampleViewBehaviors {
     callMe(): void;
 }
 
+
+export interface IChildViews {
+    SubView: SubExampleView;
+}
+
 enum SubViewShowStatus {
     Show,
     ShowWrapped,
     Hide
+}
+
+function nameof<T>(key: keyof T): keyof T {
+    return key;
 }
 
 export default class ExampleView extends React.Component<IExampleViewProperties, { time: string; subViewShowStatus: SubViewShowStatus }> implements IExampleViewBehaviors {
@@ -72,7 +82,7 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
     }
 
     private renderViewFrame() {
-        return <ViewFrame key="test_frame" name="test_frame" className="" />;
+        return <ViewFrame key="test_frame" name={nameof<IChildViews>("SubView")} moduleId="SubExampleView" className="" />;
     }
 
     private renderSubView() {

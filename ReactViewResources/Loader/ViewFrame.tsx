@@ -39,6 +39,11 @@ export class ViewFrame extends React.Component<IViewFrameProps, {}, ViewMetadata
         }
     }
 
+    private get fullName() {
+        const parentName = this.parentView.name;
+        return (parentName ? (parentName + ".") : "") + this.props.name;
+    }
+
     public shouldComponentUpdate(): boolean {
         // prevent component updates
         return false;
@@ -49,7 +54,8 @@ export class ViewFrame extends React.Component<IViewFrameProps, {}, ViewMetadata
     }
 
     private getView(): ViewMetadata | undefined {
-        return this.parentView.childViews.items.find(c => c.name === this.props.name);
+        const fullName = this.fullName;
+        return this.parentView.childViews.items.find(c => c.name === fullName);
     }
 
     public componentDidMount() {
@@ -62,7 +68,8 @@ export class ViewFrame extends React.Component<IViewFrameProps, {}, ViewMetadata
         }
 
         const childView: ViewMetadata = {
-            name: this.props.name,
+            name: this.fullName,
+            moduleId: this.props.moduleId,
             generation: this.generation,
             isMain: false,
             placeholder: this.placeholder,

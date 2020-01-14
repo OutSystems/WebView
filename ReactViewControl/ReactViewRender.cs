@@ -50,8 +50,6 @@ namespace ReactViewControl {
             PluginsFactory = initializePlugins;
             EnableDebugMode = enableDebugMode;
 
-            AddPlugins(MainViewFrameName, initializePlugins());
-
             var loadedListener = WebView.AttachListener(ViewLoadedEventName);
             loadedListener.Handler += OnViewLoaded;
             loadedListener.UIHandler += OnViewLoadedUIHandler;
@@ -166,13 +164,31 @@ namespace ReactViewControl {
         /// </summary>
         /// <param name="args"></param>
         private void OnViewInitialized(params object[] args) {
-            var frameName = (string)args.FirstOrDefault();
+            var frameName = (string)args.ElementAt(0);
 
             lock (SyncRoot) {
                 var frame = GetOrCreateFrame(frameName);
                 frame.LoadStatus = LoadStatus.ViewInitialized;
-                frame.PluginsLoaded = false;
-                Load(frame);
+
+                var isMainFrame = frameName == MainViewFrameName;
+
+                if (isMainFrame) {
+                    // only need to load the stylesheet for the main frame
+                    LoadStyleSheet();
+                }
+
+                LoadPlugins(frame);
+
+                if (frame.Component == null) {
+                    // create the instance of the component if none
+                    var moduleId = (string)args.ElementAt(1);
+                    var component = ViewModulesRegistry.CreateModuleInstance(moduleId);
+                    if (component != null) {
+                        BindComponentToFrame(component, frame);
+                    }
+                }
+                    
+                LoadComponent(frame);
             }
         }
 
@@ -217,7 +233,7 @@ namespace ReactViewControl {
         /// </summary>
         /// <param name="frameName"></param>
         private void OnWebViewJavascriptContextReleased(string frameName) {
-            if (!WebView.IsMainFrame(frameName)) {
+            if (!WebView.IsMainFrame(frameName) || Frames.Count == 0) {
                 // ignore, its an iframe saying goodbye
                 return;
             }
@@ -227,6 +243,7 @@ namespace ReactViewControl {
                 Frames.Clear();
                 Frames.Add(MainViewFrameName, mainFrame);
                 mainFrame.Reset();
+                mainFrame.IsComponentReadyToLoad = true;
             }
         }
 
@@ -250,46 +267,56 @@ namespace ReactViewControl {
         public void LoadComponent(IViewModule component, string frameName = MainViewFrameName) {
             lock (SyncRoot) {
                 var frame = GetOrCreateFrame(frameName);
-                frame.Component = component;
-
-                component.Bind(frame);
-
+                BindComponentToFrame(component, frame);
+                frame.IsComponentReadyToLoad = frameName == MainViewFrameName;
                 if (frame.LoadStatus == LoadStatus.ViewInitialized) {
-                    Load(frame);
+                    LoadComponent(frame);
                 }
             }
         }
 
         /// <summary>
-        /// Load the stylesheet, plugins and component (in that order).
+        /// Loads the frame component.
         /// </summary>
         /// <param name="frame"></param>
-        private void Load(FrameInfo frame) {
-            if (!frame.PluginsLoaded) {
-                if (frame.Name == MainViewFrameName) {
-                    // only need to load the stylesheet for the main frame
-                    if (DefaultStyleSheet != null) {
-                        Loader.LoadDefaultStyleSheet(DefaultStyleSheet);
-                    }
-                }
-
-                if (frame.Plugins.Length > 0) {
-                    foreach (var module in frame.Plugins) {
-                        RegisterNativeObject(module, frame.Name);
-                    }
-
-                    Loader.LoadPlugins(frame.Plugins, frame.Name);
-
-                    frame.PluginsLoaded = true;
-                }
-            }
-
-            if (frame.Component != null) {
+        private void LoadComponent(FrameInfo frame) {
+            if (frame.Component != null && frame.LoadStatus < LoadStatus.ComponentLoading && frame.IsComponentReadyToLoad) {
                 frame.LoadStatus = LoadStatus.ComponentLoading;
 
                 RegisterNativeObject(frame.Component, frame.Name);
 
                 Loader.LoadComponent(frame.Component, frame.Name, DefaultStyleSheet != null, frame.Plugins.Length > 0);
+            }
+        }
+
+        void IChildViewHost.LoadComponent(string frameName) {
+            lock (SyncRoot) {
+                var frame = GetOrCreateFrame(frameName);
+                frame.IsComponentReadyToLoad = true;
+                LoadComponent(frame);
+            }
+        }
+
+        /// <summary>
+        /// Load stylesheet
+        /// </summary>
+        private void LoadStyleSheet() {
+            if (DefaultStyleSheet != null) {
+                Loader.LoadDefaultStyleSheet(DefaultStyleSheet);
+            }
+        }
+        
+        /// <summary>
+        /// Load plugins of the specified frame.
+        /// </summary>
+        /// <param name="frame"></param>
+        private void LoadPlugins(FrameInfo frame) {
+            if (frame.Plugins.Length > 0) {
+                foreach (var module in frame.Plugins) {
+                    RegisterNativeObject(module, frame.Name);
+                }
+
+                Loader.LoadPlugins(frame.Plugins, frame.Name);
             }
         }
 
@@ -306,25 +333,21 @@ namespace ReactViewControl {
             }
         }
 
-        public void AddPlugins(string frameName, params IViewModule[] plugins) {
+        private void AddPlugins(IViewModule[] plugins, FrameInfo frame) {
             var invalidPlugins = plugins.Where(p => string.IsNullOrEmpty(p.MainJsSource) || string.IsNullOrEmpty(p.Name) || string.IsNullOrEmpty(p.NativeObjectName));
             if (invalidPlugins.Any()) {
                 var pluginName = invalidPlugins.First().Name + "|" + invalidPlugins.First().GetType().Name;
                 throw new ArgumentException($"Plugin '{pluginName}' is invalid");
             }
+            
+            if (frame.LoadStatus > LoadStatus.ViewInitialized) {
+                throw new InvalidOperationException($"Cannot add plugins after component has been loaded");
+            }
 
-            lock (SyncRoot) {
-                var frame = GetOrCreateFrame(frameName);
+            frame.Plugins = frame.Plugins.Concat(plugins).ToArray();
 
-                if (frame.LoadStatus > LoadStatus.ViewInitialized) {
-                    throw new InvalidOperationException($"Cannot add plugins after component has been loaded");
-                }
-
-                frame.Plugins = frame.Plugins.Concat(plugins).ToArray();
-
-                foreach (var plugin in plugins) {
-                    plugin.Bind(frame);
-                }
+            foreach (var plugin in plugins) {
+                plugin.Bind(frame);
             }
         }
 
@@ -392,13 +415,34 @@ namespace ReactViewControl {
         }
 
         /// <summary>
-        /// Attached the specified module to the specified frame
+        /// Gets the view loaded on the specified frame. If none it will create a view of the specified 
+        /// instance and bind it to the frame.
         /// </summary>
-        /// <param name="viewModule"></param>
         /// <param name="frameName"></param>
-        public void AttachChildView(IViewModule viewModule, string frameName) {
-            AddPlugins(frameName, PluginsFactory());
-            LoadComponent(viewModule, frameName);
+        /// <returns></returns>
+        public T GetOrAddChildView<T>(string frameName) where T : IViewModule, new() {
+            T component;
+            lock (SyncRoot) {
+                var frame = GetOrCreateFrame(frameName);
+                if (frame.Component == null) {
+                    component = new T();
+                    BindComponentToFrame(component, frame);
+                } else {
+                    component = (T) frame.Component;
+                }
+            }
+
+            return component;
+        }
+
+        /// <summary>
+        /// Binds the coponent to the specified frame.
+        /// </summary>
+        /// <param name="component"></param>
+        /// <param name="frame"></param>
+        private void BindComponentToFrame(IViewModule component, FrameInfo frame) {
+            frame.Component = component;
+            component.Bind(frame, this);
         }
 
         /// <summary>
@@ -584,8 +628,9 @@ namespace ReactViewControl {
 
         private FrameInfo GetOrCreateFrame(string frameName) {
             if (!Frames.TryGetValue(frameName, out var frame)) {
-                frame = new FrameInfo(frameName, this);
+                frame = new FrameInfo(frameName);
                 Frames[frameName] = frame;
+                AddPlugins(PluginsFactory(), frame);
             }
             return frame;
         }

@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
+using System.Threading.Tasks;
 using WebViewControl;
 
 namespace ReactViewControl {
@@ -9,7 +11,7 @@ namespace ReactViewControl {
 
     public delegate Stream CustomResourceRequestedEventHandler(string resourceKey, params string[] options);
 
-    public abstract partial class ReactView : IDisposable, IChildViewHost {
+    public abstract partial class ReactView : IDisposable {
 
         private static Dictionary<Type, ReactViewRender> CachedViews { get; } = new Dictionary<Type, ReactViewRender>();
 
@@ -173,6 +175,16 @@ namespace ReactViewControl {
         }
 
         /// <summary>
+        /// Gets the view loaded on the specified frame. If none it will create a view of the specified 
+        /// instance and bind it to the frame.
+        /// </summary>
+        /// <param name="frameName"></param>
+        /// <returns></returns>
+        public T GetOrAddChildView<T>(string frameName) where T : IViewModule, new() {
+            return View.GetOrAddChildView<T>(frameName);
+        }
+
+        /// <summary>
         /// View module of this control.
         /// </summary>
         protected IViewModule MainModule { get; }
@@ -183,14 +195,5 @@ namespace ReactViewControl {
         /// Defaults to 6. 
         /// </summary>
         public static int PreloadedCacheEntriesSize { get; set; } = 6;
-
-        /// <summary>
-        /// Binds the view module into the specified frame.
-        /// </summary>
-        /// <param name="viewModule"></param>
-        /// <param name="frameName"></param>
-        public void AttachChildView(IViewModule viewModule, string frameName) {
-            View.AttachChildView(viewModule, frameName);
-        }
     }
 }

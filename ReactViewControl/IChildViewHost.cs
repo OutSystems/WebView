@@ -1,7 +1,8 @@
 ﻿namespace ReactViewControl {
 
     public interface IChildViewHost {
+        void LoadComponent(string frameName);
 
-        void AttachChildView(IViewModule viewModule, string frameName);
+        T GetOrAddChildView<T>(string frameName) where T : IViewModule, new();
     }
 }
