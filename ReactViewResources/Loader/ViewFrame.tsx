@@ -69,7 +69,6 @@ export class ViewFrame extends React.Component<IViewFrameProps, {}, ViewMetadata
 
         const childView: ViewMetadata = {
             name: this.fullName,
-            moduleId: this.props.moduleId,
             generation: this.generation,
             isMain: false,
             placeholder: this.placeholder,

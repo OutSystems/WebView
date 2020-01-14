@@ -82,7 +82,7 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
     }
 
     private renderViewFrame() {
-        return <ViewFrame key="test_frame" name={nameof<IChildViews>("SubView")} moduleId="SubExampleView" className="" />;
+        return <ViewFrame key="test_frame" name={nameof<IChildViews>("SubView")} className="" />;
     }
 
     private renderSubView() {

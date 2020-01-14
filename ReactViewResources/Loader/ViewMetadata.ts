@@ -3,7 +3,6 @@ import { Task } from "./Task";
 
 export type ViewMetadata = {
     name: string;
-    moduleId: string;
     generation: number;
     isMain: boolean;
     placeholder: Element; // element were the view is mounted (where the shadow root is mounted in case of child views)

@@ -170,23 +170,12 @@ namespace ReactViewControl {
                 var frame = GetOrCreateFrame(frameName);
                 frame.LoadStatus = LoadStatus.ViewInitialized;
 
-                var isMainFrame = frameName == MainViewFrameName;
-
-                if (isMainFrame) {
+                if (frameName == MainViewFrameName) {
                     // only need to load the stylesheet for the main frame
                     LoadStyleSheet();
                 }
 
                 LoadPlugins(frame);
-
-                if (frame.Component == null) {
-                    // create the instance of the component if none
-                    var moduleId = (string)args.ElementAt(1);
-                    var component = ViewModulesRegistry.CreateModuleInstance(moduleId);
-                    if (component != null) {
-                        BindComponentToFrame(component, frame);
-                    }
-                }
                     
                 LoadComponent(frame);
             }
