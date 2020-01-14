@@ -59,6 +59,7 @@ declare module "ResourceLoader" {
 declare module "ViewFrame" {
     export interface IViewFrameProps {
         name: string;
+        moduleId: string;
         className?: string;
     }
 

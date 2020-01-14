@@ -9,6 +9,9 @@ const BaseModuleAliasName = "BaseModule";
 const PropertiesClassName = "Properties";
 const PropertiesInterfaceSuffix = "Properties";
 const BehaviorsInterfaceSuffix = "Behaviors";
+const ChildViewsInterfaceSuffix = "ChildViews";
+const ModuleSuffix = "Module";
+const AdapterSufiix = "Adapter";
 
 function f(input: string) {
     if (!input) {
@@ -29,6 +32,7 @@ class Generator {
 
     private propsInterface: Units.TsInterface | null;
     private behaviorsInterface: Units.TsInterface | null;
+    private childViewsInterface: Units.TsInterface | null;
     private component: Units.TsClass;
     private objects: Units.TsInterface[];
     private enums: Units.TsEnum[];
@@ -45,13 +49,17 @@ class Generator {
         private baseComponentClass: string,
         private baseModuleClass: string,
         private baseComponentInterface: string,
+        private baseModuleInterface: string,
         private isModule: boolean) {
 
         this.component = module.classes.filter(c => c.isPublic)[0];
         let interfaces = module.interfaces.filter((ifc) => ifc.isPublic && ifc.name.startsWith("I"));
         this.propsInterface = interfaces.find((ifc) => ifc.name.endsWith(PropertiesInterfaceSuffix)) || null;
         this.behaviorsInterface = interfaces.find((ifc) => ifc.name.endsWith(BehaviorsInterfaceSuffix)) || null;
-        this.objects = module.interfaces.filter(ifc => ifc.isPublic && ifc !== this.propsInterface && ifc !== this.behaviorsInterface);
+        this.childViewsInterface = interfaces.find((ifc) => ifc.name.endsWith(ChildViewsInterfaceSuffix)) || null;
+
+        const interfacesToExclude = [this.propsInterface, this.behaviorsInterface, this.childViewsInterface];
+        this.objects = module.interfaces.filter(ifc => ifc.isPublic && !interfacesToExclude.includes(ifc));
         this.enums = module.enums.filter(e => e.isPublic);
 
         this.propsInterfaceCoreName = this.propsInterface ? this.propsInterface.name.substring(1, this.propsInterface.name.length - PropertiesInterfaceSuffix.length) : "";
@@ -59,7 +67,7 @@ class Generator {
     }
 
     private get moduleName() {
-        return this.componentName + (this.isModule ? "" : "Module"); // if not a module we need to add Module suffix
+        return this.componentName + (this.isModule ? "" : ModuleSuffix); // if not a module we need to add Module suffix
     }
 
     private getFunctionReturnType(func: Units.TsFunction): string {
@@ -158,10 +166,16 @@ class Generator {
         return `${accessibility}${this.getTypeName(prop.type)} ${toPascalCase(prop.name)} { get; set; }`
     }
 
-    private generateComponentBody(generatePropertyEvent: (prop: Units.TsFunction) => string, generateProperty: (prop: Units.TsProperty) => string, generateBehaviorMethod: (func: Units.TsFunction) => string) {
+    private generateComponentBody(
+        generatePropertyEvent: (prop: Units.TsFunction) => string,
+        generateProperty: (prop: Units.TsProperty) => string,
+        generateBehaviorMethod: (func: Units.TsFunction) => string,
+        generateChildViewProperty: (prop: Units.TsProperty) => string) {
+
         return (
             this.propsInterface ? this.propsInterface.functions.map(generatePropertyEvent).concat(this.propsInterface.properties.map(generateProperty)) : [])
             .concat(this.behaviorsInterface ? this.behaviorsInterface.functions.map(generateBehaviorMethod) : [])
+            .concat(this.childViewsInterface ? this.childViewsInterface.properties.map(generateChildViewProperty) : [])
             .join("\n");
     }
 
@@ -189,12 +203,19 @@ class Generator {
                 `public ${this.generateMethodSignature(func)} => ${hostPropertyName}.${toPascalCase(func.name)}(${func.parameters.map(p => p.name).join(",")});\n`
             );
         };
-        return this.generateComponentBody(generatePropertyEvent, generateProperty, generateBehaviorMethod);
+        const generateChildViewProperty = (prop: Units.TsProperty) => {
+            let propertyName = toPascalCase(prop.name);
+            return (
+                `public I${this.getTypeName(prop.type)}${ModuleSuffix} ${propertyName} => ${hostPropertyName}.${propertyName};\n`
+            );
+        };
+
+        return this.generateComponentBody(generatePropertyEvent, generateProperty, generateBehaviorMethod, generateChildViewProperty);
     }
 
     private generateComponentAdapter() {
         return (
-            `partial class ${this.componentName}Adapter : I${this.componentName} {\n` +
+            `partial class ${this.componentName}${AdapterSufiix} : I${this.componentName} {\n` +
             `\n` +
             `    ${f(this.generateComponentWrapperBody("Component"))}\n` +
             `}\n`
@@ -206,7 +227,7 @@ class Generator {
         const keyValuePairType = "System.Collections.Generic.KeyValuePair<string, object>";
 
         const generatePropertyEvent = (func: Units.TsFunction) => `${this.generatePropertyEvent(func)};`;
-        const generateProperty = (func: Units.TsProperty) => `${this.generateProperty(func)}`;
+        const generateProperty = (func: Units.TsProperty) => this.generateProperty(func);
 
         const generateBehaviorMethod = (func: Units.TsFunction) => {
             let params = [`"${func.name}"`].concat(func.parameters.map(p => p.name)).join(", ");
@@ -221,6 +242,11 @@ class Generator {
             return (
                 `public ${this.generateMethodSignature(func)} => ${body};`
             );
+        };
+
+        const generateChildViewProperty = (prop: Units.TsProperty) => {
+            let propertyType = `${this.getTypeName(prop.type)}${ModuleSuffix}`;
+            return `public I${propertyType} ${toPascalCase(prop.name)} { get => GetOrAddChildView<${propertyType}>("${this.componentName}.${prop.name}"); }`
         };
 
         const partialInitializeMethodName = `Initialize${this.componentName}`;
@@ -247,7 +273,7 @@ class Generator {
             `    \n` +
             `    ${f(this.generateNativeApi())}\n` +
             `    \n` +
-            `    ${f(this.generateComponentBody(generatePropertyEvent, generateProperty, generateBehaviorMethod))}\n` +
+            `    ${f(this.generateComponentBody(generatePropertyEvent, generateProperty, generateBehaviorMethod, generateChildViewProperty))}\n` +
             `    \n` +
             `    protected override string MainJsSource => \"${this.relativePath}\";\n` +
             `    protected override string NativeObjectName => \"${this.propsInterfaceCoreName}\";\n` +
@@ -272,10 +298,12 @@ class Generator {
 
     private generateComponentInterface() {
         const generatePropertyEvent = (func: Units.TsFunction) => `${this.generatePropertyEvent(func, "")};`;
-        const generateProperty = (prop: Units.TsProperty) => `${this.generateProperty(prop, "")}`;
+        const generateProperty = (prop: Units.TsProperty) => this.generateProperty(prop, "");
         const generateBehaviorMethod = (func: Units.TsFunction) => `${this.generateMethodSignature(func)};`;
+        const generateChildViewProperty = (prop: Units.TsProperty) => `I${this.getTypeName(prop.type)}${ModuleSuffix} ${toPascalCase(prop.name)} { get; }\n`;
 
         const moduleInterfaceName = "I" + this.moduleName;
+        const componentInterface = "I" + this.componentName;
 
         let baseInterfaces: string[] = [];
         if (!this.isModule) {
@@ -286,11 +314,11 @@ class Generator {
         }
 
         return (
-            `public partial interface ${moduleInterfaceName} {\n` +
-            `    ${f(this.generateComponentBody(generatePropertyEvent, generateProperty, generateBehaviorMethod))}\n` +
+            `public partial interface ${moduleInterfaceName} ${this.baseModuleInterface ? `: ${this.baseModuleInterface} ` : ""}{\n` +
+            `    ${f(this.generateComponentBody(generatePropertyEvent, generateProperty, generateBehaviorMethod, generateChildViewProperty))}\n` +
             `}\n` +
             `\n` +
-            `public partial interface I${this.componentName}${baseInterfaces.length > 0 ? " : " + baseInterfaces.join(",") : ""} {}`
+            `public partial interface ${componentInterface} ${baseInterfaces.length > 0 ? `: ${baseInterfaces.join(",")} ` : ""}{}`
         );
     }
 
@@ -373,6 +401,7 @@ export function transform(module: Units.TsModule, context: Object): string {
         context["baseComponentClass"],
         context["baseModuleClass"],
         context["baseComponentInterface"],
+        context["baseModuleInterface"],
         context["isModule"]
     );
 
