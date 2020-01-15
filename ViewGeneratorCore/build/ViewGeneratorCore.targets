@@ -16,6 +16,8 @@
       $(TransformDuringBuild)
     </TransformDuringBuild>
 
+    <ViewGeneratorCorePath>$([System.IO.Path]::GetFullPath(&quot;$(MSBuildThisFileDirectory)..\&quot;))</ViewGeneratorCorePath>
+    <ViewGeneratorCoreContentFilesPath>$(ViewGeneratorCorePath)contentFiles\</ViewGeneratorCoreContentFilesPath>
   </PropertyGroup>
 
   <Target Name="VGC_SetVariables">
@@ -23,9 +25,8 @@
       <_ViewGeneratorCoreNodeJsExe Include="$(MSBuildThisFileDirectory)..\..\..\Node.js.redist\*\tools\win-x64\node.exe"/>
       <_ViewGeneratorCoreNodeJsExe Include="$(MSBuildThisFileDirectory)..\..\Node.js.redist*\tools\win-x64\node.exe"/>
     </ItemGroup>
+      
     <PropertyGroup>
-      <ViewGeneratorCorePath>$([System.IO.Path]::GetFullPath(&quot;$(MSBuildThisFileDirectory)..\&quot;))</ViewGeneratorCorePath>
-      <ViewGeneratorCoreContentFilesPath>$(ViewGeneratorCorePath)contentFiles\</ViewGeneratorCoreContentFilesPath> 
       <__ViewGeneratorCoreNodeJsExe>@(_ViewGeneratorCoreNodeJsExe);</__ViewGeneratorCoreNodeJsExe>
       <ViewGeneratorCoreNodeJsExe>$(__ViewGeneratorCoreNodeJsExe.Substring(0, $(__ViewGeneratorCoreNodeJsExe.IndexOf(';'))))</ViewGeneratorCoreNodeJsExe>
     </PropertyGroup>
@@ -51,13 +52,13 @@
   <!-- old-format and new-format projects have different built-in targets. In order to support both we need to have two
        different alternative ways of adding the generated code to the target project :( -->
        
-  <Target Name="VGC_IncludeGeneratedFiles_a" BeforeTargets="CoreCompile">
+  <Target Name="VGC_IncludeGeneratedFiles_NonSdk" BeforeTargets="CoreCompile">
     <ItemGroup>
       <Compile Include="$(ViewGeneratorGeneratedFolder)\**\*.cs" Exclude="@(Compile)" />
     </ItemGroup>
   </Target>
 
-  <Target Name="VGC_IncludeGeneratedFiles_b" AfterTargets="VGC_GenerateView">
+  <Target Name="VGC_IncludeGeneratedFiles_Sdk" AfterTargets="VGC_GenerateView">
     <ItemGroup>
       <Compile Include="$(ViewGeneratorGeneratedFolder)\**\*.cs" Exclude="@(Compile)" />
     </ItemGroup>

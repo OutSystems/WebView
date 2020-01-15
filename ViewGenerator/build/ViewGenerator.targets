@@ -2,9 +2,6 @@
   <PropertyGroup>
 
     <BuildDependsOn>
-      VG_SetVariables;
-      VG_CopyContentFiles;
-      VG_LinkNodeModules;
       VG_GenerateBundle;
       $(BuildDependsOn);
     </BuildDependsOn>
@@ -17,10 +14,7 @@
       VG_Clean;
       $(CleanDependsOn);
     </CleanDependsOn>
-
-    <PrepareResourceNamesDependsOn>
-      $(PrepareResourceNamesDependsOn)
-    </PrepareResourceNamesDependsOn>
+      
   </PropertyGroup>
   
   <Target Name="VG_SetVariables">
@@ -28,11 +22,11 @@
       <_ViewGeneratorNodeJsExe Include="$(MSBuildThisFileDirectory)..\..\..\Node.js.redist\*\tools\win-x64\node.exe"/>
       <_ViewGeneratorNodeJsExe Include="$(MSBuildThisFileDirectory)..\..\Node.js.redist*\tools\win-x64\node.exe"/>
     </ItemGroup>
+      
     <PropertyGroup>
       <ViewGeneratorPath>$([System.IO.Path]::GetFullPath(&quot;$(MSBuildThisFileDirectory)..\&quot;))</ViewGeneratorPath>
       <ViewGeneratorToolsPath>$(ViewGeneratorPath)tools</ViewGeneratorToolsPath>
-      <ViewGeneratorContentFilesPath>$(ViewGeneratorPath)contentFiles\</ViewGeneratorContentFilesPath>
-
+      <ViewGeneratorContentFilesPath>$(ViewGeneratorPath)contentFiles\</ViewGeneratorContentFilesPath> 
       <__ViewGeneratorNodeJsExe>@(_ViewGeneratorNodeJsExe);</__ViewGeneratorNodeJsExe>
       <ViewGeneratorNodeJsExe>$(__ViewGeneratorNodeJsExe.Substring(0, $(__ViewGeneratorNodeJsExe.IndexOf(';'))))</ViewGeneratorNodeJsExe>
     </PropertyGroup>
@@ -85,7 +79,7 @@
     <Delete Files="@(CSSFilesToDelete)"/>
   </Target>
 
-  <Target Name="VG_SetupViewPacker" DependsOnTargets="VG_EnsureViewPackerInstalled" Condition="!Exists('$(ViewGeneratorToolsPath)\webpack\node_modules')">
+  <Target Name="VG_SetupViewPacker" DependsOnTargets="VG_EnsureViewPackerInstalled;VG_SetVariables" Condition="!Exists('$(ViewGeneratorToolsPath)\webpack\node_modules')">
     <Exec Command="mklink /J &quot;$(ViewGeneratorToolsPath)\webpack\node_modules&quot; &quot;$(ViewPackerToolNodeModules)&quot;" />
   </Target>
 
@@ -135,7 +129,7 @@
   </ItemGroup>
 
   <!-- Webpack bundle generation targets-->
-  <Target Name="VG_GenerateBundle" Inputs="@(VG_Inputs);@(VG_Workers_Inputs)" Outputs="VG_Build.cache" DependsOnTargets="VG_SetupViewPacker;VG_SetVariables;VG_LinkNodeModules;VG_CopyContentFiles">
+  <Target Name="VG_GenerateBundle" Inputs="@(VG_Inputs);@(VG_Workers_Inputs)" Outputs="VG_Build.cache" DependsOnTargets="VG_SetVariables;VG_SetupViewPacker;VG_LinkNodeModules;VG_Setup">
     <CallTarget Targets="VG_GenerateBundleInner" />
   </Target>
 
@@ -176,7 +170,8 @@
     </ItemGroup>
   </Target>
   
-  <Target Name="VG_CopyContentFiles" DependsOnTargets="VG_SetVariables" Condition="!Exists('$(ProjectDir)VG.cache') OR $([System.IO.File]::GetLastWriteTime('$(ViewGeneratorContentFilesPath)VG.cache').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(ProjectDir)VG.cache').Ticks)">
+  <Target Name="VG_Setup" DependsOnTargets="VG_SetVariables" Condition="!Exists('$(ProjectDir)VG.cache') OR $([System.IO.File]::GetLastWriteTime('$(ViewGeneratorContentFilesPath)VG.cache').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(ProjectDir)VG.cache').Ticks)">      
+    
     <CreateItem Include="$(ViewGeneratorContentFilesPath)VG.cache">
       <Output TaskParameter="Include" ItemName="CacheFile" />
     </CreateItem>
@@ -194,6 +189,8 @@
     <Copy SourceFiles="@(CacheFile)" DestinationFolder="$(ProjectDir)%(CacheFile.RecursiveDir)" />
     <Copy SourceFiles="@(TemplatesToCopy)" DestinationFolder="$(ProjectDir)%(TemplatesToCopy.RecursiveDir)" Condition="!Exists('%(FullPath)')" />
     <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(ProjectDir)%(FilesToCopy.RecursiveDir)" SkipUnchangedFiles="true" />
+
+    <Delete Condition="Exists(VG_Build.cache)" Files="VG_Build.cache" />
   </Target>
   
   <Target Name="VG_Clean" BeforeTargets="Clean" >
