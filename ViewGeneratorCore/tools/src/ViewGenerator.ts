@@ -246,7 +246,7 @@ class Generator {
 
         const generateChildViewProperty = (prop: Units.TsProperty) => {
             let propertyType = `${this.getTypeName(prop.type)}${ModuleSuffix}`;
-            return `public I${propertyType} ${toPascalCase(prop.name)} { get => GetOrAddChildView<${propertyType}>("${this.componentName}.${prop.name}"); }`
+            return `public I${propertyType} ${toPascalCase(prop.name)} { get => GetOrAddChildView<${propertyType}>("${prop.name}"); }`
         };
 
         const partialInitializeMethodName = `Initialize${this.componentName}`;

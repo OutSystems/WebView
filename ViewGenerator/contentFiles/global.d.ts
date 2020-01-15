@@ -57,11 +57,10 @@ declare module "ResourceLoader" {
 }
 
 declare module "ViewFrame" {
-    export interface IViewFrameProps {
-        name: string;
-        moduleId: string;
+    export interface IViewFrameProps<T> {
+        name: keyof T;
         className?: string;
     }
 
-    export class ViewFrame extends React.Component<IViewFrameProps> { }
+    export class ViewFrame<T> extends React.Component<IViewFrameProps<T>> { }
 }
