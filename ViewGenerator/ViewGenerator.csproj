@@ -94,7 +94,7 @@
     <PostBuildEvent>"$(ProjectDir)..\nuget" pack "$(ProjectDir)ViewGenerator.nuspec" -OutputDirectory "$(ProjectDir)..\Nuget\ " -Properties Configuration=$(ConfigurationName)
 </PostBuildEvent>
   </PropertyGroup>
-  <Target Name="InstallDependencies" BeforeTargets="Build">
+  <Target Name="InstallDependencies" BeforeTargets="PrepareForBuild">
     <Exec Command="npm install --no-bin-links --prefix &quot;$(ProjectDir)tools&quot; &quot;$(ProjectDir)tools&quot;"/>
     <Exec Command="npm install --no-bin-links --prefix &quot;$(ProjectDir)contentFiles&quot; &quot;$(ProjectDir)contentFiles&quot;"/>
   </Target>
