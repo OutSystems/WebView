@@ -30,5 +30,9 @@ namespace ReactViewControl {
         T WithPlugin<T>();
 
         void Load();
+
+        T GetOrAddChildView<T>(string frameName) where T : IViewModule, new();
+
+        ReactView Host { get; }
     }
 }

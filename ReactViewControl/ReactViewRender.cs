@@ -86,6 +86,8 @@ namespace ReactViewControl {
 
         partial void ExtraInitialize();
 
+        public ReactView Host { get; set; }
+
         public bool IsDisposing => WebView.IsDisposing;
 
         /// <summary>

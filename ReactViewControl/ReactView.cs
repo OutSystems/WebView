@@ -48,6 +48,8 @@ namespace ReactViewControl {
 
         protected ReactView(IViewModule mainModule) {
             View = CreateReactViewInstance(Factory);
+
+            View.Host = this;
             MainModule = mainModule;
             // bind main module (this is needed so that the plugins are available right away)
             View.BindComponent(mainModule);
