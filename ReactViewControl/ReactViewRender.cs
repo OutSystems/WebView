@@ -53,12 +53,12 @@ namespace ReactViewControl {
             var url = new ResourceUrl(ResourcesAssembly, ReactViewResources.Resources.DefaultUrl + "?" + string.Join("&", urlParams));
 
             // must useSharedDomain for the local storage to be shared
-            WebView = new WebView(url, useSharedDomain: true) {
+            WebView = new WebView(new ResourceUrl("about:blank"), useSharedDomain: true) {
                 DisableBuiltinContextMenus = true,
                 IsSecurityDisabled = true,
                 IgnoreMissingResources = false
             };
-            
+
             Loader = new LoaderModule(this);
 
             DefaultStyleSheet = defaultStyleSheet;
@@ -80,6 +80,9 @@ namespace ReactViewControl {
             WebView.LoadFailed += OnWebViewLoadFailed;
 
             Content = WebView;
+
+            // load url after event listeners have been attached
+            WebView.LoadResource(url);
 
             if (preloadWebView) {
                 WebView.InitializeBrowser();
