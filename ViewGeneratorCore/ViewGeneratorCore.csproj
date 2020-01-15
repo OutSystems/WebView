@@ -55,6 +55,7 @@
       <SubType>Designer</SubType>
     </None>
     <Content Include="tools\tsconfig.json" />
+    <None Include="run-generator.bat" />
     <None Include="debug-generator.bat" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
