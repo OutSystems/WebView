@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace ReactViewControl {
 
@@ -30,5 +29,9 @@ namespace ReactViewControl {
         T WithPlugin<T>();
 
         void Load();
+
+        T GetOrAddChildView<T>(string frameName) where T : IViewModule, new();
+
+        ReactView Host { get; }
     }
 }

@@ -88,6 +88,8 @@ namespace ReactViewControl {
 
         public IInputElement FocusableElement => WebView.FocusableElement;
 
+        public ReactView Host { get; set; }
+
         public bool IsDisposing => WebView.IsDisposing;
 
         /// <summary>

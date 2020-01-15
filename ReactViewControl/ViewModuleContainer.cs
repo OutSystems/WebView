@@ -13,7 +13,7 @@ namespace ReactViewControl {
         private const string CssEntryFileExtension = ".css.entry";
 
         private IFrame frame;
-        private IChildViewHost host;
+        private IChildViewHost childViewHost;
 
         public ViewModuleContainer() {
             DependencyJsSourcesCache = new Lazy<string[]>(() => GetDependenciesFromEntriesFile(JsEntryFileExtension));
@@ -58,11 +58,11 @@ namespace ReactViewControl {
 
         KeyValuePair<string, object>[] IViewModule.PropertiesValues => PropertiesValues;
 
-        void IViewModule.Bind(IFrame frame, IChildViewHost host) {
+        void IViewModule.Bind(IFrame frame, IChildViewHost childViewHost) {
             frame.CustomResourceRequestedHandler += this.frame.CustomResourceRequestedHandler;
             frame.ExecutionEngine.MergeWorkload(this.frame.ExecutionEngine);
             this.frame = frame;
-            this.host = host;
+            this.childViewHost = childViewHost;
         }
 
         // ease access in generated code
@@ -102,14 +102,16 @@ namespace ReactViewControl {
         }
 
         public void Load() {
-            host?.LoadComponent(frame.Name);
+            childViewHost?.LoadComponent(frame.Name);
         }
 
         public T GetOrAddChildView<T>(string frameName) where T : IViewModule, new() {
-            if (host == null) {
+            if (childViewHost == null) {
                 return default(T);
             }
-            return host.GetOrAddChildView<T>(frame.Name + (string.IsNullOrEmpty(frame.Name) ? "" : ".") + frameName);
+            return childViewHost.GetOrAddChildView<T>(frame.Name + (string.IsNullOrEmpty(frame.Name) ? "" : ".") + frameName);
         }
+
+        public ReactView Host => childViewHost.Host;
     }
 }

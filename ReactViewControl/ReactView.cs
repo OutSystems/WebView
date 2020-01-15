@@ -54,6 +54,7 @@ namespace ReactViewControl {
             View = CreateReactViewInstance(Factory);
             SetResourceReference(StyleProperty, typeof(ReactView)); // force styles to be inherited, must be called after view is created otherwise view might be null
 
+            View.Host = this;
             MainModule = mainModule;
             // bind main module (this is needed so that the plugins are available right away)
             View.BindComponent(mainModule);
