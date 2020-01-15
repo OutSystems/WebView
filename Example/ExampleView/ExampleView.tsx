@@ -39,10 +39,6 @@ enum SubViewShowStatus {
     Hide
 }
 
-function nameof<T>(key: keyof T): keyof T {
-    return key;
-}
-
 export default class ExampleView extends React.Component<IExampleViewProperties, { time: string; subViewShowStatus: SubViewShowStatus }> implements IExampleViewBehaviors {
 
     private viewplugin: ViewPlugin;
@@ -82,7 +78,7 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
     }
 
     private renderViewFrame() {
-        return <ViewFrame key="test_frame" name={nameof<IChildViews>("SubView")} className="" />;
+        return <ViewFrame<IChildViews> key="test_frame" name="SubView" />;
     }
 
     private renderSubView() {
