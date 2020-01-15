@@ -83,7 +83,7 @@
 
     <Copy SourceFiles="@(CacheFile)" DestinationFolder="$(ProjectDir)%(CacheFile.RecursiveDir)" />
 
-    <Delete Condition="Exists(VGC_Build.cache)" Files="VGC_Build.cache" />
+    <Delete Condition="Exists('$(ProjectDir)VG_Build.cache')" Files="VGC_Build.cache" />
   </Target>
 
 </Project>

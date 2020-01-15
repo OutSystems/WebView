@@ -190,7 +190,7 @@
     <Copy SourceFiles="@(TemplatesToCopy)" DestinationFolder="$(ProjectDir)%(TemplatesToCopy.RecursiveDir)" Condition="!Exists('%(FullPath)')" />
     <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(ProjectDir)%(FilesToCopy.RecursiveDir)" SkipUnchangedFiles="true" />
 
-    <Delete Condition="Exists(VG_Build.cache)" Files="VG_Build.cache" />
+    <Delete Condition="Exists('$(ProjectDir)VG_Build.cache')" Files="VG_Build.cache" />
   </Target>
   
   <Target Name="VG_Clean" BeforeTargets="Clean" >
