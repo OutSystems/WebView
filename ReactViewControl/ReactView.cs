@@ -55,6 +55,8 @@ namespace ReactViewControl {
             SetResourceReference(StyleProperty, typeof(ReactView)); // force styles to be inherited, must be called after view is created otherwise view might be null
 
             MainModule = mainModule;
+            // bind main module (this is needed so that the plugins are available right away)
+            View.BindComponent(mainModule);
 
             IsVisibleChanged += OnIsVisibleChanged;
 
@@ -99,7 +101,7 @@ namespace ReactViewControl {
             // since its not supposed to change properties once the component has been shown
             if (window.IsVisible) {
                 window.IsVisibleChanged -= OnWindowIsVisibleChanged;
-                LoadComponent();
+                TryLoadComponent();
             }
         }
 
@@ -107,11 +109,11 @@ namespace ReactViewControl {
             // fallback when window was already shown
             if (IsVisible) {
                 IsVisibleChanged -= OnIsVisibleChanged;
-                LoadComponent();
+                TryLoadComponent();
             }
         }
 
-        private void LoadComponent() {
+        private void TryLoadComponent() {
             if (!View.IsMainComponentLoaded) {
                 if (EnableHotReload) {
                     View.EnableHotReload(MainModule.Source, MainModule.MainJsSource);
