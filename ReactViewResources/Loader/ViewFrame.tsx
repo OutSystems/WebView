@@ -8,7 +8,7 @@ import { IViewFrameProps } from "ViewFrame";
 /**
  * Placeholder were a child view is mounted.
  * */
-export class ViewFrame extends React.Component<IViewFrameProps, {}, ViewMetadata> {
+export class ViewFrame<T> extends React.Component<IViewFrameProps<T>, {}, ViewMetadata> {
 
     private static generation = 0;
 
@@ -18,13 +18,13 @@ export class ViewFrame extends React.Component<IViewFrameProps, {}, ViewMetadata
 
     static contextType = ViewContext;
 
-    constructor(props: IViewFrameProps, context: ViewMetadata) {
+    constructor(props: IViewFrameProps<T>, context: ViewMetadata) {
         super(props, context);
         if (props.name === "") {
             throw new Error("View Frame name must be specified (not empty)");
         }
 
-        if (!/^[A-Za-z_][A-Za-z0-9_]*/.test(props.name)) {
+        if (!/^[A-Za-z_][A-Za-z0-9_]*/.test(props.name as string)) {
             // must be a valid js symbol name
             throw new Error("View Frame name can only contain letters, numbers or _");
         }
