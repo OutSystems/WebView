@@ -49,6 +49,8 @@ namespace ReactViewControl {
         protected ReactView(IViewModule mainModule) {
             View = CreateReactViewInstance(Factory);
             MainModule = mainModule;
+            // bind main module (this is needed so that the plugins are available right away)
+            View.BindComponent(mainModule);
 
             ExtraInitialize();
         }
@@ -69,7 +71,7 @@ namespace ReactViewControl {
         /// </summary>
         protected virtual ReactViewFactory Factory => new ReactViewFactory();
 
-        private void LoadComponent() {
+        private void TryLoadComponent() {
             if (!View.IsMainComponentLoaded) {
                 if (EnableHotReload) {
                     View.EnableHotReload(MainModule.Source, MainModule.MainJsSource);

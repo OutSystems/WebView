@@ -252,13 +252,23 @@ namespace ReactViewControl {
         }
 
         /// <summary>
+        /// Binds the specified component to the main frame.
+        /// </summary>
+        /// <param name="component"></param>
+        public void BindComponent(IViewModule component) {
+            lock (SyncRoot) {
+                var frame = GetOrCreateFrame(MainViewFrameName);
+                BindComponentToFrame(component, frame);
+            }
+        }
+
+        /// <summary>
         /// Load the specified component into the main frame.
         /// </summary>
         /// <param name="component"></param>
         public void LoadComponent(IViewModule component) {
             lock (SyncRoot) {
                 var frame = GetOrCreateFrame(MainViewFrameName);
-                BindComponentToFrame(component, frame);
                 frame.IsComponentReadyToLoad = true;
                 TryLoadComponent(frame);
             }
