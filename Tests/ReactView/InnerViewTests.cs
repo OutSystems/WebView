@@ -16,7 +16,7 @@ namespace Tests.ReactView {
             var innerView = new InnerViewModule();
             innerView.Loaded += () => innerViewLoaded = true;
 
-            TargetView.AttachChildView(innerView, "test");
+            innerView.Load();
 
             WaitFor(() => innerViewLoaded, "inner view module load");
             Assert.IsTrue(innerViewLoaded);
@@ -28,7 +28,7 @@ namespace Tests.ReactView {
             var innerView = new InnerViewModule();
             innerView.MethodCalled += () => methodCalled = true;
 
-            TargetView.AttachChildView(innerView, "test");
+            innerView.Load();
             innerView.TestMethod();
 
             WaitFor(() => methodCalled, "method called");

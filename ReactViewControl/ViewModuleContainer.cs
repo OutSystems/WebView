@@ -13,6 +13,7 @@ namespace ReactViewControl {
         private const string CssEntryFileExtension = ".css.entry";
 
         private IFrame frame;
+        private IChildViewHost host;
 
         public ViewModuleContainer() {
             DependencyJsSourcesCache = new Lazy<string[]>(() => GetDependenciesFromEntriesFile(JsEntryFileExtension));
@@ -57,10 +58,11 @@ namespace ReactViewControl {
 
         KeyValuePair<string, object>[] IViewModule.PropertiesValues => PropertiesValues;
 
-        void IViewModule.Bind(IFrame frame) {
+        void IViewModule.Bind(IFrame frame, IChildViewHost host) {
             frame.CustomResourceRequestedHandler += this.frame.CustomResourceRequestedHandler;
             frame.ExecutionEngine.MergeWorkload(this.frame.ExecutionEngine);
             this.frame = frame;
+            this.host = host;
         }
 
         // ease access in generated code
@@ -90,14 +92,6 @@ namespace ReactViewControl {
             return new string[0];
         }
 
-        public void AttachChildView(IViewModule viewModule, string frameName) {
-            var childViewHost = frame.ChildViewHost;
-            if (childViewHost == null) {
-                throw new InvalidOperationException("Parent view module must be attached before attaching a child view");
-            }
-            childViewHost.AttachChildView(viewModule, frameName);
-        }
-
         public event CustomResourceRequestedEventHandler CustomResourceRequested {
             add => frame.CustomResourceRequestedHandler += value;
             remove => frame.CustomResourceRequestedHandler -= value;
@@ -105,6 +99,17 @@ namespace ReactViewControl {
 
         public T WithPlugin<T>() {
             return frame.GetPlugin<T>();
+        }
+
+        public void Load() {
+            host?.LoadComponent(frame.Name);
+        }
+
+        public T GetOrAddChildView<T>(string frameName) where T : IViewModule, new() {
+            if (host == null) {
+                return default(T);
+            }
+            return host.GetOrAddChildView<T>(frame.Name + (string.IsNullOrEmpty(frame.Name) ? "" : ".") + frameName);
         }
     }
 }

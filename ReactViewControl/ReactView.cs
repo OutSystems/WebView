@@ -13,7 +13,7 @@ namespace ReactViewControl {
 
     public delegate Stream CustomResourceRequestedEventHandler(string resourceKey, params string[] options);
 
-    public abstract class ReactView : UserControl, IChildViewHost, IDisposable {
+    public abstract class ReactView : UserControl, IDisposable {
 
         private static Dictionary<Type, ReactViewRender> CachedViews { get; } = new Dictionary<Type, ReactViewRender>();
 
@@ -54,7 +54,6 @@ namespace ReactViewControl {
             View = CreateReactViewInstance(Factory);
             SetResourceReference(StyleProperty, typeof(ReactView)); // force styles to be inherited, must be called after view is created otherwise view might be null
 
-            View.BindModule(mainModule, ReactViewRender.MainViewFrameName);
             MainModule = mainModule;
 
             IsVisibleChanged += OnIsVisibleChanged;
@@ -224,14 +223,5 @@ namespace ReactViewControl {
         /// Defaults to 6. 
         /// </summary>
         public static int PreloadedCacheEntriesSize { get; set; } = 6;
-
-        /// <summary>
-        /// Binds the view module into the specified frame.
-        /// </summary>
-        /// <param name="viewModule"></param>
-        /// <param name="frameName"></param>
-        public void AttachChildView(IViewModule viewModule, string frameName) {
-            View.AttachChildView(viewModule, frameName);
-        }
     }
 }

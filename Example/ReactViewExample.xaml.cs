@@ -9,7 +9,6 @@ namespace Example {
     /// </summary>
     public partial class ReactViewExample : Window {
 
-        private const string InnerViewName = "test_frame";
         private int subViewCounter;
 
         private SubExampleViewModule subView;
@@ -52,13 +51,14 @@ namespace Example {
         private void OnViewMounted() {
             var subViewId = subViewCounter++;
             var oldView = subView;
-            subView = new SubExampleViewModule();
+
+            subView = (SubExampleViewModule) exampleView.SubView;
             subView.ConstantMessage = "This is a sub view";
             subView.GetTime += () => DateTime.Now.AddHours(1).ToShortTimeString() + $"(Id: {subViewId})";
             subView.CustomResourceRequested += OnInnerViewResourceRequested;
-            exampleView.AttachChildView(subView, InnerViewName);
             subView.CallMe();
             subView.WithPlugin<ViewPlugin>().NotifyViewLoaded += (viewName) => AppendLog($"On sub view loaded (Id: {subViewId}): {viewName}");
+            subView.Load();
             oldView?.CallMe();
         }
 
