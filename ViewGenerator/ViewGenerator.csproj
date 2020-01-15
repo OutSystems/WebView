@@ -94,10 +94,10 @@
     <PostBuildEvent>"$(ProjectDir)..\nuget" pack "$(ProjectDir)ViewGenerator.nuspec" -OutputDirectory "$(ProjectDir)..\Nuget\ " -Properties Configuration=$(ConfigurationName)
 </PostBuildEvent>
   </PropertyGroup>
-  <PropertyGroup>
-    <PreBuildEvent>npm install --no-bin-links --prefix "$(ProjectDir)tools" "$(ProjectDir)tools"
-npm install --no-bin-links --prefix "$(ProjectDir)contentFiles" "$(ProjectDir)contentFiles"</PreBuildEvent>
-  </PropertyGroup>
+  <Target Name="InstallDependencies" BeforeTargets="Build">
+    <Exec Command="npm install --no-bin-links --prefix &quot;$(ProjectDir)tools&quot; &quot;$(ProjectDir)tools&quot;"/>
+    <Exec Command="npm install --no-bin-links --prefix &quot;$(ProjectDir)contentFiles&quot; &quot;$(ProjectDir)contentFiles&quot;"/>
+  </Target>
   <Target Name="TouchCacheFile" BeforeTargets="PrepareForBuild">
     <Touch Files="$(ProjectDir)contentFiles\VG.cache" AlwaysCreate="true" />
   </Target>
