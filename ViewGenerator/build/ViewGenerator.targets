@@ -187,7 +187,8 @@
     <Message Text="Copying View Generator content files" Importance="Normal" />
       
     <Copy SourceFiles="@(CacheFile)" DestinationFolder="$(ProjectDir)%(CacheFile.RecursiveDir)" />
-    <Copy SourceFiles="@(TemplatesToCopy)" DestinationFolder="$(ProjectDir)%(TemplatesToCopy.RecursiveDir)" Condition="!Exists('%(FullPath)')" />
+    <Copy SourceFiles="@(TemplatesToCopy)" DestinationFolder="$(ProjectDir)%(TemplatesToCopy.RecursiveDir)" Condition="!Exists('%(FullPath)')" SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(OverrideProjectDir)%(FilesToCopy.RecursiveDir)" Condition="$(OverrideProjectDir) != ''" SkipUnchangedFiles="true" />
     <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(ProjectDir)%(FilesToCopy.RecursiveDir)" SkipUnchangedFiles="true" />
 
     <Delete Condition="Exists('$(ProjectDir)VG_Build.cache')" Files="VG_Build.cache" />
