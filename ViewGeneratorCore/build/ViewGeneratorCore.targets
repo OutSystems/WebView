@@ -12,28 +12,19 @@
     </CleanDependsOn>
 
     <!-- If does not exist, create it so that the targets won't fail -->
-    <TransformDuringBuild>
-      $(TransformDuringBuild)
-    </TransformDuringBuild>
+    <TransformDuringBuild Condition="$(TransformDuringBuild) == ''"></TransformDuringBuild>
+    <CustomTransformDuringBuild Condition="$(CustomTransformDuringBuild) == ''"></CustomTransformDuringBuild>
 
+    <ViewGeneratorCorePath>$([System.IO.Path]::GetFullPath(&quot;$(MSBuildThisFileDirectory)..\&quot;))</ViewGeneratorCorePath>
+    <ViewGeneratorCoreContentFilesPath>$(ViewGeneratorCorePath)contentFiles\</ViewGeneratorCoreContentFilesPath>
   </PropertyGroup>
 
-  <Target Name="ESLint_SetVariables">
-    <ItemGroup>
-      <_ESLintNodeExe Include="$(MSBuildThisFileDirectory)..\..\..\Node.js.redist\*\tools\win-x64\node.exe"/>
-      <_ESLintNodeExe Include="$(MSBuildThisFileDirectory)..\..\Node.js.redist*\tools\win-x64\node.exe"/>
-    </ItemGroup>
-    <PropertyGroup>
-      <__ESLintNodeExe>@(_ESLintNodeExe);</__ESLintNodeExe>
-      <ESLintNodeExe>$(__ESLintNodeExe.Substring(0, $(__ESLintNodeExe.IndexOf(';'))))</ESLintNodeExe>
-    </PropertyGroup>
-  </Target>
-  
   <Target Name="VGC_SetVariables">
     <ItemGroup>
       <_ViewGeneratorCoreNodeJsExe Include="$(MSBuildThisFileDirectory)..\..\..\Node.js.redist\*\tools\win-x64\node.exe"/>
       <_ViewGeneratorCoreNodeJsExe Include="$(MSBuildThisFileDirectory)..\..\Node.js.redist*\tools\win-x64\node.exe"/>
     </ItemGroup>
+      
     <PropertyGroup>
       <__ViewGeneratorCoreNodeJsExe>@(_ViewGeneratorCoreNodeJsExe);</__ViewGeneratorCoreNodeJsExe>
       <ViewGeneratorCoreNodeJsExe>$(__ViewGeneratorCoreNodeJsExe.Substring(0, $(__ViewGeneratorCoreNodeJsExe.IndexOf(';'))))</ViewGeneratorCoreNodeJsExe>
@@ -46,7 +37,7 @@
     <UpToDateCheckInput Include="@(VGC_Inputs)" Exclude="@(UpToDateCheckInput)" />
   </ItemGroup>
 
-  <Target Name="VGC_GenerateView" Inputs="@(VGC_Inputs)" Outputs="viewgeneratorcorebuild.cache" BeforeTargets="TransformDuringBuild;AfterResolveReferences" DependsOnTargets="VGC_SetVariables">
+  <Target Name="VGC_GenerateView" Inputs="@(VGC_Inputs)" Outputs="VGC_Build.cache" BeforeTargets="$(CustomTransformDuringBuild);$(TransformDuringBuild);AfterResolveReferences" DependsOnTargets="VGC_SetVariables;VGC_Setup">
     <CallTarget Targets="VGC_GenerateViewInner" />
   </Target>
 
@@ -54,32 +45,44 @@
     <Message Importance="High" Text="Generating View files" />
     <Exec Command="&quot;$(ViewGeneratorCoreNodeJsExe)&quot; &quot;$(MSBuildThisFileDirectory)..\tools\node_modules\@outsystems\ts2lang\ts2lang-main.js&quot; -f &quot;$(MSBuildProjectDirectory)\ts2lang.json&quot; -t &quot;$(MSBuildThisFileDirectory)..\tools\ViewGenerator.js&quot;" />
 
-    <Touch Files="viewgeneratorcorebuild.cache" AlwaysCreate="true" />
+    <Touch Files="VGC_Build.cache" AlwaysCreate="true" />
   </Target>
 
   <!-- old-format and new-format projects have different built-in targets. In order to support both we need to have two
        different alternative ways of adding the generated code to the target project :( -->
        
-  <Target Name="VGC_IncludeGeneratedFiles_a" BeforeTargets="CoreCompile">
+  <Target Name="VGC_IncludeGeneratedFiles_NonSdk" BeforeTargets="CoreCompile">
     <ItemGroup>
       <Compile Include="$(ViewGeneratorGeneratedFolder)\**\*.cs" Exclude="@(Compile)" />
     </ItemGroup>
   </Target>
 
-  <Target Name="VGC_IncludeGeneratedFiles_b" AfterTargets="VGC_GenerateView">
+  <Target Name="VGC_IncludeGeneratedFiles_Sdk" AfterTargets="VGC_GenerateView">
     <ItemGroup>
       <Compile Include="$(ViewGeneratorGeneratedFolder)\**\*.cs" Exclude="@(Compile)" />
     </ItemGroup>
   </Target>
   
-  <Target Name="VGC_CleanGenerated">
+  <Target Name="VGC_CleanGenerated" BeforeTargets="Clean" >
     <Error Condition="$(ViewGeneratorGeneratedFolder) == ''" Text="Generated folder is not set." />
 
     <ItemGroup>
       <GeneratedTs2LangFiles Include="$(ViewGeneratorGeneratedFolder)\**\*.cs" />
     </ItemGroup>
+
     <Delete Files="@(GeneratedTs2LangFiles)" />
-    <Delete Files="viewgeneratorcorebuild.cache" />
+    <Delete Files="VGC_Build.cache" />
+  </Target>
+
+
+  <Target Name="VGC_Setup" DependsOnTargets="VGC_SetVariables" Condition="!Exists('$(ProjectDir)VGC.cache') OR $([System.IO.File]::GetLastWriteTime('$(ViewGeneratorCoreContentFilesPath)VGC.cache').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(ProjectDir)VGC.cache').Ticks)">
+    <CreateItem Include="$(ViewGeneratorCoreContentFilesPath)VGC.cache">
+      <Output TaskParameter="Include" ItemName="CacheFile" />
+    </CreateItem>
+
+    <Copy SourceFiles="@(CacheFile)" DestinationFolder="$(ProjectDir)%(CacheFile.RecursiveDir)" />
+
+    <Delete Condition="Exists('$(ProjectDir)VG_Build.cache')" Files="VGC_Build.cache" />
   </Target>
 
 </Project>

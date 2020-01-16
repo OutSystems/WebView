@@ -63,6 +63,7 @@
     <None Include="ViewGeneratorCore.nuspec">
       <SubType>Designer</SubType>
     </None>
+    <None Include="contentFiles\VGC.cache" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="tools\src\ViewGenerator.ts" />
@@ -75,6 +76,9 @@
   <PropertyGroup>
     <PostBuildEvent>"$(ProjectDir)..\nuget" pack "$(ProjectDir)ViewGeneratorCore.nuspec" -OutputDirectory "$(ProjectDir)..\Nuget\ " -Properties Configuration=$(ConfigurationName)</PostBuildEvent>
   </PropertyGroup>
+  <Target Name="TouchCacheFile" BeforeTargets="PrepareForBuild">
+    <Touch Files="$(ProjectDir)contentFiles\VGC.cache" AlwaysCreate="true" />
+  </Target>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
