@@ -2,13 +2,13 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>ViewGenerator</id>
-    <version>1.0.276</version>
+    <version>1.0.277</version>
     <authors>jmn</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <developmentDependency>true</developmentDependency>
     <description>Generates .NET Types from typescript</description>
     <dependencies>
-      <dependency id="ViewGeneratorCore" version="1.0.210" />
+      <dependency id="ViewGeneratorCore" version="1.0.211" />
       <dependency id="ViewPacker" version="1.0.11" />
       <dependency id="OutSystems.ESLint.MSBuild" version="1.0.17" />
     </dependencies>

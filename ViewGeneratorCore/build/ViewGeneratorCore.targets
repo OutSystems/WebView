@@ -11,10 +11,6 @@
       $(CleanDependsOn);
     </CleanDependsOn>
 
-    <!-- If does not exist, create it so that the targets won't fail -->
-    <TransformDuringBuild Condition="$(TransformDuringBuild) == ''"></TransformDuringBuild>
-    <CustomTransformDuringBuild Condition="$(CustomTransformDuringBuild) == ''"></CustomTransformDuringBuild>
-
     <ViewGeneratorCorePath>$([System.IO.Path]::GetFullPath(&quot;$(MSBuildThisFileDirectory)..\&quot;))</ViewGeneratorCorePath>
     <ViewGeneratorCoreContentFilesPath>$(ViewGeneratorCorePath)contentFiles\</ViewGeneratorCoreContentFilesPath>
   </PropertyGroup>
@@ -37,7 +33,7 @@
     <UpToDateCheckInput Include="@(VGC_Inputs)" Exclude="@(UpToDateCheckInput)" />
   </ItemGroup>
 
-  <Target Name="VGC_GenerateView" Inputs="@(VGC_Inputs)" Outputs="VGC_Build.cache" BeforeTargets="$(CustomTransformDuringBuild);$(TransformDuringBuild);AfterResolveReferences" DependsOnTargets="VGC_SetVariables;VGC_Setup">
+  <Target Name="VGC_GenerateView" Inputs="@(VGC_Inputs)" Outputs="VGC_Build.cache" BeforeTargets="CustomTransformDuringBuild;TransformDuringBuild;AfterResolveReferences" DependsOnTargets="VGC_SetVariables;VGC_Setup">
     <CallTarget Targets="VGC_GenerateViewInner" />
   </Target>
 
