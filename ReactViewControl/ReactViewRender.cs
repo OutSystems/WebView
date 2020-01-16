@@ -195,14 +195,18 @@ namespace ReactViewControl {
         /// </summary>
         /// <param name="args"></param>
         private void OnViewLoaded(params object[] args) {
-            var frameName = (string)args.FirstOrDefault();
+            var frameName = (string)args.ElementAt(0);
+            var id = (string)args.ElementAt(1);
 
             lock (SyncRoot) {
                 var frame = GetOrCreateFrame(frameName);
                 frame.LoadStatus = LoadStatus.Ready;
 
+#if DEBUG
+                System.Diagnostics.Debug.WriteLine($"View '{frameName}' loaded (id: '{id}')");
+#endif
                 // start component execution engine
-                frame.ExecutionEngine.Start(WebView, frameName, args.ElementAt(1).ToString());
+                frame.ExecutionEngine.Start(WebView, frameName, id);
             }
         }
 

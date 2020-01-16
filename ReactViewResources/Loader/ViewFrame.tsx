@@ -68,6 +68,7 @@ export class ViewFrame<T> extends React.Component<IViewFrameProps<T>, {}, ViewMe
         }
 
         const childView: ViewMetadata = {
+            id: this.generation, // for this purpose we can use generation (we just need a unique number)
             name: this.fullName,
             generation: this.generation,
             isMain: false,
