@@ -11,8 +11,6 @@ namespace Example {
 
         private int subViewCounter;
 
-        private SubExampleViewModule subView;
-
         public ReactViewExample() {
             InitializeComponent();
 
@@ -29,11 +27,11 @@ namespace Example {
         }
 
         private void OnCallInnerViewMenuItemClick(object sender, RoutedEventArgs e) {
-            subView.CallMe();
+            exampleView.SubView.CallMe();
         }
 
         private void OnCallInnerViewPluginMenuItemClick(object sender, RoutedEventArgs e) {
-            subView.WithPlugin<ViewPlugin>().Test();
+            ((SubExampleViewModule)exampleView.SubView).WithPlugin<ViewPlugin>().Test();
         }
 
         private void OnShowDevTools(object sender, RoutedEventArgs e) {
@@ -50,16 +48,14 @@ namespace Example {
 
         private void OnViewMounted() {
             var subViewId = subViewCounter++;
-            var oldView = subView;
 
-            subView = (SubExampleViewModule) exampleView.SubView;
+            var subView = (SubExampleViewModule) exampleView.SubView;
             subView.ConstantMessage = "This is a sub view";
             subView.GetTime += () => DateTime.Now.AddHours(1).ToShortTimeString() + $"(Id: {subViewId})";
             subView.CustomResourceRequested += OnInnerViewResourceRequested;
             subView.CallMe();
             subView.WithPlugin<ViewPlugin>().NotifyViewLoaded += (viewName) => AppendLog($"On sub view loaded (Id: {subViewId}): {viewName}");
             subView.Load();
-            oldView?.CallMe();
         }
 
         private void AppendLog(string log) {
