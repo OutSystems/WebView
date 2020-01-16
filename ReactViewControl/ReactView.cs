@@ -175,16 +175,6 @@ namespace ReactViewControl {
         }
 
         /// <summary>
-        /// Gets the view loaded on the specified frame. If none it will create a view of the specified 
-        /// instance and bind it to the frame.
-        /// </summary>
-        /// <param name="frameName"></param>
-        /// <returns></returns>
-        public T GetOrAddChildView<T>(string frameName) where T : IViewModule, new() {
-            return View.GetOrAddChildView<T>(frameName);
-        }
-
-        /// <summary>
         /// View module of this control.
         /// </summary>
         protected IViewModule MainModule { get; }
