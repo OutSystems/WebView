@@ -15,6 +15,6 @@ namespace Example {
 
         public override bool ShowDeveloperTools => false;
 
-        public override bool EnableViewPreload => false;
+        public override bool EnableViewPreload => true;
     }
 }
