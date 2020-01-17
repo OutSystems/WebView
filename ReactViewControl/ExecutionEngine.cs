@@ -6,14 +6,14 @@ namespace ReactViewControl {
 
     internal class ExecutionEngine : IExecutionEngine {
 
-        private string generation;
+        private string id;
         private string frameName;
         private WebView webView;
 
         private ConcurrentQueue<Tuple<IViewModule, string, object[]>> PendingExecutions { get; } = new ConcurrentQueue<Tuple<IViewModule, string, object[]>>();
 
         private string FormatMethodInvocation(IViewModule module, string methodCall) {
-            return ReactViewRender.ModulesObjectName + "(\"" + frameName + "\",\"" + generation + "\",\"" + module.Name + "\")." + methodCall;
+            return ReactViewRender.ModulesObjectName + "(\"" + frameName + "\",\"" + id + "\",\"" + module.Name + "\")." + methodCall;
         }
 
         public void ExecuteMethod(IViewModule module, string methodCall, params object[] args) {
@@ -33,8 +33,8 @@ namespace ReactViewControl {
             return webView.EvaluateScriptFunctionWithSerializedParams<T>(method, args);
         }
 
-        public void Start(WebView webView, string frameName, string generation) {
-            this.generation = generation;
+        public void Start(WebView webView, string frameName, string id) {
+            this.id = id;
             this.frameName = frameName;
             this.webView = webView;
             while (true) {

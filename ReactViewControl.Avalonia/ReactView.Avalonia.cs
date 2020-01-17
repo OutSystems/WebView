@@ -18,7 +18,7 @@ namespace ReactViewControl {
 
         private void OnAttachedToLogicalTree(object sender, Avalonia.LogicalTree.LogicalTreeAttachmentEventArgs e) {
             AttachedToLogicalTree -= OnAttachedToLogicalTree;
-            LoadComponent();
+            TryLoadComponent();
         }
 
         private static void AsyncExecuteInUI(Action action, bool lowPriority) {

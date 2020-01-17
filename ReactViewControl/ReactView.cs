@@ -9,7 +9,7 @@ namespace ReactViewControl {
 
     public delegate Stream CustomResourceRequestedEventHandler(string resourceKey, params string[] options);
 
-    public abstract partial class ReactView : IDisposable, IChildViewHost {
+    public abstract partial class ReactView : IDisposable {
 
         private static Dictionary<Type, ReactViewRender> CachedViews { get; } = new Dictionary<Type, ReactViewRender>();
 
@@ -49,8 +49,10 @@ namespace ReactViewControl {
         protected ReactView(IViewModule mainModule) {
             View = CreateReactViewInstance(Factory);
 
-            View.BindModule(mainModule, ReactViewRender.MainViewFrameName);
+            View.Host = this;
             MainModule = mainModule;
+            // bind main module (this is needed so that the plugins are available right away)
+            View.BindComponent(mainModule);
 
             ExtraInitialize();
         }
@@ -71,7 +73,7 @@ namespace ReactViewControl {
         /// </summary>
         protected virtual ReactViewFactory Factory => new ReactViewFactory();
 
-        private void LoadComponent() {
+        private void TryLoadComponent() {
             if (!View.IsMainComponentLoaded) {
                 if (EnableHotReload) {
                     View.EnableHotReload(MainModule.Source, MainModule.MainJsSource);
@@ -183,14 +185,5 @@ namespace ReactViewControl {
         /// Defaults to 6. 
         /// </summary>
         public static int PreloadedCacheEntriesSize { get; set; } = 6;
-
-        /// <summary>
-        /// Binds the view module into the specified frame.
-        /// </summary>
-        /// <param name="viewModule"></param>
-        /// <param name="frameName"></param>
-        public void AttachChildView(IViewModule viewModule, string frameName) {
-            View.AttachChildView(viewModule, frameName);
-        }
     }
 }

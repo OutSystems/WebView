@@ -8,7 +8,7 @@ import { IViewFrameProps } from "ViewFrame";
 /**
  * Placeholder were a child view is mounted.
  * */
-export class ViewFrame extends React.Component<IViewFrameProps, {}, ViewMetadata> {
+export class ViewFrame<T> extends React.Component<IViewFrameProps<T>, {}, ViewMetadata> {
 
     private static generation = 0;
 
@@ -18,13 +18,13 @@ export class ViewFrame extends React.Component<IViewFrameProps, {}, ViewMetadata
 
     static contextType = ViewContext;
 
-    constructor(props: IViewFrameProps, context: ViewMetadata) {
+    constructor(props: IViewFrameProps<T>, context: ViewMetadata) {
         super(props, context);
         if (props.name === "") {
             throw new Error("View Frame name must be specified (not empty)");
         }
 
-        if (!/^[A-Za-z_][A-Za-z0-9_]*/.test(props.name)) {
+        if (!/^[A-Za-z_][A-Za-z0-9_]*/.test(props.name as string)) {
             // must be a valid js symbol name
             throw new Error("View Frame name can only contain letters, numbers or _");
         }
@@ -39,6 +39,11 @@ export class ViewFrame extends React.Component<IViewFrameProps, {}, ViewMetadata
         }
     }
 
+    private get fullName() {
+        const parentName = this.parentView.name;
+        return (parentName ? (parentName + ".") : "") + this.props.name;
+    }
+
     public shouldComponentUpdate(): boolean {
         // prevent component updates
         return false;
@@ -49,7 +54,8 @@ export class ViewFrame extends React.Component<IViewFrameProps, {}, ViewMetadata
     }
 
     private getView(): ViewMetadata | undefined {
-        return this.parentView.childViews.items.find(c => c.name === this.props.name);
+        const fullName = this.fullName;
+        return this.parentView.childViews.items.find(c => c.name === fullName);
     }
 
     public componentDidMount() {
@@ -62,7 +68,8 @@ export class ViewFrame extends React.Component<IViewFrameProps, {}, ViewMetadata
         }
 
         const childView: ViewMetadata = {
-            name: this.props.name,
+            id: this.generation, // for this purpose we can use generation (we just need a unique number)
+            name: this.fullName,
             generation: this.generation,
             isMain: false,
             placeholder: this.placeholder,

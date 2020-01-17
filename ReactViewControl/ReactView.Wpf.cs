@@ -40,7 +40,7 @@ namespace ReactViewControl {
             // since its not supposed to change properties once the component has been shown
             if (window.IsVisible) {
                 window.IsVisibleChanged -= OnWindowIsVisibleChanged;
-                LoadComponent();
+                TryLoadComponent();
             }
         }
 
@@ -48,7 +48,7 @@ namespace ReactViewControl {
             // fallback when window was already shown
             if (IsVisible) {
                 IsVisibleChanged -= OnIsVisibleChanged;
-                LoadComponent();
+                TryLoadComponent();
             }
         }
 
