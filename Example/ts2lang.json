@@ -8,6 +8,7 @@
                 "namespace": "Example",
                 "baseComponentClass": "Example.ExtendedReactView",
                 "baseComponentInterface": "",
+                "baseModuleInterface": "",
                 "javascriptDistPath": "",
                 "emitComponent": true,
                 "emitComponentInterface": true,

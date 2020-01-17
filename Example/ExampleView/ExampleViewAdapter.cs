@@ -1,6 +1,16 @@
-﻿namespace Example {
+﻿using System.Threading.Tasks;
+
+namespace Example {
+
+    partial class ExampleViewModule {
+    }
+
     partial class ExampleViewAdapter {
 
-        private IExampleView Component { get; }
+        public ExampleViewAdapter(IExampleViewModule component) {
+            Component = component;
+        }
+
+        private IExampleViewModule Component { get; }
     }
 }

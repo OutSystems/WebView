@@ -5,6 +5,7 @@ import { IPluginsContext } from "PluginsProvider";
 import "./ExampleView.scss";
 import * as Image from "./beach.jpg";
 import { ResourceLoader } from "ResourceLoader";
+import SubExampleView from "./SubExampleView";
 
 export interface ISomeType {
     name: string;
@@ -25,6 +26,11 @@ export interface IExampleViewProperties {
 
 export interface IExampleViewBehaviors {
     callMe(): void;
+}
+
+
+export interface IChildViews {
+    SubView: SubExampleView;
 }
 
 enum SubViewShowStatus {
@@ -72,7 +78,7 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
     }
 
     private renderViewFrame() {
-        return <ViewFrame key="test_frame" name="test_frame" className="" />;
+        return <ViewFrame<IChildViews> key="test_frame" name="SubView" />;
     }
 
     private renderSubView() {

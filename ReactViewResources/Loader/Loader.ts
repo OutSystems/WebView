@@ -43,9 +43,9 @@ function getView(viewName: string): ViewMetadata {
     return view;
 }
 
-function getModule(viewName: string, generation: string, moduleName: string) {
+function getModule(viewName: string, id: string, moduleName: string) {
     const view = views.get(viewName);
-    if (view && view.generation.toString() === generation) {
+    if (view && view.id.toString() === id) {
         // when generation requested != current generation, ignore (we don't want to interact with old views)
         const module = view.modules.get(moduleName);
         if (module) {
@@ -310,7 +310,7 @@ export function loadComponent(
 
             window.dispatchEvent(new Event('viewready'));
 
-            fireNativeNotification(viewLoadedEventName, view.name, view.generation.toString());
+            fireNativeNotification(viewLoadedEventName, view.name, view.id.toString());
         } catch (error) {
             handleError(error);
         }
@@ -332,6 +332,7 @@ async function bootstrap() {
     }
 
     const mainView: ViewMetadata = {
+        id: 0,
         name: mainFrameName,
         generation: 0,
         isMain: true,
@@ -430,7 +431,7 @@ function fireNativeNotification(eventName: string, ...args: string[]) {
 
 function onChildViewAdded(childView: ViewMetadata) {
     views.set(childView.name, childView);
-    fireNativeNotification(viewInitializedEventName, childView.name, childView.generation.toString());
+    fireNativeNotification(viewInitializedEventName, childView.name);
 }
 
 function onChildViewRemoved(childView: ViewMetadata) {
@@ -440,7 +441,7 @@ function onChildViewRemoved(childView: ViewMetadata) {
         CefSharp.RemoveObjectFromCache(nativeObjecName);
         CefSharp.DeleteBoundObject(nativeObjecName);
     });
-    fireNativeNotification(viewDestroyedEventName, childView.name, childView.generation.toString());
+    fireNativeNotification(viewDestroyedEventName, childView.name, childView.id.toString());
 }
 
 bootstrap();
