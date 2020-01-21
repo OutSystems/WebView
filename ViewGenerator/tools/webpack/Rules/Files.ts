@@ -17,7 +17,7 @@ let getResourcesRuleSet = (projectDir: string): RuleSetRule => {
                         let resourceBase: string = basename(context);
 
                         if (projectDir) {
-                            processedUrl = processedUrl.replace(`/${resourceBase}/`, basename(projectDir));
+                            processedUrl = processedUrl.replace(`/${resourceBase}/`, `/${basename(projectDir)}/`);
                         }
 
                         // relative paths starting with ".." are replaced by "_"
