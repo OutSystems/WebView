@@ -11,7 +11,7 @@ import { CssPlaceholder, CssChunkPlaceholder, DtsExtension, OutputDirectoryDefau
 import { Dictionary, customErrorFormatter, generateManifest, getCurrentDirectory, getFileName, getPublicPath } from "./Utils";
 
 // Rules
-import ResourcesRuleSet from "../Rules/Files";
+import getResourcesRuleSet from "../Rules/Files";
 import SassRuleSet from "../Rules/Sass";
 import getTypeScriptRuleSet from "../Rules/TypeScript";
 
@@ -88,7 +88,7 @@ let getCommonConfiguration = (libraryName: string, useCache: boolean, projectDir
         module: {
             rules: [
                 SassRuleSet,
-                ResourcesRuleSet,
+                getResourcesRuleSet(projectDir),
                 getTypeScriptRuleSet(useCache, tsConfigFile)
             ]
         },

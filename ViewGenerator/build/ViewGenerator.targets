@@ -150,7 +150,7 @@
 
   <!-- Default stylesheet related target -->
   <Target Name="VG_GenerateDefaultStyleSheet" > 
-    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config='$(ViewGeneratorToolsPath)\webpack\webpack_stylesheets.config.js' --mode=$(WP_Mode) --devtool=$(WP_DevTool) --entryPath='@(DefaultStyleSheet)'" />
+    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config='$(ViewGeneratorToolsPath)\webpack\webpack_stylesheets.config.js' --mode=$(WP_Mode) --devtool=$(WP_DevTool) --entryPath='@(DefaultStyleSheet)' --projectDir='$(OverrideProjectDir)'" />
   </Target>
 
   <!-- Workers related target -->

@@ -1,15 +1,17 @@
 ﻿import MiniCssExtractPlugin from "mini-css-extract-plugin";
-import { join } from "path";
+import { join, resolve } from "path";
 import { Configuration } from "webpack";
 
 import MiniCssExtractPluginCleanup from "./Plugins/MiniCssExtractPluginCleanup";
 import { CssPlaceholder, JsMapPlaceholder, OutputDirectoryDefault } from "./Plugins/Resources";
 import { Dictionary, getCurrentDirectory } from "./Plugins/Utils"
 
-import ResourcesRuleSet from "./Rules/Files";
+import getResourcesRuleSet from "./Rules/Files";
 import SassRuleSet from "./Rules/Sass";
 
 const config = (_, argv) => {
+
+    let projectDir = argv.projectDir ? resolve(argv.projectDir) : "";
 
     const getEntryName = (entryPath: string): string => {
         let fileExtensionLen: number = entryPath.length - entryPath.lastIndexOf(".");
@@ -35,7 +37,7 @@ const config = (_, argv) => {
         module: {
             rules: [
                 SassRuleSet,
-                ResourcesRuleSet
+                getResourcesRuleSet(projectDir)
             ]
         },
 
