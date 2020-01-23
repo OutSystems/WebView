@@ -11,8 +11,6 @@ import SassRuleSet from "./Rules/Sass";
 
 const config = (_, argv) => {
 
-    let projectDir = argv.projectDir ? resolve(argv.projectDir) : "";
-
     const getEntryName = (entryPath: string): string => {
         let fileExtensionLen: number = entryPath.length - entryPath.lastIndexOf(".");
         return entryPath.slice(entryPath.lastIndexOf("\\") + 1, -fileExtensionLen);
@@ -37,7 +35,7 @@ const config = (_, argv) => {
         module: {
             rules: [
                 SassRuleSet,
-                getResourcesRuleSet(projectDir)
+                getResourcesRuleSet()
             ]
         },
 

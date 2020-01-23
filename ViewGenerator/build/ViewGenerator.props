@@ -6,6 +6,7 @@
     <None Include="ts2lang.json">
       <Visible>True</Visible>
     </None>
+    <None Remove="**\*.cache"/>
   </ItemGroup>
   <PropertyGroup>
     <TypeScriptCompileBlocked>true</TypeScriptCompileBlocked>

@@ -28,8 +28,8 @@
   </Target>
 
   <ItemGroup>
-    <VGC_Inputs Include="$(OverrideProjectDir)**\*.tsx" Exclude="$(OverrideProjectDir)node_modules\**\*.tsx" />
-    <VGC_Inputs Include="$(OverrideProjectDir)**\*.ts" Exclude="$(OverrideProjectDir)node_modules\**\*.ts" />
+    <VGC_Inputs Include="**\*.tsx" Exclude="node_modules\**\*.tsx" />
+    <VGC_Inputs Include="**\*.ts" Exclude="node_modules\**\*.ts" />
     <UpToDateCheckInput Include="@(VGC_Inputs)" Exclude="@(UpToDateCheckInput)" />
   </ItemGroup>
 
@@ -39,7 +39,7 @@
 
   <Target Name="VGC_GenerateViewInner" DependsOnTargets="VGC_CleanGenerated">
     <Message Importance="High" Text="Generating View files" />
-    <Exec Command="&quot;$(ViewGeneratorCoreNodeJsExe)&quot; &quot;$(MSBuildThisFileDirectory)..\tools\node_modules\@outsystems\ts2lang\ts2lang-main.js&quot; -f &quot;$(MSBuildProjectDirectory)\ts2lang.json&quot; -t &quot;$(MSBuildThisFileDirectory)..\tools\ViewGenerator.js&quot;" />
+    <Exec Command="&quot;$(ViewGeneratorCoreNodeJsExe)&quot; &quot;$(MSBuildThisFileDirectory)..\tools\node_modules\@outsystems\ts2lang\ts2lang-main.js&quot; -f &quot;$(ProjectDir)ts2lang.json&quot; -t &quot;$(MSBuildThisFileDirectory)..\tools\ViewGenerator.js&quot;" />
 
     <Touch Files="VGC_Build.cache" AlwaysCreate="true" />
   </Target>

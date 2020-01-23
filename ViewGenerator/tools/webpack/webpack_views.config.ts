@@ -32,9 +32,7 @@ const config = (_, argv) => {
         }
     };
 
-    let tsConfigFile = argv.tsConfigFile;
-    let projectDir = argv.projectDir ? resolve(argv.projectDir) : "";
-    let standardConfig: Configuration = getCommonConfiguration("Views", argv.useCache, projectDir, tsConfigFile);
+    let standardConfig: Configuration = getCommonConfiguration("Views", argv.useCache);
 
     // SplitChunksOptions
     standardConfig.optimization.splitChunks = {

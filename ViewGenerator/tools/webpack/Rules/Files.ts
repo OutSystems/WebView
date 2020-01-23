@@ -2,7 +2,7 @@
 import { RuleSetRule } from "webpack";
 
 // Resource files
-let getResourcesRuleSet = (projectDir: string): RuleSetRule => {
+const getResourcesRuleSet = (): RuleSetRule => {
 
     const ResourcesRule: RuleSetRule = {
         test: /\.(png|jpg|jpeg|bmp|gif|woff|woff2|ico|svg|html)$/,
@@ -13,19 +13,14 @@ let getResourcesRuleSet = (projectDir: string): RuleSetRule => {
                     emitFile: false,
                     name: '[path][name].[ext]',
                     publicPath: (url: string, _, context: string) => {
-                        let processedUrl: string = url;
                         let resourceBase: string = basename(context);
 
-                        if (projectDir) {
-                            processedUrl = processedUrl.replace(`/${basename(projectDir)}/`, `/${resourceBase}/`);
-                        }
-
                         // relative paths starting with ".." are replaced by "_"
-                        if (processedUrl.startsWith("_")) {
-                            return processedUrl.substring(processedUrl.indexOf(`/${resourceBase}/`));
+                        if (url.startsWith("_")) {
+                            return url.substring(url.indexOf(`/${resourceBase}/`));
                         }
 
-                        return `/${resourceBase}/${processedUrl}`;
+                        return `/${resourceBase}/${url}`;
                     }
                 },
             },
