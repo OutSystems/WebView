@@ -71,7 +71,7 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>npm install --prefix "$(ProjectDir)tools" "$(ProjectDir)tools"</PreBuildEvent>
+    <PreBuildEvent>npm install --no-bin-links --prefix "$(ProjectDir)tools" "$(ProjectDir)tools"</PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <PostBuildEvent>"$(ProjectDir)..\nuget" pack "$(ProjectDir)ViewGeneratorCore.nuspec" -OutputDirectory "$(ProjectDir)..\Nuget\ " -Properties Configuration=$(ConfigurationName)</PostBuildEvent>
