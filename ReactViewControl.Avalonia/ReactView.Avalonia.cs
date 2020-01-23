@@ -1,7 +1,6 @@
-﻿using System;
-using Avalonia.Controls.Primitives;
-using Avalonia.LogicalTree;
+﻿using Avalonia.Controls.Primitives;
 using Avalonia.Threading;
+using System;
 
 namespace ReactViewControl {
 
@@ -10,6 +9,7 @@ namespace ReactViewControl {
         partial void ExtraInitialize() {
             AttachedToLogicalTree += OnAttachedToLogicalTree;
 
+            LogicalChildren.Add(View);
             VisualChildren.Add(View);
 
             // TODO needed ? FocusManager.SetIsFocusScope(this, true);
