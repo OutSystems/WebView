@@ -11,6 +11,10 @@
     </CleanDependsOn>
       
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="**\*.cache"/>
+  </ItemGroup>
   
   <Target Name="VG_SetVariables">
     <ItemGroup>     

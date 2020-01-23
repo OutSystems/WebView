@@ -15,6 +15,10 @@
     <ViewGeneratorCoreContentFilesPath>$(ViewGeneratorCorePath)contentFiles\</ViewGeneratorCoreContentFilesPath>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="**\*.cache"/>
+  </ItemGroup>
+
   <Target Name="VGC_SetVariables">
     <ItemGroup>
       <_ViewGeneratorCoreNodeJsExe Include="$(MSBuildThisFileDirectory)..\..\..\Node.js.redist\*\tools\win-x64\node.exe"/>

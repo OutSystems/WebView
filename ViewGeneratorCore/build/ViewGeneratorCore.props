@@ -1,7 +1,4 @@
 ﻿<Project>
-  <ItemGroup>
-    <None Remove="**\*.cache"/>
-  </ItemGroup>
   <PropertyGroup>
     <ViewGeneratorGeneratedFolder>Generated</ViewGeneratorGeneratedFolder>
   </PropertyGroup>
