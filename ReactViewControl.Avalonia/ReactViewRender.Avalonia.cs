@@ -1,12 +1,15 @@
-﻿using Avalonia.Controls.Primitives;
+﻿using Avalonia.Controls;
+using Avalonia.Styling;
+using System;
 
 namespace ReactViewControl {
 
-    partial class ReactViewRender : TemplatedControl {
+    partial class ReactViewRender : ContentControl, IStyleable {
+
+        Type IStyleable.StyleKey => typeof(ContentControl);
 
         partial void ExtraInitialize() {
-            LogicalChildren.Add(WebView);
-            VisualChildren.Add(WebView);
+            Content = WebView;
         }
     }
 }

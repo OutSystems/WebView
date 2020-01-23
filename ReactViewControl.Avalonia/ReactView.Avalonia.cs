@@ -1,16 +1,18 @@
-﻿using Avalonia.Controls.Primitives;
+﻿using Avalonia.Controls;
+using Avalonia.Styling;
 using Avalonia.Threading;
 using System;
 
 namespace ReactViewControl {
 
-    partial class ReactView : TemplatedControl {
+    partial class ReactView : ContentControl, IStyleable {
+
+        Type IStyleable.StyleKey => typeof(ContentControl);
 
         partial void ExtraInitialize() {
             AttachedToLogicalTree += OnAttachedToLogicalTree;
 
-            LogicalChildren.Add(View);
-            VisualChildren.Add(View);
+            Content = View;
 
             // TODO needed ? FocusManager.SetIsFocusScope(this, true);
             // FocusManager.SetFocusedElement(this, View.FocusableElement);

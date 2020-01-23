@@ -1,5 +1,4 @@
-﻿using System;
-using ReactViewControl;
+﻿using ReactViewControl;
 
 namespace Example.Avalonia {
 
