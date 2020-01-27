@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Reflection;
 
 namespace WebViewControl {
@@ -10,7 +11,7 @@ namespace WebViewControl {
         private Dictionary<string, Assembly> assemblies;
         private bool newAssembliesLoaded = true;
 
-        internal Assembly ResolveResourceAssembly(Uri resourceUrl) {
+        internal Assembly ResolveResourceAssembly(Uri resourceUrl, bool failOnMissingAssembly) {
             if (assemblies == null) {
                 lock (SyncRoot) {
                     if (assemblies == null) {
@@ -39,19 +40,23 @@ namespace WebViewControl {
 
                 assembly = GetAssemblyByName(assemblyName);
                 if (assembly == null) {
-                    // try load assembly from its name
-                    assembly = AppDomain.CurrentDomain.Load(new AssemblyName(assemblyName));
+                    try {
+                        // try load assembly from its name
+                        assembly = AppDomain.CurrentDomain.Load(new AssemblyName(assemblyName));
+                    } catch (IOException) { 
+                        // ignore
+                    }
+
                     if (assembly != null) {
                         assemblies[assembly.GetName().Name] = assembly;
                     }
                 }
             }
 
-            if (assembly != null) {
-                return assembly;
+            if (failOnMissingAssembly && assembly == null) {
+                throw new InvalidOperationException("Could not find assembly for: " + resourceUrl);
             }
-
-            throw new InvalidOperationException("Could not find assembly for: " + resourceUrl);
+            return assembly;
         }
 
         private Assembly GetAssemblyByName(string assemblyName) {

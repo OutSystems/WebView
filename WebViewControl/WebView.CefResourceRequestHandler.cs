@@ -69,7 +69,7 @@ namespace WebViewControl {
             }
 
             protected void LoadEmbeddedResource(ResourceHandler resourceHandler, Uri url) {
-                var stream = ResourcesManager.TryGetResource(url, out string extension);
+                var stream = ResourcesManager.TryGetResource(url, true, out string extension);
 
                 if (stream != null) {
                     resourceHandler.RespondWith(stream, extension);

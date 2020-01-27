@@ -76,8 +76,12 @@ namespace WebViewControl {
             return InternalTryGetResource(assemblyName, resourcePath.First(), resourcePath.Skip(1), false);
         }
 
-        internal static Stream TryGetResource(Uri url, out string extension) {
-            var resourceAssembly = cache.ResolveResourceAssembly(url);
+        internal static Stream TryGetResource(Uri url, bool failOnMissingAssembly, out string extension) {
+            var resourceAssembly = cache.ResolveResourceAssembly(url, failOnMissingAssembly);
+            if (resourceAssembly == null) {
+                extension = string.Empty;
+                return null;
+            }
             var resourcePath = ResourceUrl.GetEmbeddedResourcePath(url);
 
             extension = Path.GetExtension(resourcePath.Last()).ToLower();
@@ -87,7 +91,7 @@ namespace WebViewControl {
         }
 
         public static Stream TryGetResource(Uri url) {
-            return TryGetResource(url, out _);
+            return TryGetResource(url, false, out _);
         }
 
         public static string GetMimeType(string resourceName) {

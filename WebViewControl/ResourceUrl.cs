@@ -72,7 +72,7 @@ namespace WebViewControl {
         /// embedded://webview/assembly:AssemblyName;Path/To/Resource
         /// embedded://webview/AssemblyName/Path/To/Resource (AssemblyName is also assumed as default namespace)
         /// </summary>
-        internal static string GetEmbeddedResourceAssemblyName(Uri resourceUrl) {
+        public static string GetEmbeddedResourceAssemblyName(Uri resourceUrl) {
             if (ContainsAssemblyLocation(resourceUrl)) {
                 var resourcePath = resourceUrl.AbsolutePath.Substring((PathSeparator + AssemblyPrefix).Length);
                 var indexOfPath = Math.Max(0, resourcePath.IndexOf(AssemblyPathSeparator));
