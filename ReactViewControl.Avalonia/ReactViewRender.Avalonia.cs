@@ -1,6 +1,10 @@
-﻿using Avalonia.Controls;
+﻿using System;
+using System.Linq;
+using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Platform;
 using Avalonia.Styling;
-using System;
 
 namespace ReactViewControl {
 
@@ -10,6 +14,16 @@ namespace ReactViewControl {
 
         partial void ExtraInitialize() {
             Content = WebView;
+        }
+
+        private IntPtr GetHostViewHandle() {
+            var appLifetime = (IClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime;
+            var windowHandle = (appLifetime.MainWindow ?? appLifetime.Windows.FirstOrDefault())?.PlatformImpl.Handle;
+
+            if (windowHandle is IMacOSTopLevelPlatformHandle macOSHandle) {
+                return macOSHandle.GetNSWindowRetained();
+            }
+            return windowHandle?.Handle ?? IntPtr.Zero;
         }
     }
 }

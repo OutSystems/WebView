@@ -2,20 +2,21 @@
 using System.Runtime.ExceptionServices;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
 using Avalonia.Input;
+using Avalonia.Styling;
 using Avalonia.Threading;
 using Xilium.CefGlue.Common;
 
 namespace WebViewControl {
 
-    partial class WebView : TemplatedControl {
+    partial class WebView : ContentControl, IStyleable {
+
+        Type IStyleable.StyleKey => typeof(ContentControl);
 
         private static bool osrEnabled = true;
 
         partial void ExtraInitialize() {
-            LogicalChildren.Add(chromium);
-            VisualChildren.Add(chromium);
+            Content = chromium;
 
             AttachedToVisualTree += OnAttachedToVisualTree;
             DetachedFromVisualTree += OnDetachedFromVisualTree;

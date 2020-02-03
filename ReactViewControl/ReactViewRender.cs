@@ -80,7 +80,10 @@ namespace ReactViewControl {
             WebView.LoadResource(new ResourceUrl(ResourcesAssembly, ReactViewResources.Resources.DefaultUrl + "?" + string.Join("&", urlParams)));
 
             if (preloadWebView) {
-                WebView.InitializeBrowser();
+                var hostViewHandle = GetHostViewHandle();
+                if (hostViewHandle != IntPtr.Zero) {
+                    WebView.InitializeBrowser(hostViewHandle);
+                }
             }
         }
 

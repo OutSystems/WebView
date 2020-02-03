@@ -12,7 +12,7 @@
     <Product>WebViewControl</Product>
     <Copyright>Copyright ©  2019</Copyright>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.75.15</Version>
+    <Version>2.75.16</Version>
     <PackageId>WebViewControl-Avalonia</PackageId>
     <Authors>OutSystems</Authors>
     <PackageOutputPath>$(MSBuildProjectDirectory)\..\nuget</PackageOutputPath>
@@ -49,8 +49,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="0.9.2" />
-    <PackageReference PrivateAssets="None" Include="CefGlue.Avalonia" Version="75.1.45" />
+    <PackageReference Include="Avalonia" Version="0.9.1-cibuild0005724-beta" />
+    <PackageReference PrivateAssets="None" Include="CefGlue.Avalonia" Version="75.1.49" />
     <PackageReference Include="InjectModuleInitializer" Version="2.0.3">
       <PrivateAssets>all</PrivateAssets>
       <ExcludeAssets>all</ExcludeAssets>

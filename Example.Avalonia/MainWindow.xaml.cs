@@ -17,6 +17,7 @@ namespace Example.Avalonia {
         private int childViewCounter;
 
         public MainWindow() {
+            WebView.OsrEnabled = false;
             InitializeComponent();
         }
 
