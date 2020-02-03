@@ -15,6 +15,7 @@ const reactLib: string = "React";
 const reactDOMLib: string = "ReactDOM";
 const viewsBundleName: string = "Views";
 const pluginsBundleName: string = "Plugins";
+const defaultLoadResourcesTimeout = 10000; // ms
 
 const [
     libsPath,
@@ -89,8 +90,7 @@ export async function showErrorMessage(msg: string): Promise<void> {
 }
 
 function loadScript(scriptSrc: string, view: ViewMetadata): Promise<void> {
-    const loadEventName = "load";
-    return new Promise(async (resolve) => {
+    return new Promise(async (resolve, reject) => {
         const frameScripts = view.scriptsLoadTasks;
 
         // check if script was already added, fallback to main frame
@@ -107,10 +107,13 @@ function loadScript(scriptSrc: string, view: ViewMetadata): Promise<void> {
 
         const script = document.createElement("script");
         script.src = scriptSrc;
-        script.addEventListener(loadEventName, () => {
-            loadTask.setResult();
-            resolve();
-        });
+
+        waitForLoad(script, defaultLoadResourcesTimeout)
+            .then(() => {
+                loadTask.setResult();
+                resolve();
+            })
+            .catch(() => reject("Timeout loading script: " + scriptSrc));
 
         if (!view.head) {
             throw new Error(`View ${view.name} head is not set`);
@@ -120,15 +123,19 @@ function loadScript(scriptSrc: string, view: ViewMetadata): Promise<void> {
 }
 
 function loadStyleSheet(stylesheet: string, containerElement: Element, markAsSticky: boolean): Promise<void> {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         const link = document.createElement("link");
         link.type = "text/css";
         link.rel = "stylesheet";
         link.href = stylesheet;
-        link.addEventListener("load", () => resolve());
         if (markAsSticky) {
             link.dataset.sticky = "true";
         }
+
+        waitForLoad(link, defaultLoadResourcesTimeout)
+            .then(resolve)
+            .catch(() => reject("Timeout loading stylesheet: " + stylesheet));
+
         containerElement.appendChild(link);
     });
 }
@@ -401,9 +408,10 @@ async function bindNativeObject(nativeObjectName: string) {
     return window[nativeObjectName];
 }
 
-function handleError(error: Error) {
+function handleError(error: Error | string) {
     if (enableDebugMode) {
-        showErrorMessage(error.message);
+        const msg = error instanceof Error ? error.message : error;
+        showErrorMessage(msg);
     }
     throw error;
 }
@@ -422,6 +430,19 @@ function waitForDOMReady() {
     }
     return Promise.resolve();
 }
+
+
+function waitForLoad(element: HTMLElement, timeout: number) {
+    return new Promise((resolve, reject) => {
+        const timeoutHandle = setTimeout(() => reject(), timeout);
+
+        element.addEventListener("load", () => {
+            clearTimeout(timeoutHandle);
+            resolve();
+        });
+    });
+}
+
 
 function fireNativeNotification(eventName: string, ...args: string[]) {
     window[eventListenerObjectName].notify(eventName, ...args);

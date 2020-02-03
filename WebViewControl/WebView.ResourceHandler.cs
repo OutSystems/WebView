@@ -73,7 +73,7 @@ namespace WebViewControl {
 
         internal AsyncResourceHandler Handler { get; private set; }
 
-        public bool Handled => Handler != null;
+        public bool Handled => Handler?.Response != null || !string.IsNullOrEmpty(Handler?.RedirectUrl);
 
         public Stream Response => (Handler as DefaultResourceHandler)?.Response;
     }
