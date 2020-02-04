@@ -73,8 +73,7 @@ namespace WebViewControl {
                         exception = new RenderProcessCrashedException(ExceptionPrefix + "crashed");
                         break;
                     case CefTerminationStatus.ProcessWasKilled:
-                        var OnProcessKilledSufix = "The disposing status was: " + OwnerWebView.IsDisposing.ToString();
-                        exception = new RenderProcessKilledException(ExceptionPrefix + "was killed. " + OnProcessKilledSufix);
+                        exception = new RenderProcessKilledException(ExceptionPrefix + "was killed", OwnerWebView.IsDisposing);
                         break;
                     case CefTerminationStatus.OutOfMemory:
                         exception = new RenderProcessKilledException(ExceptionPrefix + "ran out-of-memory");

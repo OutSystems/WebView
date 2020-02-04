@@ -10,7 +10,14 @@ namespace WebViewControl {
 
     public class RenderProcessKilledException : Exception {
 
-        internal RenderProcessKilledException(string message) : base(message) {
+        private readonly bool webViewDisposing;
+
+        internal RenderProcessKilledException(string message, bool webViewDisposing = false) : base(message) {
+            this.webViewDisposing = webViewDisposing;
+        }
+
+        public bool IsWebViewDisposing() {
+            return webViewDisposing;
         }
     }
 }
