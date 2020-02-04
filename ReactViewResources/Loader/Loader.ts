@@ -15,7 +15,6 @@ const reactLib: string = "React";
 const reactDOMLib: string = "ReactDOM";
 const viewsBundleName: string = "Views";
 const pluginsBundleName: string = "Plugins";
-const defaultLoadResourcesTimeout = 10000; // ms
 
 const [
     libsPath,
@@ -28,11 +27,15 @@ const [
     customResourceBaseUrl
 ] = Array.from(new URLSearchParams(location.search).keys());
 
+const defaultLoadResourcesTimeout = (enableDebugMode ? 240 : 10) * 1000; // ms
+
 const externalLibsPath = libsPath + "node_modules/";
 
 const bootstrapTask = new Task();
 const defaultStylesheetLoadTask = new Task();
 const views = new Map<string, ViewMetadata>();
+
+class TimeoutException extends Error { }
 
 function getView(viewName: string): ViewMetadata {
     const view = views.get(viewName);
@@ -63,13 +66,21 @@ function getModule(viewName: string, id: string, moduleName: string) {
 window[modulesFunctionName] = getModule;
 
 export async function showErrorMessage(msg: string): Promise<void> {
+    return showMessage(msg, true);
+}
+
+function showWarningMessage(msg: string): Promise<void> {
+    return showMessage(msg, false);
+}
+
+async function showMessage(msg: string, isError: boolean): Promise<void> {
     const containerId = "webview_error";
     let msgContainer = document.getElementById(containerId) as HTMLDivElement;
     if (!msgContainer) {
         msgContainer = document.createElement("div");
         msgContainer.id = containerId;
         const style = msgContainer.style;
-        style.backgroundColor = "#f45642";
+        style.backgroundColor = isError ? "#f45642" : "#f4b942";
         style.color = "white";
         style.fontFamily = "Arial";
         style.fontWeight = "bold";
@@ -82,11 +93,18 @@ export async function showErrorMessage(msg: string): Promise<void> {
         style.zIndex = "10000";
         style.height = "auto";
         style.wordWrap = "break-word";
+        style.visibility = "visible";
 
         await waitForDOMReady();
         document.body.appendChild(msgContainer);
     }
     msgContainer.innerText = msg;
+
+    if (!isError) {
+        setTimeout(() => {
+            msgContainer.style.visibility = "collapsed";
+        }, 30000);
+    }
 }
 
 function loadScript(scriptSrc: string, view: ViewMetadata): Promise<void> {
@@ -113,7 +131,7 @@ function loadScript(scriptSrc: string, view: ViewMetadata): Promise<void> {
                 loadTask.setResult();
                 resolve();
             })
-            .catch(() => reject("Timeout loading script: " + scriptSrc));
+            .catch(() => reject(new TimeoutException("Timeout loading script: " + scriptSrc)));
 
         if (!view.head) {
             throw new Error(`View ${view.name} head is not set`);
@@ -134,7 +152,7 @@ function loadStyleSheet(stylesheet: string, containerElement: Element, markAsSti
 
         waitForLoad(link, defaultLoadResourcesTimeout)
             .then(resolve)
-            .catch(() => reject("Timeout loading stylesheet: " + stylesheet));
+            .catch(() => reject(new TimeoutException("Timeout loading stylesheet: " + stylesheet)));
 
         containerElement.appendChild(link);
     });
@@ -411,7 +429,11 @@ async function bindNativeObject(nativeObjectName: string) {
 function handleError(error: Error | string) {
     if (enableDebugMode) {
         const msg = error instanceof Error ? error.message : error;
-        showErrorMessage(msg);
+        if (error instanceof TimeoutException) {
+            showWarningMessage(msg);
+        } else {
+            showErrorMessage(msg);
+        }
     }
     throw error;
 }
