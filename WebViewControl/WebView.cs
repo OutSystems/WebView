@@ -185,7 +185,6 @@ namespace WebViewControl {
             chromium.DownloadHandler = new InternalDownloadHandler(this);
 
             disposables = new IDisposable[] {
-                (IDisposable) chromium.RequestHandler,
                 chromium,
                 AsyncCancellationTokenSource
             };

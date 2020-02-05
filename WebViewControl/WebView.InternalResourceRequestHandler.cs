@@ -5,7 +5,7 @@ namespace WebViewControl {
 
     partial class WebView {
 
-        private class InternalResourceRequestHandler : CefResourceRequestHandler, IDisposable {
+        private class InternalResourceRequestHandler : CefResourceRequestHandler {
 
             public InternalResourceRequestHandler(WebView ownerWebView) {
                 OwnerWebView = ownerWebView;
@@ -14,10 +14,6 @@ namespace WebViewControl {
             private WebView OwnerWebView { get; }
 
             private ResourcesProvider ResourcesProvider { get; } = new ResourcesProvider();
-
-            public void Dispose() {
-                ResourcesProvider.Dispose();
-            }
 
             protected override CefCookieAccessFilter GetCookieAccessFilter(CefBrowser browser, CefFrame frame, CefRequest request) {
                 return null;

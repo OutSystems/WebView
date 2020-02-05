@@ -6,7 +6,7 @@ namespace WebViewControl {
 
     partial class WebView {
 
-        private class InternalRequestHandler : RequestHandler, IDisposable {
+        private class InternalRequestHandler : RequestHandler {
 
             private WebView OwnerWebView { get; }
             
@@ -15,10 +15,6 @@ namespace WebViewControl {
             public InternalRequestHandler(WebView webView) {
                 OwnerWebView = webView;
                 ResourceRequestHandler = new InternalResourceRequestHandler(OwnerWebView);
-            }
-
-            public void Dispose() {
-                ResourceRequestHandler.Dispose();
             }
 
             protected override bool OnQuotaRequest(CefBrowser browser, string originUrl, long newSize, CefRequestCallback callback) {
