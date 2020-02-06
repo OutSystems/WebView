@@ -27,7 +27,7 @@ const [
     customResourceBaseUrl
 ] = Array.from(new URLSearchParams(location.search).keys());
 
-const defaultLoadResourcesTimeout = (enableDebugMode ? 240 : 10) * 1000; // ms
+const defaultLoadResourcesTimeout = (enableDebugMode ? 60 : 10) * 1000; // ms
 
 const externalLibsPath = libsPath + "node_modules/";
 
@@ -126,12 +126,11 @@ function loadScript(scriptSrc: string, view: ViewMetadata): Promise<void> {
         const script = document.createElement("script");
         script.src = scriptSrc;
 
-        waitForLoad(script, defaultLoadResourcesTimeout)
+        waitForLoad(script, scriptSrc, defaultLoadResourcesTimeout)
             .then(() => {
                 loadTask.setResult();
                 resolve();
-            })
-            .catch(() => reject(new TimeoutException("Timeout loading script: " + scriptSrc)));
+            });
 
         if (!view.head) {
             throw new Error(`View ${view.name} head is not set`);
@@ -150,9 +149,8 @@ function loadStyleSheet(stylesheet: string, containerElement: Element, markAsSti
             link.dataset.sticky = "true";
         }
 
-        waitForLoad(link, defaultLoadResourcesTimeout)
-            .then(resolve)
-            .catch(() => reject(new TimeoutException("Timeout loading stylesheet: " + stylesheet)));
+        waitForLoad(link, stylesheet, defaultLoadResourcesTimeout)
+            .then(resolve);
 
         containerElement.appendChild(link);
     });
@@ -290,7 +288,7 @@ export function loadComponent(
             const properties = createPropertiesProxy(componentNativeObject, componentNativeObjectName, renderTask);
             view.nativeObjectNames.push(componentNativeObjectName); // add to the native objects collection
 
-            const componentClass = window[viewsBundleName][componentName].default;
+            const componentClass = (window[viewsBundleName][componentName] || {}).default;
             if (!componentClass) {
                 throw new Error(`Component ${componentName} is not defined or does not have a default class`);
             }
@@ -429,11 +427,7 @@ async function bindNativeObject(nativeObjectName: string) {
 function handleError(error: Error | string) {
     if (enableDebugMode) {
         const msg = error instanceof Error ? error.message : error;
-        if (error instanceof TimeoutException) {
-            showWarningMessage(msg);
-        } else {
-            showErrorMessage(msg);
-        }
+        showErrorMessage(msg);
     }
     throw error;
 }
@@ -454,9 +448,15 @@ function waitForDOMReady() {
 }
 
 
-function waitForLoad(element: HTMLElement, timeout: number) {
-    return new Promise((resolve, reject) => {
-        const timeoutHandle = setTimeout(() => reject(), timeout);
+function waitForLoad(element: HTMLElement, url: string, timeout: number) {
+    return new Promise((resolve) => {
+        const timeoutHandle = setTimeout(
+            () => {
+                if (enableDebugMode) {
+                    showWarningMessage(`Timeout loading resouce: '${url}'. If you paused the application to debug, you may disregard this message.`);
+                }
+            },
+            timeout);
 
         element.addEventListener("load", () => {
             clearTimeout(timeoutHandle);
