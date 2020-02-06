@@ -32,6 +32,8 @@ namespace WebViewControl {
             private readonly CefSharp.ResourceHandler resourceHandler = new CefSharp.ResourceHandler();  
             private ICallback responseCallback;
             private string redirectUrl;
+            
+            internal string RedirectUrl => redirectUrl;
 
             public Stream Stream => resourceHandler.Stream;
             public NameValueCollection Headers => resourceHandler.Headers;
