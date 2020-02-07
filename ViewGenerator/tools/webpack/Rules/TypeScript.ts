@@ -2,11 +2,11 @@
 import { join } from "path";
 import { RuleSetRule, RuleSetUseItem } from "webpack";
 
-import { CacheDirectoryDefault, TsConfigDefaultFileName } from "../Plugins/Resources";
+import { CacheDirectoryDefault } from "../Plugins/Resources";
 import { getCurrentDirectory } from "../Plugins/Utils";
 
 // .ts / .tsx  files
-let getTypeScriptRuleSet = (useCache: boolean, configFilePath?: string): RuleSetRule => {
+const getTypeScriptRuleSet = (useCache: boolean): RuleSetRule => {
 
     const TypeScriptRule: RuleSetRule = {
         test: /\.tsx?$/
@@ -37,8 +37,7 @@ let getTypeScriptRuleSet = (useCache: boolean, configFilePath?: string): RuleSet
     let tsLoaderRule: RuleSetUseItem = {
         loader: "ts-loader",
         options: {
-            happyPackMode: true,
-            configFile: configFilePath || TsConfigDefaultFileName
+            happyPackMode: true
         }
     };
 

@@ -23,7 +23,7 @@ namespace ReactViewControl {
 
         public LoadStatus LoadStatus { get; set; }
 
-        public bool PluginsLoaded { get; set; }
+        public bool IsComponentReadyToLoad { get; set; }
 
         public CustomResourceRequestedEventHandler CustomResourceRequestedHandler { get; set; }
 
@@ -38,7 +38,7 @@ namespace ReactViewControl {
         public void Reset() {
             ExecutionEngine = new ExecutionEngine();
             LoadStatus = LoadStatus.Initialized;
-            PluginsLoaded = false;
+            IsComponentReadyToLoad = false;
         }
     }
 }

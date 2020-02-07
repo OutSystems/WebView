@@ -1,13 +1,12 @@
 ﻿import { sync } from "glob";
-import { parse, resolve, join } from "path";
+import { parse, resolve } from "path";
 import { getCurrentDirectory } from "./Plugins/Utils";
 
-const config = (_, argv) => {
+const config = (_, __) => {
 
     let entryMap = {};
-    let projectDir = argv.projectDir ? argv.projectDir.replace(/\\/g, "/") : "";
 
-    sync(join(projectDir, "**/*.worker.js")).forEach(f => {
+    sync("**/*.worker.js").forEach(f => {
         let entryName: string = parse(f).name;
         entryMap[entryName] = "./" + f;
     });

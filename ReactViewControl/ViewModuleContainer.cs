@@ -13,6 +13,7 @@ namespace ReactViewControl {
         private const string CssEntryFileExtension = ".css.entry";
 
         private IFrame frame;
+        private IChildViewHost childViewHost;
 
         public ViewModuleContainer() {
             DependencyJsSourcesCache = new Lazy<string[]>(() => GetDependenciesFromEntriesFile(JsEntryFileExtension));
@@ -57,27 +58,19 @@ namespace ReactViewControl {
 
         KeyValuePair<string, object>[] IViewModule.PropertiesValues => PropertiesValues;
 
-        void IViewModule.Bind(IFrame frame) {
+        void IViewModule.Bind(IFrame frame, IChildViewHost childViewHost) {
             frame.CustomResourceRequestedHandler += this.frame.CustomResourceRequestedHandler;
             frame.ExecutionEngine.MergeWorkload(this.frame.ExecutionEngine);
             this.frame = frame;
+            this.childViewHost = childViewHost;
         }
-
-        public void AttachTo(IChildViewHost host, string frameName) => host.AttachChildView(this, frameName);
-
-        public event CustomResourceRequestedEventHandler CustomResourceRequested {
-            add => frame.CustomResourceRequestedHandler += value;
-            remove => frame.CustomResourceRequestedHandler -= value;
-        }
-
-        public T WithPlugin<T>() => frame.GetPlugin<T>();
 
         // ease access in generated code
         protected IExecutionEngine ExecutionEngine {
             get {
-                var engine = frame?.ExecutionEngine;
+                var engine = frame.ExecutionEngine;
                 if (engine == null) {
-                    throw new InvalidOperationException("View module must be bound to an execution engine ");
+                    throw new InvalidOperationException("View module must be bound to an execution engine");
                 }
                 return engine;
             }
@@ -98,5 +91,27 @@ namespace ReactViewControl {
             }
             return new string[0];
         }
+
+        public event CustomResourceRequestedEventHandler CustomResourceRequested {
+            add => frame.CustomResourceRequestedHandler += value;
+            remove => frame.CustomResourceRequestedHandler -= value;
+        }
+
+        public T WithPlugin<T>() {
+            return frame.GetPlugin<T>();
+        }
+
+        public void Load() {
+            childViewHost?.LoadComponent(frame.Name);
+        }
+
+        public T GetOrAddChildView<T>(string frameName) where T : IViewModule, new() {
+            if (childViewHost == null) {
+                return default(T);
+            }
+            return childViewHost.GetOrAddChildView<T>(frame.Name + (string.IsNullOrEmpty(frame.Name) ? "" : ".") + frameName);
+        }
+
+        public ReactView Host => childViewHost.Host;
     }
 }

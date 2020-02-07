@@ -29,6 +29,8 @@ const [
     customResourceBaseUrl
 ] = Array.from(new URLSearchParams(location.search).keys());
 
+const defaultLoadResourcesTimeout = (enableDebugMode ? 60 : 10) * 1000; // ms
+
 const externalLibsPath = libsPath + "node_modules/";
 
 const bootstrapTask = new Task();
@@ -43,9 +45,9 @@ function getView(viewName: string): ViewMetadata {
     return view;
 }
 
-function getModule(viewName: string, generation: string, moduleName: string) {
+function getModule(viewName: string, id: string, moduleName: string) {
     const view = views.get(viewName);
-    if (view && view.generation.toString() === generation) {
+    if (view && view.id.toString() === id) {
         // when generation requested != current generation, ignore (we don't want to interact with old views)
         const module = view.modules.get(moduleName);
         if (module) {
@@ -64,13 +66,21 @@ function getModule(viewName: string, generation: string, moduleName: string) {
 window[modulesFunctionName] = getModule;
 
 export async function showErrorMessage(msg: string): Promise<void> {
+    return showMessage(msg, true);
+}
+
+function showWarningMessage(msg: string): Promise<void> {
+    return showMessage(msg, false);
+}
+
+async function showMessage(msg: string, isError: boolean): Promise<void> {
     const containerId = "webview_error";
     let msgContainer = document.getElementById(containerId) as HTMLDivElement;
     if (!msgContainer) {
         msgContainer = document.createElement("div");
         msgContainer.id = containerId;
         const style = msgContainer.style;
-        style.backgroundColor = "#f45642";
+        style.backgroundColor = isError ? "#f45642" : "#f4b942";
         style.color = "white";
         style.fontFamily = "Arial";
         style.fontWeight = "bold";
@@ -83,16 +93,22 @@ export async function showErrorMessage(msg: string): Promise<void> {
         style.zIndex = "10000";
         style.height = "auto";
         style.wordWrap = "break-word";
+        style.visibility = "visible";
 
         await waitForDOMReady();
         document.body.appendChild(msgContainer);
     }
     msgContainer.innerText = msg;
+
+    if (!isError) {
+        setTimeout(() => {
+            msgContainer.style.visibility = "collapsed";
+        }, 30000);
+    }
 }
 
 function loadScript(scriptSrc: string, view: ViewMetadata): Promise<void> {
-    const loadEventName = "load";
-    return new Promise(async (resolve) => {
+    return new Promise(async (resolve, reject) => {
         const frameScripts = view.scriptsLoadTasks;
 
         // check if script was already added, fallback to main frame
@@ -109,10 +125,12 @@ function loadScript(scriptSrc: string, view: ViewMetadata): Promise<void> {
 
         const script = document.createElement("script");
         script.src = scriptSrc;
-        script.addEventListener(loadEventName, () => {
-            loadTask.setResult();
-            resolve();
-        });
+
+        waitForLoad(script, scriptSrc, defaultLoadResourcesTimeout)
+            .then(() => {
+                loadTask.setResult();
+                resolve();
+            });
 
         if (!view.head) {
             throw new Error(`View ${view.name} head is not set`);
@@ -122,15 +140,18 @@ function loadScript(scriptSrc: string, view: ViewMetadata): Promise<void> {
 }
 
 function loadStyleSheet(stylesheet: string, containerElement: Element, markAsSticky: boolean): Promise<void> {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         const link = document.createElement("link");
         link.type = "text/css";
         link.rel = "stylesheet";
         link.href = stylesheet;
-        link.addEventListener("load", () => resolve());
         if (markAsSticky) {
             link.dataset.sticky = "true";
         }
+
+        waitForLoad(link, stylesheet, defaultLoadResourcesTimeout)
+            .then(resolve);
+
         containerElement.appendChild(link);
     });
 }
@@ -267,7 +288,7 @@ export function loadComponent(
             const properties = createPropertiesProxy(componentNativeObject, componentNativeObjectName, renderTask);
             view.nativeObjectNames.push(componentNativeObjectName); // add to the native objects collection
 
-            const componentClass = window[viewsBundleName][componentName].default;
+            const componentClass = (window[viewsBundleName][componentName] || {}).default;
             if (!componentClass) {
                 throw new Error(`Component ${componentName} is not defined or does not have a default class`);
             }
@@ -310,7 +331,7 @@ export function loadComponent(
 
             window.dispatchEvent(new Event('viewready'));
 
-            fireNativeNotification(viewLoadedEventName, view.name, view.generation.toString());
+            fireNativeNotification(viewLoadedEventName, view.name, view.id.toString());
         } catch (error) {
             handleError(error);
         }
@@ -332,6 +353,7 @@ async function bootstrap() {
     }
 
     const mainView: ViewMetadata = {
+        id: 0,
         name: mainFrameName,
         generation: 0,
         isMain: true,
@@ -402,9 +424,10 @@ async function bindNativeObject(nativeObjectName: string) {
     return window[nativeObjectName];
 }
 
-function handleError(error: Error) {
+function handleError(error: Error | string) {
     if (enableDebugMode) {
-        showErrorMessage(error.message);
+        const msg = error instanceof Error ? error.message : error;
+        showErrorMessage(msg);
     }
     throw error;
 }
@@ -424,13 +447,32 @@ function waitForDOMReady() {
     return Promise.resolve();
 }
 
+
+function waitForLoad(element: HTMLElement, url: string, timeout: number) {
+    return new Promise((resolve) => {
+        const timeoutHandle = setTimeout(
+            () => {
+                if (enableDebugMode) {
+                    showWarningMessage(`Timeout loading resouce: '${url}'. If you paused the application to debug, you may disregard this message.`);
+                }
+            },
+            timeout);
+
+        element.addEventListener("load", () => {
+            clearTimeout(timeoutHandle);
+            resolve();
+        });
+    });
+}
+
+
 function fireNativeNotification(eventName: string, ...args: string[]) {
     window[eventListenerObjectName].notify(eventName, ...args);
 }
 
 function onChildViewAdded(childView: ViewMetadata) {
     views.set(childView.name, childView);
-    fireNativeNotification(viewInitializedEventName, childView.name, childView.generation.toString());
+    fireNativeNotification(viewInitializedEventName, childView.name);
 }
 
 function onChildViewRemoved(childView: ViewMetadata) {
@@ -440,7 +482,7 @@ function onChildViewRemoved(childView: ViewMetadata) {
         CefSharp.RemoveObjectFromCache(nativeObjecName);
         CefSharp.DeleteBoundObject(nativeObjecName);
     });
-    fireNativeNotification(viewDestroyedEventName, childView.name, childView.generation.toString());
+    fireNativeNotification(viewDestroyedEventName, childView.name, childView.id.toString());
 }
 
 bootstrap();

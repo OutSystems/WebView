@@ -13,7 +13,7 @@ namespace ReactViewControl {
 
     public delegate Stream CustomResourceRequestedEventHandler(string resourceKey, params string[] options);
 
-    public abstract class ReactView : UserControl, IChildViewHost, IDisposable {
+    public abstract class ReactView : UserControl, IDisposable {
 
         private static Dictionary<Type, ReactViewRender> CachedViews { get; } = new Dictionary<Type, ReactViewRender>();
 
@@ -54,8 +54,10 @@ namespace ReactViewControl {
             View = CreateReactViewInstance(Factory);
             SetResourceReference(StyleProperty, typeof(ReactView)); // force styles to be inherited, must be called after view is created otherwise view might be null
 
-            View.BindModule(mainModule, ReactViewRender.MainViewFrameName);
+            View.Host = this;
             MainModule = mainModule;
+            // bind main module (this is needed so that the plugins are available right away)
+            View.BindComponent(mainModule);
 
             IsVisibleChanged += OnIsVisibleChanged;
 
@@ -100,7 +102,7 @@ namespace ReactViewControl {
             // since its not supposed to change properties once the component has been shown
             if (window.IsVisible) {
                 window.IsVisibleChanged -= OnWindowIsVisibleChanged;
-                LoadComponent();
+                TryLoadComponent();
             }
         }
 
@@ -108,11 +110,11 @@ namespace ReactViewControl {
             // fallback when window was already shown
             if (IsVisible) {
                 IsVisibleChanged -= OnIsVisibleChanged;
-                LoadComponent();
+                TryLoadComponent();
             }
         }
 
-        private void LoadComponent() {
+        private void TryLoadComponent() {
             if (!View.IsMainComponentLoaded) {
                 if (EnableHotReload) {
                     View.EnableHotReload(MainModule.Source, MainModule.MainJsSource);
@@ -224,25 +226,5 @@ namespace ReactViewControl {
         /// Defaults to 6. 
         /// </summary>
         public static int PreloadedCacheEntriesSize { get; set; } = 6;
-
-        /// <summary>
-        /// Binds the view module into the specified frame.
-        /// </summary>
-        /// <param name="viewModule"></param>
-        /// <param name="frameName"></param>
-        void IChildViewHost.AttachChildView(IViewModule viewModule, string frameName) {
-            View.AddPlugins(frameName, Factory.InitializePlugins());
-            View.LoadComponent(viewModule, frameName);
-        }
-
-        /// <summary>
-        /// Retrives the plugin instance of the child view.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="frameName"></param>
-        /// <returns></returns>
-        T IChildViewHost.WithPlugin<T>(string frameName) {
-            return View.WithPlugin<T>(frameName);
-        }
     }
 }

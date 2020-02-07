@@ -7,15 +7,15 @@ import ManifestPlugin from "webpack-manifest-plugin";
 
 // Plugins / Resources
 import RenameChunksPlugin from "./RenameChunksPlugin";
-import { CssPlaceholder, CssChunkPlaceholder, DtsExtension, OutputDirectoryDefault, JsChunkPlaceholder, NamePlaceholder, TsConfigDefaultFileName } from "./Resources";
+import { CssPlaceholder, CssChunkPlaceholder, DtsExtension, OutputDirectoryDefault, JsChunkPlaceholder, NamePlaceholder } from "./Resources";
 import { Dictionary, customErrorFormatter, generateManifest, getCurrentDirectory, getFileName, getPublicPath } from "./Utils";
 
 // Rules
-import ResourcesRuleSet from "../Rules/Files";
+import getResourcesRuleSet from "../Rules/Files";
 import SassRuleSet from "../Rules/Sass";
 import getTypeScriptRuleSet from "../Rules/TypeScript";
 
-let getCommonConfiguration = (libraryName: string, useCache: boolean, projectDir: string, tsConfigFile?: string): Configuration => {
+let getCommonConfiguration = (libraryName: string, useCache: boolean): Configuration => {
 
     const entryMap: Dictionary<string> = {}
     const outputMap: Dictionary<string> = {};
@@ -88,16 +88,15 @@ let getCommonConfiguration = (libraryName: string, useCache: boolean, projectDir
         module: {
             rules: [
                 SassRuleSet,
-                ResourcesRuleSet,
-                getTypeScriptRuleSet(useCache, tsConfigFile)
+                getResourcesRuleSet(),
+                getTypeScriptRuleSet(useCache)
             ]
         },
 
         plugins: [
             new ForkTsCheckerWebpackPlugin({
-                tsconfig: resolve("./" + (tsConfigFile || TsConfigDefaultFileName)),
                 checkSyntacticErrors: true,
-                formatter: (msg, useColors) => customErrorFormatter(msg, useColors, projectDir || currentDirectory),
+                formatter: (msg, useColors) => customErrorFormatter(msg, useColors, currentDirectory),
                 measureCompilationTime: true
             }),
 

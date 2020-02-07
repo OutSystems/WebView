@@ -55,6 +55,7 @@
       <SubType>Designer</SubType>
     </None>
     <Content Include="tools\tsconfig.json" />
+    <None Include="run-generator.bat" />
     <None Include="debug-generator.bat" />
     <None Include="packages.config">
       <SubType>Designer</SubType>
@@ -62,6 +63,7 @@
     <None Include="ViewGeneratorCore.nuspec">
       <SubType>Designer</SubType>
     </None>
+    <None Include="contentFiles\VGC.cache" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="tools\src\ViewGenerator.ts" />
@@ -69,11 +71,14 @@
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>npm install --prefix "$(ProjectDir)tools" "$(ProjectDir)tools"</PreBuildEvent>
+    <PreBuildEvent>npm install --no-bin-links --prefix "$(ProjectDir)tools" "$(ProjectDir)tools"</PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
     <PostBuildEvent>"$(ProjectDir)..\nuget" pack "$(ProjectDir)ViewGeneratorCore.nuspec" -OutputDirectory "$(ProjectDir)..\Nuget\ " -Properties Configuration=$(ConfigurationName)</PostBuildEvent>
   </PropertyGroup>
+  <Target Name="TouchCacheFile" BeforeTargets="PrepareForBuild">
+    <Touch Files="$(ProjectDir)contentFiles\VGC.cache" AlwaysCreate="true" />
+  </Target>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>

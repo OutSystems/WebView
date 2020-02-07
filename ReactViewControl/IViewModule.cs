@@ -22,12 +22,16 @@ namespace ReactViewControl {
 
         KeyValuePair<string, object>[] PropertiesValues { get; }
 
-        void Bind(IFrame frame);
+        void Bind(IFrame frame, IChildViewHost host = null);
 
-        void AttachTo(IChildViewHost host, string frameName);
+        event CustomResourceRequestedEventHandler CustomResourceRequested;
 
         T WithPlugin<T>();
 
-        event CustomResourceRequestedEventHandler CustomResourceRequested;
+        void Load();
+
+        T GetOrAddChildView<T>(string frameName) where T : IViewModule, new();
+
+        ReactView Host { get; }
     }
 }

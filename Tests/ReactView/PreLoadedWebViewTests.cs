@@ -13,7 +13,8 @@ namespace Tests.ReactView {
 
         public TestReactViewWithPreload() {
             AutoShowInnerView = true;
-            new InnerViewModule().AttachTo(this, "test");
+            var innerView = new InnerViewModule();
+            innerView.Load();
         }
 
         protected override ReactViewFactory Factory => new TestReactViewFactoryWithPreload();

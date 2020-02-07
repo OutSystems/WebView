@@ -1,15 +1,6 @@
 ﻿<Project>
   <PropertyGroup>
 
-    <BuildDependsOn>
-      VG_SetVariables;
-      VG_CopyContentFiles;
-      VG_LinkNodeModules;
-      VG_GenerateDefaultStyleSheet;
-      VG_GenerateBundle;
-      $(BuildDependsOn);
-    </BuildDependsOn>
-
     <CleanDependsOn>
       VG_UnlinkNodeModules;
       VG_CleanLegacyEntryFiles;
@@ -18,55 +9,41 @@
       VG_Clean;
       $(CleanDependsOn);
     </CleanDependsOn>
-
-    <PrepareResourceNamesDependsOn>
-      $(PrepareResourceNamesDependsOn)
-    </PrepareResourceNamesDependsOn>
+      
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="**\*.cache"/>
+  </ItemGroup>
   
   <Target Name="VG_SetVariables">
     <ItemGroup>     
       <_ViewGeneratorNodeJsExe Include="$(MSBuildThisFileDirectory)..\..\..\Node.js.redist\*\tools\win-x64\node.exe"/>
       <_ViewGeneratorNodeJsExe Include="$(MSBuildThisFileDirectory)..\..\Node.js.redist*\tools\win-x64\node.exe"/>
     </ItemGroup>
+      
     <PropertyGroup>
       <ViewGeneratorPath>$([System.IO.Path]::GetFullPath(&quot;$(MSBuildThisFileDirectory)..\&quot;))</ViewGeneratorPath>
       <ViewGeneratorToolsPath>$(ViewGeneratorPath)tools</ViewGeneratorToolsPath>
-      <ViewGeneratorContentFilesPath>$(ViewGeneratorPath)contentFiles\</ViewGeneratorContentFilesPath>
-
+      <ViewGeneratorContentFilesPath>$(ViewGeneratorPath)contentFiles\</ViewGeneratorContentFilesPath> 
       <__ViewGeneratorNodeJsExe>@(_ViewGeneratorNodeJsExe);</__ViewGeneratorNodeJsExe>
       <ViewGeneratorNodeJsExe>$(__ViewGeneratorNodeJsExe.Substring(0, $(__ViewGeneratorNodeJsExe.IndexOf(';'))))</ViewGeneratorNodeJsExe>
     </PropertyGroup>
   </Target>
-
-  <ItemGroup>
-    <_ProjectDirectory Include="$(OverrideProjectDir)" />
-    <_ProjectDirectory Include="$(ProjectDir)" />
-  </ItemGroup>
  
-  <Target Name="VG_LinkNodeModules" Condition="'$(PluginsRelativePath)' != ''" >  
-    <PropertyGroup>
-      <__ProjectDirectory>@(_ProjectDirectory);</__ProjectDirectory>
-      <ProjectDirectory>$(__ProjectDirectory.Substring(0, $(__ProjectDirectory.IndexOf(';'))))</ProjectDirectory>
-    </PropertyGroup>
-      
-    <Exec Condition="!Exists('$(ProjectDirectory)node_modules\webview.plugins')" Command="mklink /J &quot;$(ProjectDirectory)node_modules\webview.plugins&quot; &quot;$(ProjectDirectory)$(PluginsRelativePath)node_modules&quot;" />
+  <Target Name="VG_LinkNodeModules" Condition="'$(PluginsRelativePath)' != ''" >     
+    <Exec Condition="!Exists('$(ProjectDir)node_modules\webview.plugins')" Command="mklink /J &quot;$(ProjectDir)node_modules\webview.plugins&quot; &quot;$(ProjectDir)$(PluginsRelativePath)node_modules&quot;" />
   </Target>
 
-  <Target Name="VG_UnlinkNodeModules">
-    <PropertyGroup>
-      <__ProjectDirectory>@(_ProjectDirectory);</__ProjectDirectory>
-      <ProjectDirectory>$(__ProjectDirectory.Substring(0, $(__ProjectDirectory.IndexOf(';'))))</ProjectDirectory>
-    </PropertyGroup>
-      
-    <RemoveDir Condition="Exists('$(ProjectDirectory)node_modules\webview.plugins')" Directories="$(ProjectDirectory)node_modules\webview.plugins" />
+  <Target Name="VG_UnlinkNodeModules">     
+    <RemoveDir Condition="Exists('$(ProjectDir)node_modules\webview.plugins')" Directories="$(ProjectDir)node_modules\webview.plugins" />
   </Target>
     
   <Target Name="VG_CleanLegacyEntryFiles" >
     <ItemGroup>
       <EntryFilesToDelete Include="**\*.entry" />
     </ItemGroup>
-    <Message Text="Deleting old files: @(EntryFilesToDelete)" Importance="high" />
+    <Message Condition="'@(EntryFilesToDelete)' != ''" Text="Deleting old files: @(EntryFilesToDelete)" Importance="high" />
     <Delete Files="@(EntryFilesToDelete)"/>
   </Target>
 
@@ -74,7 +51,7 @@
     <ItemGroup>
       <JSFilesToDelete Include="**\*.js" Exclude="node_modules\**\*.js"/>
     </ItemGroup>
-    <Message Text="Deleting old files: @(JSFilesToDelete)" Importance="high" />
+    <Message Condition="'@(JSFilesToDelete)' != ''" Text="Deleting old files: @(JSFilesToDelete)" Importance="high" />
     <Delete Files="@(JSFilesToDelete)"/>
   </Target>
 
@@ -82,84 +59,92 @@
     <ItemGroup>
       <CSSFilesToDelete Include="**\*.css" Exclude="node_modules\**\*.css;**\*.min.css"/>
     </ItemGroup>
-    <Message Text="Deleting old files: @(CSSFilesToDelete)" Importance="high" />
+    <Message Condition="'@(CSSFilesToDelete)' != ''" Text="Deleting old files: @(CSSFilesToDelete)" Importance="high" />
     <Delete Files="@(CSSFilesToDelete)"/>
   </Target>
 
-  <Target Name="VG_SetupViewPacker" DependsOnTargets="VG_EnsureViewPackerInstalled" Condition="!Exists('$(ViewGeneratorToolsPath)\webpack\node_modules')">
+  <Target Name="VG_SetupViewPacker" DependsOnTargets="VG_EnsureViewPackerInstalled;VG_SetVariables" Condition="!Exists('$(ViewGeneratorToolsPath)\webpack\node_modules')">
     <Exec Command="mklink /J &quot;$(ViewGeneratorToolsPath)\webpack\node_modules&quot; &quot;$(ViewPackerToolNodeModules)&quot;" />
-  </Target>
-  
-<ItemGroup>
-  <VG_StyleSheetInputs Include="@(DefaultStyleSheet)"/>	
-  <VG_StyleSheetInputs Condition="'@(DefaultStyleSheet)' != ''" Include="**\*.scss" Exclude="node_modules\**\*.scss" />
-</ItemGroup>
-  
-  <Target Name="VG_GenerateDefaultStyleSheet" DependsOnTargets="VG_SetupViewPacker;VG_SetVariables;VG_LinkNodeModules" Inputs="@(VG_StyleSheetInputs)" Outputs="viewgeneratorcssbuild.cache" >
-    <CallTarget Targets="VG_GenerateDefaultStyleSheetInner" />
-  </Target>
-
-  <Target Name="VG_GenerateDefaultStyleSheetInner" DependsOnTargets="VG_CleanLegacyCSSFiles">
-    <PropertyGroup>
-      <WP_Mode>development</WP_Mode>
-    </PropertyGroup>
-    
-    <PropertyGroup Condition=" '$(Configuration.Split(&quot;_&quot;)[0])' == 'Debug' ">
-      <WP_DevTool>inline-source-map</WP_DevTool>
-    </PropertyGroup>
-      
-    <PropertyGroup Condition=" '$(Configuration.Split(&quot;_&quot;)[0])' == 'Release' ">
-        <WP_DevTool>false</WP_DevTool>
-    </PropertyGroup>
-      
-    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config='$(ViewGeneratorToolsPath)\webpack\webpack_stylesheets.config.js' --mode=$(WP_Mode) --devtool=$(WP_DevTool) --entryPath='%(DefaultStyleSheet.Identity)'" />
-
-    <Touch Files="viewgeneratorcssbuild.cache" AlwaysCreate="true" />
   </Target>
 
   <Target Name="VG_EnsureViewPackerInstalled" Condition="'$(ViewPackerToolScript)' == ''">
     <Error Text="View Packer dependency is not installed" />
   </Target>
 
-  <!-- TODO: check if this includes all possible inputs -->
+  <!-- /// -->
+  <!-- Webpack related targets, property and item groups -->
+  <!-- /// -->
+
+  <PropertyGroup>
+    <WP_Mode>development</WP_Mode>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(WP_ConfigFileName)' == ''">
+    <WP_ConfigFileName>webpack_views</WP_ConfigFileName>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration.Split(&quot;_&quot;)[0])' == 'Debug'">
+    <WP_DevTool>inline-source-map</WP_DevTool>
+    <WP_UseCache>true</WP_UseCache>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration.Split(&quot;_&quot;)[0])' == 'Release'">
+    <WP_DevTool>false</WP_DevTool>
+    <WP_UseCache>false</WP_UseCache>
+  </PropertyGroup>
+  
   <ItemGroup>
     <VG_Inputs Include="**\*.tsx" Exclude="node_modules\**\*.tsx" />
     <VG_Inputs Include="**\*.ts" Exclude="node_modules\**\*.ts" />
-    <VG_Inputs Include="**\*.scss" />
+    <VG_Inputs Include="**\*.scss" Exclude="node_modules\**\*.scss" />
+    <VG_Inputs Condition="'$(PluginsRelativePath)' != ''" Include="$(PluginsRelativePath)VG_Build.cache" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <VG_StyleSheet_Inputs Include="@(DefaultStyleSheet)"/>
+    <VG_StyleSheet_Inputs Condition="'@(DefaultStyleSheet)' != ''" Include="**\*.scss" Exclude="node_modules\**\*.scss" />
+    <VG_Workers_Inputs Include="@(Workers)" />
+  </ItemGroup>
+    
+  <ItemGroup>
     <UpToDateCheckInput Include="@(VG_Inputs)" Exclude="@(UpToDateCheckInput)" />
     <UpToDateCheckInput Include="@(DefaultStyleSheet)" Exclude="@(UpToDateCheckInput)" />
+    <UpToDateCheckInput Include="@(VG_Workers)" Exclude="@(UpToDateCheckInput)" />
   </ItemGroup>
-  
-  <Target Name="VG_GenerateBundle" Inputs="@(VG_Inputs)" Outputs="viewgeneratorbuild.cache" DependsOnTargets="VG_SetupViewPacker;VG_SetVariables;VG_CopyContentFiles;VG_GenerateDefaultStyleSheet">
+
+  <!-- Webpack bundle generation targets-->
+  <Target Name="VG_GenerateBundle" Inputs="@(VG_Inputs);@(VG_Workers_Inputs)" Outputs="VG_Build.cache" AfterTargets="AfterResolveReferences" DependsOnTargets="VG_SetVariables;VG_SetupViewPacker;VG_LinkNodeModules;VG_Setup">
     <CallTarget Targets="VG_GenerateBundleInner" />
   </Target>
 
   <Target Name="VG_GenerateBundleInner" DependsOnTargets="VG_CleanLegacyEntryFiles;VG_CleanLegacyJSFiles;VG_CleanLegacyCSSFiles">
     <Message Text="Generating bundle" Importance="high" />
 
-    <PropertyGroup>
-      <WP_Mode>development</WP_Mode>
-    </PropertyGroup>
+    <!-- Default stylesheets bundle generation -->
+    <CallTarget Condition="'@(VG_StyleSheet_Inputs)' != ''" Targets="VG_GenerateDefaultStyleSheet" />
 
-    <PropertyGroup Condition="'$(WP_ConfigFileName)' == ''">
-      <WP_ConfigFileName>webpack_views</WP_ConfigFileName>
-    </PropertyGroup>
+    <!-- Workers bundle generation -->
+    <CallTarget Condition="'@(VG_Workers_Inputs)' != ''" Targets="VG_GenerateWorkersBundle" />
 
-    <PropertyGroup Condition=" '$(Configuration.Split(&quot;_&quot;)[0])' == 'Debug' ">
-      <WP_DevTool>inline-source-map</WP_DevTool>
-      <WP_UseCache>true</WP_UseCache>
-    </PropertyGroup>
-      
-    <PropertyGroup Condition=" '$(Configuration.Split(&quot;_&quot;)[0])' == 'Release' ">
-      <WP_DevTool>false</WP_DevTool>
-      <WP_UseCache>false</WP_UseCache>
-    </PropertyGroup>
-
-    <Exec Condition="'$(PluginsRelativePath)' == ''" Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config='$(ViewGeneratorToolsPath)\webpack\webpack_workers.config.js' --mode=$(WP_Mode) --devtool=$(WP_DevTool) --useCache=$(WP_UseCache) --projectDir='$(OverrideProjectDir)'" />
-
-    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config='$(ViewGeneratorToolsPath)\webpack\$(WP_ConfigFileName).config.js' --mode=$(WP_Mode) --devtool=$(WP_DevTool) --useCache=$(WP_UseCache) --pluginsRelativePath='$(PluginsRelativePath)' --projectDir='$(OverrideProjectDir)' --tsConfigFile='$(TypeScriptConfigFile)'" />
-    <Touch Files="viewgeneratorbuild.cache" AlwaysCreate="true" />
+    <!-- Main bundle generation -->
+    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config='$(ViewGeneratorToolsPath)\webpack\$(WP_ConfigFileName).config.js' --mode=$(WP_Mode) --devtool=$(WP_DevTool) --useCache=$(WP_UseCache) --pluginsRelativePath='$(PluginsRelativePath)'" />
+    
+    <Touch Files="VG_Build.cache" AlwaysCreate="true" />
   </Target>
+
+  <!-- Default stylesheet related target -->
+  <Target Name="VG_GenerateDefaultStyleSheet" > 
+    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config='$(ViewGeneratorToolsPath)\webpack\webpack_stylesheets.config.js' --mode=$(WP_Mode) --devtool=$(WP_DevTool) --entryPath='@(DefaultStyleSheet)'" />
+  </Target>
+
+  <!-- Workers related target -->
+  <Target Name="VG_GenerateWorkersBundle" >
+    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config='$(ViewGeneratorToolsPath)\webpack\webpack_workers.config.js' --mode=$(WP_Mode) --devtool=$(WP_DevTool) --useCache=$(WP_UseCache)" />
+  </Target>
+
+  <!-- /// -->
+  <!-- End of Webpack related targets, property and item groups -->
+  <!-- /// -->
 
   <Target Name="VG_IncludeGeneratedResources" AfterTargets="VG_GenerateBundle">
     <ItemGroup>
@@ -169,23 +154,30 @@
     </ItemGroup>
   </Target>
   
-  <Target Name="VG_CopyContentFiles" DependsOnTargets="VG_SetVariables" Condition="!Exists('$(ProjectDir)viewgenerator.cache') OR $([System.IO.File]::GetLastWriteTime('$(ViewGeneratorContentFilesPath)viewgenerator.cache').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(ProjectDir)viewgenerator.cache').Ticks)">
-    <CreateItem Include="$(ViewGeneratorContentFilesPath)viewgenerator.cache">
-      <Output TaskParameter="Include" ItemName="CacheFile"/>
+  <Target Name="VG_Setup" DependsOnTargets="VG_SetVariables" Condition="!Exists('$(ProjectDir)VG.cache') OR $([System.IO.File]::GetLastWriteTime('$(ViewGeneratorContentFilesPath)VG.cache').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(ProjectDir)VG.cache').Ticks)">      
+    
+    <CreateItem Include="$(ViewGeneratorContentFilesPath)VG.cache">
+      <Output TaskParameter="Include" ItemName="CacheFile" />
     </CreateItem>
+      
     <CreateItem Include="$(ViewGeneratorContentFilesPath)*.json">
-      <Output TaskParameter="Include" ItemName="TemplatesToCopy"/>
+      <Output TaskParameter="Include" ItemName="TemplatesToCopy" />
     </CreateItem>
+      
     <CreateItem Include="$(ViewGeneratorContentFilesPath)**\*.d.ts">
-      <Output TaskParameter="Include" ItemName="FilesToCopy"/>
+      <Output TaskParameter="Include" ItemName="FilesToCopy" />
     </CreateItem>
+      
     <Message Text="Copying View Generator content files" Importance="Normal" />
+      
     <Copy SourceFiles="@(CacheFile)" DestinationFolder="$(ProjectDir)%(CacheFile.RecursiveDir)" />
-    <Copy SourceFiles="@(TemplatesToCopy)" DestinationFolder="$(ProjectDir)%(TemplatesToCopy.RecursiveDir)" Condition="!Exists('%(FullPath)')" />
+    <Copy SourceFiles="@(TemplatesToCopy)" DestinationFolder="$(ProjectDir)%(TemplatesToCopy.RecursiveDir)" Condition="!Exists('%(FullPath)')" SkipUnchangedFiles="true" />
     <Copy SourceFiles="@(FilesToCopy)" DestinationFolder="$(ProjectDir)%(FilesToCopy.RecursiveDir)" SkipUnchangedFiles="true" />
+
+    <Delete Condition="Exists('$(ProjectDir)VG_Build.cache')" Files="VG_Build.cache" />
   </Target>
   
-  <Target Name="VG_Clean" BeforeTargets="Clean">
-    <Delete Files="viewgeneratorbuild.cache;viewgeneratorcssbuild.cache" />
+  <Target Name="VG_Clean" BeforeTargets="Clean" >
+    <Delete Files="VG_Build.cache" />
   </Target>
 </Project>

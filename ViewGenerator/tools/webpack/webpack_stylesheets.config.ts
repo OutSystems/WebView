@@ -1,23 +1,25 @@
 ﻿import MiniCssExtractPlugin from "mini-css-extract-plugin";
-import { join } from "path";
+import { join, resolve } from "path";
 import { Configuration } from "webpack";
 
 import MiniCssExtractPluginCleanup from "./Plugins/MiniCssExtractPluginCleanup";
 import { CssPlaceholder, JsMapPlaceholder, OutputDirectoryDefault } from "./Plugins/Resources";
 import { Dictionary, getCurrentDirectory } from "./Plugins/Utils"
 
-import ResourcesRuleSet from "./Rules/Files";
+import getResourcesRuleSet from "./Rules/Files";
 import SassRuleSet from "./Rules/Sass";
 
 const config = (_, argv) => {
 
-    let entryPath: string = argv.entryPath; // should be only one path
-    let fileExtensionLen: number = entryPath.length - entryPath.lastIndexOf(".");
-    let entryName: string = entryPath.slice(entryPath.lastIndexOf("\\") + 1, -fileExtensionLen);
+    const getEntryName = (entryPath: string): string => {
+        let fileExtensionLen: number = entryPath.length - entryPath.lastIndexOf(".");
+        return entryPath.slice(entryPath.lastIndexOf("\\") + 1, -fileExtensionLen);
+    };
+
+    let entries: string = argv.entryPath;
     let entryMap: Dictionary<string> = {};
-
-    entryMap[entryName] = './' + entryPath;
-
+    entries.split(";").map(entryPath => entryMap[getEntryName(entryPath)] = './' + entryPath)
+    
     let stylesheetsConfig: Configuration = {
         entry: entryMap,
 
@@ -33,7 +35,7 @@ const config = (_, argv) => {
         module: {
             rules: [
                 SassRuleSet,
-                ResourcesRuleSet
+                getResourcesRuleSet()
             ]
         },
 

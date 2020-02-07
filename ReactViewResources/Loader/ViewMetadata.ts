@@ -2,6 +2,7 @@
 import { Task } from "./Task";
 
 export type ViewMetadata = {
+    id: number,
     name: string;
     generation: number;
     isMain: boolean;
