@@ -21,7 +21,7 @@ namespace ReactViewControl {
             var windowHandle = (appLifetime.MainWindow ?? appLifetime.Windows.FirstOrDefault())?.PlatformImpl.Handle;
 
             if (windowHandle is IMacOSTopLevelPlatformHandle macOSHandle) {
-                return macOSHandle.GetNSWindowRetained();
+                return macOSHandle.GetNSViewRetained();
             }
             return windowHandle?.Handle ?? IntPtr.Zero;
         }
