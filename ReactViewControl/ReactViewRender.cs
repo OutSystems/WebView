@@ -41,7 +41,8 @@ namespace ReactViewControl {
             WebView = new WebView(useSharedDomain: true) {
                 DisableBuiltinContextMenus = true,
                 IsSecurityDisabled = true,
-                IgnoreMissingResources = false
+                IgnoreMissingResources = false,
+                IsHistoryDisabled = true
             };
 
             Loader = new LoaderModule(this);
@@ -537,9 +538,14 @@ namespace ReactViewControl {
         /// </summary>
         /// <param name="url"></param>
         /// <param name="errorCode"></param>
-        /// <param name="frameName"></param>
+        /// <param name="frameName">The iframe name, not to be confused with view frame name</param>
         private void OnWebViewLoadFailed(string url, int errorCode, string frameName) {
-            throw new Exception($"Failed to load view (error: ${errorCode})");
+            if (!string.IsNullOrEmpty(frameName)) {
+                // ignore errors in iframes
+                return;
+            }
+
+            throw new Exception($"Failed to load view (error: {errorCode})");
         }
 
         private CustomResourceRequestedEventHandler[] GetCustomResourceHandlers(FrameInfo frame) {
