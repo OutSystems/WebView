@@ -19,7 +19,8 @@ namespace ReactViewControl {
             if (hiddenWindow == null) {
                 hiddenWindow = new Window() {
                     IsVisible = false,
-                    Focusable = false
+                    Focusable = false,
+                    Title = "Hidden React View Window"
                 };
             }
          
