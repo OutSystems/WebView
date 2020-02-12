@@ -1,14 +1,13 @@
 ﻿using System;
-using System.Linq;
-using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform;
 using Avalonia.Styling;
 
 namespace ReactViewControl {
 
     partial class ReactViewRender : ContentControl, IStyleable {
+
+        private static Window hiddenWindow;
 
         Type IStyleable.StyleKey => typeof(ContentControl);
 
@@ -17,13 +16,20 @@ namespace ReactViewControl {
         }
 
         private IntPtr GetHostViewHandle() {
-            var appLifetime = (IClassicDesktopStyleApplicationLifetime)Application.Current.ApplicationLifetime;
-            var windowHandle = (appLifetime.MainWindow ?? appLifetime.Windows.FirstOrDefault())?.PlatformImpl.Handle;
+            if (hiddenWindow == null) {
+                hiddenWindow = new Window() {
+                    IsVisible = false,
+                    Focusable = false
+                };
+            }
+         
+            var windowHandle = hiddenWindow.PlatformImpl.Handle;
 
             if (windowHandle is IMacOSTopLevelPlatformHandle macOSHandle) {
                 return macOSHandle.GetNSViewRetained();
             }
-            return windowHandle?.Handle ?? IntPtr.Zero;
+
+            return windowHandle.Handle;
         }
     }
 }
