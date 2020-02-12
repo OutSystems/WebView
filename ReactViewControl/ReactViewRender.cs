@@ -10,6 +10,11 @@ namespace ReactViewControl {
 
     internal partial class ReactViewRender : IChildViewHost, IDisposable {
 
+#if DEBUG
+        private static int counter;
+        private int id = counter++;
+#endif
+
         private object SyncRoot { get; } = new object();
 
         internal const string MainViewFrameName = "";
@@ -61,7 +66,6 @@ namespace ReactViewControl {
             WebView.AttachListener(ViewDestroyedEventName).Handler += OnViewDestroyed;
 
             WebView.Disposed += OnWebViewDisposed;
-            WebView.JavascriptContextReleased += OnWebViewJavascriptContextReleased;
             WebView.BeforeResourceLoad += OnWebViewBeforeResourceLoad;
             WebView.LoadFailed += OnWebViewLoadFailed;
 
@@ -179,6 +183,10 @@ namespace ReactViewControl {
                 frame.LoadStatus = LoadStatus.ViewInitialized;
 
                 if (frameName == MainViewFrameName) {
+                    // from now on we have to watch for js context released
+                    WebView.JavascriptContextReleased -= OnWebViewJavascriptContextReleased;
+                    WebView.JavascriptContextReleased += OnWebViewJavascriptContextReleased;
+
                     // only need to load the stylesheet for the main frame
                     LoadStyleSheet();
                 }
@@ -243,8 +251,9 @@ namespace ReactViewControl {
                 var mainFrame = Frames[MainViewFrameName];
                 Frames.Clear();
                 Frames.Add(MainViewFrameName, mainFrame);
+                var previousComponentReady = mainFrame.IsComponentReadyToLoad;
                 mainFrame.Reset();
-                mainFrame.IsComponentReadyToLoad = true;
+                mainFrame.IsComponentReadyToLoad = previousComponentReady;
             }
         }
 
@@ -540,7 +549,7 @@ namespace ReactViewControl {
         /// <param name="errorCode"></param>
         /// <param name="frameName">The iframe name, not to be confused with view frame name</param>
         private void OnWebViewLoadFailed(string url, int errorCode, string frameName) {
-            if (!string.IsNullOrEmpty(frameName)) {
+            if (!WebView.IsMainFrame(frameName)) {
                 // ignore errors in iframes
                 return;
             }
