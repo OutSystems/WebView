@@ -1,12 +1,11 @@
-﻿using System;
-using Xilium.CefGlue;
+﻿using Xilium.CefGlue;
 
 namespace WebViewControl {
 
     internal partial class ChromiumBrowser {
 
-        internal void CreateBrowser(IntPtr? hostViewHandle = null) {
-            CreateBrowser(1, 1, hostViewHandle);
+        internal void CreateBrowser() {
+            CreateBrowser(1, 1);
         }
 
         internal CefBrowser GetBrowser() => UnderlyingBrowser;

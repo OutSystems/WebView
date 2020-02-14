@@ -1,6 +1,5 @@
 ﻿using System;
 using Avalonia.Controls;
-using Avalonia.Platform;
 using Avalonia.Styling;
 
 namespace ReactViewControl {
@@ -12,10 +11,6 @@ namespace ReactViewControl {
         Type IStyleable.StyleKey => typeof(ContentControl);
 
         partial void ExtraInitialize() {
-            Content = WebView;
-        }
-
-        private IntPtr GetHostViewHandle() {
             if (hiddenWindow == null) {
                 hiddenWindow = new Window() {
                     IsVisible = false,
@@ -23,14 +18,9 @@ namespace ReactViewControl {
                     Title = "Hidden React View Window"
                 };
             }
-         
-            var windowHandle = hiddenWindow.PlatformImpl.Handle;
 
-            if (windowHandle is IMacOSTopLevelPlatformHandle macOSHandle) {
-                return macOSHandle.GetNSViewRetained();
-            }
-
-            return windowHandle.Handle;
+            WebView.HostingWindow = hiddenWindow;
+            Content = WebView;
         }
     }
 }

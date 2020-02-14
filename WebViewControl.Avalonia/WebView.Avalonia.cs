@@ -90,5 +90,7 @@ namespace WebViewControl {
         private static bool IsFrameworkAssemblyName(string name) {
             return name.StartsWith("Avalonia") || name == "mscorlib";
         }
+
+        internal Window HostingWindow { get => chromium.HostingWindow; set => chromium.HostingWindow = value; }
     }
 }

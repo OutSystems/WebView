@@ -602,8 +602,8 @@ namespace WebViewControl {
             }
         }
 
-        internal void InitializeBrowser(IntPtr hostViewHandle) {
-            chromium.CreateBrowser(hostViewHandle);
+        internal void InitializeBrowser() {
+            chromium.CreateBrowser();
         }
 
         public static string LogFile { get; set; }
