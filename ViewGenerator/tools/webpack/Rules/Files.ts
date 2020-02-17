@@ -17,7 +17,11 @@ const getResourcesRuleSet = (): RuleSetRule => {
 
                         // relative paths starting with ".." are replaced by "_"
                         if (url.startsWith("_")) {
-                            return url.substring(url.indexOf(`/${resourceBase}/`));
+                            let idx: number = url.indexOf(`/${resourceBase}/`);
+                            if (idx < 0) {
+                                throw new Error("Resource not found: using a resource from another namespace without an absolute path.");
+                            }
+                            return url.substring(idx);
                         }
 
                         return `/${resourceBase}/${url}`;
