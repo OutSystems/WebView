@@ -2,10 +2,10 @@
 import { RuleSetRule } from "webpack";
 
 // Resource files
-const getResourcesRuleSet = (): RuleSetRule => {
+const getResourcesRuleSet = (pluginsRelativePath? : string): RuleSetRule => {
 
     const ResourcesRule: RuleSetRule = {
-        test: /\.(png|jpg|jpeg|bmp|gif|woff|woff2|ico|svg|html)$/,
+        test: /\.(ttf|png|jpg|jpeg|bmp|gif|woff|woff2|ico|svg|html)$/,
         use: [
             {
                 loader: 'file-loader',
@@ -19,7 +19,14 @@ const getResourcesRuleSet = (): RuleSetRule => {
                         if (url.startsWith("_")) {
                             let idx: number = url.indexOf(`/${resourceBase}/`);
                             if (idx < 0) {
-                                throw new Error("Resource not found: using a resource from another namespace without an absolute path.");
+                                if (pluginsRelativePath != undefined) {
+                                    let pluginsStringEdited: string = pluginsRelativePath.replace(/(\.\.)/g, '');//Replace double dots ".." 
+                                    pluginsStringEdited = pluginsStringEdited.replace(/[/\\/]/g, '');      //Replace backslashes "\"                              
+                                    idx = url.indexOf(`/${pluginsStringEdited}/`);
+                                }
+                                if (idx < 0) {
+                                    throw new Error("Resource not found: using a resource from another namespace without an absolute path.");
+                                }
                             }
                             return url.substring(idx);
                         }

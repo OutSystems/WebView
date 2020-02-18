@@ -15,7 +15,7 @@ import getResourcesRuleSet from "../Rules/Files";
 import SassRuleSet from "../Rules/Sass";
 import getTypeScriptRuleSet from "../Rules/TypeScript";
 
-let getCommonConfiguration = (libraryName: string, useCache: boolean): Configuration => {
+let getCommonConfiguration = (libraryName: string, useCache: boolean, pluginsRelativePath?: string): Configuration => {
 
     const entryMap: Dictionary<string> = {}
     const outputMap: Dictionary<string> = {};
@@ -88,7 +88,7 @@ let getCommonConfiguration = (libraryName: string, useCache: boolean): Configura
         module: {
             rules: [
                 SassRuleSet,
-                getResourcesRuleSet(),
+                getResourcesRuleSet(pluginsRelativePath),
                 getTypeScriptRuleSet(useCache)
             ]
         },

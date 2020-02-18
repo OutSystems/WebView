@@ -32,7 +32,7 @@ const config = (_, argv) => {
         }
     };
 
-    let standardConfig: Configuration = getCommonConfiguration("Views", argv.useCache);
+    let standardConfig: Configuration = getCommonConfiguration("Views", argv.useCache, argv.pluginsRelativePath);
 
     // SplitChunksOptions
     standardConfig.optimization.splitChunks = {
