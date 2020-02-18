@@ -42,8 +42,8 @@ How to use:
 2) Create the typescript of your component. 
 	The properties and behaviors interfaces must follow the following naming conventions start with I and end with Properties or Behaviors suffix.
 	Don't forget to export default your component.
-	Any types present in the IProperties or IBehaviors inetrfaces must be defined on the entry module.
-	Behavior methods cannot return any values ie. their return type must be void.
+	Any types present in the IProperties or IBehaviors interfaces must be defined on the entry module.
+	Behavior methods cannot return any values i.e. their return type must be void.
 	All types must be exported in order for its C# binding be generated.
 
 	Eg:
