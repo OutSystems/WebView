@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using WebViewControl;
 
@@ -23,6 +25,7 @@ namespace ReactViewControl {
         private const string ViewInitializedEventName = "ViewInitialized";
         private const string ViewDestroyedEventName = "ViewDestroyed";
         private const string ViewLoadedEventName = "ViewLoaded";
+        private const string NativeSyncCallStartEventName = "NativeSyncCallStart";
         private const string CustomResourceBaseUrl = "resource";
 
         private static Assembly ResourcesAssembly { get; } = typeof(ReactViewResources.Resources).Assembly;
@@ -38,6 +41,8 @@ namespace ReactViewControl {
         private ResourceUrl defaultStyleSheet;
         private FileSystemWatcher fileSystemWatcher;
         private string cacheInvalidationTimestamp;
+
+        private readonly BlockingCollection<Action> syncNativeMethodCalls = new BlockingCollection<Action>();
 
         public ReactViewRender(ResourceUrl defaultStyleSheet, Func<IViewModule[]> initializePlugins, bool preloadWebView, bool enableDebugMode) {
             UserCallingAssembly = WebView.GetUserCallingMethod().ReflectedType.Assembly;
@@ -64,10 +69,12 @@ namespace ReactViewControl {
 
             WebView.AttachListener(ViewInitializedEventName).Handler += OnViewInitialized;
             WebView.AttachListener(ViewDestroyedEventName).Handler += OnViewDestroyed;
+            WebView.AttachListener(NativeSyncCallStartEventName).Handler += OnNativeSyncCallStart;
 
             WebView.Disposed += OnWebViewDisposed;
             WebView.BeforeResourceLoad += OnWebViewBeforeResourceLoad;
             WebView.LoadFailed += OnWebViewLoadFailed;
+            WebView.JavacriptDialogShown += OnWebViewJavacriptDialogShown;
 
             ExtraInitialize();
 
@@ -594,13 +601,64 @@ namespace ReactViewControl {
             }
         }
 
+        private static int callscounter = 0;
+
+        /// <summary>
+        /// Handles the call to a native method of a registered native object.
+        /// </summary>
+        /// <param name="nativeMethod"></param>
+        /// <returns></returns>
+        private object CallNativeMethod(Func<object> nativeMethod) {
+            var id = callscounter++;
+            Console.WriteLine("CallNativeMethod " + id);
+            try {
+                return nativeMethod();
+            } finally {
+                if (insideNativeSyncCall) {
+                    Console.WriteLine("CallNativeMethod:finished:notifysync " + id);
+                    var finalize = syncNativeMethodCalls.Take();
+                    Console.WriteLine("CallNativeMethod:finished " + id);
+                    finalize();
+                    //action();
+                }
+                
+            }
+        }
+
+        private bool insideNativeSyncCall = false;
+        private void OnNativeSyncCallStart(object[] args) {
+            Console.WriteLine("NativeSyncCallStart:" + args[1]);
+            insideNativeSyncCall = true;
+            //if (syncNativeMethodCallWaitHandle != null) {
+            //    throw new InvalidOperationException("Expected not to be executing native sync method");
+            //}
+
+        }
+
+        private void OnWebViewJavacriptDialogShown(string text, Action closeDialog) {
+            if (text.StartsWith("NativeSyncCallEnd")) {
+                Console.WriteLine(text);
+                syncNativeMethodCalls.Add(closeDialog);
+                //if (syncNativeMethodCallWaitHandle == null) {
+                //    throw new InvalidOperationException("Expected to be executing native sync method");
+                //}
+                //syncNativeMethodCalls.Take();
+                //closeDialog();
+                //syncNativeMethodCalls.Add(closeDialog);
+            } else {
+                //ShowWindow(closeDialog);
+            }
+        }
+
+        partial void ShowWindow(Action closeDialog);
+
         /// <summary>
         /// Registers a .net object to be available on the js context.
         /// </summary>
         /// <param name="module"></param>
         /// <param name="frameName"></param>
         private void RegisterNativeObject(IViewModule module, string frameName) {
-            WebView.RegisterJavascriptObject(module.GetNativeObjectFullName(frameName), module.CreateNativeObject(), executeCallsInUI: false);
+            WebView.RegisterJavascriptObject(module.GetNativeObjectFullName(frameName), module.CreateNativeObject(), interceptCall: CallNativeMethod, executeCallsInUI: false);
         }
 
         /// <summary>

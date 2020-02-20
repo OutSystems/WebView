@@ -5,6 +5,7 @@
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="Actions">
+                <MenuItem Header="New tab" Click="OnNewTabClick"></MenuItem>
                 <MenuItem Header="Call Main View" Click="OnCallMainViewMenuItemClick"></MenuItem>
                 <MenuItem Header="Call Inner View" Click="OnCallInnerViewMenuItemClick"></MenuItem>
                 <MenuItem Header="Call Inner View Plugin" Click="OnCallInnerViewPluginMenuItemClick"></MenuItem>
@@ -14,8 +15,7 @@
         
         <TextBox Name="status" DockPanel.Dock="Bottom" Height="50"></TextBox>
 
-        <Decorator Name="browserWrapper">
-            
-        </Decorator>
+        <TabControl x:Name="tabs"/>
+
     </DockPanel>
 </Window>

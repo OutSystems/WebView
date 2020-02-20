@@ -102,7 +102,11 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
                 {this.props.image === ImageKind.Beach ? <img className="image" src={Image} /> : null}
                 <br />
                 <div className="buttons-bar">
-                    <button onClick={() => this.props.click(null)}>Click me!</button>&nbsp;
+                    <button onClick={() => {
+                        this.props.click(null);
+                        alert("0000");
+                    }
+                    }>Click me!</button>&nbsp;
                     <button onClick={this.onMountSubViewClick}>Mount/Wrap/Hide child view</button>
                 </div>
                 Custom resource:

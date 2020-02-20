@@ -19,10 +19,11 @@
     <EmbeddedResource Include="MainWindow.xaml">
       <Generator></Generator>
     </EmbeddedResource>
+    <DefaultStyleSheet Include="ExampleView\DefaultStyleSheet.scss" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia.Desktop" Version="0.9.1-cibuild0005724-beta" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.9.3-cibuild0006018-beta" />
     <PackageReference Include="NLog" Version="4.6.2" />
     <PackageReference Include="ViewGenerator" Version="1.0.286">
       <PrivateAssets>all</PrivateAssets>
@@ -54,6 +55,30 @@
     <None Update="ts2lang.json">
       <Visible>True</Visible>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <VG_Inputs Remove="ExampleView\CommonTypes.tsx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ESLint_Inputs Remove="ExampleView\CommonTypes.tsx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <VGC_Inputs Remove="ExampleView\CommonTypes.tsx" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <VG_Inputs Remove="Common\CommonTypes.ts" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ESLint_Inputs Remove="Common\CommonTypes.ts" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <VGC_Inputs Remove="Common\CommonTypes.ts" />
   </ItemGroup>
 
 </Project>

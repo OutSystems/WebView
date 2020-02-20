@@ -22,8 +22,10 @@ namespace WebViewControl {
     public delegate void DownloadProgressChangedEventHandler(string resourcePath, long receivedBytes, long totalBytes);
     public delegate void DownloadStatusChangedEventHandler(string resourcePath);
     public delegate void JavascriptContextCreatedEventHandler(string frameName);
-    internal delegate void JavascriptContextReleasedEventHandler(string frameName);
     public delegate void UnhandledAsyncExceptionEventHandler(UnhandledAsyncExceptionEventArgs eventArgs);
+
+    internal delegate void JavascriptContextReleasedEventHandler(string frameName);
+    internal delegate void JavacriptDialogShowEventHandler(string text, Action closeDialog);
 
     public partial class WebView : IDisposable {
 
@@ -82,6 +84,7 @@ namespace WebViewControl {
 
         internal event Action Disposed;
         internal event JavascriptContextReleasedEventHandler JavascriptContextReleased;
+        internal event JavacriptDialogShowEventHandler JavacriptDialogShown;
 
         private static int domainId = 1;
 
@@ -183,6 +186,7 @@ namespace WebViewControl {
             chromium.ContextMenuHandler = new InternalContextMenuHandler(this);
             chromium.DialogHandler = new InternalDialogHandler(this);
             chromium.DownloadHandler = new InternalDownloadHandler(this);
+            chromium.JSDialogHandler = new InternalJsDialogHandler(this);
 
             disposables = new IDisposable[] {
                 chromium,

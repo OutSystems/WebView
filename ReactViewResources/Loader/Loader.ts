@@ -7,9 +7,15 @@ import { ViewMetadata } from "./ViewMetadata";
 
 declare function define(name: string, dependencies: string[], definition: Function);
 
+declare class PromisseWithFinally<T> extends Promise<T> {
+    finally(onFinally: () => void): PromisseWithFinally<T>;
+}
+
 declare const cefglue: {
     checkObjectBound(objName: string): Promise<boolean>
 };
+
+export const syncFunction = new Object();
 
 const reactLib: string = "React";
 const reactDOMLib: string = "ReactDOM";
@@ -392,11 +398,14 @@ async function loadFramework(): Promise<void> {
     define("react-dom", [], () => window[reactDOMLib]);
 }
 
-function createPropertiesProxy(basePropertiesObj: {}, nativeObjName: string, componentRenderedWaitTask?: Task<void>): {} {
-    const proxy = Object.assign({}, basePropertiesObj);
+let callCounter = 0;
+
+function createPropertiesProxy(objProperties: {}, nativeObjName: string, componentRenderedWaitTask?: Task<void>): {} {
+    const proxy = Object.assign({}, objProperties);
     Object.keys(proxy).forEach(key => {
-        const value = basePropertiesObj[key];
-        if (value !== undefined) {
+        const value = objProperties[key];
+        const isSyncFunction = value === syncFunction;
+        if (value !== undefined && !isSyncFunction) {
             proxy[key] = value;
         } else {
             proxy[key] = async function () {
@@ -407,11 +416,30 @@ function createPropertiesProxy(basePropertiesObj: {}, nativeObjName: string, com
                         resolve(nativeObject);
                     });
                 }
-                const result = nativeObject[key].apply(window, arguments);
+
+                var token = callCounter++;
+                console.log(token);
+
+                if (isSyncFunction) {
+                    fireNativeNotification("NativeSyncCallStart", key, token.toString());
+                }
+
+                let result: PromisseWithFinally<any> | undefined = undefined;
+                try {
+                    result = nativeObject[key].apply(window, arguments);
+                } finally {
+                    if (isSyncFunction) {
+                        //result = result.finally(() => fireNativeNotification("NativeSyncCallStart", key, token.toString()));
+                        alert("NativeSyncCallEnd:" + token);
+                        console.log("NativeSyncCallEnd:" + token);
+                    }
+                }
+
                 if (componentRenderedWaitTask) {
                     // wait until component is rendered, first render should only render static data
                     await componentRenderedWaitTask.promise;
                 }
+
                 return result;
             };
         }
