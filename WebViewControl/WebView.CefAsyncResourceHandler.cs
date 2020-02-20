@@ -32,13 +32,17 @@ namespace WebViewControl {
             private readonly CefSharp.ResourceHandler resourceHandler = new CefSharp.ResourceHandler();  
             private ICallback responseCallback;
             private string redirectUrl;
-            
+            private bool hasStreamBeenSet;
+
             internal string RedirectUrl => redirectUrl;
 
             public Stream Stream => resourceHandler.Stream;
             public NameValueCollection Headers => resourceHandler.Headers;
 
+            public bool Handled => hasStreamBeenSet || !string.IsNullOrEmpty(redirectUrl);
+
             public void SetResponse(Stream response, string mimeType = CefSharp.ResourceHandler.DefaultMimeType, bool autoDisposeStream = false) {
+                hasStreamBeenSet = response != null;
                 if (response?.CanSeek == true) {
                     // move stream to the beginning
                     response.Position = 0;

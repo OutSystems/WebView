@@ -72,7 +72,7 @@ namespace WebViewControl {
 
         internal WebView.CefAsyncResourceHandler Handler { get; private set; }
 
-        public bool Handled => Handler?.Stream != null || !string.IsNullOrEmpty(Handler?.RedirectUrl);
+        public bool Handled => Handler?.Handled == true;
 
         public Stream Response => Handler?.Stream;
     }
