@@ -76,5 +76,7 @@ namespace WebViewControl {
         internal AsyncResourceHandler Handler { get; private set; }
 
         public bool Handled => handled;
+
+        public Stream Response => Handler?.Response;
     }
 }
