@@ -69,7 +69,7 @@ namespace ReactViewControl {
             GC.SuppressFinalize(this);
         }
 
-        protected virtual InnerDispose() { }
+        protected virtual void InnerDispose() { }
 
         /// <summary>
         /// Factory used to configure the initial properties of the control.
