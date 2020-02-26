@@ -10,7 +10,7 @@
     <description>ReactViewControl for WPF powered by CefSharp</description>
     <copyright>Copyright ©  2018</copyright>
     <dependencies>
-      <dependency id="WebViewControl" version="1.75.10" />
+      <dependency id="WebViewControl" version="1.75.11" />
     </dependencies>
   </metadata>
 </package>
