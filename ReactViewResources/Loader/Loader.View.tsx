@@ -4,8 +4,7 @@ import { PluginsContext, PluginsContextHolder } from "./PluginsContext";
 import { ViewContext } from "./ViewContext";
 import { ViewMetadata } from "./ViewMetadata";
 import { ViewPortalsCollection, ViewLifecycleEventHandler } from "./ViewPortalsCollection";
-import { ResourceLoader } from "./ResourceLoader";
-import { ResourceLoaderUrlFormatter } from "ResourceLoader";
+import { ResourceLoader, createResourceLoaderUrlFormatter } from "./ResourceLoader";
 
 export function createView(
     componentClass: any,
@@ -18,15 +17,10 @@ export function createView(
 
     componentClass.contextType = PluginsContext;
 
-    const makeResourceUrl: ResourceLoaderUrlFormatter = (resourceKey: string, ...params: string[]) => {
-        const urlTail = [resourceKey].concat(params).map(p => encodeURIComponent(p)).join("&");
-        return `${customResourceBaseUrl}/${view.name}/?${urlTail}`;
-    }
-
     return (
         <ViewContext.Provider value={view}>
             <PluginsContext.Provider value={new PluginsContextHolder(Array.from(view.modules.values()))}>
-                <ResourceLoader.Provider value={makeResourceUrl}>
+                <ResourceLoader.Provider value={createResourceLoaderUrlFormatter(customResourceBaseUrl, view.name)}>
                     <ViewPortalsCollection views={view.childViews} viewAdded={childViewAddedHandler} viewRemoved={childViewRemovedHandler} />
                     {React.createElement(componentClass, { ref: e => view.modules.set(componentName, e), ...properties })}
                 </ResourceLoader.Provider>
