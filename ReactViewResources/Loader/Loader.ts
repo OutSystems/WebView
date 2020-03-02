@@ -4,6 +4,7 @@ import { getStylesheets, webViewRootId, mainFrameName } from "./LoaderCommon";
 import { ObservableListCollection } from "./ObservableCollection";
 import { Task } from "./Task";
 import { ViewMetadata } from "./ViewMetadata";
+import * as ResourceLoader from "./ResourceLoader";
 
 declare function define(name: string, dependencies: string[], definition: Function);
 
@@ -34,6 +35,8 @@ const externalLibsPath = libsPath + "node_modules/";
 const bootstrapTask = new Task();
 const defaultStylesheetLoadTask = new Task();
 const views = new Map<string, ViewMetadata>();
+
+ResourceLoader.setCustomResourceBaseUrl(customResourceBaseUrl);
 
 class TimeoutException extends Error { }
 
@@ -295,7 +298,7 @@ export function loadComponent(
 
             const { createView } = await import("./Loader.View");
             
-            const viewElement = createView(componentClass, properties, view, componentName, onChildViewAdded, onChildViewRemoved, customResourceBaseUrl);
+            const viewElement = createView(componentClass, properties, view, componentName, onChildViewAdded, onChildViewRemoved);
             const render = view.renderHandler;
             if (!render) {
                 throw new Error(`View ${view.name} render handler is not set`);
