@@ -54,7 +54,6 @@ declare module "ResourceLoader" {
     export type ResourceLoaderUrlFormatter = (resourceKey: string, ...params: string[]) => string;
 
     export const ResourceLoader: React.Context<ResourceLoaderUrlFormatter>;
-    export function createResourceLoaderUrlFormatter(customResourceBaseUrl: string, viewName: string): ResourceLoaderUrlFormatter;
 }
 
 declare module "ViewFrame" {
