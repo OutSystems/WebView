@@ -4,6 +4,7 @@ import { getStylesheets, webViewRootId, mainFrameName } from "./LoaderCommon";
 import { ObservableListCollection } from "./ObservableCollection";
 import { Task } from "./Task";
 import { ViewMetadata } from "./ViewMetadata";
+import * as ResourceLoader from "./ResourceLoader";
 
 declare function define(name: string, dependencies: string[], definition: Function);
 
@@ -36,6 +37,8 @@ const externalLibsPath = libsPath + "node_modules/";
 const bootstrapTask = new Task();
 const defaultStylesheetLoadTask = new Task();
 const views = new Map<string, ViewMetadata>();
+
+ResourceLoader.setCustomResourceBaseUrl(customResourceBaseUrl);
 
 function getView(viewName: string): ViewMetadata {
     const view = views.get(viewName);
@@ -208,7 +211,7 @@ export function loadPlugins(plugins: any[][], frameName: string): void {
                     }
 
                     const pluginNativeObject = await bindNativeObject(nativeObjectFullName);
-                    
+
                     view.nativeObjectNames.push(nativeObjectFullName); // add to the native objects collection
                     view.modules.set(moduleName, new module.default(pluginNativeObject, view.root));
                 });
@@ -259,7 +262,7 @@ export function loadComponent(
 
             const componentCacheKey = getComponentCacheKey(componentHash);
             const enableHtmlCache = view.isMain; // disable cache retrieval for inner views, since react does not currently support portals hydration
-            const cachedComponentHtml = enableHtmlCache ? localStorage.getItem(componentCacheKey) : null; 
+            const cachedComponentHtml = enableHtmlCache ? localStorage.getItem(componentCacheKey) : null;
             const shouldStoreComponentHtml = enableHtmlCache && !cachedComponentHtml && maxPreRenderedCacheEntries > 0;
             if (cachedComponentHtml) {
                 // render cached component html to reduce time to first render
@@ -294,8 +297,8 @@ export function loadComponent(
             }
 
             const { createView } = await import("./Loader.View");
-            
-            const viewElement = createView(componentClass, properties, view, componentName, onChildViewAdded, onChildViewRemoved, customResourceBaseUrl);
+
+            const viewElement = createView(componentClass, properties, view, componentName, onChildViewAdded, onChildViewRemoved);
             const render = view.renderHandler;
             if (!render) {
                 throw new Error(`View ${view.name} render handler is not set`);
