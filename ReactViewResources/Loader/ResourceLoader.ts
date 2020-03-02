@@ -2,6 +2,7 @@
 import { ResourceLoaderUrlFormatter } from "ResourceLoader";
 
 let customResourceBaseUrl = "";
+
 export function setCustomResourceBaseUrl(url: string): void {
     customResourceBaseUrl = url;
 }
