@@ -4,7 +4,6 @@ import { getStylesheets, webViewRootId, mainFrameName } from "./LoaderCommon";
 import { ObservableListCollection } from "./ObservableCollection";
 import { Task } from "./Task";
 import { ViewMetadata } from "./ViewMetadata";
-import * as ResourceLoader from "./ResourceLoader";
 
 declare function define(name: string, dependencies: string[], definition: Function);
 
@@ -35,8 +34,6 @@ const externalLibsPath = libsPath + "node_modules/";
 const bootstrapTask = new Task();
 const defaultStylesheetLoadTask = new Task();
 const views = new Map<string, ViewMetadata>();
-
-ResourceLoader.setCustomResourceBaseUrl(customResourceBaseUrl);
 
 class TimeoutException extends Error { }
 
@@ -376,6 +373,9 @@ async function bootstrap() {
 
     const { renderMainView } = await import("./Loader.View");
     mainView.renderHandler = component => renderMainView(component, rootElement);
+
+    const resourceLoader = await import("./ResourceLoader");
+    resourceLoader.setCustomResourceBaseUrl(customResourceBaseUrl);
 
     // bind event listener object ahead-of-time
     await cefglue.checkObjectBound(eventListenerObjectName);
