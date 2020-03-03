@@ -22,7 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia.Desktop" Version="0.9.1-cibuild0005724-beta" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.9.3-cibuild0006194-beta" />
     <PackageReference Include="NLog" Version="4.6.2" />
     <PackageReference Include="ViewGenerator" Version="1.0.286">
       <PrivateAssets>all</PrivateAssets>
