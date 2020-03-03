@@ -3,6 +3,7 @@ using System.Runtime.ExceptionServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
+using Avalonia.Interactivity;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using Xilium.CefGlue.Common;
@@ -17,9 +18,6 @@ namespace WebViewControl {
 
         partial void ExtraInitialize() {
             Content = chromium;
-
-            AttachedToVisualTree += OnAttachedToVisualTree;
-            DetachedFromVisualTree += OnDetachedFromVisualTree;
 
             // TODO needed ? FocusManager.SetIsFocusScope(this, true);
             // FocusManager.SetFocusedElement(this, FocusableElement);
@@ -46,19 +44,23 @@ namespace WebViewControl {
             }
         }
 
-        private void OnAttachedToVisualTree(object sender, VisualTreeAttachmentEventArgs e) {
+        protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e) {
             if (e.Root is Window window) {
-                window.Closed += OnHostWindowClosed;
+                // need to subscribe the event this way because close gets closed after all elements get detached
+                window.AddHandler(Window.WindowClosedEvent, (EventHandler<RoutedEventArgs>) OnHostWindowClosed);
             }
+            base.OnAttachedToVisualTree(e);
         }
 
-        private void OnDetachedFromVisualTree(object sender, VisualTreeAttachmentEventArgs e) {
+        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e) {
             if (e.Root is Window window) {
-                window.Closed -= OnHostWindowClosed;
+                window.RemoveHandler(Window.WindowClosedEvent, (EventHandler<RoutedEventArgs>) OnHostWindowClosed);
             }
+            base.OnDetachedFromVisualTree(e);
         }
-        private void OnHostWindowClosed(object sender, EventArgs e) {
-            ((Window)sender).Closed -= OnHostWindowClosed;
+
+        private void OnHostWindowClosed(object sender, RoutedEventArgs eventArgs) {
+            ((Window)sender).RemoveHandler(Window.WindowClosedEvent, (EventHandler<RoutedEventArgs>)OnHostWindowClosed);
             Dispose();
         }
 
