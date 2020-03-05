@@ -14,4 +14,4 @@ export function formatUrl(viewName: string, resourceKey: string, ...params: stri
 
 export const ResourceLoader = React.createContext<ResourceLoaderUrlFormatter>(() => "");
 
-window["ResourceLoader"] = { ResourceLoader: ResourceLoader };
+window["ResourceLoader"] = { ResourceLoader: ResourceLoader, formatUrl: formatUrl };
