@@ -49,7 +49,7 @@
 
   <Target Name="VG_CleanLegacyJSFiles" >
     <ItemGroup>
-      <JSFilesToDelete Include="**\*.js" Exclude="node_modules\**\*.js"/>
+      <JSFilesToDelete Include="**\*.js" Exclude="node_modules\**\*.js;$(CleanFilesExcludePath)**\*.js"/>
     </ItemGroup>
     <Message Condition="'@(JSFilesToDelete)' != ''" Text="Deleting old files: @(JSFilesToDelete)" Importance="high" />
     <Delete Files="@(JSFilesToDelete)"/>
@@ -57,7 +57,7 @@
 
   <Target Name="VG_CleanLegacyCSSFiles" >
     <ItemGroup>
-      <CSSFilesToDelete Include="**\*.css" Exclude="node_modules\**\*.css;**\*.min.css"/>
+      <CSSFilesToDelete Include="**\*.css" Exclude="node_modules\**\*.css;**\*.min.css;$(CleanFilesExcludePath)**\*.css"/>
     </ItemGroup>
     <Message Condition="'@(CSSFilesToDelete)' != ''" Text="Deleting old files: @(CSSFilesToDelete)" Importance="high" />
     <Delete Files="@(CSSFilesToDelete)"/>
