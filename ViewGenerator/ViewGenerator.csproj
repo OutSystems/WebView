@@ -16,7 +16,6 @@
     </NuGetPackageImportStamp>
     <TypeScriptToolsVersion>2.6</TypeScriptToolsVersion>
     <TargetFrameworkProfile />
-    <CleanFilesExcludePath Condition=" '$(CleanFilesExcludePath)' == '' ">Legacy\</CleanFilesExcludePath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
