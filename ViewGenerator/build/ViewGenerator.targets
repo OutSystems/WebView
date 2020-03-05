@@ -3,9 +3,9 @@
 
     <CleanDependsOn>
       VG_UnlinkNodeModules;
-      VG_CleanLegacyEntryFiles;
-      VG_CleanLegacyJSFiles;
-      VG_CleanLegacyCSSFiles;
+      VG_CleanEntryFiles;
+      VG_CleanJSFiles;
+      VG_CleanCSSFiles;
       VG_Clean;
       $(CleanDependsOn);
     </CleanDependsOn>
@@ -39,7 +39,7 @@
     <RemoveDir Condition="Exists('$(ProjectDir)node_modules\webview.plugins')" Directories="$(ProjectDir)node_modules\webview.plugins" />
   </Target>
     
-  <Target Name="VG_CleanLegacyEntryFiles" >
+  <Target Name="VG_CleanEntryFiles" >
     <ItemGroup>
       <EntryFilesToDelete Include="**\*.entry" />
     </ItemGroup>
@@ -47,17 +47,19 @@
     <Delete Files="@(EntryFilesToDelete)"/>
   </Target>
 
-  <Target Name="VG_CleanLegacyJSFiles" >
+  <Target Name="VG_CleanJSFiles" >
     <ItemGroup>
       <JSFilesToDelete Include="**\*.js" Exclude="node_modules\**\*.js"/>
+      <JSFilesToDelete Condition="$(CleanFilesExcludePath) != ''" Remove="$(CleanFilesExcludePath)**\*.js"/>
     </ItemGroup>
     <Message Condition="'@(JSFilesToDelete)' != ''" Text="Deleting old files: @(JSFilesToDelete)" Importance="high" />
     <Delete Files="@(JSFilesToDelete)"/>
   </Target>
 
-  <Target Name="VG_CleanLegacyCSSFiles" >
+  <Target Name="VG_CleanCSSFiles" >
     <ItemGroup>
       <CSSFilesToDelete Include="**\*.css" Exclude="node_modules\**\*.css;**\*.min.css"/>
+      <CSSFilesToDelete Condition="$(CleanFilesExcludePath) != ''" Remove="$(CleanFilesExcludePath)**\*.css"/>
     </ItemGroup>
     <Message Condition="'@(CSSFilesToDelete)' != ''" Text="Deleting old files: @(CSSFilesToDelete)" Importance="high" />
     <Delete Files="@(CSSFilesToDelete)"/>
@@ -117,7 +119,7 @@
     <CallTarget Targets="VG_GenerateBundleInner" />
   </Target>
 
-  <Target Name="VG_GenerateBundleInner" DependsOnTargets="VG_CleanLegacyEntryFiles;VG_CleanLegacyJSFiles;VG_CleanLegacyCSSFiles">
+  <Target Name="VG_GenerateBundleInner" DependsOnTargets="VG_CleanEntryFiles;VG_CleanJSFiles;VG_CleanCSSFiles">
     <Message Text="Generating bundle" Importance="high" />
 
     <!-- Default stylesheets bundle generation -->
