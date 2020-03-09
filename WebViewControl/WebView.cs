@@ -24,6 +24,7 @@ namespace WebViewControl {
     public delegate void JavascriptContextCreatedEventHandler(string frameName);
     internal delegate void JavascriptContextReleasedEventHandler(string frameName);
     public delegate void UnhandledAsyncExceptionEventHandler(UnhandledAsyncExceptionEventArgs eventArgs);
+    public delegate void DragFilesEventHandler(string[] fileNames);
 
     public partial class WebView : IDisposable {
 
@@ -79,6 +80,7 @@ namespace WebViewControl {
         public event Action TitleChanged;
         public event UnhandledAsyncExceptionEventHandler UnhandledAsyncException;
         public event Action</*url*/string> PopupOpening;
+        public event DragFilesEventHandler DragFiles;
 
         internal event Action Disposed;
         internal event JavascriptContextReleasedEventHandler JavascriptContextReleased;
@@ -183,6 +185,7 @@ namespace WebViewControl {
             chromium.ContextMenuHandler = new InternalContextMenuHandler(this);
             chromium.DialogHandler = new InternalDialogHandler(this);
             chromium.DownloadHandler = new InternalDownloadHandler(this);
+            chromium.DragHandler = new InternalDragHandler(this);
 
             disposables = new IDisposable[] {
                 chromium,

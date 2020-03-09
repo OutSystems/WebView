@@ -68,6 +68,7 @@ namespace ReactViewControl {
             WebView.Disposed += OnWebViewDisposed;
             WebView.BeforeResourceLoad += OnWebViewBeforeResourceLoad;
             WebView.LoadFailed += OnWebViewLoadFailed;
+            WebView.DragFiles += OnWebViewDragFiles;
 
             ExtraInitialize();
 
@@ -167,6 +168,11 @@ namespace ReactViewControl {
         /// Handle custom resource requests. Use this event to load the resource based on provided key.
         /// </summary>
         public event CustomResourceRequestedEventHandler CustomResourceRequested;
+
+        /// <summary>
+        /// Handle drag of files. Use this event to get the full path of the files being dragged.
+        /// </summary>
+        public event DragFilesEventHandler DragFiles;
 
         /// <summary>
         /// An view was initialized, load its component.
@@ -552,6 +558,10 @@ namespace ReactViewControl {
             }
 
             throw new Exception($"Failed to load view (error: {errorCode})");
+        }
+
+        private void OnWebViewDragFiles(string[] fileNames) {
+            DragFiles?.Invoke(fileNames);
         }
 
         private CustomResourceRequestedEventHandler[] GetCustomResourceHandlers(FrameInfo frame) {
