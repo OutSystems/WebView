@@ -15,12 +15,19 @@ namespace WebViewControl {
             }
 
             protected override bool OnDragEnter(CefBrowser browser, CefDragData dragData, CefDragOperationsMask mask) {
-                var fileNames = dragData.GetFileNames();
-                return fileNames != null;
+                var filesDragging = OwnerWebView.FilesDragging;
+                if (filesDragging != null) {
+                    var fileNames = dragData.GetFileNames();
+                    if (fileNames != null) {
+                        filesDragging(fileNames);
+                    }
+                }
+
+                return false;
             }
 
             protected override void OnDraggableRegionsChanged(CefBrowser browser, CefFrame frame, CefDraggableRegion[] regions) {
-                
+
             }
         }
     }

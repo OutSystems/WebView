@@ -24,7 +24,7 @@ namespace WebViewControl {
     public delegate void JavascriptContextCreatedEventHandler(string frameName);
     internal delegate void JavascriptContextReleasedEventHandler(string frameName);
     public delegate void UnhandledAsyncExceptionEventHandler(UnhandledAsyncExceptionEventArgs eventArgs);
-    public delegate void DragFilesEventHandler(string[] fileNames);
+    internal delegate void FilesDraggingEventHandler(string[] fileNames);
 
     public partial class WebView : IDisposable {
 
@@ -80,10 +80,10 @@ namespace WebViewControl {
         public event Action TitleChanged;
         public event UnhandledAsyncExceptionEventHandler UnhandledAsyncException;
         public event Action</*url*/string> PopupOpening;
-        public event DragFilesEventHandler DragFiles;
 
         internal event Action Disposed;
         internal event JavascriptContextReleasedEventHandler JavascriptContextReleased;
+        internal event FilesDraggingEventHandler FilesDragging;
 
         private static int domainId = 1;
 

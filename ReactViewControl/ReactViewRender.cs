@@ -172,7 +172,7 @@ namespace ReactViewControl {
         /// <summary>
         /// Handle drag of files. Use this event to get the full path of the files being dragged.
         /// </summary>
-        public event DragFilesEventHandler DragFiles;
+        internal event FilesDraggingEventHandler FilesDragging;
 
         /// <summary>
         /// An view was initialized, load its component.
@@ -561,7 +561,7 @@ namespace ReactViewControl {
         }
 
         private void OnWebViewDragFiles(string[] fileNames) {
-            DragFiles?.Invoke(fileNames);
+            FilesDragging?.Invoke(fileNames);
         }
 
         private CustomResourceRequestedEventHandler[] GetCustomResourceHandlers(FrameInfo frame) {

@@ -164,11 +164,11 @@ namespace ReactViewControl {
         }
 
         /// <summary>
-        /// Handle drag of giles. Use this event to get the full path of the files being dragged.
+        /// Handle drag of files. Use this event to get the full path of the files being dragged.
         /// </summary>
-        public event DragFilesEventHandler DragFiles {
-            add { View.DragFiles += value; }
-            remove { View.DragFiles -= value; }
+        internal event FilesDraggingEventHandler FilesDragging {
+            add { View.FilesDragging += value; }
+            remove { View.FilesDragging -= value; }
         }
 
         /// <summary>
