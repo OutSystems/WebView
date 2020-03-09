@@ -22,9 +22,9 @@ namespace WebViewControl {
     public delegate void DownloadProgressChangedEventHandler(string resourcePath, long receivedBytes, long totalBytes);
     public delegate void DownloadStatusChangedEventHandler(string resourcePath);
     public delegate void JavascriptContextCreatedEventHandler(string frameName);
+    public delegate void FilesDraggingEventHandler(string[] fileNames);
     internal delegate void JavascriptContextReleasedEventHandler(string frameName);
     public delegate void UnhandledAsyncExceptionEventHandler(UnhandledAsyncExceptionEventArgs eventArgs);
-    internal delegate void FilesDraggingEventHandler(string[] fileNames);
 
     public partial class WebView : IDisposable {
 

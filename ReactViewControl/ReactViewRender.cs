@@ -68,7 +68,7 @@ namespace ReactViewControl {
             WebView.Disposed += OnWebViewDisposed;
             WebView.BeforeResourceLoad += OnWebViewBeforeResourceLoad;
             WebView.LoadFailed += OnWebViewLoadFailed;
-            WebView.DragFiles += OnWebViewDragFiles;
+            WebView.FilesDragging += OnWebViewDragFiles;
 
             ExtraInitialize();
 
