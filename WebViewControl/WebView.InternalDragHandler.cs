@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using Xilium.CefGlue;
+﻿using Xilium.CefGlue;
 using Xilium.CefGlue.Common.Handlers;
 
 namespace WebViewControl {
