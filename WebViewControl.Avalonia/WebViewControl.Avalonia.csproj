@@ -41,6 +41,7 @@
     <Compile Include="..\WebViewControl\WebView.InternalContextMenuHandler.cs" Link="WebView.InternalContextMenuHandler.cs" />
     <Compile Include="..\WebViewControl\WebView.InternalDialogHandler.cs" Link="WebView.InternalDialogHandler.cs" />
     <Compile Include="..\WebViewControl\WebView.InternalDownloadHandler.cs" Link="WebView.InternalDownloadHandler.cs" />
+    <Compile Include="..\WebViewControl\WebView.InternalDragHandler.cs" Link="WebView.InternalDragHandler.cs" />
     <Compile Include="..\WebViewControl\WebView.InternalLifeSpanHandler.cs" Link="WebView.InternalLifeSpanHandler.cs" />
     <Compile Include="..\WebViewControl\WebView.InternalRequestHandler.cs" Link="WebView.InternalRequestHandler.cs" />
     <Compile Include="..\WebViewControl\WebView.InternalResourceRequestHandler.cs" Link="WebView.InternalResourceRequestHandler.cs" />
