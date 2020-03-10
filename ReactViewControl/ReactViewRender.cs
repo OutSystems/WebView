@@ -68,7 +68,7 @@ namespace ReactViewControl {
             WebView.Disposed += OnWebViewDisposed;
             WebView.BeforeResourceLoad += OnWebViewBeforeResourceLoad;
             WebView.LoadFailed += OnWebViewLoadFailed;
-            WebView.FilesDragging += OnWebViewDragFiles;
+            WebView.FilesDragging += OnWebViewFilesDragging;
 
             ExtraInitialize();
 
@@ -560,7 +560,7 @@ namespace ReactViewControl {
             throw new Exception($"Failed to load view (error: {errorCode})");
         }
 
-        private void OnWebViewDragFiles(string[] fileNames) {
+        private void OnWebViewFilesDragging(string[] fileNames) {
             FilesDragging?.Invoke(fileNames);
         }
 
