@@ -133,6 +133,7 @@
     <Compile Include="ResourceUrl.cs" />
     <Compile Include="UnhandledAsyncExceptionEventArgs.cs" />
     <Compile Include="WebView.CefDownloadHandler.cs" />
+    <Compile Include="WebView.CefDragHandler.cs" />
     <Compile Include="WebView.CefLifeSpanHandler.cs" />
     <Compile Include="WebView.CefRequestHandler.cs" />
     <Compile Include="WebView.CefAsyncResourceHandler.cs" />
