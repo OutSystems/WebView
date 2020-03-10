@@ -11,6 +11,7 @@ const SassRuleSet: RuleSetRule = {
                 hmr: false
             }
         },
+        "@teamsupercell/typings-for-css-modules-loader",
         "css-loader",
         {
             loader: "resolve-url-loader",

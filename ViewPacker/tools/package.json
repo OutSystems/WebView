@@ -10,6 +10,7 @@
     "author": "",
     "license": "ISC",
     "dependencies": {
+        "@teamsupercell/typings-for-css-modules-loader": "^2.1.0",
         "cache-loader": "^4.1.0",
         "css-loader": "^3.2.0",
         "dts-generator": "^3.0.0",
