@@ -164,6 +164,14 @@ namespace ReactViewControl {
         }
 
         /// <summary>
+        /// Handle drag of files. Use this event to get the full path of the files being dragged.
+        /// </summary>
+        public event FilesDraggingEventHandler FilesDragging {
+            add { View.FilesDragging += value; }
+            remove { View.FilesDragging -= value; }
+        }
+
+        /// <summary>
         /// Opens the developer tools.
         /// </summary>
         public void ShowDeveloperTools() {
