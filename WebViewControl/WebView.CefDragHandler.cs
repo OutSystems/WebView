@@ -2,8 +2,6 @@
 using CefSharp.Enums;
 using System.Collections.Generic;
 using System.Linq;
-using Xilium.CefGlue;
-using Xilium.CefGlue.Common.Handlers;
 
 namespace WebViewControl {
     partial class WebView {
