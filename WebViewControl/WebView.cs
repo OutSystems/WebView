@@ -26,6 +26,7 @@ namespace WebViewControl {
     public delegate void DownloadProgressChangedEventHandler(string resourcePath, long receivedBytes, long totalBytes);
     public delegate void DownloadStatusChangedEventHandler(string resourcePath);
     public delegate void JavascriptContextCreatedEventHandler(string frameName);
+    public delegate void FilesDraggingEventHandler(string[] fileNames);
     internal delegate void JavascriptContextReleasedEventHandler(string frameName);
     public delegate void UnhandledAsyncExceptionEventHandler(UnhandledAsyncExceptionEventArgs eventArgs);
 
@@ -90,6 +91,7 @@ namespace WebViewControl {
 
         internal event Action Disposed;
         internal event JavascriptContextReleasedEventHandler JavascriptContextReleased;
+        internal event FilesDraggingEventHandler FilesDragging;
 
         private event Action RenderProcessCrashed;
         private event Action JavascriptCallFinished;
@@ -229,6 +231,7 @@ namespace WebViewControl {
             chromium.DialogHandler = new CefDialogHandler(this);
             chromium.DownloadHandler = new CefDownloadHandler(this);
             chromium.CleanupElement = new FrameworkElement(); // prevent chromium to listen to default cleanup element unload events, this will be controlled manually
+            chromium.DragHandler = new CefDragHandler(this);
 
             disposables = new[] {
                 (IDisposable) AsyncCancellationTokenSource,
