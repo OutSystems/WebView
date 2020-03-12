@@ -7,10 +7,6 @@ import { ViewMetadata } from "./ViewMetadata";
 
 declare function define(name: string, dependencies: string[], definition: Function);
 
-declare class PromisseWithFinally<T> extends Promise<T> {
-    finally(onFinally: () => void): PromisseWithFinally<T>;
-}
-
 declare const cefglue: {
     checkObjectBound(objName: string): Promise<boolean>
 };
@@ -399,8 +395,6 @@ async function loadFramework(): Promise<void> {
     define("react-dom", [], () => window[reactDOMLib]);
 }
 
-let callCounter = 0;
-
 function createPropertiesProxy(objProperties: {}, nativeObjName: string, componentRenderedWaitTask?: Task<void>): {} {
     const proxy = Object.assign({}, objProperties);
     Object.keys(proxy).forEach(key => {
@@ -418,7 +412,7 @@ function createPropertiesProxy(objProperties: {}, nativeObjName: string, compone
                     });
                 }
 
-                let result: PromisseWithFinally<any> | undefined = undefined;
+                let result: Promise<any> | undefined = undefined;
                 try {
                     result = nativeObject[key].apply(window, arguments);
                 } finally {
