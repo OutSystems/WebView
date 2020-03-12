@@ -31,10 +31,10 @@ namespace ReactViewControl {
         public virtual bool EnableViewPreload => true;
 
         /// <summary>
-        /// When true, native methods called from javascript will block until the native method returns.
+        /// When true, native methods called from javascript will block and wait until the native method returns.
         /// Use this setting to prevent reentrancy, ie, native calls will be executed sequentially and one at a time.
         /// Defaults to false, calls can be executed in parallel and reentrancy can occur.
         /// </summary>
-        public virtual bool SyncNativeCalls => false;
+        public virtual bool ForceNativeSyncCalls => false;
     }
 }

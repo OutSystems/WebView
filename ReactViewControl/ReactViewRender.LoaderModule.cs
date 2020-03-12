@@ -27,14 +27,12 @@ namespace ReactViewControl {
             /// <summary>
             /// Loads the specified react component into the specified frame
             /// </summary>
-            /// <param name="component"></param>
-            /// <param name="frameName"></param>
-            public void LoadComponent(IViewModule component, string frameName, bool hasStyleSheet, bool hasPlugins, bool syncNativeCalls) {
+            public void LoadComponent(IViewModule component, string frameName, bool hasStyleSheet, bool hasPlugins, bool forceNativeSyncCalls) {
                 var mainSource = ViewRender.ToFullUrl(NormalizeUrl(component.MainJsSource));
                 var dependencySources = component.DependencyJsSources.Select(s => ViewRender.ToFullUrl(NormalizeUrl(s))).ToArray();
                 var cssSources = component.CssSources.Select(s => ViewRender.ToFullUrl(NormalizeUrl(s))).ToArray();
 
-                var componentSerialization = SerializeComponent(component, syncNativeCalls);
+                var componentSerialization = SerializeComponent(component, forceNativeSyncCalls);
                 var componentHash = ComputeHash(componentSerialization);
 
                 // loadComponent arguments:
@@ -123,9 +121,9 @@ namespace ReactViewControl {
                 ViewRender.WebView.ExecuteScript($"import('{loaderUrl}').then(m => m.default.{LoaderModuleName}).then({LoaderModuleName} => {LoaderModuleName}.{functionName}({string.Join(",", args)}))");
             }
 
-            private static string SerializeComponent(IViewModule component, bool syncCalls) {
+            private static string SerializeComponent(IViewModule component, bool syncNativeCalls) {
                 var nativeObjectMethodsMap = component.Events
-                    .Select(g => new KeyValuePair<string, object>(g, syncCalls ? SyncFunction.Instance : JavascriptSerializer.Undefined))
+                    .Select(g => new KeyValuePair<string, object>(g, syncNativeCalls ? SyncFunction.Instance : JavascriptSerializer.Undefined))
                     .Concat(component.PropertiesValues)
                     .OrderBy(p => p.Key)
                     .Select(p => new KeyValuePair<string, object>(JavascriptSerializer.GetJavascriptName(p.Key), p.Value));
