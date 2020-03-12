@@ -121,9 +121,9 @@ namespace ReactViewControl {
                 ViewRender.WebView.ExecuteScript($"import('{loaderUrl}').then(m => m.default.{LoaderModuleName}).then({LoaderModuleName} => {LoaderModuleName}.{functionName}({string.Join(",", args)}))");
             }
 
-            private static string SerializeComponent(IViewModule component, bool syncNativeCalls) {
+            private static string SerializeComponent(IViewModule component, bool forceNativeSyncCalls) {
                 var nativeObjectMethodsMap = component.Events
-                    .Select(g => new KeyValuePair<string, object>(g, syncNativeCalls ? SyncFunction.Instance : JavascriptSerializer.Undefined))
+                    .Select(g => new KeyValuePair<string, object>(g, forceNativeSyncCalls ? SyncFunction.Instance : JavascriptSerializer.Undefined))
                     .Concat(component.PropertiesValues)
                     .OrderBy(p => p.Key)
                     .Select(p => new KeyValuePair<string, object>(JavascriptSerializer.GetJavascriptName(p.Key), p.Value));
