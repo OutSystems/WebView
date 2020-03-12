@@ -298,7 +298,7 @@ export function loadComponent(
 
             const { createView } = await import("./Loader.View");
             
-            const viewElement = createView(componentClass, properties, view, componentName, onChildViewAdded, onChildViewRemoved, customResourceBaseUrl);
+            const viewElement = createView(componentClass, properties, view, componentName, onChildViewAdded, onChildViewRemoved);
             const render = view.renderHandler;
             if (!render) {
                 throw new Error(`View ${view.name} render handler is not set`);
@@ -344,9 +344,15 @@ export function loadComponent(
 }
 
 async function bootstrap() {
-    // prevent browser from loading the dropped file
-    window.addEventListener("dragover", (e) => e.preventDefault());
-    window.addEventListener("drop", (e) => e.preventDefault());
+    function preventDroppingFiles(event: DragEvent): void {
+        const containsDraggedFiles = event.dataTransfer && event.dataTransfer.types.includes("Files");
+        if (containsDraggedFiles) {
+            event.preventDefault();
+        }
+    }
+
+    window.addEventListener("dragover", preventDroppingFiles);
+    window.addEventListener("drop", preventDroppingFiles);
 
     await waitForDOMReady();
 
@@ -376,6 +382,9 @@ async function bootstrap() {
 
     const { renderMainView } = await import("./Loader.View");
     mainView.renderHandler = component => renderMainView(component, rootElement);
+
+    const resourceLoader = await import("./ResourceLoader");
+    resourceLoader.setCustomResourceBaseUrl(customResourceBaseUrl);
 
     // bind event listener object ahead-of-time
     await cefglue.checkObjectBound(eventListenerObjectName);

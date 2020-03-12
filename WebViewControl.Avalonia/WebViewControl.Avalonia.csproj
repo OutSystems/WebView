@@ -42,6 +42,7 @@
     <Compile Include="..\WebViewControl\WebView.InternalDialogHandler.cs" Link="WebView.InternalDialogHandler.cs" />
     <Compile Include="..\WebViewControl\WebView.InternalDownloadHandler.cs" Link="WebView.InternalDownloadHandler.cs" />
     <Compile Include="..\WebViewControl\WebView.InternalJsDialogHandler.cs" Link="WebView.InternalJsDialogHandler.cs" />
+    <Compile Include="..\WebViewControl\WebView.InternalDragHandler.cs" Link="WebView.InternalDragHandler.cs" />
     <Compile Include="..\WebViewControl\WebView.InternalLifeSpanHandler.cs" Link="WebView.InternalLifeSpanHandler.cs" />
     <Compile Include="..\WebViewControl\WebView.InternalRequestHandler.cs" Link="WebView.InternalRequestHandler.cs" />
     <Compile Include="..\WebViewControl\WebView.InternalResourceRequestHandler.cs" Link="WebView.InternalResourceRequestHandler.cs" />
@@ -51,7 +52,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="0.9.3-cibuild0006018-beta" />
+    <PackageReference Include="Avalonia" Version="0.9.3-cibuild0006194-beta" />
     <PackageReference PrivateAssets="None" Include="CefGlue.Avalonia" Version="75.1.60" />
     <PackageReference Include="InjectModuleInitializer" Version="2.0.3">
       <PrivateAssets>all</PrivateAssets>

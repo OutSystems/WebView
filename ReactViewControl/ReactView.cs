@@ -64,9 +64,12 @@ namespace ReactViewControl {
         }
 
         public void Dispose() {
+            InnerDispose();
             View.Dispose();
             GC.SuppressFinalize(this);
         }
+
+        protected virtual void InnerDispose() { }
 
         /// <summary>
         /// Factory used to configure the initial properties of the control.
@@ -158,6 +161,14 @@ namespace ReactViewControl {
         public event ResourceRequestedEventHandler ExternalResourceRequested {
             add { View.ExternalResourceRequested += value; }
             remove { View.ExternalResourceRequested -= value; }
+        }
+
+        /// <summary>
+        /// Handle drag of files. Use this event to get the full path of the files being dragged.
+        /// </summary>
+        public event FilesDraggingEventHandler FilesDragging {
+            add { View.FilesDragging += value; }
+            remove { View.FilesDragging -= value; }
         }
 
         /// <summary>

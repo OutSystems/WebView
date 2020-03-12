@@ -9,6 +9,7 @@ namespace WebViewControl {
     public sealed class ResourceHandler : Request {
 
         private bool isAsync;
+        private bool handled;
 
         internal ResourceHandler(CefRequest request, string urlOverride)
             : base(request, urlOverride) {
@@ -26,6 +27,7 @@ namespace WebViewControl {
         }
 
         private void Continue() {
+            handled = Handler?.Response != null || !string.IsNullOrEmpty(Handler?.RedirectUrl);
             if (isAsync) {
                 return;
             }
@@ -73,8 +75,8 @@ namespace WebViewControl {
 
         internal AsyncResourceHandler Handler { get; private set; }
 
-        public bool Handled => Handler?.Response != null || !string.IsNullOrEmpty(Handler?.RedirectUrl);
+        public bool Handled => handled;
 
-        public Stream Response => (Handler as DefaultResourceHandler)?.Response;
+        public Stream Response => Handler?.Response;
     }
 }
