@@ -23,9 +23,9 @@ namespace WebViewControl {
     public delegate void DownloadStatusChangedEventHandler(string resourcePath);
     public delegate void JavascriptContextCreatedEventHandler(string frameName);
     public delegate void UnhandledAsyncExceptionEventHandler(UnhandledAsyncExceptionEventArgs eventArgs);
+    public delegate void JavacriptDialogShowEventHandler(string text, Action closeDialog);
 
     internal delegate void JavascriptContextReleasedEventHandler(string frameName);
-    internal delegate void JavacriptDialogShowEventHandler(string text, Action closeDialog);
 
     public partial class WebView : IDisposable {
 
@@ -84,7 +84,7 @@ namespace WebViewControl {
 
         internal event Action Disposed;
         internal event JavascriptContextReleasedEventHandler JavascriptContextReleased;
-        internal event JavacriptDialogShowEventHandler JavacriptDialogShown;
+        public event JavacriptDialogShowEventHandler JavacriptDialogShown;
 
         private static int domainId = 1;
 

@@ -23,7 +23,7 @@ namespace WebViewControl {
 
                 void Close() {
                     callback.Continue(true, "");
-                    //callback.Dispose();
+                    callback.Dispose();
                 }
 
                 javacriptDialogShown.Invoke(message_text, Close);

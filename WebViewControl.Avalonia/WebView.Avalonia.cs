@@ -92,5 +92,7 @@ namespace WebViewControl {
         }
 
         internal Window HostingWindow { get => chromium.HostingWindow; set => chromium.HostingWindow = value; }
+
+        internal bool AllowNativeMethodsParallelExecution { get => chromium.AllowNativeMethodsParallelExecution; set => chromium.AllowNativeMethodsParallelExecution = value; }
     }
 }

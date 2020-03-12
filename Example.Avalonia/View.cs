@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading;
 using Avalonia.Controls;
 using Avalonia.Styling;
 using Avalonia.Threading;
@@ -36,6 +37,7 @@ namespace Example.Avalonia {
         }
 
         private void OnExampleViewClick(SomeType arg) {
+            Thread.Sleep(3000);
             AppendLog("Clicked on a button inside the React view");
         }
 
@@ -77,7 +79,7 @@ namespace Example.Avalonia {
         private void AppendLog(string log) {
             Dispatcher.UIThread.Post(() => {
                 var status = this.FindControl<TextBox>("status");
-                status.Text = log + Environment.NewLine + status.Text;
+                status.Text = DateTime.Now + ": " + log + Environment.NewLine + status.Text;
             });
         }
 

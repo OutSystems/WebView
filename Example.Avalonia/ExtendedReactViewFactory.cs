@@ -13,8 +13,10 @@ namespace Example.Avalonia {
             };
         }
 
-        public override bool ShowDeveloperTools => true;
+        public override bool ShowDeveloperTools => false;
 
         public override bool EnableViewPreload => true;
+
+        public override bool SyncNativeCalls => true;
     }
 }

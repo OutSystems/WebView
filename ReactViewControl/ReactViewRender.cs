@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 using WebViewControl;
 
@@ -25,26 +24,27 @@ namespace ReactViewControl {
         private const string ViewInitializedEventName = "ViewInitialized";
         private const string ViewDestroyedEventName = "ViewDestroyed";
         private const string ViewLoadedEventName = "ViewLoaded";
-        private const string NativeSyncCallStartEventName = "NativeSyncCallStart";
+        private const string NativeSyncCallEndPreamble = "NativeSyncCallEnd";
         private const string CustomResourceBaseUrl = "resource";
 
         private static Assembly ResourcesAssembly { get; } = typeof(ReactViewResources.Resources).Assembly;
 
         private Dictionary<string, FrameInfo> Frames { get; } = new Dictionary<string, FrameInfo>();
 
+        private BlockingCollection<Action> SyncNativeMethodPendingCalls { get; } = new BlockingCollection<Action>();
+
         private WebView WebView { get; }
         private Assembly UserCallingAssembly { get; }
         private LoaderModule Loader { get; }
         private Func<IViewModule[]> PluginsFactory { get; }
+        private bool SyncNativeCalls { get; }
 
-        private bool enableDebugMode = false;
+        private bool enableDebugMode;
         private ResourceUrl defaultStyleSheet;
         private FileSystemWatcher fileSystemWatcher;
         private string cacheInvalidationTimestamp;
 
-        private readonly BlockingCollection<Action> syncNativeMethodCalls = new BlockingCollection<Action>();
-
-        public ReactViewRender(ResourceUrl defaultStyleSheet, Func<IViewModule[]> initializePlugins, bool preloadWebView, bool enableDebugMode) {
+        public ReactViewRender(ResourceUrl defaultStyleSheet, Func<IViewModule[]> initializePlugins, bool preloadWebView, bool syncNativeCalls, bool enableDebugMode) {
             UserCallingAssembly = WebView.GetUserCallingMethod().ReflectedType.Assembly;
 
             // must useSharedDomain for the local storage to be shared
@@ -57,6 +57,7 @@ namespace ReactViewControl {
 
             Loader = new LoaderModule(this);
 
+            SyncNativeCalls = syncNativeCalls;
             DefaultStyleSheet = defaultStyleSheet;
             PluginsFactory = initializePlugins;
             EnableDebugMode = enableDebugMode;
@@ -69,7 +70,6 @@ namespace ReactViewControl {
 
             WebView.AttachListener(ViewInitializedEventName).Handler += OnViewInitialized;
             WebView.AttachListener(ViewDestroyedEventName).Handler += OnViewDestroyed;
-            WebView.AttachListener(NativeSyncCallStartEventName).Handler += OnNativeSyncCallStart;
 
             WebView.Disposed += OnWebViewDisposed;
             WebView.BeforeResourceLoad += OnWebViewBeforeResourceLoad;
@@ -86,6 +86,7 @@ namespace ReactViewControl {
                 ViewInitializedEventName,
                 ViewDestroyedEventName,
                 ViewLoadedEventName,
+                NativeSyncCallEndPreamble,
                 ResourceUrl.CustomScheme +  Uri.SchemeDelimiter + CustomResourceBaseUrl
             };
 
@@ -313,9 +314,9 @@ namespace ReactViewControl {
             if (frame.Component != null && frame.LoadStatus == LoadStatus.ViewInitialized && frame.IsComponentReadyToLoad) {
                 frame.LoadStatus = LoadStatus.ComponentLoading;
 
-                RegisterNativeObject(frame.Component, frame.Name);
+                RegisterNativeObject(frame.Component, frame.Name, SyncNativeCalls);
 
-                Loader.LoadComponent(frame.Component, frame.Name, DefaultStyleSheet != null, frame.Plugins.Length > 0);
+                Loader.LoadComponent(frame.Component, frame.Name, DefaultStyleSheet != null, frame.Plugins.Length > 0, SyncNativeCalls);
             }
         }
 
@@ -335,7 +336,8 @@ namespace ReactViewControl {
         private void LoadPlugins(FrameInfo frame) {
             if (frame.Plugins.Length > 0) {
                 foreach (var module in frame.Plugins) {
-                    RegisterNativeObject(module, frame.Name);
+                    // explicitly assuming that plugins calls can be executed in parallel
+                    RegisterNativeObject(module, frame.Name, syncNativeCalls: false);
                 }
 
                 Loader.LoadPlugins(frame.Plugins, frame.Name);
@@ -601,64 +603,46 @@ namespace ReactViewControl {
             }
         }
 
-        private static int callscounter = 0;
-
         /// <summary>
         /// Handles the call to a native method of a registered native object.
         /// </summary>
         /// <param name="nativeMethod"></param>
         /// <returns></returns>
-        private object CallNativeMethod(Func<object> nativeMethod) {
-            var id = callscounter++;
-            Console.WriteLine("CallNativeMethod " + id);
+        private object CallNativeSyncMethod(Func<object> nativeMethod) {
             try {
                 return nativeMethod();
             } finally {
-                if (insideNativeSyncCall) {
-                    Console.WriteLine("CallNativeMethod:finished:notifysync " + id);
-                    var finalize = syncNativeMethodCalls.Take();
-                    Console.WriteLine("CallNativeMethod:finished " + id);
-                    finalize();
-                    //action();
-                }
-                
+                var finalize = SyncNativeMethodPendingCalls.Take();
+                finalize();
             }
         }
 
-        private bool insideNativeSyncCall = false;
-        private void OnNativeSyncCallStart(object[] args) {
-            Console.WriteLine("NativeSyncCallStart:" + args[1]);
-            insideNativeSyncCall = true;
-            //if (syncNativeMethodCallWaitHandle != null) {
-            //    throw new InvalidOperationException("Expected not to be executing native sync method");
-            //}
-
-        }
-
+        /// <summary>
+        /// Handles special alert invocations.
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="closeDialog"></param>
         private void OnWebViewJavacriptDialogShown(string text, Action closeDialog) {
-            if (text.StartsWith("NativeSyncCallEnd")) {
-                Console.WriteLine(text);
-                syncNativeMethodCalls.Add(closeDialog);
-                //if (syncNativeMethodCallWaitHandle == null) {
-                //    throw new InvalidOperationException("Expected to be executing native sync method");
-                //}
-                //syncNativeMethodCalls.Take();
-                //closeDialog();
-                //syncNativeMethodCalls.Add(closeDialog);
-            } else {
-                //ShowWindow(closeDialog);
+            if (text.StartsWith(NativeSyncCallEndPreamble)) {
+                // alerts containing the special token have a special behavior
+                // it serves as a way to block the js execution until the close dialog is called
+                SyncNativeMethodPendingCalls.Add(closeDialog);
+                return;
             }
+            closeDialog();
         }
-
-        partial void ShowWindow(Action closeDialog);
 
         /// <summary>
         /// Registers a .net object to be available on the js context.
         /// </summary>
         /// <param name="module"></param>
         /// <param name="frameName"></param>
-        private void RegisterNativeObject(IViewModule module, string frameName) {
-            WebView.RegisterJavascriptObject(module.GetNativeObjectFullName(frameName), module.CreateNativeObject(), interceptCall: CallNativeMethod, executeCallsInUI: false);
+        private void RegisterNativeObject(IViewModule module, string frameName, bool syncNativeCalls) {
+            Func<Func<object>, object> interceptCall = null;
+            if (syncNativeCalls) {
+                interceptCall = CallNativeSyncMethod;
+            }
+            WebView.RegisterJavascriptObject(module.GetNativeObjectFullName(frameName), module.CreateNativeObject(), interceptCall: interceptCall, executeCallsInUI: false);
         }
 
         /// <summary>

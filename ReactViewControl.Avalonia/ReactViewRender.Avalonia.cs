@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Linq;
-using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Styling;
 
 namespace ReactViewControl {
@@ -23,16 +20,8 @@ namespace ReactViewControl {
             }
 
             WebView.HostingWindow = hiddenWindow;
+            WebView.AllowNativeMethodsParallelExecution = !SyncNativeCalls;
             Content = WebView;
-        }
-
-        partial void ShowWindow(Action close) {
-            System.Threading.Tasks.Task.Delay(10000).ContinueWith(_ => close());
-            //Avalonia.Threading.Dispatcher.UIThread.Post(() => {
-            //    var window = new Window();
-            //    window.Closed += delegate { close(); };
-            //    window.Show(); // ((IClassicDesktopStyleApplicationLifetime) Application.Current.ApplicationLifetime).Windows.First());
-            //});
         }
     }
 }

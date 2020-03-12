@@ -30,6 +30,7 @@ const [
     viewInitializedEventName,
     viewDestroyedEventName,
     viewLoadedEventName,
+    nativeSyncCallEndPreamble,
     customResourceBaseUrl
 ] = Array.from(new URLSearchParams(location.search).keys());
 
@@ -417,21 +418,13 @@ function createPropertiesProxy(objProperties: {}, nativeObjName: string, compone
                     });
                 }
 
-                var token = callCounter++;
-                console.log(token);
-
-                if (isSyncFunction) {
-                    fireNativeNotification("NativeSyncCallStart", key, token.toString());
-                }
-
                 let result: PromisseWithFinally<any> | undefined = undefined;
                 try {
                     result = nativeObject[key].apply(window, arguments);
                 } finally {
                     if (isSyncFunction) {
-                        //result = result.finally(() => fireNativeNotification("NativeSyncCallStart", key, token.toString()));
-                        alert("NativeSyncCallEnd:" + token);
-                        console.log("NativeSyncCallEnd:" + token);
+                        // suspend js execution until alert returns (will be automatically dismissed once the nativeObject method call ends)
+                        alert(nativeSyncCallEndPreamble + ":" + key);
                     }
                 }
 

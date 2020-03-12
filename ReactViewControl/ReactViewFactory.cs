@@ -29,5 +29,12 @@ namespace ReactViewControl {
         /// The view is cached and preloaded. First render occurs earlier.
         /// </summary>
         public virtual bool EnableViewPreload => true;
+
+        /// <summary>
+        /// Specifies the behavior of calls from javascript to native.
+        /// If true, a javascript call to a native method will block until the native method returns.
+        /// Defaults to false, calls can be executed in parallel.
+        /// </summary>
+        public virtual bool SyncNativeCalls => false;
     }
 }
