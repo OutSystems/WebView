@@ -30,22 +30,6 @@
                 "emitComponentAdapter": false,
                 "emitViewObjects": true
             }
-        },
-        {
-            "input": "Common/*.ts",
-            "output": "Generated/",
-            "template": "",
-            "parameters": {
-                "namespace": "Example.Avalonia",
-                "baseComponentClass": "",
-                "baseComponentInterface": "",
-                "javascriptDistPath": "",
-                "isModule": false,
-                "emitComponent": false,
-                "emitComponentInterface": false,
-                "emitComponentAdapter": false,
-                "emitViewObjects": true
-            }
         }
     ]
 }
