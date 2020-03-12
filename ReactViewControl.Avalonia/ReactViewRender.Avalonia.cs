@@ -20,6 +20,7 @@ namespace ReactViewControl {
             }
 
             WebView.HostingWindow = hiddenWindow;
+            WebView.AllowNativeMethodsParallelExecution = !ForceNativeSyncCalls;
             Content = WebView;
         }
     }

@@ -11,6 +11,8 @@ declare const cefglue: {
     checkObjectBound(objName: string): Promise<boolean>
 };
 
+export const syncFunction = new Object();
+
 const reactLib: string = "React";
 const reactDOMLib: string = "ReactDOM";
 const viewsBundleName: string = "Views";
@@ -24,6 +26,7 @@ const [
     viewInitializedEventName,
     viewDestroyedEventName,
     viewLoadedEventName,
+    nativeSyncCallEndPreamble,
     customResourceBaseUrl
 ] = Array.from(new URLSearchParams(location.search).keys());
 
@@ -401,11 +404,12 @@ async function loadFramework(): Promise<void> {
     define("react-dom", [], () => window[reactDOMLib]);
 }
 
-function createPropertiesProxy(basePropertiesObj: {}, nativeObjName: string, componentRenderedWaitTask?: Task<void>): {} {
-    const proxy = Object.assign({}, basePropertiesObj);
+function createPropertiesProxy(objProperties: {}, nativeObjName: string, componentRenderedWaitTask?: Task<void>): {} {
+    const proxy = Object.assign({}, objProperties);
     Object.keys(proxy).forEach(key => {
-        const value = basePropertiesObj[key];
-        if (value !== undefined) {
+        const value = objProperties[key];
+        const isSyncFunction = value === syncFunction;
+        if (value !== undefined && !isSyncFunction) {
             proxy[key] = value;
         } else {
             proxy[key] = async function () {
@@ -416,11 +420,22 @@ function createPropertiesProxy(basePropertiesObj: {}, nativeObjName: string, com
                         resolve(nativeObject);
                     });
                 }
-                const result = nativeObject[key].apply(window, arguments);
+
+                let result: Promise<any> | undefined = undefined;
+                try {
+                    result = nativeObject[key].apply(window, arguments);
+                } finally {
+                    if (isSyncFunction) {
+                        // suspend js execution until alert returns (will be automatically dismissed once the nativeObject method call ends)
+                        alert(nativeSyncCallEndPreamble + ":" + key);
+                    }
+                }
+
                 if (componentRenderedWaitTask) {
                     // wait until component is rendered, first render should only render static data
                     await componentRenderedWaitTask.promise;
                 }
+
                 return result;
             };
         }

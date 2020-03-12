@@ -16,5 +16,7 @@ namespace Example.Avalonia {
         public override bool ShowDeveloperTools => false;
 
         public override bool EnableViewPreload => true;
+
+        public override bool ForceNativeSyncCalls => true;
     }
 }

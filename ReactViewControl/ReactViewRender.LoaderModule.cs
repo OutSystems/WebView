@@ -11,6 +11,13 @@ namespace ReactViewControl {
 
         internal class LoaderModule {
 
+            private const string LoaderModuleName = "Loader";
+
+            private class SyncFunction {
+                public static readonly SyncFunction Instance = new SyncFunction();
+                private SyncFunction() { }
+            }
+
             public LoaderModule(ReactViewRender viewRender) {
                 ViewRender = viewRender;
             }
@@ -20,19 +27,12 @@ namespace ReactViewControl {
             /// <summary>
             /// Loads the specified react component into the specified frame
             /// </summary>
-            /// <param name="component"></param>
-            /// <param name="frameName"></param>
-            public void LoadComponent(IViewModule component, string frameName, bool hasStyleSheet, bool hasPlugins) {
+            public void LoadComponent(IViewModule component, string frameName, bool hasStyleSheet, bool hasPlugins, bool forceNativeSyncCalls) {
                 var mainSource = ViewRender.ToFullUrl(NormalizeUrl(component.MainJsSource));
                 var dependencySources = component.DependencyJsSources.Select(s => ViewRender.ToFullUrl(NormalizeUrl(s))).ToArray();
                 var cssSources = component.CssSources.Select(s => ViewRender.ToFullUrl(NormalizeUrl(s))).ToArray();
 
-                var nativeObjectMethodsMap =
-                    component.Events.Select(g => new KeyValuePair<string, object>(g, JavascriptSerializer.Undefined))
-                    .Concat(component.PropertiesValues)
-                    .OrderBy(p => p.Key)
-                    .Select(p => new KeyValuePair<string, object>(JavascriptSerializer.GetJavascriptName(p.Key), p.Value));
-                var componentSerialization = JavascriptSerializer.Serialize(nativeObjectMethodsMap);
+                var componentSerialization = SerializeComponent(component, forceNativeSyncCalls);
                 var componentHash = ComputeHash(componentSerialization);
 
                 // loadComponent arguments:
@@ -118,7 +118,16 @@ namespace ReactViewControl {
             private void ExecuteLoaderFunction(string functionName, params string[] args) {
                 // using setimeout we make sure the function is already defined
                 var loaderUrl = new ResourceUrl(ResourcesAssembly, ReactViewResources.Resources.LoaderUrl);
-                ViewRender.WebView.ExecuteScript($"import('{loaderUrl}').then(m => m.default.Loader.{functionName}({string.Join(",", args)}))");
+                ViewRender.WebView.ExecuteScript($"import('{loaderUrl}').then(m => m.default.{LoaderModuleName}).then({LoaderModuleName} => {LoaderModuleName}.{functionName}({string.Join(",", args)}))");
+            }
+
+            private static string SerializeComponent(IViewModule component, bool forceNativeSyncCalls) {
+                var nativeObjectMethodsMap = component.Events
+                    .Select(g => new KeyValuePair<string, object>(g, forceNativeSyncCalls ? SyncFunction.Instance : JavascriptSerializer.Undefined))
+                    .Concat(component.PropertiesValues)
+                    .OrderBy(p => p.Key)
+                    .Select(p => new KeyValuePair<string, object>(JavascriptSerializer.GetJavascriptName(p.Key), p.Value));
+                return JavascriptSerializer.Serialize(nativeObjectMethodsMap, o => o == SyncFunction.Instance ? $"{LoaderModuleName}.syncFunction" : JavascriptSerializer.Serialize(o));
             }
 
             private static string ComputeHash(string inputString) {

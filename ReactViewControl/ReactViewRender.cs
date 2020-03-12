@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -23,23 +24,27 @@ namespace ReactViewControl {
         private const string ViewInitializedEventName = "ViewInitialized";
         private const string ViewDestroyedEventName = "ViewDestroyed";
         private const string ViewLoadedEventName = "ViewLoaded";
+        private const string NativeSyncCallEndPreamble = "NativeSyncCallEnd";
         private const string CustomResourceBaseUrl = "resource";
 
         private static Assembly ResourcesAssembly { get; } = typeof(ReactViewResources.Resources).Assembly;
 
         private Dictionary<string, FrameInfo> Frames { get; } = new Dictionary<string, FrameInfo>();
 
+        private BlockingCollection<Action> NativeMethodPendingSyncCalls { get; } = new BlockingCollection<Action>();
+
         private WebView WebView { get; }
         private Assembly UserCallingAssembly { get; }
         private LoaderModule Loader { get; }
         private Func<IViewModule[]> PluginsFactory { get; }
+        private bool ForceNativeSyncCalls { get; }
 
-        private bool enableDebugMode = false;
+        private bool enableDebugMode;
         private ResourceUrl defaultStyleSheet;
         private FileSystemWatcher fileSystemWatcher;
         private string cacheInvalidationTimestamp;
 
-        public ReactViewRender(ResourceUrl defaultStyleSheet, Func<IViewModule[]> initializePlugins, bool preloadWebView, bool enableDebugMode) {
+        public ReactViewRender(ResourceUrl defaultStyleSheet, Func<IViewModule[]> initializePlugins, bool preloadWebView, bool forceNativeSyncCalls, bool enableDebugMode) {
             UserCallingAssembly = WebView.GetUserCallingMethod().ReflectedType.Assembly;
 
             // must useSharedDomain for the local storage to be shared
@@ -52,6 +57,7 @@ namespace ReactViewControl {
 
             Loader = new LoaderModule(this);
 
+            ForceNativeSyncCalls = forceNativeSyncCalls;
             DefaultStyleSheet = defaultStyleSheet;
             PluginsFactory = initializePlugins;
             EnableDebugMode = enableDebugMode;
@@ -68,6 +74,7 @@ namespace ReactViewControl {
             WebView.Disposed += OnWebViewDisposed;
             WebView.BeforeResourceLoad += OnWebViewBeforeResourceLoad;
             WebView.LoadFailed += OnWebViewLoadFailed;
+            WebView.JavacriptDialogShown += OnWebViewJavacriptDialogShown;
             WebView.FilesDragging += OnWebViewFilesDragging;
 
             ExtraInitialize();
@@ -80,6 +87,7 @@ namespace ReactViewControl {
                 ViewInitializedEventName,
                 ViewDestroyedEventName,
                 ViewLoadedEventName,
+                NativeSyncCallEndPreamble,
                 ResourceUrl.CustomScheme +  Uri.SchemeDelimiter + CustomResourceBaseUrl
             };
 
@@ -312,9 +320,9 @@ namespace ReactViewControl {
             if (frame.Component != null && frame.LoadStatus == LoadStatus.ViewInitialized && frame.IsComponentReadyToLoad) {
                 frame.LoadStatus = LoadStatus.ComponentLoading;
 
-                RegisterNativeObject(frame.Component, frame.Name);
+                RegisterNativeObject(frame.Component, frame.Name, ForceNativeSyncCalls);
 
-                Loader.LoadComponent(frame.Component, frame.Name, DefaultStyleSheet != null, frame.Plugins.Length > 0);
+                Loader.LoadComponent(frame.Component, frame.Name, DefaultStyleSheet != null, frame.Plugins.Length > 0, ForceNativeSyncCalls);
             }
         }
 
@@ -334,7 +342,8 @@ namespace ReactViewControl {
         private void LoadPlugins(FrameInfo frame) {
             if (frame.Plugins.Length > 0) {
                 foreach (var module in frame.Plugins) {
-                    RegisterNativeObject(module, frame.Name);
+                    // explicitly assuming that plugins calls can be executed in parallel
+                    RegisterNativeObject(module, frame.Name, forceNativeSyncCalls: false);
                 }
 
                 Loader.LoadPlugins(frame.Plugins, frame.Name);
@@ -605,12 +614,45 @@ namespace ReactViewControl {
         }
 
         /// <summary>
+        /// Handles the call to a native method of a registered native object.
+        /// </summary>
+        /// <param name="nativeMethod"></param>
+        /// <returns></returns>
+        private object CallNativeSyncMethod(Func<object> nativeMethod) {
+            try {
+                return nativeMethod();
+            } finally {
+                var finalize = NativeMethodPendingSyncCalls.Take();
+                finalize();
+            }
+        }
+
+        /// <summary>
+        /// Handles special alert invocations.
+        /// </summary>
+        /// <param name="text"></param>
+        /// <param name="closeDialog"></param>
+        private void OnWebViewJavacriptDialogShown(string text, Action closeDialog) {
+            if (text.StartsWith(NativeSyncCallEndPreamble)) {
+                // alerts containing the special token have a special behavior
+                // it serves as a way to block the js execution until the close dialog is called
+                NativeMethodPendingSyncCalls.Add(closeDialog);
+                return;
+            }
+            closeDialog();
+        }
+
+        /// <summary>
         /// Registers a .net object to be available on the js context.
         /// </summary>
         /// <param name="module"></param>
         /// <param name="frameName"></param>
-        private void RegisterNativeObject(IViewModule module, string frameName) {
-            WebView.RegisterJavascriptObject(module.GetNativeObjectFullName(frameName), module.CreateNativeObject(), executeCallsInUI: false);
+        private void RegisterNativeObject(IViewModule module, string frameName, bool forceNativeSyncCalls) {
+            Func<Func<object>, object> interceptCall = null;
+            if (forceNativeSyncCalls) {
+                interceptCall = CallNativeSyncMethod;
+            }
+            WebView.RegisterJavascriptObject(module.GetNativeObjectFullName(frameName), module.CreateNativeObject(), interceptCall: interceptCall, executeCallsInUI: false);
         }
 
         /// <summary>

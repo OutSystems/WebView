@@ -1,7 +1,7 @@
 {
     "tasks": [
         {
-            "input": "**/*.tsx",
+            "input": "ExampleView/*.tsx",
             "output": "Generated/",
             "template": "",
             "parameters": {
@@ -16,7 +16,7 @@
             }
         },
         {
-            "input": "**/*.ts",
+            "input": "ExampleView/*.ts",
             "output": "Generated/",
             "template": "",
             "parameters": {
