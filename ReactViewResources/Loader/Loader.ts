@@ -341,9 +341,15 @@ export function loadComponent(
 }
 
 async function bootstrap() {
-    // prevent browser from loading the dropped file
-    window.addEventListener("dragover", (e) => e.preventDefault());
-    window.addEventListener("drop", (e) => e.preventDefault());
+    function preventDroppingFiles(event: DragEvent): void {
+        const containsDraggedFiles = event.dataTransfer && event.dataTransfer.types.includes("Files");
+        if (containsDraggedFiles) {
+            event.preventDefault();
+        }
+    }
+
+    window.addEventListener("dragover", preventDroppingFiles);
+    window.addEventListener("drop", preventDroppingFiles);
 
     await waitForDOMReady();
 
