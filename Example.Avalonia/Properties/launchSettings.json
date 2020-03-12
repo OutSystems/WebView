@@ -1,8 +1,0 @@
-{
-  "profiles": {
-    "Example.Avalonia": {
-      "commandName": "Project",
-      "nativeDebugging": true
-    }
-  }
-}
