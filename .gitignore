@@ -21,6 +21,7 @@ ReactViewResources/node_modules/
 *.tgz
 ViewGenerator/tools/node_modules/
 *.css
+*.scss.d.ts
 Example/Generated/
 Example/node_modules/
 ViewGeneratorCore/tools/node_modules/
