@@ -27,7 +27,7 @@ class SubExampleComponent extends React.Component<{}, {}, IPluginsContext> {
     }
 }
 
-export default class SubExampleView extends React.Component<ISubExampleViewProperties, { time: string; dotNetCallCount: number, buttonClicksCount: number }> implements ISubExampleViewBehaviors {
+export default class SubExampleView extends React.Component<ISubExampleViewProperties, { time: string; dotNetCallCount: number; buttonClicksCount: number }> implements ISubExampleViewBehaviors {
 
     private viewplugin: ViewPlugin;
 
