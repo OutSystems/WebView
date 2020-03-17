@@ -2,7 +2,7 @@
 import { ViewFrame } from "ViewFrame";
 import ViewPlugin from "./ViewPlugin";
 import { IPluginsContext } from "PluginsProvider";
-import * as styles from "./ExampleView.scss";
+import "./ExampleView.scss";
 import * as Image from "./beach.jpg";
 import { ResourceLoader } from "ResourceLoader";
 import SubExampleView from "./SubExampleView";
@@ -97,9 +97,7 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
             <div className="wrapper">
                 {this.props.constantMessage}
                 <br />
-                Current time: {this.state.time}
-                <br />
-                This is a shared SASS varible value: '{styles.exportedVariable}'
+                Current time: {this.state.time}<br />
                 <br />
                 {this.props.image === ImageKind.Beach ? <img className="image" src={Image} /> : null}
                 <br />
