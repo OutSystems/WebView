@@ -1,4 +1,10 @@
-﻿.wrapper {
+﻿$someVar: "Some Fabulous Value!";
+
+:export {
+    exportedVariable: $someVar;
+}
+
+.wrapper {
     text-align: center;
 }
 
