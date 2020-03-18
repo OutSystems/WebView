@@ -427,7 +427,7 @@ function createPropertiesProxy(objProperties: {}, nativeObjName: string, compone
                 } finally {
                     if (isSyncFunction) {
                         // suspend js execution until alert returns (will be automatically dismissed once the nativeObject method call ends)
-                        alert(nativeSyncCallEndPreamble + ":" + key);
+                        alert(nativeSyncCallEndPreamble + nativeObjName);
                     }
                 }
 

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -24,14 +23,13 @@ namespace ReactViewControl {
         private const string ViewInitializedEventName = "ViewInitialized";
         private const string ViewDestroyedEventName = "ViewDestroyed";
         private const string ViewLoadedEventName = "ViewLoaded";
-        private const string NativeSyncCallEndPreamble = "NativeSyncCallEnd";
+        private const string NativeSyncCallEndPreamble = "NativeSyncCallEnd:";
         private const string CustomResourceBaseUrl = "resource";
 
         private static Assembly ResourcesAssembly { get; } = typeof(ReactViewResources.Resources).Assembly;
 
         private Dictionary<string, FrameInfo> Frames { get; } = new Dictionary<string, FrameInfo>();
-
-        private BlockingCollection<Action> NativeMethodPendingSyncCalls { get; } = new BlockingCollection<Action>();
+        private Dictionary<string, CallStackBarrier> PendingSyncCalls { get; } = new Dictionary<string, CallStackBarrier>();
 
         private WebView WebView { get; }
         private Assembly UserCallingAssembly { get; }
@@ -46,7 +44,7 @@ namespace ReactViewControl {
 
         public ReactViewRender(ResourceUrl defaultStyleSheet, Func<IViewModule[]> initializePlugins, bool preloadWebView, bool forceNativeSyncCalls, bool enableDebugMode) {
             UserCallingAssembly = WebView.GetUserCallingMethod().ReflectedType.Assembly;
-
+            
             // must useSharedDomain for the local storage to be shared
             WebView = new WebView(useSharedDomain: true) {
                 DisableBuiltinContextMenus = true,
@@ -614,16 +612,49 @@ namespace ReactViewControl {
         }
 
         /// <summary>
-        /// Handles the call to a native method of a registered native object.
+        /// Registers a .net object to be available on the js context.
         /// </summary>
-        /// <param name="nativeMethod"></param>
-        /// <returns></returns>
-        private object CallNativeSyncMethod(Func<object> nativeMethod) {
-            try {
-                return nativeMethod();
-            } finally {
-                var finalize = NativeMethodPendingSyncCalls.Take();
-                finalize();
+        /// <param name="module"></param>
+        /// <param name="frameName"></param>
+        /// <param name="forceNativeSyncCalls"></param>
+        private void RegisterNativeObject(IViewModule module, string frameName, bool forceNativeSyncCalls) {
+            CallStackBarrier callBarrier = null;
+            Func<Func<object>, object> interceptCall = null;
+            var nativeObjectName = module.GetNativeObjectFullName(frameName);
+
+            if (forceNativeSyncCalls) {
+                callBarrier = new CallStackBarrier();
+                // handles the call to a native method of a registered native object
+                interceptCall = (nativeMethod) => {
+                    try {
+                        return nativeMethod();
+                    } finally {
+                        callBarrier.Exit();
+                    }
+                };
+            }
+
+            lock (PendingSyncCalls) {
+                if (callBarrier != null) {
+                    PendingSyncCalls.Add(nativeObjectName, callBarrier);
+                }
+                WebView.RegisterJavascriptObject(nativeObjectName, module.CreateNativeObject(), interceptCall: interceptCall, executeCallsInUI: false);
+            }
+        }
+
+        /// <summary>
+        /// Unregisters a .net object available on the js context.
+        /// </summary>
+        /// <param name="module"></param>
+        /// <param name="frameName"></param>
+        private void UnregisterNativeObject(IViewModule module, string frameName) {
+            var nativeObjectName = module.GetNativeObjectFullName(frameName);
+            lock (PendingSyncCalls) {
+                WebView.UnregisterJavascriptObject(nativeObjectName);
+                if (PendingSyncCalls.TryGetValue(nativeObjectName, out var callBarrier)) {
+                    callBarrier.SignalExit(); // free the pending call
+                    PendingSyncCalls.Remove(nativeObjectName);
+                }
             }
         }
 
@@ -634,35 +665,20 @@ namespace ReactViewControl {
         /// <param name="closeDialog"></param>
         private void OnWebViewJavacriptDialogShown(string text, Action closeDialog) {
             if (text.StartsWith(NativeSyncCallEndPreamble)) {
-                // alerts containing the special token have a special behavior
-                // it serves as a way to block the js execution until the close dialog is called
-                NativeMethodPendingSyncCalls.Add(closeDialog);
-                return;
+                // dialogs containing the special token have a special behavior
+                // it serves as a way to block the js execution until the close dialog callback is called
+
+                var nativeObjectName = text.Substring(NativeSyncCallEndPreamble.Length);
+                lock (PendingSyncCalls) {
+                    if (PendingSyncCalls.TryGetValue(nativeObjectName, out var callBarrier)) {
+                        callBarrier.SignalExit(closeDialog); // signal the pending call
+                        return;
+                    }
+                }
             }
             closeDialog();
         }
 
-        /// <summary>
-        /// Registers a .net object to be available on the js context.
-        /// </summary>
-        /// <param name="module"></param>
-        /// <param name="frameName"></param>
-        private void RegisterNativeObject(IViewModule module, string frameName, bool forceNativeSyncCalls) {
-            Func<Func<object>, object> interceptCall = null;
-            if (forceNativeSyncCalls) {
-                interceptCall = CallNativeSyncMethod;
-            }
-            WebView.RegisterJavascriptObject(module.GetNativeObjectFullName(frameName), module.CreateNativeObject(), interceptCall: interceptCall, executeCallsInUI: false);
-        }
-
-        /// <summary>
-        /// Unregisters a .net object available on the js context.
-        /// </summary>
-        /// <param name="module"></param>
-        /// <param name="frameName"></param>
-        private void UnregisterNativeObject(IViewModule module, string frameName) {
-            WebView.UnregisterJavascriptObject(module.GetNativeObjectFullName(frameName));
-        }
 
         /// <summary>
         /// Converts an url to a full path url
