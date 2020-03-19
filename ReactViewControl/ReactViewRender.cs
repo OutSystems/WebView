@@ -302,9 +302,13 @@ namespace ReactViewControl {
             }
         }
 
-        void IChildViewHost.LoadComponent(string frameName) {
+        void IChildViewHost.LoadComponent(string frameName, IViewModule component) {
             lock (SyncRoot) {
                 var frame = GetOrCreateFrame(frameName);
+                if (frame.Component == null) {
+                    // component not bound yet? bind it
+                    BindComponentToFrame(component, frame);
+                }
                 frame.IsComponentReadyToLoad = true;
                 TryLoadComponent(frame);
             }

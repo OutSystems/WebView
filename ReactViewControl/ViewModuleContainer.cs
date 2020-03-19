@@ -101,7 +101,7 @@ namespace ReactViewControl {
         }
 
         public void Load() {
-            childViewHost?.LoadComponent(frame.Name);
+            childViewHost?.LoadComponent(frame.Name, this);
         }
 
         public T GetOrAddChildView<T>(string frameName) where T : IViewModule, new() {

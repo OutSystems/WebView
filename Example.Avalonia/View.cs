@@ -33,6 +33,14 @@ namespace Example.Avalonia {
 
             view.CustomResourceRequested  += OnViewResourceRequested;
 
+            childView = (SubExampleViewModule)view.SubView;
+            childView.ConstantMessage = "This is a sub view";
+            childView.GetTime += () => DateTime.Now.AddHours(1).ToShortTimeString();
+            childView.CustomResourceRequested += OnInnerViewResourceRequested;
+            childView.WithPlugin<ViewPlugin>().NotifyViewLoaded += (viewName) => AppendLog($"On sub view loaded: {viewName}");
+            childView.CallMe();
+            childView.Load();
+
             Content = view;
         }
 
@@ -66,13 +74,6 @@ namespace Example.Avalonia {
         }
 
         private void OnViewMounted() {
-            var subViewId = childViewCounter++;
-            childView = (SubExampleViewModule) view.SubView;
-            childView.ConstantMessage = "This is a sub view";
-            childView.GetTime += () => DateTime.Now.AddHours(1).ToShortTimeString() + $"(Id: {subViewId})";
-            childView.CustomResourceRequested += OnInnerViewResourceRequested;
-            childView.WithPlugin<ViewPlugin>().NotifyViewLoaded += (viewName) => AppendLog($"On sub view loaded (Id: {subViewId}): {viewName}");
-            childView.CallMe();
             childView.Load();
         }
 
