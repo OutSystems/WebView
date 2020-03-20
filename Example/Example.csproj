@@ -111,6 +111,7 @@
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <DefaultStyleSheet Include="ExampleView\DefaultStyleSheet.scss" />
+    <DefaultStyleSheet Include="ExampleView\Example.export.scss" />
     <None Include="ExampleView\SubExampleView.scss" />
     <None Include="ExampleView\ExampleView.scss" />
     <None Include="packages.config" />

@@ -1,0 +1,5 @@
+﻿$someVar: "Some Pretty Value!";
+
+:export {
+    exportedVariable: $someVar;
+}

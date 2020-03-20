@@ -2,7 +2,8 @@
 import { ViewFrame } from "ViewFrame";
 import ViewPlugin from "./ViewPlugin";
 import { IPluginsContext } from "PluginsProvider";
-import * as styles from "./ExampleView.scss";
+import * as styles from "./Example.export.scss";
+import "./ExampleView.scss";
 import * as Image from "./beach.jpg";
 import { ResourceLoader } from "ResourceLoader";
 import SubExampleView from "./SubExampleView";
