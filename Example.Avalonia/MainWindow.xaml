@@ -10,6 +10,7 @@
                 <MenuItem Header="Call Inner View" Click="OnCallInnerViewMenuItemClick"></MenuItem>
                 <MenuItem Header="Call Inner View Plugin" Click="OnCallInnerViewPluginMenuItemClick"></MenuItem>
                 <MenuItem Header="Show dev tools" Click="OnShowDevTools"></MenuItem>
+                <MenuItem Header="Toggle IsEnabled" Click="OnToggleIsEnabled"></MenuItem>
             </MenuItem>
         </Menu>
         

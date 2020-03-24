@@ -52,5 +52,9 @@ namespace Example.Avalonia {
         private void OnShowDevTools(object sender, RoutedEventArgs e) {
             SelectedView.ShowDevTools();
         }
+
+        private void OnToggleIsEnabled(object sender, RoutedEventArgs e) {
+            SelectedView.ToggleIsEnabled();
+        }
     }
 }

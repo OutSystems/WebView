@@ -27,6 +27,7 @@ namespace WebViewControl {
     public delegate void FilesDraggingEventHandler(string[] fileNames);
 
     internal delegate void JavascriptContextReleasedEventHandler(string frameName);
+    internal delegate void KeyPressedEventHandler(CefKeyEvent keyEvent, out bool handled);
 
     public partial class WebView : IDisposable {
 
@@ -87,6 +88,7 @@ namespace WebViewControl {
         internal event JavascriptContextReleasedEventHandler JavascriptContextReleased;
         internal event JavacriptDialogShowEventHandler JavacriptDialogShown;
         internal event FilesDraggingEventHandler FilesDragging;
+        internal event KeyPressedEventHandler KeyPressed;
 
         private static int domainId = 1;
 
@@ -190,6 +192,7 @@ namespace WebViewControl {
             chromium.DownloadHandler = new InternalDownloadHandler(this);
             chromium.JSDialogHandler = new InternalJsDialogHandler(this);
             chromium.DragHandler = new InternalDragHandler(this);
+            chromium.KeyboardHandler = new InternalKeyboardHandler(this);
 
             disposables = new IDisposable[] {
                 chromium,

@@ -65,6 +65,10 @@ namespace Example.Avalonia {
             view.ShowDeveloperTools();
         }
 
+        public void ToggleIsEnabled() {
+            view.IsEnabled = !view.IsEnabled;
+        }
+
         private string OnExampleViewGetTime() {
             return DateTime.Now.ToShortTimeString();
         }

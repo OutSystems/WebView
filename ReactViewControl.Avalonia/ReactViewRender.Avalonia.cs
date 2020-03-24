@@ -1,6 +1,8 @@
 ﻿using System;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Styling;
+using WebViewControl;
 
 namespace ReactViewControl {
 
@@ -22,6 +24,14 @@ namespace ReactViewControl {
             WebView.HostingWindow = hiddenWindow;
             WebView.AllowNativeMethodsParallelExecution = !ForceNativeSyncCalls;
             Content = WebView;
+        }
+
+        protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs e) {
+            base.OnPropertyChanged(e);
+
+            if (!WebView.OsrEnabled && e.Property == IsEffectivelyEnabledProperty) {
+                DisableInteractions(!IsEffectivelyEnabled);
+            }
         }
     }
 }

@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using WebViewControl;
+using Xilium.CefGlue;
 
 namespace ReactViewControl {
 
@@ -41,6 +42,7 @@ namespace ReactViewControl {
         private ResourceUrl defaultStyleSheet;
         private FileSystemWatcher fileSystemWatcher;
         private string cacheInvalidationTimestamp;
+        private bool disableInteractions;
 
         public ReactViewRender(ResourceUrl defaultStyleSheet, Func<IViewModule[]> initializePlugins, bool preloadWebView, bool forceNativeSyncCalls, bool enableDebugMode) {
             UserCallingAssembly = WebView.GetUserCallingMethod().ReflectedType.Assembly;
@@ -74,6 +76,7 @@ namespace ReactViewControl {
             WebView.LoadFailed += OnWebViewLoadFailed;
             WebView.JavacriptDialogShown += OnWebViewJavacriptDialogShown;
             WebView.FilesDragging += OnWebViewFilesDragging;
+            WebView.KeyPressed += OnWebViewKeyPressed;
 
             ExtraInitialize();
 
@@ -266,6 +269,10 @@ namespace ReactViewControl {
             }
         }
 
+        private void OnWebViewKeyPressed(CefKeyEvent keyEvent, out bool handled) {
+            handled = disableInteractions;
+        }
+
         private void OnViewLoadedUIHandler(object[] args) {
             Ready?.Invoke();
         }
@@ -410,6 +417,15 @@ namespace ReactViewControl {
         /// </summary>
         public void CloseDeveloperTools() {
             WebView.CloseDeveloperTools();
+        }
+
+        /// <summary>
+        /// Disables or enables keyboard and mouse interactions with the browser
+        /// </summary>
+        /// <param name="disable"></param>
+        public void DisableInteractions(bool disable) {
+            disableInteractions = disable;
+            Loader.DisableMouseInteraction(disable);
         }
 
         /// <summary>

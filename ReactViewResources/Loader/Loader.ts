@@ -504,4 +504,23 @@ function onChildViewRemoved(childView: ViewMetadata) {
     fireNativeNotification(viewDestroyedEventName, childView.name, childView.id.toString());
 }
 
+export const disableMouseInteractions = (() => {
+    let isDisabled = false;
+    let stylesheet: HTMLStyleElement;
+    return (disable: boolean) => {
+        if (disable === isDisabled) {
+            return;
+        }
+        if (disable) {
+            stylesheet = stylesheet || document.createElement("style");
+            stylesheet.innerHTML = "* { pointer-events: none; user-select: none; }";
+            document.head.appendChild(stylesheet);
+            isDisabled = true;
+        } else {
+            document.head.removeChild(stylesheet);
+            isDisabled = false;
+        }
+    };
+})();
+
 bootstrap();
