@@ -506,18 +506,27 @@ function onChildViewRemoved(childView: ViewMetadata) {
 
 export const disableMouseInteractions = (() => {
     let isDisabled = false;
-    let stylesheet: HTMLStyleElement;
+    let layer: HTMLDivElement;
     return (disable: boolean) => {
         if (disable === isDisabled) {
             return;
         }
         if (disable) {
-            stylesheet = stylesheet || document.createElement("style");
-            stylesheet.innerHTML = "* { pointer-events: none; user-select: none; }";
-            document.head.appendChild(stylesheet);
+            if (!layer) {
+                layer = layer || document.createElement("div");
+                layer.id = "webview_root_layer"; // used to enable styling by consumers
+                layer.style.userSelect = "none";
+                layer.style.height = "100vh";
+                layer.style.width = "100vw";
+                layer.style.position = "fixed";
+                layer.style.top = "0";
+                layer.style.left = "0";
+                layer.style.zIndex = "2147483647";
+            }
+            document.body.appendChild(layer);
             isDisabled = true;
         } else {
-            document.head.removeChild(stylesheet);
+            document.body.removeChild(layer);
             isDisabled = false;
         }
     };
