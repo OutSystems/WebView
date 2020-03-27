@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
   <metadata>
     <id>ViewPacker</id>
-    <version>1.0.12</version>
+    <version>1.0.13</version>
     <authors>jmn</authors>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <developmentDependency>true</developmentDependency>
