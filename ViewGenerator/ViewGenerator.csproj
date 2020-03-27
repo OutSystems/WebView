@@ -95,8 +95,8 @@
 </PostBuildEvent>
   </PropertyGroup>
   <Target Name="InstallDependencies" BeforeTargets="PrepareForBuild">
-    <Exec Command="npm install --no-bin-links --prefix &quot;$(ProjectDir)tools&quot; &quot;$(ProjectDir)tools&quot;"/>
-    <Exec Command="npm install --no-bin-links --prefix &quot;$(ProjectDir)contentFiles&quot; &quot;$(ProjectDir)contentFiles&quot;"/>
+    <Exec Command="npm install --no-bin-links --prefix &quot;$(ProjectDir)tools&quot; &quot;$(ProjectDir)tools&quot;" />
+    <Exec Command="npm install --no-bin-links --prefix &quot;$(ProjectDir)contentFiles&quot; &quot;$(ProjectDir)contentFiles&quot;" />
   </Target>
   <Target Name="TouchCacheFile" BeforeTargets="PrepareForBuild">
     <Touch Files="$(ProjectDir)contentFiles\VG.cache" AlwaysCreate="true" />

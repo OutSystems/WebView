@@ -22,7 +22,7 @@ namespace ReactViewControl {
 
         KeyValuePair<string, object>[] PropertiesValues { get; }
 
-        void Bind(IFrame frame, IChildViewHost host = null);
+        void Bind(IFrame frame, bool enableHotReload = false, IChildViewHost host = null);
 
         event CustomResourceRequestedEventHandler CustomResourceRequested;
 
