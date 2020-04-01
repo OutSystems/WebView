@@ -332,6 +332,9 @@ namespace ReactViewControl {
                 RegisterNativeObject(frame.Component, frame.Name, ForceNativeSyncCalls);
 
                 Loader.LoadComponent(frame.Component, frame.Name, DefaultStyleSheet != null, frame.Plugins.Length > 0, ForceNativeSyncCalls);
+                if (disableInteractions) {
+                    Loader.DisableMouseInteraction(true);
+                }
             }
         }
 
@@ -424,8 +427,19 @@ namespace ReactViewControl {
         /// </summary>
         /// <param name="disable"></param>
         public void DisableInteractions(bool disable) {
-            disableInteractions = disable;
-            Loader.DisableMouseInteraction(disable);
+            if (disableInteractions == disable) {
+                return;
+            }
+            lock (SyncRoot) {
+                if (disableInteractions == disable) {
+                    return;
+                }
+                disableInteractions = disable;
+                var frame = GetOrCreateFrame(MainViewFrameName);
+                if (frame.LoadStatus == LoadStatus.Ready) {
+                    Loader.DisableMouseInteraction(disable);
+                }
+            }
         }
 
         /// <summary>
