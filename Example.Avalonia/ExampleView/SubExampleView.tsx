@@ -76,7 +76,8 @@ export default class SubExampleView extends React.Component<ISubExampleViewPrope
                 <ResourceLoader.Consumer>
                     {url => <img src={url("Completed.png", "size=normal")} />}
                 </ResourceLoader.Consumer>
-                <br/>
+                <br />
+                <input/>
                 <button accessKey="z" onClick={() => this.setState(s => { return { buttonClicksCount: s.buttonClicksCount + 1 }; })}>Click me!</button>&nbsp;
             </div>
         );

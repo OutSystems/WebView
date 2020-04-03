@@ -30,7 +30,7 @@ namespace ReactViewControl {
             base.OnPropertyChanged(e);
 
             if (!WebView.OsrEnabled && e.Property == IsEffectivelyEnabledProperty) {
-                DisableInteractions(!IsEffectivelyEnabled);
+                 DisableInputInteractions(!IsEffectivelyEnabled);
             }
         }
     }

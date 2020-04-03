@@ -24,13 +24,12 @@ namespace ReactViewControl {
         private const string ViewInitializedEventName = "ViewInitialized";
         private const string ViewDestroyedEventName = "ViewDestroyed";
         private const string ViewLoadedEventName = "ViewLoaded";
-        private const string NativeSyncCallEndPreamble = "NativeSyncCallEnd:";
+        private const string DisableKeyboardCallback = "$DisableKeyboard:";
         private const string CustomResourceBaseUrl = "resource";
 
         private static Assembly ResourcesAssembly { get; } = typeof(ReactViewResources.Resources).Assembly;
 
         private Dictionary<string, FrameInfo> Frames { get; } = new Dictionary<string, FrameInfo>();
-        private Dictionary<string, CallStackBarrier> PendingSyncCalls { get; } = new Dictionary<string, CallStackBarrier>();
 
         private WebView WebView { get; }
         private Assembly UserCallingAssembly { get; }
@@ -42,7 +41,8 @@ namespace ReactViewControl {
         private ResourceUrl defaultStyleSheet;
         private FileSystemWatcher fileSystemWatcher;
         private string cacheInvalidationTimestamp;
-        private bool disableInteractions;
+        private bool isKeyboardDisabled; // effective value, controled by the browser to disable keyboard
+        private bool isInputDisabled; // used primarly before the browser is ready
 
         public ReactViewRender(ResourceUrl defaultStyleSheet, Func<IViewModule[]> initializePlugins, bool preloadWebView, bool forceNativeSyncCalls, bool enableDebugMode) {
             UserCallingAssembly = WebView.GetUserCallingMethod().ReflectedType.Assembly;
@@ -88,7 +88,7 @@ namespace ReactViewControl {
                 ViewInitializedEventName,
                 ViewDestroyedEventName,
                 ViewLoadedEventName,
-                NativeSyncCallEndPreamble,
+                DisableKeyboardCallback,
                 ResourceUrl.CustomScheme +  Uri.SchemeDelimiter + CustomResourceBaseUrl
             };
 
@@ -201,6 +201,8 @@ namespace ReactViewControl {
 
                     // only need to load the stylesheet for the main frame
                     LoadStyleSheet();
+
+                    isKeyboardDisabled = false;
                 }
 
                 LoadPlugins(frame);
@@ -242,7 +244,7 @@ namespace ReactViewControl {
                         modules = modules.Concat(new[] { frame.Component });
                     }
                     foreach (var module in modules) {
-                        UnregisterNativeObject(module, frame.Name);
+                        UnregisterNativeObject(module, frame);
                     }
                     Frames.Remove(frameName);
                 }
@@ -270,7 +272,7 @@ namespace ReactViewControl {
         }
 
         private void OnWebViewKeyPressed(CefKeyEvent keyEvent, out bool handled) {
-            handled = disableInteractions;
+            handled = isKeyboardDisabled;
         }
 
         private void OnViewLoadedUIHandler(object[] args) {
@@ -329,11 +331,11 @@ namespace ReactViewControl {
             if (frame.Component != null && frame.LoadStatus == LoadStatus.ViewInitialized && frame.IsComponentReadyToLoad) {
                 frame.LoadStatus = LoadStatus.ComponentLoading;
 
-                RegisterNativeObject(frame.Component, frame.Name, ForceNativeSyncCalls);
+                RegisterNativeObject(frame.Component, frame);
 
                 Loader.LoadComponent(frame.Component, frame.Name, DefaultStyleSheet != null, frame.Plugins.Length > 0, ForceNativeSyncCalls);
-                if (disableInteractions) {
-                    Loader.DisableMouseInteraction(true);
+                if (!isInputDisabled) {
+                    Loader.DisableInputInteractions(true);
                 }
             }
         }
@@ -354,8 +356,7 @@ namespace ReactViewControl {
         private void LoadPlugins(FrameInfo frame) {
             if (frame.Plugins.Length > 0) {
                 foreach (var module in frame.Plugins) {
-                    // explicitly assuming that plugins calls can be executed in parallel
-                    RegisterNativeObject(module, frame.Name, forceNativeSyncCalls: false);
+                    RegisterNativeObject(module, frame);
                 }
 
                 Loader.LoadPlugins(frame.Plugins, frame.Name);
@@ -426,18 +427,15 @@ namespace ReactViewControl {
         /// Disables or enables keyboard and mouse interactions with the browser
         /// </summary>
         /// <param name="disable"></param>
-        public void DisableInteractions(bool disable) {
-            if (disableInteractions == disable) {
+        private void DisableInputInteractions(bool disable) {
+            if (isInputDisabled == disable) {
                 return;
             }
+            isInputDisabled = disable;
             lock (SyncRoot) {
-                if (disableInteractions == disable) {
-                    return;
-                }
-                disableInteractions = disable;
                 var frame = GetOrCreateFrame(MainViewFrameName);
                 if (frame.LoadStatus == LoadStatus.Ready) {
-                    Loader.DisableMouseInteraction(disable);
+                    Loader.DisableInputInteractions(disable);
                 }
             }
         }
@@ -651,29 +649,9 @@ namespace ReactViewControl {
         /// <param name="module"></param>
         /// <param name="frameName"></param>
         /// <param name="forceNativeSyncCalls"></param>
-        private void RegisterNativeObject(IViewModule module, string frameName, bool forceNativeSyncCalls) {
-            CallStackBarrier callBarrier = null;
-            Func<Func<object>, object> interceptCall = null;
-            var nativeObjectName = module.GetNativeObjectFullName(frameName);
-
-            if (forceNativeSyncCalls) {
-                callBarrier = new CallStackBarrier();
-                // handles the call to a native method of a registered native object
-                interceptCall = (nativeMethod) => {
-                    try {
-                        return nativeMethod();
-                    } finally {
-                        callBarrier.Exit();
-                    }
-                };
-            }
-
-            lock (PendingSyncCalls) {
-                if (callBarrier != null) {
-                    PendingSyncCalls.Add(nativeObjectName, callBarrier);
-                }
-                WebView.RegisterJavascriptObject(nativeObjectName, module.CreateNativeObject(), interceptCall: interceptCall, executeCallsInUI: false);
-            }
+        private void RegisterNativeObject(IViewModule module, FrameInfo frame) {
+            var nativeObjectName = module.GetNativeObjectFullName(frame.Name);
+            WebView.RegisterJavascriptObject(nativeObjectName, module.CreateNativeObject(), executeCallsInUI: false);
         }
 
         /// <summary>
@@ -681,15 +659,9 @@ namespace ReactViewControl {
         /// </summary>
         /// <param name="module"></param>
         /// <param name="frameName"></param>
-        private void UnregisterNativeObject(IViewModule module, string frameName) {
-            var nativeObjectName = module.GetNativeObjectFullName(frameName);
-            lock (PendingSyncCalls) {
-                WebView.UnregisterJavascriptObject(nativeObjectName);
-                if (PendingSyncCalls.TryGetValue(nativeObjectName, out var callBarrier)) {
-                    callBarrier.SignalExit(); // free the pending call
-                    PendingSyncCalls.Remove(nativeObjectName);
-                }
-            }
+        private void UnregisterNativeObject(IViewModule module, FrameInfo frame) {
+            var nativeObjectName = module.GetNativeObjectFullName(frame.Name);
+            WebView.UnregisterJavascriptObject(nativeObjectName);
         }
 
         /// <summary>
@@ -698,21 +670,12 @@ namespace ReactViewControl {
         /// <param name="text"></param>
         /// <param name="closeDialog"></param>
         private void OnWebViewJavacriptDialogShown(string text, Action closeDialog) {
-            if (text.StartsWith(NativeSyncCallEndPreamble)) {
-                // dialogs containing the special token have a special behavior
-                // it serves as a way to block the js execution until the close dialog callback is called
-
-                var nativeObjectName = text.Substring(NativeSyncCallEndPreamble.Length);
-                lock (PendingSyncCalls) {
-                    if (PendingSyncCalls.TryGetValue(nativeObjectName, out var callBarrier)) {
-                        callBarrier.SignalExit(closeDialog); // signal the pending call
-                        return;
-                    }
-                }
+            if (text.StartsWith(DisableKeyboardCallback)) {
+                var value = text.Substring(DisableKeyboardCallback.Length);
+                isKeyboardDisabled = value == "1";
             }
             closeDialog();
         }
-
 
         /// <summary>
         /// Converts an url to a full path url

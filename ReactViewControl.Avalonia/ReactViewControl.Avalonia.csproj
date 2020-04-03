@@ -20,7 +20,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\ReactViewControl\CallStackBarrier.cs" Link="CallStackBarrier.cs" />
     <Compile Include="..\ReactViewControl\ExecutionEngine.cs" Link="ExecutionEngine.cs" />
     <Compile Include="..\ReactViewControl\FrameInfo.cs" Link="FrameInfo.cs" />
     <Compile Include="..\ReactViewControl\IChildViewHost.cs" Link="IChildViewHost.cs" />

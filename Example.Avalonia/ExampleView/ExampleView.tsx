@@ -2,7 +2,7 @@
 import { ViewFrame } from "ViewFrame";
 import ViewPlugin from "./ViewPlugin";
 import { IPluginsContext } from "PluginsProvider";
-import * as styles from "./ExampleView.scss";
+import "./ExampleView.scss";
 import * as Image from "./beach.jpg";
 import { ResourceLoader } from "ResourceLoader";
 import SubExampleView from "./SubExampleView";
@@ -98,13 +98,10 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
                 {this.props.constantMessage}
                 <br />
                 Current time: {this.state.time}
-                <br />
-                This is a shared SASS varible value: '{styles.exportedVariable}'
-                <br />
                 {this.props.image === ImageKind.Beach ? <img className="image" src={Image} /> : null}
                 <br />
                 <div className="buttons-bar">
-                    <button onClick={() => { this.props.click(null); }}>Click me!</button>&nbsp;
+                    <button accessKey="c" onClick={() => { this.props.click(null); }}>Click me!</button>&nbsp;
                     <button onClick={this.onMountSubViewClick}>Mount/Wrap/Hide child view</button>
                 </div>
                 Custom resource:

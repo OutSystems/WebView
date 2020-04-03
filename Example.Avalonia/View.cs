@@ -15,8 +15,6 @@ namespace Example.Avalonia {
         private ExampleView view;
         private SubExampleViewModule childView;
 
-        private int childViewCounter;
-
         public View() {
             InitializeComponent();
         }
