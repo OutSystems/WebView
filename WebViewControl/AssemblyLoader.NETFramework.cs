@@ -2,7 +2,7 @@
 
 namespace WebViewControl {
 
-    internal class AssemblyLoader {
+    internal static class AssemblyLoader {
 
         internal static Assembly LoadAssembly(string path) => Assembly.LoadFile(path);
 
