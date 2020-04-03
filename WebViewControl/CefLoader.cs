@@ -37,7 +37,7 @@ namespace Xilium.CefGlue {
                         throw new FileNotFoundException("Unable to locate", assemblyName);
                     }
 
-                    return AssemblyCache.LoadAssembly(archSpecificPath);
+                    return AssemblyLoader.LoadAssembly(archSpecificPath);
                 }
             }
             return null;

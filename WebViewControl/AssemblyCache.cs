@@ -5,7 +5,7 @@ using System.Reflection;
 
 namespace WebViewControl {
 
-     internal partial class AssemblyCache {
+     internal class AssemblyCache {
 
         private object SyncRoot { get; } = new object();
         private Dictionary<string, Assembly> assemblies;
@@ -42,8 +42,8 @@ namespace WebViewControl {
                 if (assembly == null) {
                     try {
                         // try load assembly from its name
-                        var fullAssemblyName = Path.Combine(Path.GetDirectoryName(new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath), assemblyName + ".dll");
-                        assembly = LoadAssembly(fullAssemblyName);
+                        var assemblyPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, assemblyName + ".dll");
+                        assembly = AssemblyLoader.LoadAssembly(assemblyPath);
                     } catch (IOException) { 
                         // ignore
                     }
