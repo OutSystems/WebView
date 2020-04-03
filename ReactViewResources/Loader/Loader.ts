@@ -516,13 +516,12 @@ function onChildViewRemoved(childView: ViewMetadata) {
 }
 
 export const disableInputInteractions = (() => {
-    let isDisabled = false;
     let layer: HTMLDivElement;
     let disableCounter = 0;
     return (disable: boolean) => {
         if (disable) {
             disableCounter++;
-            if (isDisabled) {
+            if (disableCounter > 1) {
                 return;
             }
 
@@ -540,16 +539,14 @@ export const disableInputInteractions = (() => {
 
             alert(disableKeyboardCallback + "1");
             document.body.appendChild(layer);
-            isDisabled = true;
         } else {
-            disableCounter = Math.max(0, disableCounter--);
-            if (!isDisabled) {
+            disableCounter = Math.max(0, disableCounter - 1);
+            if (disableCounter > 0) {
                 return;
             }
 
             alert(disableKeyboardCallback + "0");
             document.body.removeChild(layer);
-            isDisabled = false;
         }
     };
 })();

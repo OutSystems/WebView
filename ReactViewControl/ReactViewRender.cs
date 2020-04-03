@@ -41,8 +41,8 @@ namespace ReactViewControl {
         private ResourceUrl defaultStyleSheet;
         private FileSystemWatcher fileSystemWatcher;
         private string cacheInvalidationTimestamp;
-        private bool isKeyboardDisabled; // effective value, controled by the browser to disable keyboard
-        private bool isInputDisabled; // used primarly before the browser is ready
+        private bool isKeyboardEffectivelyDisabled; // effective value, controlled by the browser to disable keyboard
+        private bool isInputDisabled; // used primarly to control the intention to disable input (before the browser is ready)
 
         public ReactViewRender(ResourceUrl defaultStyleSheet, Func<IViewModule[]> initializePlugins, bool preloadWebView, bool forceNativeSyncCalls, bool enableDebugMode) {
             UserCallingAssembly = WebView.GetUserCallingMethod().ReflectedType.Assembly;
@@ -202,7 +202,7 @@ namespace ReactViewControl {
                     // only need to load the stylesheet for the main frame
                     LoadStyleSheet();
 
-                    isKeyboardDisabled = false;
+                    isKeyboardEffectivelyDisabled = false;
                 }
 
                 LoadPlugins(frame);
@@ -272,7 +272,7 @@ namespace ReactViewControl {
         }
 
         private void OnWebViewKeyPressed(CefKeyEvent keyEvent, out bool handled) {
-            handled = isKeyboardDisabled;
+            handled = isKeyboardEffectivelyDisabled;
         }
 
         private void OnViewLoadedUIHandler(object[] args) {
@@ -334,7 +334,7 @@ namespace ReactViewControl {
                 RegisterNativeObject(frame.Component, frame);
 
                 Loader.LoadComponent(frame.Component, frame.Name, DefaultStyleSheet != null, frame.Plugins.Length > 0, ForceNativeSyncCalls);
-                if (!isInputDisabled) {
+                if (isInputDisabled) {
                     Loader.DisableInputInteractions(true);
                 }
             }
@@ -672,7 +672,7 @@ namespace ReactViewControl {
         private void OnWebViewJavacriptDialogShown(string text, Action closeDialog) {
             if (text.StartsWith(DisableKeyboardCallback)) {
                 var value = text.Substring(DisableKeyboardCallback.Length);
-                isKeyboardDisabled = value == "1";
+                isKeyboardEffectivelyDisabled = value == "1";
             }
             closeDialog();
         }
