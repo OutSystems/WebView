@@ -334,7 +334,7 @@ namespace ReactViewControl {
                 RegisterNativeObject(frame.Component, frame);
 
                 Loader.LoadComponent(frame.Component, frame.Name, DefaultStyleSheet != null, frame.Plugins.Length > 0, ForceNativeSyncCalls);
-                if (isInputDisabled) {
+                if (isInputDisabled && frame.Name == MainViewFrameName) {
                     Loader.DisableInputInteractions(true);
                 }
             }
