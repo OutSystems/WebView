@@ -163,6 +163,16 @@ namespace ReactViewControl {
         }
 
         /// <summary>
+        /// Raised before a native method was called.
+        /// </summary>
+        public event Action BeforeNativeMethodCalled;
+
+        /// <summary>
+        /// Raised after a native method was called.
+        /// </summary>
+        public event Action AfterNativeMethodCalled;
+
+        /// <summary>
         /// Handle embedded resource requests. You can use this event to change the resource being loaded.
         /// </summary>
         public event ResourceRequestedEventHandler EmbeddedResourceRequested;
@@ -650,8 +660,16 @@ namespace ReactViewControl {
         /// <param name="frameName"></param>
         /// <param name="forceNativeSyncCalls"></param>
         private void RegisterNativeObject(IViewModule module, FrameInfo frame) {
+            object InterceptCall(Func<object> func) {
+                try {
+                    BeforeNativeMethodCalled?.Invoke();
+                    return func();
+                } finally {
+                    AfterNativeMethodCalled?.Invoke();
+                }
+            }
             var nativeObjectName = module.GetNativeObjectFullName(frame.Name);
-            WebView.RegisterJavascriptObject(nativeObjectName, module.CreateNativeObject(), executeCallsInUI: false);
+            WebView.RegisterJavascriptObject(nativeObjectName, module.CreateNativeObject(), interceptCall: InterceptCall, executeCallsInUI: false);
         }
 
         /// <summary>

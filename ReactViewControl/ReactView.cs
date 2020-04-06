@@ -48,6 +48,8 @@ namespace ReactViewControl {
 
         protected ReactView(IViewModule mainModule) {
             View = CreateReactViewInstance(Factory);
+            View.BeforeNativeMethodCalled += OnBeforeNativeMethodCalled;
+            View.AfterNativeMethodCalled += OnAfterNativeMethodCalled;
 
             View.Host = this;
             MainModule = mainModule;
@@ -196,5 +198,15 @@ namespace ReactViewControl {
         /// Defaults to 6. 
         /// </summary>
         public static int PreloadedCacheEntriesSize { get; set; } = 6;
+
+        /// <summary>
+        /// Called before executing a native method.
+        /// </summary>
+        protected virtual void OnBeforeNativeMethodCalled() { }
+
+        /// <summary>
+        /// Called after executing a native method.
+        /// </summary>
+        protected virtual void OnAfterNativeMethodCalled() { }
     }
 }
