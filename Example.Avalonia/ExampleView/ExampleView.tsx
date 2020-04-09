@@ -2,7 +2,7 @@
 import { ViewFrame } from "ViewFrame";
 import ViewPlugin from "./ViewPlugin";
 import { IPluginsContext } from "PluginsProvider";
-import "./ExampleView.scss";
+import * as styles from "./ExampleView.scss";
 import * as Image from "./beach.jpg";
 import { ResourceLoader } from "ResourceLoader";
 import SubExampleView from "./SubExampleView";
@@ -98,6 +98,9 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
                 {this.props.constantMessage}
                 <br />
                 Current time: {this.state.time}
+                <br />	
+                This is a shared SASS varible value: '{styles.exportedVariable}'	
+                <br />
                 {this.props.image === ImageKind.Beach ? <img className="image" src={Image} /> : null}
                 <br />
                 <div className="buttons-bar">
