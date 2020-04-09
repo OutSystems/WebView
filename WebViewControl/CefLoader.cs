@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using WebViewControl;
 
 namespace Xilium.CefGlue {
 
@@ -36,7 +37,7 @@ namespace Xilium.CefGlue {
                         throw new FileNotFoundException("Unable to locate", assemblyName);
                     }
 
-                    return Assembly.LoadFile(archSpecificPath);
+                    return AssemblyLoader.LoadAssembly(archSpecificPath);
                 }
             }
             return null;
