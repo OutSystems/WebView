@@ -11,6 +11,10 @@ declare const cefglue: {
     checkObjectBound(objName: string): Promise<boolean>
 };
 
+interface PromiseWithFinally<T> extends Promise<T> {
+    finally(onFinally: () => void);
+}
+
 export const syncFunction = new Object();
 
 const reactLib: string = "React";
@@ -26,7 +30,7 @@ const [
     viewInitializedEventName,
     viewDestroyedEventName,
     viewLoadedEventName,
-    nativeSyncCallEndPreamble,
+    disableKeyboardCallback,
     customResourceBaseUrl
 ] = Array.from(new URLSearchParams(location.search).keys());
 
@@ -421,13 +425,20 @@ function createPropertiesProxy(objProperties: {}, nativeObjName: string, compone
                     });
                 }
 
-                let result: Promise<any> | undefined = undefined;
+                let result: PromiseWithFinally<any> | undefined = undefined;
                 try {
+                    if (isSyncFunction) {
+                        disableInputInteractions(true);
+                    }
+
                     result = nativeObject[key].apply(window, arguments);
                 } finally {
                     if (isSyncFunction) {
-                        // suspend js execution until alert returns (will be automatically dismissed once the nativeObject method call ends)
-                        alert(nativeSyncCallEndPreamble + nativeObjName);
+                        if (result) {
+                            result.finally(() => disableInputInteractions(false));
+                        } else {
+                            disableInputInteractions(false);
+                        }
                     }
                 }
 
@@ -504,14 +515,16 @@ function onChildViewRemoved(childView: ViewMetadata) {
     fireNativeNotification(viewDestroyedEventName, childView.name, childView.id.toString());
 }
 
-export const disableMouseInteractions = (() => {
-    let isDisabled = false;
+export const disableInputInteractions = (() => {
     let layer: HTMLDivElement;
+    let disableCounter = 0;
     return (disable: boolean) => {
-        if (disable === isDisabled) {
-            return;
-        }
         if (disable) {
+            disableCounter++;
+            if (disableCounter > 1) {
+                return;
+            }
+
             if (!layer) {
                 layer = layer || document.createElement("div");
                 layer.id = "webview_root_layer"; // used to enable styling by consumers
@@ -523,11 +536,17 @@ export const disableMouseInteractions = (() => {
                 layer.style.left = "0";
                 layer.style.zIndex = "2147483647";
             }
+
+            alert(disableKeyboardCallback + "1");
             document.body.appendChild(layer);
-            isDisabled = true;
         } else {
+            disableCounter = Math.max(0, disableCounter - 1);
+            if (disableCounter > 0) {
+                return;
+            }
+
+            alert(disableKeyboardCallback + "0");
             document.body.removeChild(layer);
-            isDisabled = false;
         }
     };
 })();

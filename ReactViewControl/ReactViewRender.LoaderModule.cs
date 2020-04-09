@@ -114,8 +114,8 @@ namespace ReactViewControl {
             /// Prevents mouse interaction with the browser
             /// </summary>
             /// <param name="disable"></param>
-            public void DisableMouseInteraction(bool disable) {
-                ExecuteLoaderFunction("disableMouseInteractions", JavascriptSerializer.Serialize(disable));
+            public void DisableInputInteractions(bool disable) {
+                ExecuteLoaderFunction("disableInputInteractions", JavascriptSerializer.Serialize(disable));
             }
 
             /// <summary>
