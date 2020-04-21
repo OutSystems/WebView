@@ -23,9 +23,9 @@ namespace WebViewControl {
     public delegate void DownloadStatusChangedEventHandler(string resourcePath);
     public delegate void JavascriptContextCreatedEventHandler(string frameName);
     public delegate void UnhandledAsyncExceptionEventHandler(UnhandledAsyncExceptionEventArgs eventArgs);
-    public delegate void JavacriptDialogShowEventHandler(string text, Action closeDialog);
     public delegate void FilesDraggingEventHandler(string[] fileNames);
 
+    internal delegate void JavacriptDialogShowEventHandler(string text, Action closeDialog);
     internal delegate void JavascriptContextReleasedEventHandler(string frameName);
     internal delegate void KeyPressedEventHandler(CefKeyEvent keyEvent, out bool handled);
 
