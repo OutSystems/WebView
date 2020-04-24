@@ -540,13 +540,12 @@ export const disableInputInteractions = (() => {
             alert(disableKeyboardCallback + "1");
             document.body.appendChild(layer);
         } else {
-            disableCounter = Math.max(0, disableCounter - 1);
-            if (disableCounter > 0) {
-                return;
+            if (disableCounter === 1) {
+                // going 0
+                alert(disableKeyboardCallback + "0");
+                document.body.removeChild(layer);
             }
-
-            alert(disableKeyboardCallback + "0");
-            document.body.removeChild(layer);
+            disableCounter = Math.max(0, disableCounter - 1);
         }
     };
 })();

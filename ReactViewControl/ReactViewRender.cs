@@ -441,10 +441,13 @@ namespace ReactViewControl {
             if (isInputDisabled == disable) {
                 return;
             }
-            isInputDisabled = disable;
             lock (SyncRoot) {
+                if (isInputDisabled == disable) {
+                    return;
+                }
+                isInputDisabled = disable;
                 var frame = GetOrCreateFrame(MainViewFrameName);
-                if (frame.LoadStatus == LoadStatus.Ready) {
+                if (frame.LoadStatus >= LoadStatus.ComponentLoading) {
                     Loader.DisableInputInteractions(disable);
                 }
             }
