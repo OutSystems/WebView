@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Xilium.CefGlue;
 using Xilium.CefGlue.Common;
 using Xilium.CefGlue.Common.Events;
+using Xilium.CefGlue.Common.Shared;
 
 namespace WebViewControl {
 
