@@ -19,7 +19,7 @@ namespace Example {
         public override bool EnableViewPreload => true;
 
 #if DEBUG
-        public override bool EnableHotReload => true;
+        public override bool EnableHotReload => false;
 
         public override Uri DevServerURI => new Uri("http://localhost:8080");
 #endif

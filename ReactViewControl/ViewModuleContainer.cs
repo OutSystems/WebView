@@ -15,22 +15,19 @@ namespace ReactViewControl {
         private IFrame frame;
         private IChildViewHost childViewHost;
 
-
         public ViewModuleContainer() {
             DependencyJsSourcesCache = new Lazy<string[]>(() => GetDependenciesFromEntriesFile(JsEntryFileExtension));
             CssSourcesCache = new Lazy<string[]>(() => GetDependenciesFromEntriesFile(CssEntryFileExtension));
 
             frame = new FrameInfo("dummy");
-            dependencyJsSourcesDelegate = () => DependencyJsSourcesCache.Value;
-            dependencyJsSourcesDelegate = () => CssSourcesCache.Value;
         }
 
-        public Lazy<string[]> DependencyJsSourcesCache { get; }
+        private Lazy<string[]> DependencyJsSourcesCache { get; }
 
         private Lazy<string[]> CssSourcesCache { get; }
 
-        private Func<string[]> dependencyJsSourcesDelegate;
-        private Func<string[]> cssSourcesDelegate;
+        private Func<string[]> getDependencyJsSources;
+        private Func<string[]> getCssSources;
 
         protected virtual string MainJsSource => null;
         protected virtual string NativeObjectName => null;
@@ -59,9 +56,9 @@ namespace ReactViewControl {
 
         string[] IViewModule.Events => Events;
 
-        string[] IViewModule.DependencyJsSources => dependencyJsSourcesDelegate.Invoke();
+        string[] IViewModule.DependencyJsSources => getDependencyJsSources?.Invoke() ?? DependencyJsSourcesCache.Value;
 
-        string[] IViewModule.CssSources => cssSourcesDelegate.Invoke();
+        string[] IViewModule.CssSources => getCssSources?.Invoke() ?? CssSourcesCache.Value;
 
         KeyValuePair<string, object>[] IViewModule.PropertiesValues => PropertiesValues;
 
@@ -72,8 +69,8 @@ namespace ReactViewControl {
             this.childViewHost = childViewHost;
 
             if (enableHotReload) {
-                dependencyJsSourcesDelegate = () => GetDependenciesFromEntriesFile(JsEntryFileExtension, enableHotReload);
-                cssSourcesDelegate = () => GetDependenciesFromEntriesFile(CssEntryFileExtension, enableHotReload);
+                getDependencyJsSources = () => GetDependenciesFromEntriesFile(JsEntryFileExtension, enableHotReload);
+                getCssSources = () => GetDependenciesFromEntriesFile(CssEntryFileExtension, enableHotReload);
             }
 
         }
