@@ -23,7 +23,11 @@ namespace ReactViewControl {
         }
 
         private Lazy<string[]> DependencyJsSourcesCache { get; }
+
         private Lazy<string[]> CssSourcesCache { get; }
+
+        private Func<string[]> getDependencyJsSources;
+        private Func<string[]> getCssSources;
 
         protected virtual string MainJsSource => null;
         protected virtual string NativeObjectName => null;
@@ -52,17 +56,23 @@ namespace ReactViewControl {
 
         string[] IViewModule.Events => Events;
 
-        string[] IViewModule.DependencyJsSources => DependencyJsSourcesCache.Value;
+        string[] IViewModule.DependencyJsSources => getDependencyJsSources?.Invoke() ?? DependencyJsSourcesCache.Value;
 
-        string[] IViewModule.CssSources => CssSourcesCache.Value;
+        string[] IViewModule.CssSources => getCssSources?.Invoke() ?? CssSourcesCache.Value;
 
         KeyValuePair<string, object>[] IViewModule.PropertiesValues => PropertiesValues;
 
-        void IViewModule.Bind(IFrame frame, IChildViewHost childViewHost) {
+        void IViewModule.Bind(IFrame frame, bool enableHotReload, IChildViewHost childViewHost) {
             frame.CustomResourceRequestedHandler += this.frame.CustomResourceRequestedHandler;
             frame.ExecutionEngine.MergeWorkload(this.frame.ExecutionEngine);
             this.frame = frame;
             this.childViewHost = childViewHost;
+
+            if (enableHotReload) {
+                getDependencyJsSources = () => GetDependenciesFromEntriesFile(JsEntryFileExtension, enableHotReload);
+                getCssSources = () => GetDependenciesFromEntriesFile(CssEntryFileExtension, enableHotReload);
+            }
+
         }
 
         // ease access in generated code
@@ -76,18 +86,23 @@ namespace ReactViewControl {
             }
         }
 
-        private string[] GetDependenciesFromEntriesFile(string extension) {
+        private string[] GetDependenciesFromEntriesFile(string extension, bool hotReloadEnabled = false) {
             var entriesFilePath = VirtualPathUtility.GetDirectory(MainJsSource) + Path.GetFileNameWithoutExtension(MainJsSource) + extension;
             var resource = entriesFilePath.Split(new[] { ResourceUrl.PathSeparator }, StringSplitOptions.RemoveEmptyEntries);
 
-            var stream = ResourcesManager.TryGetResourceWithFullPath(resource.First(), resource);
-            if (stream != null) {
-                using (var reader = new StreamReader(stream)) {
-                    var allEntries = reader.ReadToEnd();
-                    if (allEntries != null && allEntries != string.Empty) {
-                        return allEntries.Split(new[] { "\n" }, StringSplitOptions.RemoveEmptyEntries);
+            using (var stream = hotReloadEnabled
+                ? File.OpenRead(Path.Combine(Path.GetDirectoryName(Source), resource.Last()))
+                : ResourcesManager.TryGetResourceWithFullPath(resource.First(), resource)) {
+                
+                if (stream != null) {
+                    using (var reader = new StreamReader(stream)) {
+                        var allEntries = reader.ReadToEnd();
+                        if (allEntries != null && allEntries != string.Empty) {
+                            return allEntries.Split(new[] { "\n" }, StringSplitOptions.RemoveEmptyEntries);
+                        }
                     }
                 }
+
             }
             return new string[0];
         }

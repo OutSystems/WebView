@@ -100,7 +100,7 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
                 <br />
                 Current time: {this.state.time}
                 <br />
-                This is a shared SASS varible value: '{styles.exportedVariable}'
+                This is a shared SASS variable value: '{styles.exportedVariable}'
                 <br />
                 {this.props.image === ImageKind.Beach ? <img className="image" src={Image} /> : null}
                 <br />
