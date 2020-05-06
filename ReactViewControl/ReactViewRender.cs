@@ -33,8 +33,10 @@ namespace ReactViewControl {
 
         private bool enableDebugMode = false;
         private ResourceUrl defaultStyleSheet;
+        private FileSystemWatcher fileSystemWatcher;
+        private string cacheInvalidationTimestamp;
 
-        public ReactViewRender(ResourceUrl defaultStyleSheet, Func<IViewModule[]> initializePlugins, bool preloadWebView, bool enableDebugMode, bool enableHotReload = false, Uri devServerUri = null) {
+        public ReactViewRender(ResourceUrl defaultStyleSheet, Func<IViewModule[]> initializePlugins, bool preloadWebView, bool enableDebugMode) {
             UserCallingAssembly = WebView.GetUserCallingMethod().ReflectedType.Assembly;
 
             var urlParams = new string[] {
@@ -63,8 +65,6 @@ namespace ReactViewControl {
             DefaultStyleSheet = defaultStyleSheet;
             PluginsFactory = initializePlugins;
             EnableDebugMode = enableDebugMode;
-            EnableHotReload = enableHotReload;
-            DevServerUri = devServerUri;
 
             GetOrCreateFrame(MainViewFrameName); // creates the main frame
 
@@ -124,10 +124,6 @@ namespace ReactViewControl {
                 }
             }
         }
-
-        public bool EnableHotReload { get; set; }
-
-        public Uri DevServerUri { get; set; }
 
         /// <summary>
         /// Gets or sets the webview zoom percentage (1 = 100%)
@@ -215,7 +211,6 @@ namespace ReactViewControl {
 
 #if DEBUG
                 System.Diagnostics.Debug.WriteLine($"View '{frameName}' loaded (id: '{id}')");
-
 #endif
                 // start component execution engine
                 frame.ExecutionEngine.Start(WebView, frameName, id);
@@ -270,6 +265,7 @@ namespace ReactViewControl {
         }
 
         public void Dispose() {
+            fileSystemWatcher?.Dispose();
             WebView.Dispose();
         }
 
@@ -368,7 +364,7 @@ namespace ReactViewControl {
             frame.Plugins = frame.Plugins.Concat(plugins).ToArray();
 
             foreach (var plugin in plugins) {
-                plugin.Bind(frame, EnableHotReload);
+                plugin.Bind(frame);
             }
         }
 
@@ -452,8 +448,72 @@ namespace ReactViewControl {
         /// <param name="component"></param>
         /// <param name="frame"></param>
         private void BindComponentToFrame(IViewModule component, FrameInfo frame) {
-            frame.Component = component; 
-            component.Bind(frame, enableHotReload: EnableHotReload, this);
+            frame.Component = component;
+            component.Bind(frame, this);
+        }
+
+        /// <summary>
+        /// Starts watching for sources changes, reloading the webview when a change occurs.
+        /// </summary>
+        /// <param name="mainModuleFullPath"></param>
+        /// <param name="mainModuleResourcePath"></param>
+        public void EnableHotReload(string mainModuleFullPath, string mainModuleResourcePath) {
+            if (string.IsNullOrEmpty(mainModuleFullPath)) {
+                throw new InvalidOperationException("Hot reload does not work in release mode");
+            }
+
+            var basePath = Path.GetDirectoryName(mainModuleFullPath);
+            var mainModuleResourcePathParts = ResourceUrl.GetEmbeddedResourcePath(new Uri(ToFullUrl(VirtualPathUtility.GetDirectory(mainModuleResourcePath))));
+
+            var relativePath = string.Join(Path.DirectorySeparatorChar.ToString(), mainModuleResourcePathParts);
+
+            if (!Directory.Exists(basePath) || !basePath.EndsWith(relativePath)) {
+                return;
+            }
+
+            if (fileSystemWatcher != null) {
+                fileSystemWatcher.Path = basePath;
+                return;
+            }
+
+            fileSystemWatcher = new FileSystemWatcher(basePath);
+            fileSystemWatcher.IncludeSubdirectories = true;
+            fileSystemWatcher.NotifyFilter = NotifyFilters.LastWrite;
+            fileSystemWatcher.EnableRaisingEvents = true;
+
+            var filesChanged = false;
+            var fileExtensionsToWatch = new[] { ".js", ".css" };
+
+            fileSystemWatcher.Changed += (sender, eventArgs) => {
+                if (IsReady) {
+                    // TODO visual studio reports a change in a file with a (strange) temporary name
+                    //if (fileExtensionsToWatch.Any(e => eventArgs.Name.EndsWith(e))) {
+                    filesChanged = true;
+                    Dispatcher.BeginInvoke((Action) (() => {
+                        if (IsReady && !IsDisposing) {
+                            cacheInvalidationTimestamp = DateTime.UtcNow.Ticks.ToString();
+                            WebView.Reload(true);
+                        }
+                    }));
+                    //}
+                }
+            };
+            WebView.BeforeResourceLoad += (ResourceHandler resourceHandler) => {
+                if (filesChanged) {
+                    var url = new Uri(resourceHandler.Url);
+                    var resourcePath = ResourceUrl.GetEmbeddedResourcePath(url);
+                    var path = Path.Combine(resourcePath.Skip(mainModuleResourcePathParts.Length).ToArray());
+                    if (fileExtensionsToWatch.Any(e => path.EndsWith(e))) {
+                        path = Path.Combine(fileSystemWatcher.Path, path);
+                        var file = new FileInfo(path);
+                        if (file.Exists) {
+                            resourceHandler.RespondWith(path);
+                        } else {
+                            System.Diagnostics.Debug.WriteLine("File not found: " + file.FullName + " (" + resourceHandler.Url + ")");
+                        }
+                    }
+                }
+            };
         }
 
         /// <summary>
@@ -567,11 +627,7 @@ namespace ReactViewControl {
             if (url.Contains(Uri.SchemeDelimiter)) {
                 return url;
             } else if (url.StartsWith(ResourceUrl.PathSeparator)) {
-                if (DevServerUri != null && EnableHotReload) {
-                    return new Uri(DevServerUri, url).ToString();
-                } else {
-                    return new ResourceUrl(ResourceUrl.EmbeddedScheme, url).ToString();
-                }
+                return new ResourceUrl(ResourceUrl.EmbeddedScheme, url).ToString();
             } else {
                 return new ResourceUrl(UserCallingAssembly, url).ToString();
             }
