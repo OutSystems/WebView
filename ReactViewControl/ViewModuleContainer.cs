@@ -14,6 +14,8 @@ namespace ReactViewControl {
 
         private IFrame frame;
         private IChildViewHost childViewHost;
+        private bool isHotReloadEnabled = false;
+
 
         public ViewModuleContainer() {
             DependencyJsSourcesCache = new Lazy<string[]>(() => GetDependenciesFromEntriesFile(JsEntryFileExtension));
@@ -23,6 +25,7 @@ namespace ReactViewControl {
         }
 
         private Lazy<string[]> DependencyJsSourcesCache { get; }
+
         private Lazy<string[]> CssSourcesCache { get; }
 
         protected virtual string MainJsSource => null;
@@ -58,7 +61,7 @@ namespace ReactViewControl {
 
         KeyValuePair<string, object>[] IViewModule.PropertiesValues => PropertiesValues;
 
-        void IViewModule.Bind(IFrame frame, IChildViewHost childViewHost) {
+        void IViewModule.Bind(IFrame frame, bool isHotReloadEnabled, IChildViewHost childViewHost) {
             frame.CustomResourceRequestedHandler += this.frame.CustomResourceRequestedHandler;
             frame.ExecutionEngine.MergeWorkload(this.frame.ExecutionEngine);
             this.frame = frame;
@@ -80,16 +83,25 @@ namespace ReactViewControl {
             var entriesFilePath = VirtualPathUtility.GetDirectory(MainJsSource) + Path.GetFileNameWithoutExtension(MainJsSource) + extension;
             var resource = entriesFilePath.Split(new[] { ResourceUrl.PathSeparator }, StringSplitOptions.RemoveEmptyEntries);
 
-            var stream = ResourcesManager.TryGetResourceWithFullPath(resource.First(), resource);
-            if (stream != null) {
-                using (var reader = new StreamReader(stream)) {
-                    var allEntries = reader.ReadToEnd();
-                    if (allEntries != null && allEntries != string.Empty) {
-                        return allEntries.Split(new[] { "\n" }, StringSplitOptions.RemoveEmptyEntries);
+            using (var stream = GetResourceStream(resource)) {
+                if (stream != null) {
+                    using (var reader = new StreamReader(stream)) {
+                        var allEntries = reader.ReadToEnd();
+                        if (allEntries != null && allEntries != string.Empty) {
+                            return allEntries.Split(new[] { "\n" }, StringSplitOptions.RemoveEmptyEntries);
+                        }
                     }
                 }
+
             }
             return new string[0];
+        }
+
+        private Stream GetResourceStream(string[] resource)
+        {
+            return isHotReloadEnabled
+                ? File.OpenRead(Path.Combine(Path.GetDirectoryName(Source), resource.Last()))
+                : ResourcesManager.TryGetResourceWithFullPath(resource.First(), resource);
         }
 
         public event CustomResourceRequestedEventHandler CustomResourceRequested {
