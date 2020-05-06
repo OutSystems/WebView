@@ -1,5 +1,4 @@
-﻿using System;
-using WebViewControl;
+﻿using WebViewControl;
 
 namespace ReactViewControl {
 
@@ -30,15 +29,5 @@ namespace ReactViewControl {
         /// The view is cached and preloaded. First render occurs earlier.
         /// </summary>
         public virtual bool EnableViewPreload => true;
-
-        /// <summary>
-        /// Enables Views Hot Reload.
-        /// </summary>
-        public virtual bool EnableHotReload => false;
-
-        /// <summary>
-        /// Enables Views Hot Reload.
-        /// </summary>
-        public virtual Uri DevServerURI => null;
     }
 }

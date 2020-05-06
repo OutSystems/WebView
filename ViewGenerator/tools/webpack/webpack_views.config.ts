@@ -65,12 +65,6 @@ const config = (_, argv) => {
         }
     }
 
-    if (argv.useCache) {
-        standardConfig.devServer = {
-            disableHostCheck: true
-        } 
-    }
-
     return standardConfig;
 };
 
