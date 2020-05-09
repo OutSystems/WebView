@@ -17,7 +17,7 @@ namespace ReactViewControl {
 
         private static ReactViewRender CreateReactViewInstance(ReactViewFactory factory) {
             ReactViewRender InnerCreateView() {
-                var view = new ReactViewRender(factory.DefaultStyleSheet, () => factory.InitializePlugins(), factory.EnableViewPreload, factory.ForceNativeSyncCalls, factory.EnableDebugMode);
+                var view = new ReactViewRender(factory.DefaultStyleSheet, () => factory.InitializePlugins(), factory.EnableViewPreload, factory.ForceNativeSyncCalls, factory.EnableDebugMode, factory.DevServerURI);
                 if (factory.ShowDeveloperTools) {
                     view.ShowDeveloperTools();
                 }
@@ -80,9 +80,6 @@ namespace ReactViewControl {
 
         private void TryLoadComponent() {
             if (!View.IsMainComponentLoaded) {
-                if (EnableHotReload) {
-                    View.EnableHotReload(MainModule.Source, MainModule.MainJsSource);
-                }
                 View.LoadComponent(MainModule);
             }
         }
@@ -102,8 +99,6 @@ namespace ReactViewControl {
         /// when a resource fails to load.
         /// </summary>
         public bool EnableDebugMode { get => View.EnableDebugMode; set => View.EnableDebugMode = value; }
-
-        public bool EnableHotReload { get; set; }
 
         /// <summary>
         /// True when the main component has been rendered.

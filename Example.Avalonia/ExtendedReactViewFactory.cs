@@ -1,4 +1,5 @@
-﻿using ReactViewControl;
+﻿using System;
+using ReactViewControl;
 using WebViewControl;
 
 namespace Example.Avalonia {
@@ -18,5 +19,9 @@ namespace Example.Avalonia {
         public override bool EnableViewPreload => true;
 
         public override bool ForceNativeSyncCalls => true;
+
+#if DEBUG
+        public override Uri DevServerURI => null;
+#endif
     }
 }
