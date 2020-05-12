@@ -1,4 +1,5 @@
-﻿using ReactViewControl;
+﻿using System;
+using ReactViewControl;
 using WebViewControl;
 
 namespace Example {
@@ -16,5 +17,9 @@ namespace Example {
         public override bool ShowDeveloperTools => false;
 
         public override bool EnableViewPreload => true;
+
+#if DEBUG
+        public override Uri DevServerURI => null;
+#endif
     }
 }
