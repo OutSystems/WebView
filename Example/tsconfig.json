@@ -16,6 +16,6 @@
     "compileOnSave": false,
     "buildOnSave": false,
     "exclude": [
-        "dist"
+        "dist", "Generated"
     ]
 }

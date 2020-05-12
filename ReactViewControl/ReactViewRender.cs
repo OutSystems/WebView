@@ -39,12 +39,11 @@ namespace ReactViewControl {
 
         private bool enableDebugMode;
         private ResourceUrl defaultStyleSheet;
-        private FileSystemWatcher fileSystemWatcher;
         private string cacheInvalidationTimestamp;
         private bool isKeyboardEffectivelyDisabled; // effective value, controlled by the browser to disable keyboard
         private bool isInputDisabled; // used primarly to control the intention to disable input (before the browser is ready)
 
-        public ReactViewRender(ResourceUrl defaultStyleSheet, Func<IViewModule[]> initializePlugins, bool preloadWebView, bool forceNativeSyncCalls, bool enableDebugMode) {
+        public ReactViewRender(ResourceUrl defaultStyleSheet, Func<IViewModule[]> initializePlugins, bool preloadWebView, bool forceNativeSyncCalls, bool enableDebugMode, Uri devServerUri = null) {
             UserCallingAssembly = WebView.GetUserCallingMethod().ReflectedType.Assembly;
             
             // must useSharedDomain for the local storage to be shared
@@ -61,6 +60,7 @@ namespace ReactViewControl {
             DefaultStyleSheet = defaultStyleSheet;
             PluginsFactory = initializePlugins;
             EnableDebugMode = enableDebugMode;
+            DevServerUri = devServerUri;
 
             GetOrCreateFrame(MainViewFrameName); // creates the main frame
 
@@ -103,6 +103,13 @@ namespace ReactViewControl {
 
         public ReactView Host { get; set; }
 
+        /// <summary>
+        /// True when hot reload is enabled.
+        /// </summary>
+        public bool IsHotReloadEnabled {
+            get { return DevServerUri != null; }
+        }
+
         public bool IsDisposing => WebView.IsDisposing;
 
         /// <summary>
@@ -132,6 +139,11 @@ namespace ReactViewControl {
                 }
             }
         }
+
+        /// <summary>
+        /// Gets webpack dev server url.
+        /// </summary>
+        public Uri DevServerUri { get; }
 
         /// <summary>
         /// Gets or sets the webview zoom percentage (1 = 100%)
@@ -294,7 +306,6 @@ namespace ReactViewControl {
         }
 
         public void Dispose() {
-            fileSystemWatcher?.Dispose();
             WebView.Dispose();
         }
 
@@ -509,70 +520,6 @@ namespace ReactViewControl {
         }
 
         /// <summary>
-        /// Starts watching for sources changes, reloading the webview when a change occurs.
-        /// </summary>
-        /// <param name="mainModuleFullPath"></param>
-        /// <param name="mainModuleResourcePath"></param>
-        public void EnableHotReload(string mainModuleFullPath, string mainModuleResourcePath) {
-            if (string.IsNullOrEmpty(mainModuleFullPath)) {
-                throw new InvalidOperationException("Hot reload does not work in release mode");
-            }
-
-            var basePath = Path.GetDirectoryName(mainModuleFullPath);
-            var mainModuleResourcePathParts = ResourceUrl.GetEmbeddedResourcePath(new Uri(ToFullUrl(mainModuleResourcePath.Substring(0, mainModuleResourcePath.LastIndexOf("/")))));
-
-            var relativePath = string.Join(Path.DirectorySeparatorChar.ToString(), mainModuleResourcePathParts);
-
-            if (!Directory.Exists(basePath) || !basePath.EndsWith(relativePath)) {
-                return;
-            }
-
-            if (fileSystemWatcher != null) {
-                fileSystemWatcher.Path = basePath;
-                return;
-            }
-
-            fileSystemWatcher = new FileSystemWatcher(basePath);
-            fileSystemWatcher.IncludeSubdirectories = true;
-            fileSystemWatcher.NotifyFilter = NotifyFilters.LastWrite;
-            fileSystemWatcher.EnableRaisingEvents = true;
-
-            var filesChanged = false;
-            var fileExtensionsToWatch = new[] { ".js", ".css" };
-
-            fileSystemWatcher.Changed += (sender, eventArgs) => {
-                if (IsReady) {
-                    // TODO visual studio reports a change in a file with a (strange) temporary name
-                    //if (fileExtensionsToWatch.Any(e => eventArgs.Name.EndsWith(e))) {
-                    filesChanged = true;
-                    Task.Run(() => {
-                        if (IsReady && !IsDisposing) {
-                            cacheInvalidationTimestamp = DateTime.UtcNow.Ticks.ToString();
-                            WebView.Reload(true);
-                        }
-                    });
-                    //}
-                }
-            };
-            WebView.BeforeResourceLoad += (ResourceHandler resourceHandler) => {
-                if (filesChanged) {
-                    var url = new Uri(resourceHandler.Url);
-                    var resourcePath = ResourceUrl.GetEmbeddedResourcePath(url);
-                    var path = Path.Combine(resourcePath.Skip(mainModuleResourcePathParts.Length).ToArray());
-                    if (fileExtensionsToWatch.Any(e => path.EndsWith(e))) {
-                        path = Path.Combine(fileSystemWatcher.Path, path);
-                        var file = new FileInfo(path);
-                        if (file.Exists) {
-                            resourceHandler.RespondWith(path);
-                        } else {
-                            System.Diagnostics.Debug.WriteLine("File not found: " + file.FullName + " (" + resourceHandler.Url + ")");
-                        }
-                    }
-                }
-            };
-        }
-
-        /// <summary>
         /// Handles the webview load of resources
         /// </summary>
         /// <param name="resourceHandler"></param>
@@ -707,7 +654,11 @@ namespace ReactViewControl {
             if (url.Contains(Uri.SchemeDelimiter)) {
                 return url;
             } else if (url.StartsWith(ResourceUrl.PathSeparator)) {
-                return new ResourceUrl(ResourceUrl.EmbeddedScheme, url).ToString();
+                if (IsHotReloadEnabled) {
+                    return new Uri(DevServerUri, url).ToString();
+                } else {
+                    return new ResourceUrl(ResourceUrl.EmbeddedScheme, url).ToString();
+                }
             } else {
                 return new ResourceUrl(UserCallingAssembly, url).ToString();
             }

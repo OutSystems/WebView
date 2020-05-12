@@ -79,16 +79,26 @@ namespace ReactViewControl {
             var entriesFilePath = Path.Combine(Path.GetDirectoryName(MainJsSource), Path.GetFileNameWithoutExtension(MainJsSource) + extension);
             var resource = entriesFilePath.Split(new[] { Path.DirectorySeparatorChar }, StringSplitOptions.RemoveEmptyEntries);
 
-            var stream = ResourcesManager.TryGetResourceWithFullPath(resource.First(), resource);
-            if (stream != null) {
-                using (var reader = new StreamReader(stream)) {
-                    var allEntries = reader.ReadToEnd();
-                    if (allEntries != null && allEntries != string.Empty) {
-                        return allEntries.Split(new[] { "\n" }, StringSplitOptions.RemoveEmptyEntries);
+            using (var stream = GetResourceStream(resource)) {
+                if (stream != null) {
+                    using (var reader = new StreamReader(stream)) {
+                        var allEntries = reader.ReadToEnd();
+                        if (allEntries != null && allEntries != string.Empty) {
+                            return allEntries.Split(new[] { "\n" }, StringSplitOptions.RemoveEmptyEntries);
+                        }
                     }
                 }
             }
             return new string[0];
+        }
+
+        private Stream GetResourceStream(string[] resource) {
+            var isHotReloadEnabled = childViewHost == null ? false : childViewHost.IsHotReloadEnabled;
+            if (isHotReloadEnabled) {
+                return File.OpenRead(Path.Combine(Path.GetDirectoryName(Source), resource.Last()));
+            }
+
+            return ResourcesManager.TryGetResourceWithFullPath(resource.First(), resource);
         }
 
         public event CustomResourceRequestedEventHandler CustomResourceRequested {
