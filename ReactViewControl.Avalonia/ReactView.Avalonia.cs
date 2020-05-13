@@ -1,7 +1,7 @@
-﻿using Avalonia.Controls;
+﻿using System;
+using Avalonia.Controls;
 using Avalonia.Styling;
 using Avalonia.Threading;
-using System;
 
 namespace ReactViewControl {
 
@@ -10,7 +10,7 @@ namespace ReactViewControl {
         Type IStyleable.StyleKey => typeof(ContentControl);
 
         partial void ExtraInitialize() {
-            AttachedToLogicalTree += OnAttachedToLogicalTree;
+            AttachedToVisualTree += OnAttachedToVisualTree;
 
             Content = View;
 
@@ -18,8 +18,8 @@ namespace ReactViewControl {
             // FocusManager.SetFocusedElement(this, View.FocusableElement);
         }
 
-        private void OnAttachedToLogicalTree(object sender, Avalonia.LogicalTree.LogicalTreeAttachmentEventArgs e) {
-            AttachedToLogicalTree -= OnAttachedToLogicalTree;
+        private void OnAttachedToVisualTree(object sender, Avalonia.VisualTreeAttachmentEventArgs e) {
+            AttachedToVisualTree -= OnAttachedToVisualTree;
             TryLoadComponent();
         }
 
