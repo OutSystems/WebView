@@ -16,7 +16,7 @@ namespace WebViewControl {
                 lock (SyncRoot) {
                     if (assemblies == null) {
                         assemblies = new Dictionary<string, Assembly>();
-                        AppDomain.CurrentDomain.AssemblyLoad += OnAssemblyLoaded;
+                        AppDomain.CurrentDomain.AssemblyLoad += delegate { newAssembliesLoaded = true; };
                     }
                 }
             }
@@ -49,7 +49,9 @@ namespace WebViewControl {
                     }
 
                     if (assembly != null) {
-                        assemblies[assembly.GetName().Name] = assembly;
+                        lock (SyncRoot) {
+                            assemblies[assembly.GetName().Name] = assembly;
+                        }
                     }
                 }
             }
@@ -61,13 +63,10 @@ namespace WebViewControl {
         }
 
         private Assembly GetAssemblyByName(string assemblyName) {
-            Assembly assembly;
-            assemblies.TryGetValue(assemblyName, out assembly);
-            return assembly;
-        }
-
-        private void OnAssemblyLoaded(object sender, AssemblyLoadEventArgs args) {
-            newAssembliesLoaded = true;
+            lock (SyncRoot) {
+                assemblies.TryGetValue(assemblyName, out var assembly);
+                return assembly;
+            }
         }
     }
 }
