@@ -35,5 +35,10 @@ namespace ReactViewControl {
         /// Webpack dev server url. Setting this value will enable hot reload. eg: new Uri("http://localhost:8080")
         /// </summary>
         public virtual Uri DevServerURI => null;
+
+        /// <summary>
+        /// This feature is not available on this version.
+        /// </summary>
+        public virtual bool ForceNativeSyncCalls => false;
     }
 }
