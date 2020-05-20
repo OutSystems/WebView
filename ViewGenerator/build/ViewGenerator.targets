@@ -129,14 +129,14 @@
     <CallTarget Condition="'@(VG_Workers_Inputs)' != ''" Targets="VG_GenerateWorkersBundle" />
 
     <!-- Main bundle generation -->
-    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config='$(ViewGeneratorToolsPath)\webpack\$(WP_ConfigFileName).config.js' --mode=$(WP_Mode) --devtool=$(WP_DevTool) --useCache=$(WP_UseCache) --pluginsRelativePath='$(PluginsRelativePath)'" />
+    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config='$(ViewGeneratorToolsPath)\webpack\$(WP_ConfigFileName).config.js' --mode=$(WP_Mode) --devtool=$(WP_DevTool) --useCache=$(WP_UseCache) --pluginsRelativePath='$(PluginsRelativePath)' --assemblyName='$(AssemblyName)'" />
     
     <Touch Files="VG_Build.cache" AlwaysCreate="true" />
   </Target>
 
   <!-- Default stylesheet related target -->
   <Target Name="VG_GenerateDefaultStyleSheet" > 
-    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config='$(ViewGeneratorToolsPath)\webpack\webpack_stylesheets.config.js' --mode=$(WP_Mode) --devtool=$(WP_DevTool) --entryPath='@(DefaultStyleSheet)'" />
+    <Exec Command="&quot;$(ViewGeneratorNodeJsExe)&quot; &quot;$(ViewPackerToolScript)&quot; --config='$(ViewGeneratorToolsPath)\webpack\webpack_stylesheets.config.js' --mode=$(WP_Mode) --devtool=$(WP_DevTool) --entryPath='@(DefaultStyleSheet)' --assemblyName='$(AssemblyName)'" />
   </Target>
 
   <!-- Workers related target -->

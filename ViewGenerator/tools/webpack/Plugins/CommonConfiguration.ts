@@ -15,7 +15,7 @@ import getResourcesRuleSet from "../Rules/Files";
 import SassRuleSet from "../Rules/Sass";
 import getTypeScriptRuleSet from "../Rules/TypeScript";
 
-let getCommonConfiguration = (libraryName: string, useCache: boolean, pluginsRelativePath?: string): Configuration => {
+let getCommonConfiguration = (libraryName: string, useCache: boolean, assemblyName?: string, pluginsRelativePath?: string): Configuration => {
 
     const entryMap: Dictionary<string> = {}
     const outputMap: Dictionary<string> = {};
@@ -45,6 +45,16 @@ let getCommonConfiguration = (libraryName: string, useCache: boolean, pluginsRel
 
     let currentDirectory: string = getCurrentDirectory();
     let assemblyPublicPath = getPublicPath();
+
+    let pluginsRelativePathNormalized: string;
+    if (pluginsRelativePath) {
+        // Replace double dots ".." 
+        pluginsRelativePathNormalized = pluginsRelativePath.replace(/(\.\.)/g, ''); 
+
+        // Replace backslashes "\"  
+        pluginsRelativePathNormalized = pluginsRelativePathNormalized.replace(/[/\\/]/g, ''); 
+    }
+
     const Configuration: Configuration = {
 
         entry: entryMap,
@@ -88,7 +98,7 @@ let getCommonConfiguration = (libraryName: string, useCache: boolean, pluginsRel
         module: {
             rules: [
                 SassRuleSet,
-                getResourcesRuleSet(pluginsRelativePath),
+                getResourcesRuleSet(assemblyName, pluginsRelativePathNormalized),
                 getTypeScriptRuleSet(useCache)
             ]
         },

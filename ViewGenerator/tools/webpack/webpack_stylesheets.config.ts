@@ -35,7 +35,7 @@ const config = (_, argv) => {
         module: {
             rules: [
                 SassRuleSet,
-                getResourcesRuleSet()
+                getResourcesRuleSet(argv.assemblyName)
             ]
         },
 
