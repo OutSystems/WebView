@@ -12,7 +12,7 @@
     <Product>ReactViewControl</Product>
     <Copyright>Copyright ©  2019</Copyright>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.75.55</Version>
+    <Version>2.75.56</Version>
     <PackageId>ReactViewControl-Avalonia</PackageId>
     <Authors>OutSystems</Authors>
     <PackageOutputPath>$(MSBuildProjectDirectory)\..\nuget</PackageOutputPath>

@@ -39,7 +39,6 @@ namespace ReactViewControl {
 
         private bool enableDebugMode;
         private ResourceUrl defaultStyleSheet;
-        private string cacheInvalidationTimestamp;
         private bool isKeyboardEffectivelyDisabled; // effective value, controlled by the browser to disable keyboard
         private bool isInputDisabled; // used primarly to control the intention to disable input (before the browser is ready)
 
@@ -51,7 +50,8 @@ namespace ReactViewControl {
                 DisableBuiltinContextMenus = true,
                 IsSecurityDisabled = true,
                 IgnoreMissingResources = false,
-                IsHistoryDisabled = true
+                IsHistoryDisabled = true,
+                AllowNativeMethodsParallelExecution = !forceNativeSyncCalls
             };
 
             Loader = new LoaderModule(this);
@@ -95,11 +95,13 @@ namespace ReactViewControl {
             WebView.LoadResource(new ResourceUrl(ResourcesAssembly, ReactViewResources.Resources.DefaultUrl + "?" + string.Join("&", urlParams)));
 
             if (preloadWebView) {
-                WebView.InitializeBrowser();
+                PreloadWebView();
             }
         }
 
         partial void ExtraInitialize();
+
+        partial void PreloadWebView();
 
         public ReactView Host { get; set; }
 

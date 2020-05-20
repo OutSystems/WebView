@@ -613,10 +613,6 @@ namespace WebViewControl {
             }
         }
 
-        internal void InitializeBrowser() {
-            chromium.CreateBrowser();
-        }
-
         public static string LogFile { get; set; }
 
         public static string CachePath { get; set; } = Path.Combine(Path.GetTempPath(), "WebView" + Guid.NewGuid().ToString().Replace("-", null) + DateTime.UtcNow.Ticks);
@@ -737,6 +733,11 @@ namespace WebViewControl {
 
         internal static bool IsMainFrame(string frameName) {
             return string.IsNullOrEmpty(frameName);
+        }
+
+        internal bool AllowNativeMethodsParallelExecution { 
+            get => chromium.AllowNativeMethodsParallelExecution; 
+            set => chromium.AllowNativeMethodsParallelExecution = value; 
         }
     }
 }
