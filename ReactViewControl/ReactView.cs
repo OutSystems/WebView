@@ -78,7 +78,7 @@ namespace ReactViewControl {
         /// </summary>
         protected virtual ReactViewFactory Factory => new ReactViewFactory();
 
-        private void TryLoadComponent() {
+        protected void TryLoadComponent() {
             if (!View.IsMainComponentLoaded) {
                 View.LoadComponent(MainModule);
             }
