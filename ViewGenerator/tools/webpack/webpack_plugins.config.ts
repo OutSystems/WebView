@@ -8,7 +8,7 @@ import { getCurrentDirectory } from "./Plugins/Utils";
 
 const config = (_, argv) => {
 
-    let standardConfig: Configuration = getCommonConfiguration("Plugins", argv.useCache);
+    let standardConfig: Configuration = getCommonConfiguration("Plugins", argv.useCache, argv.assemblyName);
 
     // Plugins
     standardConfig.plugins = standardConfig.plugins.concat(

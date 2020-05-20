@@ -2,7 +2,7 @@
 import { RuleSetRule } from "webpack";
 
 // Resource files
-const getResourcesRuleSet = (pluginsRelativePath? : string): RuleSetRule => {
+const getResourcesRuleSet = (assemblyName?: string, pluginsRelativePath? : string): RuleSetRule => {
 
     const ResourcesRule: RuleSetRule = {
         test: /\.(ttf|png|jpg|jpeg|bmp|gif|woff|woff2|ico|svg|html)$/,
@@ -23,40 +23,48 @@ const getResourcesRuleSet = (pluginsRelativePath? : string): RuleSetRule => {
                         //
                         // Context represents the path of the project being built by webpack, e.g. "C:\Git\Path\to\Project\"
                         //
+                        const buildUrl = (url: string, resourceBase: string): string => {
+
+                            let idx: number = url.indexOf(`/${resourceBase}/`);
+                            if (idx < 0 && pluginsRelativePath) {                       
+                                idx = url.indexOf(`/${pluginsRelativePath}/`);
+                            }
+
+                            // relative paths starting with ".." are replaced by "_"
+                            if (url.startsWith("_")) {
+                                if (idx < 0) {
+                                    // URL (argument) is a relative path and we did not find the resource base path or the plugin assembly in its content
+                                    throw new Error("VG001: Resource not found: using a resource from another namespace without an absolute URL.");
+                                }
+
+                                // URL (argument) is a relative path and contains the resource base path or the plugin assembly in its content
+                                return url.substring(idx);
+                            }
+
+                            if (idx >= 0) {
+                                // URL (argument) is an absolute path and contains the resource base path or the plugin assembly in its content
+                                return url.substring(idx);
+                            }
+
+                            if (url.substring(1).startsWith(":/")) {
+                                // URL (argument) is an absolute path and we did not find the resource base path or the plugin assembly in its content
+                                throw new Error("VG002: Resource not found: using a resource from another namespace without an absolute URL.");
+                            }
+
+                            // URL is a relative path and contains the assembly in its content
+                            return `/${resourceBase}/${url}`;
+                        };
+
                         let resourceBase: string = basename(context);
+                        let result: string = buildUrl(url, resourceBase);
 
-                        let idx: number = url.indexOf(`/${resourceBase}/`);
-                        if (idx < 0) {
-                            if (pluginsRelativePath != undefined) {
-                                let pluginsStringEdited: string = pluginsRelativePath.replace(/(\.\.)/g, ''); //Replace double dots ".." 
-                                pluginsStringEdited = pluginsStringEdited.replace(/[/\\/]/g, ''); //Replace backslashes "\"                              
-                                idx = url.indexOf(`/${pluginsStringEdited}/`);
-                            }
+                        // Replace resource base path with assembly name, as the project folder name might be different
+                        // than the assembly name.
+                        if (assemblyName && resourceBase !== assemblyName) {
+                            return result.replace(`/${resourceBase}/`, `/${assemblyName}/`)
                         }
 
-                        // relative paths starting with ".." are replaced by "_"
-                        if (url.startsWith("_")) {
-                            if (idx < 0) {
-                                // URL is a relative path and we did not find the assembly or plugin assembly in its content
-                                throw new Error("Resource not found: using a resource from another namespace without an absolute path.");
-                            }
-
-                            // URL is a relative path and contains the assembly or plugin assembly in its content
-                            return url.substring(idx);
-                        }
-
-                        if (url.substring(1).startsWith(":/")) {
-                            // URL is an absolute path and we did not find the assembly or plugin assembly in its content
-                            throw new Error("Resource not found: using a resource from another namespace without an absolute path.");
-                        }
-
-                        if (idx >= 0) {
-                            // URL is an absolute path and contains the assembly or plugin assembly in its content
-                            return url.substring(idx);
-                        }
-
-                        // URL is a relative path and contains the assembly in its content
-                        return `/${resourceBase}/${url}`;
+                        return result;
                     }
                 },
             },
