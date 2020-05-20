@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Styling;
@@ -12,7 +13,7 @@ namespace ReactViewControl {
 
         Type IStyleable.StyleKey => typeof(ContentControl);
 
-        partial void ExtraInitialize() {
+        private Window GetHiddenWindow() {
             if (hiddenWindow == null) {
                 hiddenWindow = new Window() {
                     IsVisible = false,
@@ -20,10 +21,19 @@ namespace ReactViewControl {
                     Title = "Hidden React View Window"
                 };
             }
+            return hiddenWindow;
+        }
 
-            WebView.HostingWindow = hiddenWindow;
-            WebView.AllowNativeMethodsParallelExecution = !ForceNativeSyncCalls;
+        partial void ExtraInitialize() {
             Content = WebView;
+        }
+
+        partial void PreloadWebView() {
+            var window = GetHiddenWindow();
+            // initialize browser with full screen size to avoid html measure issues on initial render
+            var initialBrowserSizeWidth = (int)window.Screens.All.Max(s => s.WorkingArea.Width * (WebView.OsrEnabled ? 1 : s.PixelDensity));
+            var initialBrowserSizeHeight = (int)window.Screens.All.Max(s => s.WorkingArea.Height * (WebView.OsrEnabled ? 1 : s.PixelDensity));
+            WebView.InitializeBrowser(window, initialBrowserSizeWidth, initialBrowserSizeHeight);
         }
 
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs e) {
