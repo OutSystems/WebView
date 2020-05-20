@@ -81,5 +81,9 @@ namespace WebViewControl {
         private static bool IsFrameworkAssemblyName(string name) {
             return name == "PresentationFramework" || name == "PresentationCore" || name == "mscorlib" || name == "System.Xaml" || name == "WindowsBase";
         }
+
+        internal void InitializeBrowser(int initialWidth, int initialHeight) {
+            chromium.CreateBrowser(initialWidth, initialHeight);
+        }
     }
 }

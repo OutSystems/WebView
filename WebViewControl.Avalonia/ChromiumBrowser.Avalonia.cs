@@ -5,10 +5,18 @@ namespace WebViewControl {
 
     partial class ChromiumBrowser : AvaloniaCefBrowser {
 
-        protected override WindowBase GetHostingWindow() {
-            return HostingWindow ?? base.GetHostingWindow();
+        private WindowBase hostingWindow;
+
+        public void CreateBrowser(WindowBase hostingWindow, int width, int height) {
+            if (IsBrowserInitialized) {
+                return;
+            }
+            this.hostingWindow = hostingWindow;
+            CreateBrowser(width, height);
         }
 
-        public Window HostingWindow { get; set; }
+        protected override WindowBase GetHostingWindow() {
+            return hostingWindow ?? base.GetHostingWindow();
+        }
     }
 }
