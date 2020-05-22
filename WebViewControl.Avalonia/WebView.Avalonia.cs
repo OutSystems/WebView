@@ -4,23 +4,17 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Styling;
 using Avalonia.Threading;
 using Xilium.CefGlue.Common;
 
 namespace WebViewControl {
 
-    partial class WebView : ContentControl, IStyleable {
-
-        Type IStyleable.StyleKey => typeof(ContentControl);
+    partial class WebView : Control {
 
         private static bool osrEnabled = true;
 
         partial void ExtraInitialize() {
-            Content = chromium;
-
-            // TODO needed ? FocusManager.SetIsFocusScope(this, true);
-            // FocusManager.SetFocusedElement(this, FocusableElement);
+            VisualChildren.Add(chromium);
         }
         
         public static bool OsrEnabled { 
@@ -95,6 +89,11 @@ namespace WebViewControl {
 
         internal void InitializeBrowser(WindowBase hostingWindow, int initialWidth, int initialHeight) {
             chromium.CreateBrowser(hostingWindow, initialWidth, initialHeight);
+        }
+
+        protected override void OnGotFocus(GotFocusEventArgs e) {
+            e.Handled = true;
+            chromium.Focus();
         }
     }
 }

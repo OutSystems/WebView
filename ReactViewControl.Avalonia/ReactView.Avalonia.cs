@@ -1,21 +1,20 @@
 ﻿using System;
 using Avalonia.Controls;
-using Avalonia.Styling;
+using Avalonia.Input;
 using Avalonia.Threading;
 
 namespace ReactViewControl {
 
-    partial class ReactView : ContentControl, IStyleable {
-
-        Type IStyleable.StyleKey => typeof(ContentControl);
+    partial class ReactView : Control {
 
         partial void ExtraInitialize() {
             AttachedToVisualTree += OnAttachedToVisualTree;
+            VisualChildren.Add(View);
+        }
 
-            Content = View;
-
-            // TODO needed ? FocusManager.SetIsFocusScope(this, true);
-            // FocusManager.SetFocusedElement(this, View.FocusableElement);
+        protected override void OnGotFocus(GotFocusEventArgs e) {
+            e.Handled = true;
+            View.Focus();
         }
 
         private void OnAttachedToVisualTree(object sender, Avalonia.VisualTreeAttachmentEventArgs e) {

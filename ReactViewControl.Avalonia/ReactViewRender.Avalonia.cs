@@ -1,17 +1,15 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Styling;
+using Avalonia.Input;
+using Avalonia.Interactivity;
 using WebViewControl;
 
 namespace ReactViewControl {
 
-    partial class ReactViewRender : ContentControl, IStyleable {
+    partial class ReactViewRender : Control {
 
         private static Window hiddenWindow;
-
-        Type IStyleable.StyleKey => typeof(ContentControl);
 
         private Window GetHiddenWindow() {
             if (hiddenWindow == null) {
@@ -25,7 +23,7 @@ namespace ReactViewControl {
         }
 
         partial void ExtraInitialize() {
-            Content = WebView;
+            VisualChildren.Add(WebView);
         }
 
         partial void PreloadWebView() {
@@ -34,6 +32,11 @@ namespace ReactViewControl {
             var initialBrowserSizeWidth = (int)window.Screens.All.Max(s => s.WorkingArea.Width * (WebView.OsrEnabled ? 1 : s.PixelDensity));
             var initialBrowserSizeHeight = (int)window.Screens.All.Max(s => s.WorkingArea.Height * (WebView.OsrEnabled ? 1 : s.PixelDensity));
             WebView.InitializeBrowser(window, initialBrowserSizeWidth, initialBrowserSizeHeight);
+        }
+
+        protected override void OnGotFocus(GotFocusEventArgs e) {
+            e.Handled = true;
+            WebView.Focus();
         }
 
         protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs e) {
