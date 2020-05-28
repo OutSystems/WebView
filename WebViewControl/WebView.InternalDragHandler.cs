@@ -19,6 +19,14 @@ namespace WebViewControl {
                         filesDragging(fileNames);
                     }
                 }
+                
+                var textDragging = OwnerWebView.TextDragging;
+                if (textDragging != null) {
+                    var textContent = dragData.FragmentText;
+                    if (!string.IsNullOrEmpty(textContent)) {
+                        textDragging(textContent);
+                    }
+                }
 
                 return false;
             }

@@ -25,6 +25,7 @@ namespace WebViewControl {
     public delegate void JavascriptContextCreatedEventHandler(string frameName);
     public delegate void UnhandledAsyncExceptionEventHandler(UnhandledAsyncExceptionEventArgs eventArgs);
     public delegate void FilesDraggingEventHandler(string[] fileNames);
+    public delegate void TextDraggingEventHandler(string textContent);
 
     internal delegate void JavacriptDialogShowEventHandler(string text, Action closeDialog);
     internal delegate void JavascriptContextReleasedEventHandler(string frameName);
@@ -89,6 +90,7 @@ namespace WebViewControl {
         internal event JavascriptContextReleasedEventHandler JavascriptContextReleased;
         internal event JavacriptDialogShowEventHandler JavacriptDialogShown;
         internal event FilesDraggingEventHandler FilesDragging;
+        internal event TextDraggingEventHandler TextDragging;
         internal event KeyPressedEventHandler KeyPressed;
 
         private static int domainId = 1;
@@ -153,13 +155,13 @@ namespace WebViewControl {
             if (IsInDesignMode) {
                 return;
             }
-
+            /*
 #if DEBUG
             if (!System.Diagnostics.Debugger.IsAttached) {
                 throw new InvalidOperationException("Running debug version");
             }
 #endif
-
+*/
             if (useSharedDomain) {
                 CurrentDomainId = string.Empty;
             } else {
