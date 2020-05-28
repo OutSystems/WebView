@@ -155,13 +155,13 @@ namespace WebViewControl {
             if (IsInDesignMode) {
                 return;
             }
-            /*
+
 #if DEBUG
             if (!System.Diagnostics.Debugger.IsAttached) {
                 throw new InvalidOperationException("Running debug version");
             }
 #endif
-*/
+
             if (useSharedDomain) {
                 CurrentDomainId = string.Empty;
             } else {
@@ -737,9 +737,9 @@ namespace WebViewControl {
             return string.IsNullOrEmpty(frameName);
         }
 
-        internal bool AllowNativeMethodsParallelExecution { 
-            get => chromium.AllowNativeMethodsParallelExecution; 
-            set => chromium.AllowNativeMethodsParallelExecution = value; 
+        internal bool AllowNativeMethodsParallelExecution {
+            get => chromium.AllowNativeMethodsParallelExecution;
+            set => chromium.AllowNativeMethodsParallelExecution = value;
         }
     }
 }
