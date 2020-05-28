@@ -115,7 +115,7 @@
   </ItemGroup>
 
   <!-- Webpack bundle generation targets-->
-  <Target Name="VG_GenerateBundle" Inputs="@(VG_Inputs);@(VG_Workers_Inputs)" Outputs="VG_Build.cache" AfterTargets="AfterResolveReferences" DependsOnTargets="VG_SetVariables;VG_SetupViewPacker;VG_LinkNodeModules;VG_Setup">
+  <Target Name="VG_GenerateBundle" Inputs="@(VG_Inputs);@(VG_Workers_Inputs)" Outputs="VG_Build.cache" Condition="'$(DesignTimeBuild)' != 'true' And '$(BuildingProject)' == 'true'" AfterTargets="AfterResolveReferences" DependsOnTargets="VG_SetVariables;VG_SetupViewPacker;VG_LinkNodeModules;VG_Setup">
     <CallTarget Targets="VG_GenerateBundleInner" />
   </Target>
 
