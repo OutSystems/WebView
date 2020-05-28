@@ -37,10 +37,10 @@
     <UpToDateCheckInput Include="@(VGC_Inputs)" Exclude="@(UpToDateCheckInput)" />
   </ItemGroup>
 
-  <Target Name="VGC_GenerateView" Inputs="@(VGC_Inputs)" Outputs="VGC_Build.cache" BeforeTargets="CustomTransformDuringBuild;TransformDuringBuild;AfterResolveReferences" DependsOnTargets="VGC_SetVariables;VGC_Setup">
+  <Target Name="VGC_GenerateView" Inputs="@(VGC_Inputs)" Outputs="VGC_Build.cache" Condition="'$(DesignTimeBuild)' != 'true' And '$(BuildingProject)' == 'true'" BeforeTargets="CustomTransformDuringBuild;TransformDuringBuild;AfterResolveReferences" DependsOnTargets="VGC_SetVariables;VGC_Setup">
     <CallTarget Targets="VGC_GenerateViewInner" />
   </Target>
-
+ 
   <Target Name="VGC_GenerateViewInner" DependsOnTargets="VGC_CleanGenerated">
     <Message Importance="High" Text="Generating View files" />
     <Exec Command="&quot;$(ViewGeneratorCoreNodeJsExe)&quot; &quot;$(MSBuildThisFileDirectory)..\tools\node_modules\@outsystems\ts2lang\ts2lang-main.js&quot; -f &quot;$(ProjectDir)ts2lang.json&quot; -t &quot;$(MSBuildThisFileDirectory)..\tools\ViewGenerator.js&quot;" />
