@@ -18,7 +18,7 @@ namespace Example.Avalonia {
 
         public override bool EnableViewPreload => true;
 
-        public override bool ForceNativeSyncCalls => true;
+        public override int MaxNativeMethodsParallelCalls => 1;
 
 #if DEBUG
         public override Uri DevServerURI => null;

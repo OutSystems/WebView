@@ -735,9 +735,13 @@ namespace WebViewControl {
             return string.IsNullOrEmpty(frameName);
         }
 
-        internal bool AllowNativeMethodsParallelExecution { 
-            get => chromium.AllowNativeMethodsParallelExecution; 
-            set => chromium.AllowNativeMethodsParallelExecution = value; 
+        /// <summary>
+        /// Specifies the maximium number of calls that can be made simultaneously to native
+        //  object methods. Defaults to the int.MaxValue.
+        /// </summary>
+        internal int MaxNativeMethodsParallelCalls { 
+            get => chromium.MaxNativeMethodsParallelCalls; 
+            set => chromium.MaxNativeMethodsParallelCalls = value; 
         }
     }
 }

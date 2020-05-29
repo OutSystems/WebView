@@ -37,10 +37,10 @@ namespace ReactViewControl {
         public virtual Uri DevServerURI => null;
 
         /// <summary>
-        /// When true, native methods called from javascript will block and wait until the native method returns.
-        /// Use this setting to prevent reentrancy, ie, native calls will be executed sequentially and one at a time.
-        /// Defaults to false, calls can be executed in parallel and reentrancy can occur.
+        /// Defines the number of simultaneous native methods calls from javascript allowed.
+        /// When 1, this will prevent reentrancy, ie, native calls will be executed sequentially and one at a time.
+        /// Defaults to int.MaxValue, calls will be executed in parallel and reentrancy can occur.
         /// </summary>
-        public virtual bool ForceNativeSyncCalls => false;
+        public virtual int MaxNativeMethodsParallelCalls => int.MaxValue;
     }
 }
