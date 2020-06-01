@@ -209,6 +209,14 @@ namespace ReactViewControl {
         }
 
         /// <summary>
+        /// Handle drag of text. Use this event to get the text content being dragged.
+        /// </summary>
+        public event TextDraggingEventHandler TextDragging {
+            add { View.TextDragging += value; }
+            remove { View.TextDragging -= value; }
+        }
+
+        /// <summary>
         /// Opens the developer tools.
         /// </summary>
         public void ShowDeveloperTools() {

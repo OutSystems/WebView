@@ -22,11 +22,19 @@ namespace WebViewControl {
                     }
                 }
 
+                var textDragging = OwnerWebView.TextDragging;
+                if (textDragging != null) {
+                    var textContent = dragData.FragmentText;
+                    if (!string.IsNullOrEmpty(textContent)) {
+                        textDragging(textContent);
+                    }
+                }
+
                 return false;
             }
 
             public void OnDraggableRegionsChanged(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, IList<DraggableRegion> regions) {
-                
+
             }
         }
     }

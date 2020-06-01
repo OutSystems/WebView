@@ -27,6 +27,7 @@ namespace WebViewControl {
     public delegate void DownloadStatusChangedEventHandler(string resourcePath);
     public delegate void JavascriptContextCreatedEventHandler(string frameName);
     public delegate void FilesDraggingEventHandler(string[] fileNames);
+    public delegate void TextDraggingEventHandler(string textContent);
     internal delegate void JavascriptContextReleasedEventHandler(string frameName);
     public delegate void UnhandledAsyncExceptionEventHandler(UnhandledAsyncExceptionEventArgs eventArgs);
 
@@ -92,6 +93,7 @@ namespace WebViewControl {
         internal event Action Disposed;
         internal event JavascriptContextReleasedEventHandler JavascriptContextReleased;
         internal event FilesDraggingEventHandler FilesDragging;
+        internal event TextDraggingEventHandler TextDragging;
 
         private event Action RenderProcessCrashed;
         private event Action JavascriptCallFinished;
