@@ -17,7 +17,7 @@ namespace ReactViewControl {
 
         private static ReactViewRender CreateReactViewInstance(ReactViewFactory factory) {
             ReactViewRender InnerCreateView() {
-                var view = new ReactViewRender(factory.DefaultStyleSheet, () => factory.InitializePlugins(), factory.EnableViewPreload, factory.ForceNativeSyncCalls, factory.EnableDebugMode, factory.DevServerURI);
+                var view = new ReactViewRender(factory.DefaultStyleSheet, () => factory.InitializePlugins(), factory.EnableViewPreload, factory.MaxNativeMethodsParallelCalls, factory.EnableDebugMode, factory.DevServerURI);
                 if (factory.ShowDeveloperTools) {
                     view.ShowDeveloperTools();
                 }

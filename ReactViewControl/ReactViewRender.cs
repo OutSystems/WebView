@@ -42,7 +42,7 @@ namespace ReactViewControl {
         private bool isKeyboardEffectivelyDisabled; // effective value, controlled by the browser to disable keyboard
         private bool isInputDisabled; // used primarly to control the intention to disable input (before the browser is ready)
 
-        public ReactViewRender(ResourceUrl defaultStyleSheet, Func<IViewModule[]> initializePlugins, bool preloadWebView, bool forceNativeSyncCalls, bool enableDebugMode, Uri devServerUri = null) {
+        public ReactViewRender(ResourceUrl defaultStyleSheet, Func<IViewModule[]> initializePlugins, bool preloadWebView, int maxNativeMethodsParallelCalls, bool enableDebugMode, Uri devServerUri = null) {
             UserCallingAssembly = WebView.GetUserCallingMethod().ReflectedType.Assembly;
             
             // must useSharedDomain for the local storage to be shared
@@ -51,12 +51,12 @@ namespace ReactViewControl {
                 IsSecurityDisabled = true,
                 IgnoreMissingResources = false,
                 IsHistoryDisabled = true,
-                AllowNativeMethodsParallelExecution = !forceNativeSyncCalls
+                MaxNativeMethodsParallelCalls = maxNativeMethodsParallelCalls
             };
 
             Loader = new LoaderModule(this);
 
-            ForceNativeSyncCalls = forceNativeSyncCalls;
+            ForceNativeSyncCalls = maxNativeMethodsParallelCalls == 1;
             DefaultStyleSheet = defaultStyleSheet;
             PluginsFactory = initializePlugins;
             EnableDebugMode = enableDebugMode;
