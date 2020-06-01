@@ -25,6 +25,7 @@ namespace WebViewControl {
     public delegate void JavascriptContextCreatedEventHandler(string frameName);
     public delegate void UnhandledAsyncExceptionEventHandler(UnhandledAsyncExceptionEventArgs eventArgs);
     public delegate void FilesDraggingEventHandler(string[] fileNames);
+    public delegate void TextDraggingEventHandler(string textContent);
 
     internal delegate void JavacriptDialogShowEventHandler(string text, Action closeDialog);
     internal delegate void JavascriptContextReleasedEventHandler(string frameName);
@@ -89,6 +90,7 @@ namespace WebViewControl {
         internal event JavascriptContextReleasedEventHandler JavascriptContextReleased;
         internal event JavacriptDialogShowEventHandler JavacriptDialogShown;
         internal event FilesDraggingEventHandler FilesDragging;
+        internal event TextDraggingEventHandler TextDragging;
         internal event KeyPressedEventHandler KeyPressed;
 
         private static int domainId = 1;
@@ -741,7 +743,7 @@ namespace WebViewControl {
         /// </summary>
         internal int MaxNativeMethodsParallelCalls { 
             get => chromium.MaxNativeMethodsParallelCalls; 
-            set => chromium.MaxNativeMethodsParallelCalls = value; 
+            set => chromium.MaxNativeMethodsParallelCalls = value;
         }
     }
 }

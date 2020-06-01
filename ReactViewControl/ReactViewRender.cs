@@ -76,6 +76,7 @@ namespace ReactViewControl {
             WebView.LoadFailed += OnWebViewLoadFailed;
             WebView.JavacriptDialogShown += OnWebViewJavacriptDialogShown;
             WebView.FilesDragging += OnWebViewFilesDragging;
+            WebView.TextDragging += OnWebViewTextDragging;
             WebView.KeyPressed += OnWebViewKeyPressed;
 
             ExtraInitialize();
@@ -206,6 +207,11 @@ namespace ReactViewControl {
         /// Handle drag of files. Use this event to get the full path of the files being dragged.
         /// </summary>
         internal event FilesDraggingEventHandler FilesDragging;
+
+        /// <summary>
+        /// Handle drag of text. Use this event to get the text content being dragged.
+        /// </summary>
+        internal event TextDraggingEventHandler TextDragging;
 
         /// <summary>
         /// An view was initialized, load its component.
@@ -563,6 +569,10 @@ namespace ReactViewControl {
 
         private void OnWebViewFilesDragging(string[] fileNames) {
             FilesDragging?.Invoke(fileNames);
+        }
+        
+        private void OnWebViewTextDragging(string textContent) {
+            TextDragging?.Invoke(textContent);
         }
 
         private CustomResourceRequestedEventHandler[] GetCustomResourceHandlers(FrameInfo frame) {
