@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using WebViewControl;
 using Xilium.CefGlue;
@@ -175,16 +176,6 @@ namespace ReactViewControl {
             add { WebView.ResourceLoadFailed += value; }
             remove { WebView.ResourceLoadFailed -= value; }
         }
-
-        /// <summary>
-        /// Raised before a native method was called.
-        /// </summary>
-        public event Action BeforeNativeMethodCalled;
-
-        /// <summary>
-        /// Raised after a native method was called.
-        /// </summary>
-        public event Action AfterNativeMethodCalled;
 
         /// <summary>
         /// Handle embedded resource requests. You can use this event to change the resource being loaded.
@@ -612,16 +603,13 @@ namespace ReactViewControl {
         /// <param name="frameName"></param>
         /// <param name="forceNativeSyncCalls"></param>
         private void RegisterNativeObject(IViewModule module, FrameInfo frame) {
-            object InterceptCall(Func<object> func) {
-                try {
-                    BeforeNativeMethodCalled?.Invoke();
-                    return func();
-                } finally {
-                    AfterNativeMethodCalled?.Invoke();
-                }
-            }
             var nativeObjectName = module.GetNativeObjectFullName(frame.Name);
-            WebView.RegisterJavascriptObject(nativeObjectName, module.CreateNativeObject(), interceptCall: InterceptCall, executeCallsInUI: false);
+            WebView.RegisterJavascriptObject(nativeObjectName, module.CreateNativeObject(), interceptCall: CallNativeMethod, executeCallsInUI: false);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private object CallNativeMethod(Func<object> nativeMethod) {
+            return Host.CallNativeMethod(nativeMethod);
         }
 
         /// <summary>
