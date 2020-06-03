@@ -37,7 +37,7 @@
     <UpToDateCheckInput Include="@(VGC_Inputs)" Exclude="@(UpToDateCheckInput)" />
   </ItemGroup>
 
-  <Target Name="VGC_GenerateView" Inputs="@(VGC_Inputs)" Outputs="VGC_Build.cache" Condition="'$(DesignTimeBuild)' != 'true' And '$(BuildingProject)' == 'true'" BeforeTargets="CustomTransformDuringBuild;TransformDuringBuild;AfterResolveReferences" DependsOnTargets="VGC_SetVariables;VGC_Setup">
+  <Target Name="VGC_GenerateView" Inputs="@(VGC_Inputs)" Outputs="VGC_Build.cache" Condition="'$(UsingMicrosoftNETSdk)' != 'true' Or '$(DesignTimeBuild)' != 'true'" BeforeTargets="CustomTransformDuringBuild;TransformDuringBuild;AfterResolveReferences" DependsOnTargets="VGC_SetVariables;VGC_Setup">
     <CallTarget Targets="VGC_GenerateViewInner" />
   </Target>
  
