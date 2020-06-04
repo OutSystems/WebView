@@ -241,5 +241,16 @@ namespace ReactViewControl {
         /// Defaults to 6. 
         /// </summary>
         public static int PreloadedCacheEntriesSize { get; set; } = 6;
+
+        /// <summary>
+        /// Called when executing a native method.
+        /// </summary>
+        protected virtual object OnNativeMethodCalled(Func<object> nativeMethod) {
+            return nativeMethod();
+        }
+
+        internal object CallNativeMethod(Func<object> nativeMethod) {
+            return OnNativeMethodCalled(nativeMethod);
+        }
     }
 }

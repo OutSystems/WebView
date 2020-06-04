@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using WebViewControl;
@@ -562,7 +563,12 @@ namespace ReactViewControl {
         /// <param name="module"></param>
         /// <param name="frameName"></param>
         private void RegisterNativeObject(IViewModule module, string frameName) {
-            WebView.RegisterJavascriptObject(module.GetNativeObjectFullName(frameName), module.CreateNativeObject(), executeCallsInUI: false);
+            WebView.RegisterJavascriptObject(module.GetNativeObjectFullName(frameName), module.CreateNativeObject(), interceptCall: CallNativeMethod, executeCallsInUI: false);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private object CallNativeMethod(Func<object> nativeMethod) {
+            return Host.CallNativeMethod(nativeMethod);
         }
 
         /// <summary>
