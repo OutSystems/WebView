@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Runtime.CompilerServices;
 using WebViewControl;
 
 namespace ReactViewControl {
@@ -210,6 +211,7 @@ namespace ReactViewControl {
             return nativeMethod();
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal object CallNativeMethod(Func<object> nativeMethod) {
             return OnNativeMethodCalled(nativeMethod);
         }
