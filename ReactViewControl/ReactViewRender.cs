@@ -568,7 +568,10 @@ namespace ReactViewControl {
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private object CallNativeMethod(Func<object> nativeMethod) {
-            return Host.CallNativeMethod(nativeMethod);
+            if (Host != null) {
+                return Host.CallNativeMethod(nativeMethod);
+            }
+            return nativeMethod();
         }
 
         /// <summary>
