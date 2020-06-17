@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace ReactViewControl {
 
@@ -22,7 +23,7 @@ namespace ReactViewControl {
 
         KeyValuePair<string, object>[] PropertiesValues { get; }
 
-        void Bind(IFrame frame, IChildViewHost host = null);
+        void Bind(IFrame frame, IChildViewHost host = null, Uri devServerUri = null);
 
         event CustomResourceRequestedEventHandler CustomResourceRequested;
 

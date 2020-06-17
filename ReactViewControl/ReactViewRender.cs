@@ -381,7 +381,7 @@ namespace ReactViewControl {
             frame.Plugins = frame.Plugins.Concat(plugins).ToArray();
 
             foreach (var plugin in plugins) {
-                plugin.Bind(frame);
+                plugin.Bind(frame, devServerUri: DevServerUri);
             }
         }
 
@@ -466,7 +466,7 @@ namespace ReactViewControl {
         /// <param name="frame"></param>
         private void BindComponentToFrame(IViewModule component, FrameInfo frame) {
             frame.Component = component;
-            component.Bind(frame, this);
+            component.Bind(frame, this, DevServerUri);
         }
 
         /// <summary>

@@ -47,6 +47,7 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -59,7 +60,9 @@
   <ItemGroup>
     <Compile Include="ExecutionEngine.cs" />
     <Compile Include="FrameInfo.cs" />
+    <Compile Include="HotReloadDependenciesProvider.cs" />
     <Compile Include="IChildViewHost.cs" />
+    <Compile Include="IDependenciesProvider.cs" />
     <Compile Include="IExecutionEngine.cs" />
     <Compile Include="IFrame.cs" />
     <Compile Include="IViewModule.cs" />
