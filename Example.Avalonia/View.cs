@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Threading;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Styling;
 using Avalonia.Threading;
@@ -26,20 +27,27 @@ namespace Example.Avalonia {
             view.ConstantMessage = "This is an example";
             view.Image = ImageKind.Beach;
             view.ViewMounted += OnViewMounted;
-
+            view.InputChanged += View_InputChanged;
             view.WithPlugin<ViewPlugin>().NotifyViewLoaded += OnNotifyViewLoaded;
 
             view.CustomResourceRequested  += OnViewResourceRequested;
 
             childView = (SubExampleViewModule)view.SubView;
             childView.ConstantMessage = "This is a sub view";
-            childView.GetTime += () => DateTime.Now.AddHours(1).ToShortTimeString();
+            childView.GetTime += () => {
+                Thread.Sleep(3000);
+                return DateTime.Now.AddHours(1).ToLongTimeString();
+            };
             childView.CustomResourceRequested += OnInnerViewResourceRequested;
             childView.WithPlugin<ViewPlugin>().NotifyViewLoaded += (viewName) => AppendLog($"On sub view loaded: {viewName}");
             childView.CallMe();
             childView.Load();
 
             Content = view;
+        }
+
+        private void View_InputChanged() {
+            Thread.Sleep(3000);
         }
 
         private void OnExampleViewClick(SomeType arg) {
