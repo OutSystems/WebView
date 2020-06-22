@@ -745,5 +745,9 @@ namespace WebViewControl {
             get => chromium.MaxNativeMethodsParallelCalls; 
             set => chromium.MaxNativeMethodsParallelCalls = value;
         }
+
+        internal void SendKeyEvent(CefKeyEvent keyEvent) {
+            chromium.GetBrowser()?.GetHost()?.SendKeyEvent(keyEvent);
+        }
     }
 }
