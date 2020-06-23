@@ -35,18 +35,12 @@ namespace WebViewControl {
                     if (popupOpening != null) {
                         popupOpening(targetUrl);
                     } else {
-                        // if we are opening a popup then this should go to the default browser
-                        Process.Start(targetUrl);
+                        UrlHelper.OpenInExternalBrowser(targetUrl);
                     }
                 } catch {
-                    // Try this method for machines which are not properly configured
-                    try {
-                        Process.Start("explorer.exe", "\"" + targetUrl + "\"");
-                    } catch {
-                        // if we can't handle the command line let's continue the normal request with the popup
-                        // with this, will not blow in the users face
-                        return false;
-                    }
+                    // if we can't handle the command line let's continue the normal request with the popup
+                    // with this, will not blow in the users face
+                    return false;
                 }
 
                 return true;

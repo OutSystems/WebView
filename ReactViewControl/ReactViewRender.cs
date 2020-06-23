@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using WebViewControl;
 using Xilium.CefGlue;
 
@@ -75,6 +77,7 @@ namespace ReactViewControl {
             WebView.AttachListener(ViewDestroyedEventName).Handler += OnViewDestroyed;
 
             WebView.Disposed += OnWebViewDisposed;
+            WebView.BeforeNavigate += OnWebViewBeforeNavigate;
             WebView.BeforeResourceLoad += OnWebViewBeforeResourceLoad;
             WebView.LoadFailed += OnWebViewLoadFailed;
             WebView.JavacriptDialogShown += OnWebViewJavacriptDialogShown;
@@ -544,6 +547,17 @@ namespace ReactViewControl {
         private void BindComponentToFrame(IViewModule component, FrameInfo frame) {
             frame.Component = component;
             component.Bind(frame, this);
+        }
+
+        /// <summary>
+        /// Handles webview url load request.
+        /// </summary>
+        /// <param name="request"></param>
+        private void OnWebViewBeforeNavigate(Request request) {
+            if (!request.Url.StartsWith(ResourceUrl.EmbeddedScheme)) {
+                UrlHelper.OpenInExternalBrowser(request.Url);
+                request.Cancel();
+            }
         }
 
         /// <summary>
