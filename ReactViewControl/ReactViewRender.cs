@@ -1,10 +1,10 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using WebViewControl;
 using Xilium.CefGlue;
 
@@ -31,6 +31,8 @@ namespace ReactViewControl {
         private static Assembly ResourcesAssembly { get; } = typeof(ReactViewResources.Resources).Assembly;
 
         private Dictionary<string, FrameInfo> Frames { get; } = new Dictionary<string, FrameInfo>();
+
+        private ConcurrentBag<CefKeyEvent> KeyEventsBuffer { get; } = new ConcurrentBag<CefKeyEvent>();
 
         private WebView WebView { get; }
         private Assembly UserCallingAssembly { get; }
@@ -223,6 +225,7 @@ namespace ReactViewControl {
                     // only need to load the stylesheet for the main frame
                     LoadStyleSheet();
 
+                    ClearKeyEventBuffer();
                     isKeyboardEffectivelyDisabled = false;
                 }
 
@@ -294,6 +297,31 @@ namespace ReactViewControl {
 
         private void OnWebViewKeyPressed(CefKeyEvent keyEvent, out bool handled) {
             handled = isKeyboardEffectivelyDisabled;
+            if (isKeyboardEffectivelyDisabled) {
+                KeyEventsBuffer.Add(new CefKeyEvent() {
+                    Character = keyEvent.Character,
+                    EventType = keyEvent.EventType,
+                    FocusOnEditableField = keyEvent.FocusOnEditableField,
+                    IsSystemKey = keyEvent.IsSystemKey,
+                    Modifiers = keyEvent.Modifiers,
+                    NativeKeyCode = keyEvent.NativeKeyCode,
+                    UnmodifiedCharacter = keyEvent.UnmodifiedCharacter,
+                    WindowsKeyCode = keyEvent.WindowsKeyCode
+                });
+                if (keyEvent.UnmodifiedCharacter != '\0') {
+                    // add a char key event if user pressed a char key
+                    KeyEventsBuffer.Add(new CefKeyEvent() {
+                        Character = keyEvent.Character,
+                        EventType = CefKeyEventType.Char,
+                        FocusOnEditableField = keyEvent.FocusOnEditableField,
+                        IsSystemKey = keyEvent.IsSystemKey,
+                        Modifiers = keyEvent.Modifiers,
+                        // not applicable, seems to work ok without NativeKeyCode = keyEvent.NativeKeyCode,
+                        UnmodifiedCharacter = keyEvent.UnmodifiedCharacter,
+                        WindowsKeyCode = keyEvent.UnmodifiedCharacter
+                    });
+                }
+            }
         }
 
         private void OnViewLoadedUIHandler(object[] args) {
@@ -644,8 +672,18 @@ namespace ReactViewControl {
             if (text.StartsWith(DisableKeyboardCallback)) {
                 var value = text.Substring(DisableKeyboardCallback.Length);
                 isKeyboardEffectivelyDisabled = value == "1";
+                
+                closeDialog();
+             
+                if (!isKeyboardEffectivelyDisabled) {
+                    // flush key events
+                    while (KeyEventsBuffer.TryTake(out var keyEvent)) {
+                        WebView.SendKeyEvent(keyEvent);
+                    }
+                }
+            } else {
+                closeDialog();
             }
-            closeDialog();
         }
 
         /// <summary>
@@ -683,6 +721,12 @@ namespace ReactViewControl {
                 AddPlugins(PluginsFactory(), frame);
             }
             return frame;
+        }
+
+        private void ClearKeyEventBuffer() {
+            while (!KeyEventsBuffer.IsEmpty) {
+                KeyEventsBuffer.TryTake(out var _);
+            }
         }
     }
 }

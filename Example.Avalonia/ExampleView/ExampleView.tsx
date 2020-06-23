@@ -20,6 +20,7 @@ export interface IExampleViewProperties {
     click(arg: ISomeType): void;
     getTime(): Promise<string>;
     viewMounted(): void;
+    inputChanged(): void;
     readonly constantMessage: string;
     readonly image: ImageKind;
 }
@@ -103,6 +104,7 @@ export default class ExampleView extends React.Component<IExampleViewProperties,
                 <br />
                 {this.props.image === ImageKind.Beach ? <img className="image" src={Image} /> : null}
                 <br />
+                <input onChange={() => this.props.inputChanged()}/>
                 <div className="buttons-bar">
                     <button accessKey="c" onClick={() => { this.props.click(null); }}>Click me!</button>&nbsp;
                     <button onClick={this.onMountSubViewClick}>Mount/Wrap/Hide child view</button>
