@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace WebViewControl {
 
@@ -16,6 +18,14 @@ namespace WebViewControl {
 
         public static bool IsInternalUrl(string url) {
             return IsChromeInternalUrl(url) || url.StartsWith(DefaultLocalUrl.ToString(), StringComparison.InvariantCultureIgnoreCase);
+        }
+
+        public static void OpenInExternalBrowser(string url) {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+                Process.Start("explorer", "\"" + url + "\"");
+            } else {
+                Process.Start("open", url);
+            }
         }
     }
 }

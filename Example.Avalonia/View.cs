@@ -34,10 +34,7 @@ namespace Example.Avalonia {
 
             childView = (SubExampleViewModule)view.SubView;
             childView.ConstantMessage = "This is a sub view";
-            childView.GetTime += () => {
-                Thread.Sleep(3000);
-                return DateTime.Now.AddHours(1).ToLongTimeString();
-            };
+            childView.GetTime += () => DateTime.Now.AddHours(1).ToLongTimeString();
             childView.CustomResourceRequested += OnInnerViewResourceRequested;
             childView.WithPlugin<ViewPlugin>().NotifyViewLoaded += (viewName) => AppendLog($"On sub view loaded: {viewName}");
             childView.CallMe();

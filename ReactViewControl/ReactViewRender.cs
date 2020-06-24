@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using WebViewControl;
 using Xilium.CefGlue;
 
@@ -32,7 +34,7 @@ namespace ReactViewControl {
 
         private Dictionary<string, FrameInfo> Frames { get; } = new Dictionary<string, FrameInfo>();
 
-        private ConcurrentBag<CefKeyEvent> KeyEventsBuffer { get; } = new ConcurrentBag<CefKeyEvent>();
+        private ConcurrentQueue<CefKeyEvent> KeyEventsBuffer { get; } = new ConcurrentQueue<CefKeyEvent>();
 
         private WebView WebView { get; }
         private Assembly UserCallingAssembly { get; }
@@ -75,6 +77,7 @@ namespace ReactViewControl {
             WebView.AttachListener(ViewDestroyedEventName).Handler += OnViewDestroyed;
 
             WebView.Disposed += OnWebViewDisposed;
+            WebView.BeforeNavigate += OnWebViewBeforeNavigate;
             WebView.BeforeResourceLoad += OnWebViewBeforeResourceLoad;
             WebView.LoadFailed += OnWebViewLoadFailed;
             WebView.JavacriptDialogShown += OnWebViewJavacriptDialogShown;
@@ -298,7 +301,7 @@ namespace ReactViewControl {
         private void OnWebViewKeyPressed(CefKeyEvent keyEvent, out bool handled) {
             handled = isKeyboardEffectivelyDisabled;
             if (isKeyboardEffectivelyDisabled) {
-                KeyEventsBuffer.Add(new CefKeyEvent() {
+                KeyEventsBuffer.Enqueue(new CefKeyEvent() {
                     Character = keyEvent.Character,
                     EventType = keyEvent.EventType,
                     FocusOnEditableField = keyEvent.FocusOnEditableField,
@@ -310,7 +313,7 @@ namespace ReactViewControl {
                 });
                 if (keyEvent.UnmodifiedCharacter != '\0') {
                     // add a char key event if user pressed a char key
-                    KeyEventsBuffer.Add(new CefKeyEvent() {
+                    KeyEventsBuffer.Enqueue(new CefKeyEvent() {
                         Character = keyEvent.Character,
                         EventType = CefKeyEventType.Char,
                         FocusOnEditableField = keyEvent.FocusOnEditableField,
@@ -547,6 +550,17 @@ namespace ReactViewControl {
         }
 
         /// <summary>
+        /// Handles webview url load request.
+        /// </summary>
+        /// <param name="request"></param>
+        private void OnWebViewBeforeNavigate(Request request) {
+            if (!request.Url.StartsWith(ResourceUrl.EmbeddedScheme)) {
+                UrlHelper.OpenInExternalBrowser(request.Url);
+                request.Cancel();
+            }
+        }
+
+        /// <summary>
         /// Handles the webview load of resources
         /// </summary>
         /// <param name="resourceHandler"></param>
@@ -677,7 +691,7 @@ namespace ReactViewControl {
              
                 if (!isKeyboardEffectivelyDisabled) {
                     // flush key events
-                    while (KeyEventsBuffer.TryTake(out var keyEvent)) {
+                    while (KeyEventsBuffer.TryDequeue(out var keyEvent)) {
                         WebView.SendKeyEvent(keyEvent);
                     }
                 }
@@ -724,9 +738,7 @@ namespace ReactViewControl {
         }
 
         private void ClearKeyEventBuffer() {
-            while (!KeyEventsBuffer.IsEmpty) {
-                KeyEventsBuffer.TryTake(out var _);
-            }
+            while (KeyEventsBuffer.TryDequeue(out var _)) ;
         }
     }
 }
