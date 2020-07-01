@@ -25,5 +25,7 @@ namespace WebViewControl {
         }
 
         public bool Canceled { get; private set; }
+
+        internal bool IsMainFrame => CefRequest.ResourceType == CefResourceType.MainFrame;
     }
 }
