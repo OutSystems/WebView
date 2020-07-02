@@ -554,7 +554,7 @@ namespace ReactViewControl {
         /// </summary>
         /// <param name="request"></param>
         private void OnWebViewBeforeNavigate(Request request) {
-            if (!request.Url.StartsWith(ResourceUrl.EmbeddedScheme)) {
+            if (request.IsMainFrame && !request.Url.StartsWith(ResourceUrl.EmbeddedScheme)) {
                 UrlHelper.OpenInExternalBrowser(request.Url);
                 request.Cancel();
             }
