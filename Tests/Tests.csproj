@@ -55,7 +55,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
-    <StartWorkingDirectory>.</StartWorkingDirectory>
+    <StartWorkingDirectory>$(OutputPath)</StartWorkingDirectory>
     <StartArguments>Tests.dll --domain=None --wait</StartArguments>
     <StartAction>Program</StartAction>
     <StartProgram>$(OutputPath)Nunit\nunit3-console.exe</StartProgram>
@@ -215,6 +215,9 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+    <PackageReference Include="NLog">
+      <Version>4.6.2</Version>
+    </PackageReference>
     <PackageReference Include="NUnit">
       <Version>3.11.0</Version>
     </PackageReference>
@@ -246,8 +249,8 @@
   <Import Project="$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets" Condition="Exists('$(VSToolsPath)\TeamTest\Microsoft.TestTools.targets')" />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PreBuildEvent>call "$(ProjectDir)"..\kill_testsengine.bat
-npm ci --prefix "$(ProjectDir)ReactViewResources" "$(ProjectDir)ReactViewResources" 
+    <PreBuildEvent>
+        call "$(ProjectDir)"..\kill_testsengine.bat
     </PreBuildEvent>
   </PropertyGroup>
 </Project>

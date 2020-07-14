@@ -51,3 +51,4 @@ ViewGeneratorCore/cake_tools
 ViewPacker/cake_tools
 launchSettings.json
 *.cache
+.npm-install-stamp

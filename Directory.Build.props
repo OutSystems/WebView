@@ -1,0 +1,9 @@
+<Project>
+  <PropertyGroup>
+    <!-- File with mtime of last successful npm install -->
+    <NpmInstallStampFile>.npm-install-stamp</NpmInstallStampFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageJsons Include="**/package.json" Exclude="**/node_modules/**/*.*"/>
+  </ItemGroup>
+</Project>
