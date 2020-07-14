@@ -4,7 +4,6 @@ using NUnit.Framework;
 
 namespace Tests.WebView {
 
-    [Ignore("Needs browser setup")]
     public class CommonTests : WebViewTestBase {
 
         [Test(Description = "Attached listeners are called")]

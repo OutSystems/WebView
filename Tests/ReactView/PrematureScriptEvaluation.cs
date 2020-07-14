@@ -3,7 +3,6 @@ using NUnit.Framework;
 
 namespace Tests.ReactView {
 
-    [Ignore("Needs browser setup")]
     public class PrematureScriptEvaluation : ReactViewTestBase {
 
         protected override bool WaitForReady => false;

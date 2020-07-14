@@ -20,7 +20,6 @@ namespace Tests.ReactView {
         protected override ReactViewFactory Factory => new TestReactViewFactoryWithPreload();
     }
 
-    [Ignore("Needs browser setup")]
     public class PreLoadedWebViewTests : ReactViewTestBase<TestReactViewWithPreload> {
 
         [Test(Description = "Loading a view with a inner view and preload enabled loads the component successfully the second time")]

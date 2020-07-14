@@ -3,7 +3,6 @@ using NUnit.Framework;
 
 namespace Tests.ReactView {
 
-    [Ignore("Needs browser setup")]
     public class PropertiesValuesTests : ReactViewTestBase {
 
         protected override TestReactView CreateView() {

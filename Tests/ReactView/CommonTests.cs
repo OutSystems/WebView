@@ -5,7 +5,6 @@ using ReactViewControl;
 
 namespace Tests.ReactView {
 
-    [Ignore("Needs browser setup")]
     public class CommonTests : ReactViewTestBase {
 
         [Test(Description = "Test loading a simple react component")]
