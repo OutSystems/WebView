@@ -28,6 +28,9 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <StartAction>Project</StartAction>
+    <StartProgram />
+    <StartArguments />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -36,18 +39,26 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <StartAction>Project</StartAction>
+    <StartProgram />
+    <StartArguments />
   </PropertyGroup>
   <PropertyGroup>
+    <ProjectView>ShowAllFiles</ProjectView>
     <StartupObject />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Tests|AnyCPU'">
-    <OutputPath>bin\</OutputPath>
+    <OutputPath>$(MSBuildProjectDirectory)\bin\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <Optimize>false</Optimize>
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+    <StartWorkingDirectory>.</StartWorkingDirectory>
+    <StartArguments>Tests.dll --domain=None --wait</StartArguments>
+    <StartAction>Program</StartAction>
+    <StartProgram>$(OutputPath)Nunit\nunit3-console.exe</StartProgram>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="PresentationCore" />
