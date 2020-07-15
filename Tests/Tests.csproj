@@ -58,7 +58,7 @@
     <StartWorkingDirectory>$(OutputPath)</StartWorkingDirectory>
     <StartArguments>Tests.dll --domain=None --wait</StartArguments>
     <StartAction>Program</StartAction>
-    <StartProgram>$(OutputPath)Nunit\nunit3-console.exe</StartProgram>
+    <StartProgram>$(OutputPath)nunit3-console.exe</StartProgram>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="PresentationCore" />
@@ -105,54 +105,6 @@
       <DependentUpon>InnerView.tsx</DependentUpon>
     </EmbeddedResource>
     <Content Include="TestsToRun.txt" />
-    <None Include="$(NuGetPackageRoot)\NUnit.ConsoleRunner\3.10.0\tools\nunit-agent-x86.exe.config">
-      <Link>Nunit\nunit-agent-x86.exe.config</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="$(NuGetPackageRoot)\NUnit.ConsoleRunner\3.10.0\tools\nunit-agent.exe.config">
-      <Link>Nunit\nunit-agent.exe.config</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="$(NuGetPackageRoot)\NUnit.ConsoleRunner\3.10.0\tools\nunit.nuget.addins">
-      <Link>Nunit\nunit.nuget.addins</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="$(NuGetPackageRoot)\NUnit.ConsoleRunner\3.10.0\tools\nunit3-console.exe.config">
-      <Link>Nunit\nunit3-console.exe.config</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <Content Include="$(NuGetPackageRoot)\NUnit\3.11.0\lib\net45\nunit.framework.dll">
-      <Link>Nunit\nunit.framework.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="$(NuGetPackageRoot)\NUnit.ConsoleRunner\3.10.0\tools\Mono.Cecil.dll">
-      <Link>Nunit\Mono.Cecil.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="$(NuGetPackageRoot)\NUnit.ConsoleRunner\3.10.0\tools\nunit-agent-x86.exe">
-      <Link>Nunit\nunit-agent-x86.exe</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="$(NuGetPackageRoot)\NUnit.ConsoleRunner\3.10.0\tools\nunit-agent.exe">
-      <Link>Nunit\nunit-agent.exe</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="$(NuGetPackageRoot)\NUnit.ConsoleRunner\3.10.0\tools\nunit.engine.api.dll">
-      <Link>Nunit\nunit.engine.api.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="$(NuGetPackageRoot)\NUnit.ConsoleRunner\3.10.0\tools\nunit.engine.api.xml">
-      <Link>Nunit\nunit.engine.api.xml</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="$(NuGetPackageRoot)\NUnit.ConsoleRunner\3.10.0\tools\nunit.engine.dll">
-      <Link>Nunit\nunit.engine.dll</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="$(NuGetPackageRoot)\NUnit.ConsoleRunner\3.10.0\tools\nunit3-console.exe">
-      <Link>Nunit\nunit3-console.exe</Link>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <EmbeddedResource Include="ReactViewResources\Test\PluginModule.js">
       <DependentUpon>PluginModule.ts</DependentUpon>
     </EmbeddedResource>
@@ -219,14 +171,20 @@
       <Version>4.6.2</Version>
     </PackageReference>
     <PackageReference Include="NUnit">
-      <Version>3.11.0</Version>
+      <Version>3.12.0</Version>
     </PackageReference>
     <PackageReference Include="NUnit.ConsoleRunner">
-      <Version>3.10.0</Version>
+      <Version>3.11.1</Version>
+      <GeneratePathProperty>true</GeneratePathProperty>
     </PackageReference>
     <PackageReference Include="NUnit3TestAdapter">
-      <Version>3.11.0</Version>
+      <Version>3.17.0</Version>
     </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="$(PkgNUnit_ConsoleRunner)\tools\**\*" CopyToOutputDirectory="PreserveNewest">
+      <Visible>false</Visible>
+    </None>
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">
