@@ -1,4 +1,5 @@
 ﻿using System;
+using Avalonia.Threading;
 using NUnit.Framework;
 
 namespace Tests.WebView {
@@ -44,7 +45,7 @@ namespace Tests.WebView {
             bool? canAccessDispatcher = null;
 
             Func<int> functionToCall = () => {
-                canAccessDispatcher = TargetView.Dispatcher.CheckAccess();
+                canAccessDispatcher = Dispatcher.UIThread.CheckAccess();
                 return 10;
             };
             TargetView.RegisterJavascriptObject(DotNetObject, functionToCall, executeCallsInUI: true);

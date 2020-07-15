@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Windows;
+using Avalonia.Controls;
 
 namespace Tests.ReactView {
 

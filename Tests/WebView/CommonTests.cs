@@ -1,5 +1,6 @@
 ﻿using System;
-using System.Windows;
+using Avalonia.Controls;
+using Avalonia.Threading;
 using NUnit.Framework;
 
 namespace Tests.WebView {
@@ -28,7 +29,7 @@ namespace Tests.WebView {
         public void ListenersAreCalledInDispatcherThread() {
             bool? canAccessDispatcher = null;
             var listener = TargetView.AttachListener("event_name");
-            listener.UIHandler += delegate { canAccessDispatcher = TargetView.Dispatcher.CheckAccess(); };
+            listener.UIHandler += delegate { canAccessDispatcher = Dispatcher.UIThread.CheckAccess(); };
             LoadAndWaitReady($"<html><script>{listener}</script><body></body></html>");
             WaitFor(() => canAccessDispatcher != null);
             Assert.IsTrue(canAccessDispatcher);
@@ -127,15 +128,15 @@ namespace Tests.WebView {
 
             try {    
                 window.Show();
-                WaitFor(() => view.IsLoaded);
+                //WaitFor(() => view.IsLoaded);
 
                 window.Content = null;
-                WaitFor(() => !view.IsLoaded);
+                //WaitFor(() => !view.IsLoaded);
                 Assert.IsFalse(disposed);
 
                 window.Content = view;
                 window.Close();
-                WaitFor(() => !view.IsLoaded);
+                //WaitFor(() => !view.IsLoaded);
                 Assert.IsTrue(disposed);
             } finally {
                 window.Close();

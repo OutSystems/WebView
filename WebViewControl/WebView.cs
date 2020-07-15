@@ -157,9 +157,11 @@ namespace WebViewControl {
             }
 
 #if DEBUG
+#if !TESTS
             if (!System.Diagnostics.Debugger.IsAttached) {
                 throw new InvalidOperationException("Running debug version");
             }
+#endif
 #endif
 
             if (useSharedDomain) {

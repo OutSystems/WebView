@@ -2,9 +2,11 @@
 using System.Diagnostics;
 using System.Security.Permissions;
 using System.Threading;
-using System.Windows;
 using System.Windows.Threading;
+using Avalonia;
+using Avalonia.Controls;
 using NUnit.Framework;
+using Dispatcher = Avalonia.Threading.Dispatcher;
 
 namespace Tests {
 
@@ -25,7 +27,7 @@ namespace Tests {
             if (Application.Current == null) {
                 DispatcherSynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext());
                 new Application();
-                Application.Current.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+                //Application.Current.ShutdownMode = ShutdownMode.OnExplicitShutdown;
             }
 
             window = new Window();
@@ -108,9 +110,7 @@ namespace Tests {
         [DebuggerNonUserCode]
         [SecurityPermissionAttribute(SecurityAction.Demand, Flags = SecurityPermissionFlag.UnmanagedCode)]
         protected static void DoEvents() {
-            Dispatcher.CurrentDispatcher.Invoke(
-                DispatcherPriority.Background,
-                new ThreadStart(delegate { }));
+            Dispatcher.UIThread.InvokeAsync(delegate { }, Avalonia.Threading.DispatcherPriority.Background).Wait();
             Thread.Sleep(1);
         }
 
@@ -118,7 +118,7 @@ namespace Tests {
 
         protected void OnUnhandledAsyncException(WebViewControl.UnhandledAsyncExceptionEventArgs e) {
             if (FailOnAsyncExceptions) {
-                Application.Current.Dispatcher.BeginInvoke(new Action(() => {
+                Dispatcher.UIThread.InvokeAsync(new Action(() => {
                     Assert.Fail("An async exception ocurred: " + e.Exception.ToString());
                 }));
             }

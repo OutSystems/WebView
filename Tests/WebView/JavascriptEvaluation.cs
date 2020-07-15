@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Windows.Threading;
 using NUnit.Framework;
 using JavascriptException = WebViewControl.WebView.JavascriptException;
 
@@ -106,10 +105,10 @@ namespace Tests.WebView {
             var dispatcherUnhandled = false;
             var markAsHandled = true;
 
-            DispatcherUnhandledExceptionEventHandler unhandledDispatcherException = (o, e) => {
-                exception = e.Exception;
+            UnhandledExceptionEventHandler unhandledDispatcherException = (o, e) => {
+                exception = e.ExceptionObject as Exception;
                 dispatcherUnhandled = true;
-                e.Handled = true;
+                //e.Handled = true;
             };
 
             Action<int> assertResult = (result) => {
@@ -118,7 +117,7 @@ namespace Tests.WebView {
                 Assert.AreEqual(2, result, "Result should not be affected");
             };
 
-            TargetView.Dispatcher.UnhandledException += unhandledDispatcherException;
+            AppDomain.CurrentDomain.UnhandledException += unhandledDispatcherException;
 
             WithUnhandledExceptionHandling(() => {
                 try {
@@ -142,7 +141,7 @@ namespace Tests.WebView {
                     Assert.IsTrue(dispatcherUnhandled);
 
                 } finally {
-                    TargetView.Dispatcher.UnhandledException -= unhandledDispatcherException;
+                    AppDomain.CurrentDomain.UnhandledException -= unhandledDispatcherException;
                 }
             },
             e => {

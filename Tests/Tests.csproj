@@ -6,24 +6,17 @@
     <Product>Tests</Product>
     <Copyright>Copyright ©  2017</Copyright>
     <OutputPath>$(MSBuildProjectDirectory)\bin\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <DefineConstants>DEBUG;TRACE;TESTS</DefineConstants>
     <Optimize>false</Optimize>
     <DebugType>pdbonly</DebugType>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
     <StartWorkingDirectory>$(OutputPath)</StartWorkingDirectory>
-    <StartArguments>Tests.dll --domain=None --wait</StartArguments>
+    <StartArguments>Tests.dll --domain=None --wait --stoponerror</StartArguments>
     <StartAction>Program</StartAction>
     <StartProgram>$(OutputPath)nunit3-console.exe</StartProgram>
   </PropertyGroup>
-  <ItemGroup>
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
-    <Reference Include="System" />
-    <Reference Include="System.Xaml" />
-    <Reference Include="WindowsBase" />
-  </ItemGroup>
   <ItemGroup>
     <None Include="debugtests.bat" />
     <None Include="TestsToRun.txt" />
@@ -43,8 +36,8 @@
     <EmbeddedResource Include="Resources\EmbeddedJavascriptFile.js" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\ReactViewControl\ReactViewControl.csproj" />
-    <ProjectReference Include="..\WebViewControl\WebViewControl.csproj" />
+    <ProjectReference Include="..\ReactViewControl.Avalonia\ReactViewControl.Avalonia.csproj" />
+    <ProjectReference Include="..\WebViewControl.Avalonia\WebViewControl.Avalonia.csproj" />
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="ReactViewResources\Test\AliasedModule.ts" />

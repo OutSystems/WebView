@@ -1,4 +1,4 @@
-﻿using System.Windows;
+﻿using Avalonia.Controls;
 using NUnit.Framework;
 
 namespace Tests.ReactView {

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading;
+using Avalonia.Threading;
 using NUnit.Framework;
-using ReactViewControl;
 
 namespace Tests.ReactView {
 
@@ -24,10 +24,10 @@ namespace Tests.ReactView {
         public void DisposeDoesNotHang() {
             var disposed = false;
             TargetView.Event += (args) => {
-                TargetView.Dispatcher.Invoke((() => {
+                Dispatcher.UIThread.InvokeAsync(() => {
                     TargetView.Dispose();
                     disposed = true;
-                }));
+                }).Wait();
             };
 
             TargetView.ExecuteMethod("callEvent");
@@ -54,7 +54,7 @@ namespace Tests.ReactView {
         public void EventsAreNotHandledInDispatcherThread() {
             bool? canAccessDispatcher = null;
             TargetView.Event += (args) => {
-                canAccessDispatcher = TargetView.Dispatcher.CheckAccess();
+                canAccessDispatcher = Dispatcher.UIThread.CheckAccess();
             };
 
             TargetView.ExecuteMethod("callEvent");
