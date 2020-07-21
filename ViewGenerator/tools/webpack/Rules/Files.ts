@@ -2,7 +2,7 @@
 import { RuleSetRule } from "webpack";
 
 // Resource files
-const getResourcesRuleSet = (assemblyName?: string, pluginsRelativePath? : string): RuleSetRule => {
+const getResourcesRuleSet = (assemblyName?: string, pluginsBase? : string): RuleSetRule => {
 
     const ResourcesRule: RuleSetRule = {
         test: /\.(ttf|png|jpg|jpeg|bmp|gif|woff|woff2|ico|svg|html)$/,
@@ -26,8 +26,8 @@ const getResourcesRuleSet = (assemblyName?: string, pluginsRelativePath? : strin
                         const buildUrl = (url: string, resourceBase: string): string => {
 
                             let idx: number = url.indexOf(`/${resourceBase}/`);
-                            if (idx < 0 && pluginsRelativePath) {                       
-                                idx = url.indexOf(`/${pluginsRelativePath}/`);
+                            if (idx < 0 && pluginsBase) {                       
+                                idx = url.indexOf(`/${pluginsBase}/`);
                             }
 
                             // relative paths starting with ".." are replaced by "_"

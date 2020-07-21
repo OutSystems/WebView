@@ -46,13 +46,10 @@ let getCommonConfiguration = (libraryName: string, useCache: boolean, assemblyNa
     let currentDirectory: string = getCurrentDirectory();
     let assemblyPublicPath = getPublicPath();
 
-    let pluginsRelativePathNormalized: string;
+    let pluginsAssembly: string;
     if (pluginsRelativePath) {
-        // Replace double dots ".." 
-        pluginsRelativePathNormalized = pluginsRelativePath.replace(/(\.\.)/g, ''); 
-
-        // Replace backslashes "\"  
-        pluginsRelativePathNormalized = pluginsRelativePathNormalized.replace(/[/\\/]/g, ''); 
+        let pathParts: string[] = pluginsRelativePath.replace(/\\/g, "/").split("/");
+        pluginsAssembly = pathParts.pop() || pathParts.pop(); // handle potential trailing slash
     }
 
     const Configuration: Configuration = {
@@ -98,7 +95,7 @@ let getCommonConfiguration = (libraryName: string, useCache: boolean, assemblyNa
         module: {
             rules: [
                 SassRuleSet,
-                getResourcesRuleSet(assemblyName, pluginsRelativePathNormalized),
+                getResourcesRuleSet(assemblyName, pluginsAssembly),
                 getTypeScriptRuleSet(useCache)
             ]
         },
