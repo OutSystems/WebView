@@ -1,18 +1,14 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Security.Permissions;
 using System.Threading;
-using System.Windows.Threading;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Threading;
 using NUnit.Framework;
-using Dispatcher = Avalonia.Threading.Dispatcher;
 
 namespace Tests {
 
     [TestFixture]
-    [Apartment(ApartmentState.STA)]
-    [SingleThreaded]
     public abstract class TestBase<T> where T : class, IDisposable, new() {
 
         protected virtual TimeSpan DefaultTimeout => TimeSpan.FromSeconds(5);
@@ -25,13 +21,8 @@ namespace Tests {
         [OneTimeSetUp]
         protected void OneTimeSetUp() {
             if (Application.Current == null) {
-                DispatcherSynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext());
-                new Application();
-                //Application.Current.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+               AppBuilder.Configure<App>().UsePlatformDetect().SetupWithoutStarting();
             }
-
-            window = new Window();
-            window.Show();
         }
 
         [OneTimeTearDown]
@@ -44,9 +35,14 @@ namespace Tests {
 
         [SetUp]
         protected void SetUp() {
-            Console.Write(" "); // nunit will output the test name if we write on the console
-            window.Title = "Running: " + CurrentTestName;
-            
+            AvaloniaLocator.EnterScope();
+
+            window = new Window {
+                Title = "Running: " + CurrentTestName
+            };
+
+            window.Show();
+
             if (view == null) {
                 view = CreateView();
 
@@ -108,9 +104,8 @@ namespace Tests {
         }
 
         [DebuggerNonUserCode]
-        [SecurityPermissionAttribute(SecurityAction.Demand, Flags = SecurityPermissionFlag.UnmanagedCode)]
         protected static void DoEvents() {
-            Dispatcher.UIThread.InvokeAsync(delegate { }, Avalonia.Threading.DispatcherPriority.Background).Wait();
+            Dispatcher.UIThread.InvokeAsync(delegate { }, DispatcherPriority.Background).Wait();
             Thread.Sleep(1);
         }
 
