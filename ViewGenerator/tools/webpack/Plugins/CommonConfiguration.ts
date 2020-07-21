@@ -49,7 +49,12 @@ let getCommonConfiguration = (libraryName: string, useCache: boolean, assemblyNa
     let pluginsAssembly: string;
     if (pluginsRelativePath) {
         let pathParts: string[] = pluginsRelativePath.replace(/\\/g, "/").split("/");
-        pluginsAssembly = pathParts.pop() || pathParts.pop(); // handle potential trailing slash
+
+        // Handle potential trailing slash
+        //
+        // E.g. if pluginsRelativePath is "../path/to/plugin/", we want to get the "plugin" part,
+        // and therefore we perform a pop twice, as the last portion will be an empty string.
+        pluginsAssembly = pathParts.pop() || pathParts.pop(); 
     }
 
     const Configuration: Configuration = {
