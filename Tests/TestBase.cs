@@ -35,13 +35,9 @@ namespace Tests {
 
         [SetUp]
         protected void SetUp() {
-            AvaloniaLocator.EnterScope();
-
             window = new Window {
                 Title = "Running: " + CurrentTestName
             };
-
-            window.Show();
 
             if (view == null) {
                 view = CreateView();
@@ -51,6 +47,7 @@ namespace Tests {
                 }
 
                 window.Content = view;
+                window.Show();
 
                 if (view != null) {
                     AfterInitializeView();
@@ -105,7 +102,9 @@ namespace Tests {
 
         [DebuggerNonUserCode]
         protected static void DoEvents() {
-            Dispatcher.UIThread.InvokeAsync(delegate { }, DispatcherPriority.Background).Wait();
+            var task = Dispatcher.UIThread.InvokeAsync(delegate { }, DispatcherPriority.MinValue);
+            Dispatcher.UIThread.RunJobs();
+            task.Wait();
             Thread.Sleep(1);
         }
 

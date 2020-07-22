@@ -11,6 +11,7 @@ namespace Tests.WebView {
 
         protected override void AfterInitializeView() {
             base.AfterInitializeView();
+            WaitFor(() => TargetView.IsBrowserInitialized, TimeSpan.FromSeconds(10), "browser initialization");
             LoadAndWaitReady("<html><script>;</script><body>Test page</body></html>", TimeSpan.FromSeconds(10), "webview initialization");
         }
 

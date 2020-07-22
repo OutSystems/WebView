@@ -6,7 +6,6 @@
     <Product>Tests</Product>
     <Copyright>Copyright ©  2017</Copyright>
     <OutputPath>$(MSBuildProjectDirectory)\bin\</OutputPath>
-    <DefineConstants>$(DefineConstants);TESTS</DefineConstants>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <PlatformTarget>x64</PlatformTarget>
   </PropertyGroup>

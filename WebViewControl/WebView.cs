@@ -157,11 +157,9 @@ namespace WebViewControl {
             }
 
 #if DEBUG
-#if !TESTS
             if (!System.Diagnostics.Debugger.IsAttached) {
                 throw new InvalidOperationException("Running debug version");
             }
-#endif
 #endif
 
             if (useSharedDomain) {
@@ -364,7 +362,7 @@ namespace WebViewControl {
             }
 
             if (interceptCall == null) {
-                interceptCall = target => target();
+                interceptCall = target => target.Invoke();
             }
 
             object CallTargetMethod(Func<object> target) {
