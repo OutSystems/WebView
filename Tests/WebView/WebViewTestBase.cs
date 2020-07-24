@@ -1,4 +1,7 @@
 ﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Avalonia.Threading;
 using WebViewControl;
 
 namespace Tests.WebView {
@@ -11,26 +14,25 @@ namespace Tests.WebView {
 
         protected override void AfterInitializeView() {
             base.AfterInitializeView();
-            WaitFor(() => TargetView.IsBrowserInitialized, TimeSpan.FromSeconds(10), "browser initialization");
-            LoadAndWaitReady("<html><script>;</script><body>Test page</body></html>", TimeSpan.FromSeconds(10), "webview initialization");
+            WaitFor(() => TargetView.IsBrowserInitialized, TimeSpan.FromSeconds(30), "browser initialization");
+            LoadAndWaitReady("<html><script>;</script><body>Test page</body></html>", TimeSpan.FromSeconds(30), "webview initialization");
         }
 
-        protected void LoadAndWaitReady(string html) {
-            LoadAndWaitReady(html, DefaultTimeout);
+        protected Task LoadAndWaitReady(string html) {
+            return LoadAndWaitReady(html, DefaultTimeout);           
         }
 
-        protected void LoadAndWaitReady(string html, TimeSpan timeout, string timeoutMsg = null) {
-            var navigated = false;
+        protected Task LoadAndWaitReady(string html, TimeSpan timeout, string timeoutMsg = null) {
+            var taskCompletionSource = new TaskCompletionSource<bool>();
+            
             void OnNavigated(string url, string frameName) {
-                navigated = true;
-            }
-            try {
-                TargetView.Navigated += OnNavigated;
-                TargetView.LoadHtml(html);
-                WaitFor(() => navigated, timeout, timeoutMsg);
-            } finally {
+                taskCompletionSource.SetResult(true);
                 TargetView.Navigated -= OnNavigated;
             }
+            TargetView.Navigated += OnNavigated;
+            TargetView.LoadHtml(html);
+            Dispatcher.UIThread.RunJobs(DispatcherPriority.MinValue);
+            return taskCompletionSource.Task;
         }
 
         protected void WithUnhandledExceptionHandling(Action action, Func<Exception, bool> onException) {
