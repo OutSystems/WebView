@@ -13,6 +13,7 @@ namespace Tests.WebView {
 
         protected override void AfterInitializeView() {
             base.AfterInitializeView();
+
             WaitFor(() => TargetView.IsBrowserInitialized, TimeSpan.FromSeconds(30), "browser initialization");
             LoadAndWaitReady("<html><script>;</script><body>Test page</body></html>", TimeSpan.FromSeconds(30), "webview initialization");
         }
@@ -25,8 +26,10 @@ namespace Tests.WebView {
             var taskCompletionSource = new TaskCompletionSource<bool>();
             
             void OnNavigated(string url, string frameName) {
-                taskCompletionSource.SetResult(true);
-                TargetView.Navigated -= OnNavigated;
+                if (url != UrlHelper.AboutBlankUrl) {
+                    taskCompletionSource.SetResult(true);
+                    TargetView.Navigated -= OnNavigated;
+                }
             }
             TargetView.Navigated += OnNavigated;
             TargetView.LoadHtml(html);
