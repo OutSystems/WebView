@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 using NUnit.Framework;
 using JavascriptException = WebViewControl.WebView.JavascriptException;
 
@@ -105,17 +106,21 @@ namespace Tests.WebView {
             var dispatcherUnhandled = false;
             var markAsHandled = true;
 
+            var taskCompletionSource = new TaskCompletionSource<bool>();
+
             UnhandledExceptionEventHandler unhandledDispatcherException = (o, e) => {
+                
                 exception = e.ExceptionObject as Exception;
                 dispatcherUnhandled = true;
+                taskCompletionSource.SetResult(true);
                 //e.Handled = true;
             };
 
-            Action<int> assertResult = (result) => {
+            void AssertResult(int result) {
                 Assert.NotNull(exception);
                 Assert.IsTrue(exception.Message.Contains(exception.Message));
                 Assert.AreEqual(2, result, "Result should not be affected");
-            };
+            }
 
             AppDomain.CurrentDomain.UnhandledException += unhandledDispatcherException;
 
@@ -124,7 +129,7 @@ namespace Tests.WebView {
                     TargetView.ExecuteScript($"throw new Error('{ExceptionMessage}')");
                     var result = TargetView.EvaluateScript<int>("1+1"); // force exception to occur
 
-                    assertResult(result);
+                    AssertResult(result);
                     Assert.IsTrue(controlUnhandled);
                     Assert.IsFalse(dispatcherUnhandled);
 
@@ -134,9 +139,9 @@ namespace Tests.WebView {
                     TargetView.ExecuteScript($"throw new Error('{ExceptionMessage}')");
                     result = TargetView.EvaluateScript<int>("1+1"); // force exception to occur
 
-                    WaitFor(() => dispatcherUnhandled);
+                    WaitFor(taskCompletionSource.Task);
 
-                    assertResult(result);
+                    AssertResult(result);
                     Assert.IsTrue(controlUnhandled);
                     Assert.IsTrue(dispatcherUnhandled);
 
@@ -151,6 +156,7 @@ namespace Tests.WebView {
             });
         }
 
+        // TODO Failing
         [Test(Description = "Javascript errors that occur asyncrounsly throw unhandled exception")]
         public void JavascriptAsyncErrorsThrowUnhandledException() {
             const string ExceptionMessage = "nooo";

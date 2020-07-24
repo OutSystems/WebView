@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Avalonia.Threading;
 using NUnit.Framework;
 
@@ -12,10 +13,11 @@ namespace Tests.WebView {
 
         [Test(Description = "Evaluation timeouts when javascript engine is not initialized")]
         public void JavascriptEngineInitializationTimeout() {
-            //LoadAndWaitReady("<html><body></body></html>");
-            var exception = Assert.Throws<WebViewControl.WebView.JavascriptException>(() => TargetView.EvaluateScript<int>("1", timeout: TimeSpan.FromSeconds(1)));
+            var loadTask = LoadAndWaitReady("<html><body></body></html>");
+            WaitFor(loadTask);
+            var exception = Assert.Throws<WebViewControl.WebView.JavascriptException>(() => TargetView.EvaluateScript<int>("1", timeout: TimeSpan.FromMilliseconds(25)));
             Assert.IsNotNull(exception);
-            Assert.IsTrue(exception.Message.Contains("not initialized"));
+            Assert.IsTrue(exception.Message.Contains("Timeout"));
         }
 
         [Test(Description = "Method interception function is called")]
@@ -60,18 +62,21 @@ namespace Tests.WebView {
             const string DotNetObject = "DotNetObject";
             bool functionCalled = false;
 
+            var taskCompletionSource = new TaskCompletionSource<bool>();
+
             Func<int> functionToCall = () => {
                 TargetView.EvaluateScript<int>("1+1");
                 functionCalled = true;
+                taskCompletionSource.SetResult(true);
                 return 1;
             };
 
             TargetView.RegisterJavascriptObject(DotNetObject, functionToCall, executeCallsInUI: true);
-            LoadAndWaitReady("<html><script>function test() { DotNetObject.invoke(); return 1; }</script><body></body></html>");
+            var loadTask = LoadAndWaitReady("<html><script>function test() { DotNetObject.invoke(); return 1; }</script><body></body></html>");
+            WaitFor(loadTask);
 
             var result = TargetView.EvaluateScriptFunction<int>("test");
-
-            WaitFor(() => functionCalled, DefaultTimeout);
+            WaitFor(taskCompletionSource.Task);
             Assert.AreEqual(1, result);
         }
 
@@ -173,7 +178,7 @@ namespace Tests.WebView {
 
         [Test(Description = "Evaluation runs successfully on an iframe")]
         public void JavascriptEvaluationOnIframe() {
-            LoadAndWaitReady(
+            var loadTask = LoadAndWaitReady(
                 "<html>" +
                 "<body>" +
                 "<script>" +
@@ -183,6 +188,7 @@ namespace Tests.WebView {
                 "</body>" + 
                 "</html>"
             );
+            WaitFor(loadTask);
             var x = TargetView.EvaluateScript<int>("x", "");
             var y = TargetView.EvaluateScript<int>("y", "test");
             Assert.AreEqual(1, x);
