@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Threading.Tasks;
 using NUnit.Framework;
 
 namespace Tests.WebView {
@@ -21,17 +22,28 @@ namespace Tests.WebView {
 
         [Test(Description = "Resource requested is intercepted")]
         public void ResourceRequestIsIntercepted() {
+            var taskCompletionSource = new TaskCompletionSource<bool>();
             var resourceRequested = "";
-            TargetView.BeforeResourceLoad += (resourceHandler) => resourceRequested = resourceHandler.Url;
-            LoadAndWaitReady(HtmlWithResource);
+            TargetView.BeforeResourceLoad += (resourceHandler) => {
+                resourceRequested = resourceHandler.Url;
+                taskCompletionSource.SetResult(true);
+            };
+            var loadTask = LoadAndWaitReady(HtmlWithResource);
+            WaitFor(loadTask, taskCompletionSource.Task);
 
             Assert.AreEqual("/" + ResourceJs, new Uri(resourceRequested).AbsolutePath);
         }
 
+        // TODO Failing
         [Test(Description = "Resource response with a stream is loaded properly")]
         public void InterceptedResourceRequestIsLoaded() {
-            TargetView.BeforeResourceLoad += (resourceHandler) => resourceHandler.RespondWith(ToStream("scriptLoaded = true"), "js"); // declare x
-            LoadAndWaitReady(HtmlWithResource);
+            var taskCompletionSource = new TaskCompletionSource<bool>();
+            TargetView.BeforeResourceLoad += (resourceHandler) => {
+                resourceHandler.RespondWith(ToStream("scriptLoaded = true"), "js"); // declare x
+                taskCompletionSource.SetResult(true);
+            };
+            var loadTask = LoadAndWaitReady(HtmlWithResource);
+            WaitFor(loadTask, taskCompletionSource.Task);
 
             var loaded = TargetView.EvaluateScript<bool>("scriptLoaded"); // check that the value of x is what was declared before in the resource
             Assert.True(loaded);
@@ -39,8 +51,13 @@ namespace Tests.WebView {
 
         [Test(Description = "Resource request canceled is not loaded")]
         public void ResourceRequestIsCanceled() {
-            TargetView.BeforeResourceLoad += (resourceHandler) => resourceHandler.Cancel();
-            LoadAndWaitReady(HtmlWithResource);
+            var taskCompletionSource = new TaskCompletionSource<bool>();
+            TargetView.BeforeResourceLoad += (resourceHandler) => {
+                resourceHandler.Cancel();
+                taskCompletionSource.SetResult(true);
+            };
+            var loadTask = LoadAndWaitReady(HtmlWithResource);
+            WaitFor(loadTask, taskCompletionSource.Task);
 
             var failed = TargetView.EvaluateScript<bool>("scriptFailed"); // check that the value of x is what was declared before in the resource
             Assert.True(failed);
@@ -48,6 +65,7 @@ namespace Tests.WebView {
 
         [Test(Description = "Resource request is redirected")]
         public void RequestRedirect() {
+            var taskCompletionSource = new TaskCompletionSource<bool>();
             var redirected = false;
             const string RedirectUrl = "anotherResource.js";
 
@@ -59,13 +77,14 @@ namespace Tests.WebView {
                         break;
                     case RedirectUrl:
                         redirected = true;
+                        taskCompletionSource.SetResult(true);
                         break;
                 }
             };
-            LoadAndWaitReady(HtmlWithResource);
+            var loadTask = LoadAndWaitReady(HtmlWithResource);
+            WaitFor(loadTask, taskCompletionSource.Task);
 
             Assert.True(redirected);
         }
-
     }
 }
