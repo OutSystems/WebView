@@ -76,14 +76,14 @@ namespace WebViewControl {
                         exception = new RenderProcessKilledException(ExceptionPrefix + "was killed", OwnerWebView.IsDisposing);
                         break;
                     case CefTerminationStatus.OutOfMemory:
-                        exception = new RenderProcessKilledException(ExceptionPrefix + "ran out-of-memory");
+                        exception = new RenderProcessOutOfMemoryException(ExceptionPrefix + "ran out-of-memory");
                         break;
                     default:
                         exception = new RenderProcessCrashedException(ExceptionPrefix + "terminated with an unknown reason");
                         break;
                 }
 
-                OwnerWebView.ExecuteWithAsyncErrorHandling(() => throw exception);
+                OwnerWebView.ForwardUnhandledAsyncException(exception);
             }
 
             protected override IResourceRequestHandler GetResourceRequestHandler(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, IRequest request, bool isNavigation, bool isDownload, string requestInitiator, ref bool disableDefaultHandling) {

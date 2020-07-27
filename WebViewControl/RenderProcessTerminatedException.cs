@@ -16,4 +16,10 @@ namespace WebViewControl {
             IsWebViewDisposing = webViewDisposing;
         }
     }
+
+    public class RenderProcessOutOfMemoryException : Exception {
+
+        internal RenderProcessOutOfMemoryException(string message) : base(message) {
+        }
+    }
 }
