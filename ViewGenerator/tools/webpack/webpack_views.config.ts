@@ -37,13 +37,18 @@ const config = (_, argv) => {
 
     let standardConfig: Configuration = getCommonConfiguration("Views", argv.useCache, argv.assemblyName, argv.pluginsRelativePath);
 
-    // SplitChunksOptions
-    standardConfig.optimization.splitChunks = {
-        chunks: "all",
-        minSize: 1,
-        cacheGroups: {
-            vendors: {
-                test: /[\\/](node_modules)[\\/]/
+    standardConfig.optimization = {
+        runtimeChunk: {
+            name: "ViewsRuntime"
+        },
+        // SplitChunksOptions
+        splitChunks: {
+            chunks: "all",
+            minSize: 1,
+            cacheGroups: {
+                vendors: {
+                    test: /[\\/](node_modules)[\\/]/
+                }
             }
         }
     };

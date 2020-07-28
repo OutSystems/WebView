@@ -80,12 +80,6 @@ let getCommonConfiguration = (libraryName: string, useCache: boolean, assemblyNa
             publicPath: "/" + assemblyName + "/"
         },
 
-        optimization: {
-            runtimeChunk: {
-                name: "Runtime"
-            }
-        },
-
         node: false,
 
         resolveLoader: {
