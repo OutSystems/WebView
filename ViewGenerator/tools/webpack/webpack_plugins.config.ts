@@ -10,6 +10,12 @@ const config = (_, argv) => {
 
     let standardConfig: Configuration = getCommonConfiguration("Plugins", argv.useCache, argv.assemblyName);
 
+    standardConfig.optimization = {
+        runtimeChunk: {
+            name: "PluginsRuntime"
+        }
+    };
+
     // Plugins
     standardConfig.plugins = standardConfig.plugins.concat(
 
