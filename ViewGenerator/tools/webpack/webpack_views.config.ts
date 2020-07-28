@@ -25,7 +25,10 @@ const config = (_, argv) => {
             }
 
             // Externals
-            externalsMap = outputConfig.externals || {};
+            let allExternals = outputConfig.externals;
+            if (allExternals) {
+                Object.keys(allExternals).forEach(key => externalsMap["^(.*\/)?" + key + "$"] = allExternals[key]);
+            }
 
         } else {
             throw new Error("Extended configuration file not found.");
@@ -61,7 +64,16 @@ const config = (_, argv) => {
 
         // externals
         if (Object.keys(externalsMap).length > 0) {
-            Object.keys(externalsMap).forEach(key => standardConfig.externals[key] = externalsMap[key]);
+            standardConfig.externals = [
+                standardConfig.externals as Dictionary<string>,
+                function (_, request: string, callback: any) {
+                    let match = Object.keys(externalsMap).find(key => new RegExp(key).test(request));
+                    if (match) {
+                        return callback(null, externalsMap[match]);
+                    }
+                    callback();
+                }
+            ];
         }
     }
 

@@ -1,6 +1,6 @@
 ﻿import Chalk from "chalk";
 import { outputFileSync } from "fs-extra";
-import { resolve, sep as pathSeparatator } from "path";
+import { resolve } from "path";
 import { NormalizedMessage } from "fork-ts-checker-webpack-plugin/lib/NormalizedMessage";
 import { FileDescriptor } from "webpack-manifest-plugin";
 
@@ -122,14 +122,6 @@ export function customErrorFormatter(message: NormalizedMessage, enableColors: b
 export function getCurrentDirectory() {
     return resolve(".");
 }
-
-export function getPublicPath() {
-    let currentPath = resolve(".");
-    let segments = currentPath.split(pathSeparatator);
-    return "/" + segments[segments.length - 1] + "/";
-}
-exports.getPublicPath = getPublicPath;
-
 /*
  * Gets the filename from an array.
  * */

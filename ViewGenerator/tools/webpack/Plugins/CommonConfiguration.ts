@@ -8,7 +8,7 @@ import ManifestPlugin from "webpack-manifest-plugin";
 // Plugins / Resources
 import RenameChunksPlugin from "./RenameChunksPlugin";
 import { CssPlaceholder, CssChunkPlaceholder, DtsExtension, OutputDirectoryDefault, JsChunkPlaceholder, NamePlaceholder } from "./Resources";
-import { Dictionary, customErrorFormatter, generateManifest, getCurrentDirectory, getFileName, getPublicPath } from "./Utils";
+import { Dictionary, customErrorFormatter, generateManifest, getCurrentDirectory, getFileName } from "./Utils";
 
 // Rules
 import getResourcesRuleSet from "../Rules/Files";
@@ -44,7 +44,6 @@ let getCommonConfiguration = (libraryName: string, useCache: boolean, assemblyNa
     let getOutputFileName: any = (chunkData) => getFileName(outputMap, chunkData);
 
     let currentDirectory: string = getCurrentDirectory();
-    let assemblyPublicPath = getPublicPath();
 
     let pluginsAssembly: string;
     if (pluginsRelativePath) {
@@ -78,7 +77,7 @@ let getCommonConfiguration = (libraryName: string, useCache: boolean, assemblyNa
             libraryTarget: "window",
             globalObject: "window",
             devtoolNamespace: libraryName,
-            publicPath: assemblyPublicPath
+            publicPath: "/" + assemblyName + "/"
         },
 
         optimization: {
