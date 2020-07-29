@@ -121,7 +121,12 @@ namespace WebViewControl {
 
             var customSchemes = CustomSchemes.Select(s => new CustomScheme() { SchemeName = s, SchemeHandlerFactory = new SchemeHandlerFactory() }).ToArray();
 
-            CefRuntimeLoader.Initialize(settings: cefSettings, customSchemes: customSchemes);
+            // disable NetworkService https://bitbucket.org/chromiumembedded/cef/issues/2795/crash-in-openinputstreamwrapper
+            var customFlags = new[] {
+                new KeyValuePair<string, string>("disable-features", "NetworkService,VizDisplayCompositor")
+            };
+
+            CefRuntimeLoader.Initialize(settings: cefSettings, flags: customFlags, customSchemes: customSchemes);
 
             AppDomain.CurrentDomain.ProcessExit += delegate { Cleanup(); };
         }
@@ -212,19 +217,24 @@ namespace WebViewControl {
         partial void ExtraInitialize();
 
         ~WebView() {
-            Dispose();
+            Dispose(isDisposing: false);
         }
 
         public void Dispose() {
-            lock (SyncRoot) {
-                if (isDisposing) {
-                    return;
+            Dispose(isDisposing: true);
+        }
+        
+        private void Dispose(bool isDisposing = true) {
+            if (isDisposing) {
+                lock (SyncRoot) {
+                    if (this.isDisposing) {
+                        return;
+                    }
+
+                    this.isDisposing = true;
                 }
-
-                isDisposing = true;
+                GC.SuppressFinalize(this);
             }
-
-            GC.SuppressFinalize(this);
 
             var disposed = false;
 
@@ -235,7 +245,7 @@ namespace WebViewControl {
 
                 disposed = true;
 
-                AsyncCancellationTokenSource.Cancel();
+                AsyncCancellationTokenSource?.Cancel();
 
                 WebViewInitialized = null;
                 BeforeNavigate = null;
@@ -250,18 +260,18 @@ namespace WebViewControl {
                 UnhandledAsyncException = null;
                 JavascriptContextReleased = null;
 
-                foreach (var disposable in disposables.Concat(JsExecutors.Values)) {
-                    disposable.Dispose();
+                foreach (var disposable in disposables.Concat(JsExecutors?.Values)) {
+                    disposable?.Dispose();
                 }
 
                 Disposed?.Invoke();
             }
 
-            if (JavascriptPendingCalls.CurrentCount > 1) {
+            if (JavascriptPendingCalls?.CurrentCount > 1) {
                 // avoid dead-lock, wait for all pending calls to finish
                 Task.Run(() => {
-                    JavascriptPendingCalls.Signal(); // remove dummy entry
-                    JavascriptPendingCalls.Wait();
+                    JavascriptPendingCalls?.Signal(); // remove dummy entry
+                    JavascriptPendingCalls?.Wait();
                     InternalDispose();
                 });
                 return;
