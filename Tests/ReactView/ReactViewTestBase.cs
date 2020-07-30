@@ -8,11 +8,12 @@ namespace Tests.ReactView {
             TargetView.UnhandledAsyncException += OnUnhandledAsyncException;
         }
 
-        protected override void AfterInitializeView() {
-            if (WaitForReady) {
-                WaitFor(() => TargetView.IsReady, DefaultTimeout, "view initialized");
-            }
-        }
+        // TODO
+        //protected override void AfterInitializeView() {
+        //    if (WaitForReady) {
+        //        WaitFor(() => TargetView.IsReady, DefaultTimeout, "view initialized");
+        //    }
+        //}
 
         protected virtual bool WaitForReady => true;
 

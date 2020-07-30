@@ -9,51 +9,55 @@ namespace Tests.WebView {
     public class CommonTests : WebViewTestBase {
 
         [Test(Description = "Attached listeners are called")]
-        public void ListenersAreCalled() {
-            var listener1Counter = 0;
-            var listener2Counter = 0;
-            var taskCompletionSourceListener1 = new TaskCompletionSource<bool>();
-            var taskCompletionSourceListener21 = new TaskCompletionSource<bool>();
-            var taskCompletionSourceListener22 = new TaskCompletionSource<bool>();
+        public async Task ListenersAreCalled() {
+            await Run(async () => {
+                var listener1Counter = 0;
+                var listener2Counter = 0;
+                var taskCompletionSourceListener1 = new TaskCompletionSource<bool>();
+                var taskCompletionSourceListener21 = new TaskCompletionSource<bool>();
+                var taskCompletionSourceListener22 = new TaskCompletionSource<bool>();
 
-            var listener1 = TargetView.AttachListener("event1_name");
-            listener1.Handler += delegate {
-                listener1Counter++;
-                taskCompletionSourceListener1.SetResult(true);
-            };
+                var listener1 = TargetView.AttachListener("event1_name");
+                listener1.Handler += delegate {
+                    listener1Counter++;
+                    taskCompletionSourceListener1.SetResult(true);
+                };
 
-            var listener2 = TargetView.AttachListener("event2_name");
-            listener2.Handler += delegate {
-                listener2Counter++;
-                taskCompletionSourceListener21.SetResult(true);
-            };
-            listener2.Handler += delegate {
-                listener2Counter++;
-                taskCompletionSourceListener22.SetResult(true);
-            };
+                var listener2 = TargetView.AttachListener("event2_name");
+                listener2.Handler += delegate {
+                    listener2Counter++;
+                    taskCompletionSourceListener21.SetResult(true);
+                };
+                listener2.Handler += delegate {
+                    listener2Counter++;
+                    taskCompletionSourceListener22.SetResult(true);
+                };
 
-            var loadTask = LoadAndWaitReady($"<html><script>{listener1}{listener2}</script><body></body></html>");
-            WaitFor(loadTask, taskCompletionSourceListener1.Task, taskCompletionSourceListener21.Task, taskCompletionSourceListener22.Task);
+                await LoadAndWaitReady($"<html><script>{listener1}{listener2}</script><body></body></html>");
+                Task.WaitAll(taskCompletionSourceListener1.Task, taskCompletionSourceListener21.Task, taskCompletionSourceListener22.Task);
 
-            Assert.AreEqual(1, listener1Counter);
-            Assert.AreEqual(2, listener2Counter);
+                Assert.AreEqual(1, listener1Counter);
+                Assert.AreEqual(2, listener2Counter);
+            });
         }
 
         [Test(Description = "Attached listeners are called in Dispatcher thread")]
-        public void ListenersAreCalledInDispatcherThread() {
-            var taskCompletionSource = new TaskCompletionSource<bool>();
-            bool? canAccessDispatcher = null;
+        public async Task ListenersAreCalledInDispatcherThread() {
+            await Run(() => {
+                var taskCompletionSource = new TaskCompletionSource<bool>();
+                bool? canAccessDispatcher = null;
 
-            var listener = TargetView.AttachListener("event_name");
-            listener.UIHandler += delegate { 
-                canAccessDispatcher = Dispatcher.UIThread.CheckAccess();
-                taskCompletionSource.SetResult(true);
-            };
+                var listener = TargetView.AttachListener("event_name");
+                listener.UIHandler += delegate {
+                    canAccessDispatcher = Dispatcher.UIThread.CheckAccess();
+                    taskCompletionSource.SetResult(true);
+                };
 
-            var loadTask = LoadAndWaitReady($"<html><script>{listener}</script><body></body></html>");
-            WaitFor(loadTask, taskCompletionSource.Task);
+                var loadTask = LoadAndWaitReady($"<html><script>{listener}</script><body></body></html>");
+                WaitFor(loadTask, taskCompletionSource.Task);
 
-            Assert.IsTrue(canAccessDispatcher);
+                Assert.IsTrue(canAccessDispatcher);
+            });
         }
 
         [Test(Description = "Unhandled Exception event is called when an async unhandled error occurs inside a listener")]
@@ -80,17 +84,19 @@ namespace Tests.WebView {
         }
 
         [Test(Description = "Before navigate hook is called")]
-        public void BeforeNavigateHookCalled() {
-            var taskCompletionSource = new TaskCompletionSource<bool>();
-            var beforeNavigatedCalled = false;
-            TargetView.BeforeNavigate += (request) => {
-                taskCompletionSource.SetResult(true);
-                request.Cancel();
-                beforeNavigatedCalled = true;
-            };
-            TargetView.Address = "https://www.google.com";
-            WaitFor(taskCompletionSource.Task);
-            Assert.IsTrue(beforeNavigatedCalled);
+        public async Task BeforeNavigateHookCalled() {
+            await Run(async () => {
+                var taskCompletionSource = new TaskCompletionSource<bool>();
+                var beforeNavigatedCalled = false;
+                TargetView.BeforeNavigate += (request) => {
+                    beforeNavigatedCalled = true;
+                    taskCompletionSource.SetResult(true);
+                    request.Cancel();
+                };
+                TargetView.Address = "https://www.google.com";
+                await taskCompletionSource.Task;
+                Assert.IsTrue(beforeNavigatedCalled);
+            });
         }
 
         [Test(Description = "Javascript evaluation on navigated event does not block")]

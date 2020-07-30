@@ -11,12 +11,16 @@ namespace Tests.WebView {
             TargetView.UnhandledAsyncException += OnUnhandledAsyncException;
         }
 
-        protected override void AfterInitializeView() {
-            base.AfterInitializeView();
+        protected override async Task AfterInitializeView() {
+            await base.AfterInitializeView();
 
-            WaitFor(() => TargetView.IsBrowserInitialized, TimeSpan.FromSeconds(30), "browser initialization");
-            var loadTask = LoadAndWaitReady("<html><script>;</script><body>Test page</body></html>", TimeSpan.FromSeconds(30), "webview initialization");
-            WaitFor(loadTask);
+            var taskCompletionSource = new TaskCompletionSource<bool>();
+            TargetView.WebViewInitialized += () => {
+                taskCompletionSource.SetResult(true);
+            };
+
+            await taskCompletionSource.Task;
+            await LoadAndWaitReady("<html><script>;</script><body>Test page</body></html>", TimeSpan.FromSeconds(30), "webview initialization");
         }
 
         protected Task LoadAndWaitReady(string html) {
@@ -34,7 +38,6 @@ namespace Tests.WebView {
             }
             TargetView.Navigated += OnNavigated;
             TargetView.LoadHtml(html);
-            Dispatcher.UIThread.RunJobs(DispatcherPriority.MinValue);
             return taskCompletionSource.Task;
         }
 

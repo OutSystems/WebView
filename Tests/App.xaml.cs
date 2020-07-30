@@ -13,9 +13,5 @@ namespace Tests {
             WebViewControl.WebView.OsrEnabled = false;
             AvaloniaXamlLoader.Load(this);
         }
-
-        public override void RegisterServices() {
-            base.RegisterServices();
-        }
     }
 }

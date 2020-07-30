@@ -13,6 +13,9 @@ namespace Tests {
     [TestFixture]
     public abstract class TestBase<T> where T : class, IDisposable, new() {
 
+        private static object initLock = new object();
+        private static bool initialized = false;
+
         protected virtual TimeSpan DefaultTimeout => TimeSpan.FromSeconds(5);
 
         private Window window;
@@ -20,41 +23,69 @@ namespace Tests {
 
         protected static string CurrentTestName => TestContext.CurrentContext.Test.Name;
 
+        protected Task Run(Func<Task> func) => Dispatcher.UIThread.InvokeAsync(func, DispatcherPriority.Background);
+
+        protected Task Run(Action action) => Dispatcher.UIThread.InvokeAsync(action, DispatcherPriority.Background);
+
         [OneTimeSetUp]
-        protected void OneTimeSetUp() {
-            if (Application.Current == null) {
-               AppBuilder.Configure<App>().UsePlatformDetect().SetupWithoutStarting();
+        protected Task OneTimeSetUp() {
+            if (initialized) {
+                return Task.CompletedTask;
+            }
+
+            lock (initLock) {
+                if (initialized) {
+                    return Task.CompletedTask;
+                }
+
+                var taskCompletionSource = new TaskCompletionSource<bool>();
+                var uiThread = new Thread(() => {
+                    AppBuilder.Configure<App>().UsePlatformDetect().SetupWithoutStarting();
+
+                    Dispatcher.UIThread.Post(() => {
+                        initialized = true;
+                        taskCompletionSource.SetResult(true);
+                    });
+                    Dispatcher.UIThread.MainLoop(CancellationToken.None);
+                });
+                uiThread.IsBackground = true;
+                uiThread.Start();
+                return taskCompletionSource.Task;
             }
         }
 
         [OneTimeTearDown]
-        protected void OneTimeTearDown() {
-            if (view != null) {
-                view.Dispose();
-            }
-            window.Close();
+        protected async Task OneTimeTearDown() {
+            await Run(() => {
+                if (view != null) {
+                    view.Dispose();
+                }
+                window.Close();
+            });
         }
 
         [SetUp]
-        protected void SetUp() {
-            window = new Window {
-                Title = "Running: " + CurrentTestName
-            };
+        protected async Task SetUp() {
+            await Run(async () => {
+                window = new Window {
+                    Title = "Running: " + CurrentTestName
+                };
 
-            if (view == null) {
-                view = CreateView();
+                if (view == null) {
+                    view = CreateView();
 
-                if (view != null) {
-                    InitializeView();
+                    if (view != null) {
+                        InitializeView();
+                    }
+
+                    window.Content = view;
+                    window.Show();
+
+                    if (view != null) {
+                        await AfterInitializeView();
+                    }
                 }
-
-                window.Content = view;
-                window.Show();
-
-                if (view != null) {
-                    AfterInitializeView();
-                }
-            }
+            });
         }
 
         protected Window Window => window;
@@ -65,21 +96,25 @@ namespace Tests {
 
         protected virtual void InitializeView() { }
 
-        protected virtual void AfterInitializeView() { }
+        protected virtual Task AfterInitializeView() {
+            return Task.CompletedTask;
+        }
 
         [TearDown]
-        protected void TearDown() {
+        protected async Task TearDown() {
             if (Debugger.IsAttached && TestContext.CurrentContext.Result.FailCount > 0) {
                 ShowDebugConsole();
-                WaitFor(() => false, TimeSpan.MaxValue);
-                return;
+                await new TaskCompletionSource<bool>().Task;
+            } else {
+                await Run(() => {
+                    if (view != null) {
+                        view.Dispose();
+                        view = null;
+                    }
+                    window.Content = null;
+                    window.Close();
+                });
             }
-            if (view != null) {
-                view.Dispose();
-                view = null;
-            }
-            window.Content = null;
-            window.Close();
         }
 
         protected abstract void ShowDebugConsole();
@@ -87,6 +122,19 @@ namespace Tests {
         protected T TargetView {
             get { return view; }
         }
+
+        protected bool FailOnAsyncExceptions { get; set; } = !Debugger.IsAttached;
+
+        protected void OnUnhandledAsyncException(WebViewControl.UnhandledAsyncExceptionEventArgs e) {
+            if (FailOnAsyncExceptions) {
+                Dispatcher.UIThread.InvokeAsync(new Action(() => {
+                    Assert.Fail("An async exception ocurred: " + e.Exception.ToString());
+                }));
+            }
+        }
+
+
+        // TODO remove the methods below
 
         public void WaitFor(params Task[] tasks) {
             WaitFor(DefaultTimeout, tasks);
@@ -126,14 +174,5 @@ namespace Tests {
             Thread.Sleep(1);
         }
 
-        protected bool FailOnAsyncExceptions { get; set; } = !Debugger.IsAttached;
-
-        protected void OnUnhandledAsyncException(WebViewControl.UnhandledAsyncExceptionEventArgs e) {
-            if (FailOnAsyncExceptions) {
-                Dispatcher.UIThread.InvokeAsync(new Action(() => {
-                    Assert.Fail("An async exception ocurred: " + e.Exception.ToString());
-                }));
-            }
-        }
     }
 }

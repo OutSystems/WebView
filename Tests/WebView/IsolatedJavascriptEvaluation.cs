@@ -9,7 +9,9 @@ namespace Tests.WebView {
 
         protected override void InitializeView() { }
 
-        protected override void AfterInitializeView() { }
+        protected override Task AfterInitializeView() {
+            return Task.CompletedTask;
+        }
 
         [Test(Description = "Evaluation timeouts when javascript engine is not initialized")]
         public void JavascriptEngineInitializationTimeout() {
