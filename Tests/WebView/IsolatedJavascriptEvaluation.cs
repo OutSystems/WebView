@@ -15,7 +15,7 @@ namespace Tests.WebView {
 
         [Test(Description = "Evaluation timeouts when javascript engine is not initialized")]
         public void JavascriptEngineInitializationTimeout() {
-            var loadTask = LoadAndWaitReady("<html><body></body></html>");
+            var loadTask = Load("<html><body></body></html>");
             WaitFor(loadTask);
             var exception = Assert.Throws<WebViewControl.WebView.JavascriptException>(() => TargetView.EvaluateScript<int>("1", timeout: TimeSpan.FromMilliseconds(25)));
             Assert.IsNotNull(exception);
@@ -38,7 +38,7 @@ namespace Tests.WebView {
                 return originalFunc();
             };
             TargetView.RegisterJavascriptObject(DotNetObject, functionToCall, interceptor);
-            var loadTask = LoadAndWaitReady($"<html><script>{DotNetObject}.invoke();</script><body></body></html>");
+            var loadTask = Load($"<html><script>{DotNetObject}.invoke();</script><body></body></html>");
             WaitFor(loadTask, taskCompletionSource.Task);
 
             Assert.IsTrue(functionCalled);
@@ -57,7 +57,7 @@ namespace Tests.WebView {
                 return 10;
             };
             TargetView.RegisterJavascriptObject(DotNetObject, functionToCall, executeCallsInUI: true);
-            var loadTask = LoadAndWaitReady($"<html><script>{DotNetObject}.invoke();</script><body></body></html>");
+            var loadTask = Load($"<html><script>{DotNetObject}.invoke();</script><body></body></html>");
             WaitFor(loadTask, taskCompletionSource.Task);
 
             Assert.IsTrue(canAccessDispatcher);
@@ -76,7 +76,7 @@ namespace Tests.WebView {
             };
 
             TargetView.RegisterJavascriptObject(DotNetObject, functionToCall, executeCallsInUI: true);
-            var loadTask = LoadAndWaitReady("<html><script>function test() { DotNetObject.invoke(); return 1; }</script><body></body></html>");
+            var loadTask = Load("<html><script>function test() { DotNetObject.invoke(); return 1; }</script><body></body></html>");
             WaitFor(loadTask);
 
             var result = TargetView.EvaluateScriptFunction<int>("test");
@@ -96,7 +96,7 @@ namespace Tests.WebView {
                 taskCompletionSource.SetResult(true);
             };
             TargetView.RegisterJavascriptObject(DotNetObject, functionToCall);
-            var loadTask = LoadAndWaitReady($"<html><script>{DotNetObject}.invoke(null, ['hello', null, 'world']);</script><body></body></html>");
+            var loadTask = Load($"<html><script>{DotNetObject}.invoke(null, ['hello', null, 'world']);</script><body></body></html>");
 
             WaitFor(loadTask, taskCompletionSource.Task);
             Assert.AreEqual(null, obtainedArg1);
@@ -130,7 +130,7 @@ namespace Tests.WebView {
 
             TargetView.RegisterJavascriptObject(DotNetObject, functionToCall);
             TargetView.RegisterJavascriptObject(DotNetSetResult, setResult);
-            var loadTask = LoadAndWaitReady($"<html><script>(async function test() {{ var result = await {DotNetObject}.invoke(); {DotNetSetResult}.invoke(result); }})()</script><body></body></html>");
+            var loadTask = Load($"<html><script>(async function test() {{ var result = await {DotNetObject}.invoke(); {DotNetSetResult}.invoke(result); }})()</script><body></body></html>");
 
             WaitFor(loadTask, taskCompletionSource.Task);
             Assert.IsNotNull(result);
@@ -160,7 +160,7 @@ namespace Tests.WebView {
             };
 
             TargetView.RegisterJavascriptObject(DotNetObject, functionToCall, executeCallsInUI: true);
-            var loadTask = LoadAndWaitReady($"<html><script>function test() {{ {DotNetObject}.invoke(); return 1; }}</script><body></body></html>");
+            var loadTask = Load($"<html><script>function test() {{ {DotNetObject}.invoke(); return 1; }}</script><body></body></html>");
             TargetView.Disposed += () => {
                 disposeCalled = true;
                 taskCompletionSourceDispose.SetResult(true);
@@ -178,7 +178,7 @@ namespace Tests.WebView {
         public void JsEvaluationReturnsDefaultValuesAfterWebViewDispose() {
             var disposeCalled = false;
             var taskCompletionSource = new TaskCompletionSource<bool>();
-            var loadTask = LoadAndWaitReady("<html><script>function test() { return 1; }</script><body></body></html>");
+            var loadTask = Load("<html><script>function test() { return 1; }</script><body></body></html>");
             TargetView.Disposed += () => {
                 disposeCalled = true;
                 taskCompletionSource.SetResult(true);
@@ -196,7 +196,7 @@ namespace Tests.WebView {
         // TODO Failing
         [Test(Description = "Evaluation runs successfully on an iframe")]
         public void JavascriptEvaluationOnIframe() {
-            var loadTask = LoadAndWaitReady(
+            var loadTask = Load(
                 "<html>" +
                 "<body>" +
                 "<script>" +

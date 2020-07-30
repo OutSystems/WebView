@@ -20,14 +20,14 @@ namespace Tests.WebView {
             };
 
             await taskCompletionSource.Task;
-            await LoadAndWaitReady("<html><script>;</script><body>Test page</body></html>", TimeSpan.FromSeconds(30), "webview initialization");
+            await Load("<html><script>;</script><body>Test page</body></html>", TimeSpan.FromSeconds(30), "webview initialization");
         }
 
-        protected Task LoadAndWaitReady(string html) {
-            return LoadAndWaitReady(html, DefaultTimeout);           
+        protected Task Load(string html) {
+            return Load(html, DefaultTimeout);           
         }
 
-        protected Task LoadAndWaitReady(string html, TimeSpan timeout, string timeoutMsg = null) {
+        protected Task Load(string html, TimeSpan timeout, string timeoutMsg = null) {
             var taskCompletionSource = new TaskCompletionSource<bool>();
             
             void OnNavigated(string url, string frameName) {

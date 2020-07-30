@@ -11,7 +11,7 @@ namespace Tests.WebView
         public void HtmlIsWellEncoded() {
             const string BodyContent = "some text and a double byte char '●'";
 
-            var loadTask = LoadAndWaitReady($"<html><script>;</script><body>{BodyContent}</body></html>");
+            var loadTask = Load($"<html><script>;</script><body>{BodyContent}</body></html>");
             WaitFor(loadTask);
 
             var body = TargetView.EvaluateScript<string>("document.body.innerText");
@@ -21,7 +21,7 @@ namespace Tests.WebView
         [Test(Description = "Embedded files are correctly loaded")]
         public void EmbeddedFilesLoad() {
             var embeddedResourceUrl = new ResourceUrl(GetType().Assembly, "Resources", "EmbeddedJavascriptFile.js");
-            var loadTask = LoadAndWaitReady($"<html><script src='{embeddedResourceUrl}'></script></html>");
+            var loadTask = Load($"<html><script src='{embeddedResourceUrl}'></script></html>");
             WaitFor(loadTask);
             var embeddedFileLoaded = TargetView.EvaluateScript<bool>("embeddedFileLoaded");
             Assert.IsTrue(embeddedFileLoaded);
@@ -30,7 +30,7 @@ namespace Tests.WebView
         [Test(Description = "Embedded files with dashes in the filename are correctly loaded")]
         public void EmbeddedFilesWithDashesInFilenameLoad() {
             var embeddedResourceUrl = new ResourceUrl(GetType().Assembly, "Resources", "dash-folder", "EmbeddedJavascriptFile-With-Dashes.js");
-            var loadTask = LoadAndWaitReady($"<html><script src='{embeddedResourceUrl}'></script></html>");
+            var loadTask = Load($"<html><script src='{embeddedResourceUrl}'></script></html>");
             WaitFor(loadTask);
             var embeddedFileLoaded = TargetView.EvaluateScript<bool>("embeddedFileLoaded");
             Assert.IsTrue(embeddedFileLoaded);
@@ -39,7 +39,7 @@ namespace Tests.WebView
         [Test(Description = "Avalonia resource files are loaded")]
         public void ResourceFile() {
             var embeddedResourceUrl = new ResourceUrl(GetType().Assembly, "Resources", "ResourceJavascriptFile.js");
-            var loadTask = LoadAndWaitReady($"<html><script src='{embeddedResourceUrl}'></script></html>");
+            var loadTask = Load($"<html><script src='{embeddedResourceUrl}'></script></html>");
             WaitFor(loadTask);
             var resourceFileLoaded = TargetView.EvaluateScript<bool>("resourceFileLoaded");
             Assert.IsTrue(resourceFileLoaded);

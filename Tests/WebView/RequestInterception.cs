@@ -28,7 +28,7 @@ namespace Tests.WebView {
                 resourceRequested = resourceHandler.Url;
                 taskCompletionSource.SetResult(true);
             };
-            var loadTask = LoadAndWaitReady(HtmlWithResource);
+            var loadTask = Load(HtmlWithResource);
             WaitFor(loadTask, taskCompletionSource.Task);
 
             Assert.AreEqual("/" + ResourceJs, new Uri(resourceRequested).AbsolutePath);
@@ -42,7 +42,7 @@ namespace Tests.WebView {
                 resourceHandler.RespondWith(ToStream("scriptLoaded = true"), "js"); // declare x
                 taskCompletionSource.SetResult(true);
             };
-            var loadTask = LoadAndWaitReady(HtmlWithResource);
+            var loadTask = Load(HtmlWithResource);
             WaitFor(loadTask, taskCompletionSource.Task);
 
             var loaded = TargetView.EvaluateScript<bool>("scriptLoaded"); // check that the value of x is what was declared before in the resource
@@ -56,7 +56,7 @@ namespace Tests.WebView {
                 resourceHandler.Cancel();
                 taskCompletionSource.SetResult(true);
             };
-            var loadTask = LoadAndWaitReady(HtmlWithResource);
+            var loadTask = Load(HtmlWithResource);
             WaitFor(loadTask, taskCompletionSource.Task);
 
             var failed = TargetView.EvaluateScript<bool>("scriptFailed"); // check that the value of x is what was declared before in the resource
@@ -81,7 +81,7 @@ namespace Tests.WebView {
                         break;
                 }
             };
-            var loadTask = LoadAndWaitReady(HtmlWithResource);
+            var loadTask = Load(HtmlWithResource);
             WaitFor(loadTask, taskCompletionSource.Task);
 
             Assert.True(redirected);

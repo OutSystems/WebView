@@ -33,7 +33,7 @@ namespace Tests.WebView {
                     taskCompletionSourceListener22.SetResult(true);
                 };
 
-                await LoadAndWaitReady($"<html><script>{listener1}{listener2}</script><body></body></html>");
+                await Load($"<html><script>{listener1}{listener2}</script><body></body></html>");
                 Task.WaitAll(taskCompletionSourceListener1.Task, taskCompletionSourceListener21.Task, taskCompletionSourceListener22.Task);
 
                 Assert.AreEqual(1, listener1Counter);
@@ -53,7 +53,7 @@ namespace Tests.WebView {
                     taskCompletionSource.SetResult(true);
                 };
 
-                var loadTask = LoadAndWaitReady($"<html><script>{listener}</script><body></body></html>");
+                var loadTask = Load($"<html><script>{listener}</script><body></body></html>");
                 WaitFor(loadTask, taskCompletionSource.Task);
 
                 Assert.IsTrue(canAccessDispatcher);
@@ -73,7 +73,7 @@ namespace Tests.WebView {
                     throw new Exception(ExceptionMessage);
                 };
 
-                var loadTask = LoadAndWaitReady($"<html><script>{listener}</script><body></body></html>");
+                var loadTask = Load($"<html><script>{listener}</script><body></body></html>");
                 WaitFor(loadTask, taskCompletionSource.Task);
                 Assert.IsTrue(exception.Message.Contains(ExceptionMessage));
             }, 
@@ -108,7 +108,7 @@ namespace Tests.WebView {
                 TargetView.EvaluateScript<int>("1+1");
                 navigated = true;
             };
-            var loadTask = LoadAndWaitReady("<html><body></body></html>");
+            var loadTask = Load("<html><body></body></html>");
             WaitFor(loadTask, taskCompletionSource.Task);
             Assert.IsTrue(navigated);
         }
@@ -116,7 +116,7 @@ namespace Tests.WebView {
         // TODO failing
         [Test(Description = "Setting zoom works as expected")]
         public void ZoomWorksAsExpected() {
-            var loadTask = LoadAndWaitReady("<html><body></body></html>");
+            var loadTask = Load("<html><body></body></html>");
 
             const double Zoom = 1.5;
             TargetView.ZoomPercentage = Zoom;
