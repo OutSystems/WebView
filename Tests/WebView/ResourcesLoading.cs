@@ -12,7 +12,6 @@ namespace Tests.WebView
         public async Task HtmlIsWellEncoded() {
             await Run(async () => {
                 const string BodyContent = "some text and a double byte char '●'";
-
                 await Load($"<html><script>;</script><body>{BodyContent}</body></html>");
 
                 var body = TargetView.EvaluateScript<string>("document.body.innerText");
@@ -21,34 +20,40 @@ namespace Tests.WebView
         }
 
         [Test(Description = "Embedded files are correctly loaded")]
-        public void EmbeddedFilesLoad() {
-            var embeddedResourceUrl = new ResourceUrl(GetType().Assembly, "Resources", "EmbeddedJavascriptFile.js");
-            var loadTask = Load($"<html><script src='{embeddedResourceUrl}'></script></html>");
-            WaitFor(loadTask);
-            var embeddedFileLoaded = TargetView.EvaluateScript<bool>("embeddedFileLoaded");
-            Assert.IsTrue(embeddedFileLoaded);
+        public async Task EmbeddedFilesLoad() {
+            await Run(async () => {
+                var embeddedResourceUrl = new ResourceUrl(GetType().Assembly, "Resources", "EmbeddedJavascriptFile.js");
+                await Load($"<html><script src='{embeddedResourceUrl}'></script></html>");
+
+                var embeddedFileLoaded = TargetView.EvaluateScript<bool>("embeddedFileLoaded");
+                Assert.IsTrue(embeddedFileLoaded);
+            });
         }
 
         [Test(Description = "Embedded files with dashes in the filename are correctly loaded")]
-        public void EmbeddedFilesWithDashesInFilenameLoad() {
-            var embeddedResourceUrl = new ResourceUrl(GetType().Assembly, "Resources", "dash-folder", "EmbeddedJavascriptFile-With-Dashes.js");
-            var loadTask = Load($"<html><script src='{embeddedResourceUrl}'></script></html>");
-            WaitFor(loadTask);
-            var embeddedFileLoaded = TargetView.EvaluateScript<bool>("embeddedFileLoaded");
-            Assert.IsTrue(embeddedFileLoaded);
+        public async Task EmbeddedFilesWithDashesInFilenameLoad() {
+            await Run(async () => {
+                var embeddedResourceUrl = new ResourceUrl(GetType().Assembly, "Resources", "dash-folder", "EmbeddedJavascriptFile-With-Dashes.js");
+                await Load($"<html><script src='{embeddedResourceUrl}'></script></html>");
+
+                var embeddedFileLoaded = TargetView.EvaluateScript<bool>("embeddedFileLoaded");
+                Assert.IsTrue(embeddedFileLoaded);
+            });
         }
 
         [Test(Description = "Avalonia resource files are loaded")]
-        public void ResourceFile() {
-            var embeddedResourceUrl = new ResourceUrl(GetType().Assembly, "Resources", "ResourceJavascriptFile.js");
-            var loadTask = Load($"<html><script src='{embeddedResourceUrl}'></script></html>");
-            WaitFor(loadTask);
-            var resourceFileLoaded = TargetView.EvaluateScript<bool>("resourceFileLoaded");
-            Assert.IsTrue(resourceFileLoaded);
+        public async Task ResourceFile() {
+            await Run(async () => {
+                var embeddedResourceUrl = new ResourceUrl(GetType().Assembly, "Resources", "ResourceJavascriptFile.js");
+                await Load($"<html><script src='{embeddedResourceUrl}'></script></html>");
 
-            Stream missingResource = null;
-            Assert.DoesNotThrow(() => missingResource = ResourcesManager.TryGetResourceWithFullPath(GetType().Assembly, new[] { "Resources", "Missing.txt" }));
-            Assert.IsNull(missingResource);
+                var resourceFileLoaded = TargetView.EvaluateScript<bool>("resourceFileLoaded");
+                Assert.IsTrue(resourceFileLoaded);
+
+                Stream missingResource = null;
+                Assert.DoesNotThrow(() => missingResource = ResourcesManager.TryGetResourceWithFullPath(GetType().Assembly, new[] { "Resources", "Missing.txt" }));
+                Assert.IsNull(missingResource);
+            });
         }
     }
 }

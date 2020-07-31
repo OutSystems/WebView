@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Avalonia.Threading;
 using WebViewControl;
 
 namespace Tests.WebView {
