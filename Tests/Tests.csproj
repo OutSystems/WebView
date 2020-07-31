@@ -8,6 +8,7 @@
     <OutputPath>$(MSBuildProjectDirectory)\bin\</OutputPath>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <PlatformTarget>x64</PlatformTarget>
+    <RunSettingsFilePath>$(MSBuildProjectDirectory)\..\tests.runsettings</RunSettingsFilePath>
   </PropertyGroup>
   <ItemGroup>
     <None Include="debugtests.bat" />
