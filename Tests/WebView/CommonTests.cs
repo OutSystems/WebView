@@ -113,18 +113,17 @@ namespace Tests.WebView {
             Assert.IsTrue(navigated);
         }
 
-        // TODO failing
         [Test(Description = "Setting zoom works as expected")]
-        public void ZoomWorksAsExpected() {
-            var loadTask = Load("<html><body></body></html>");
+        public async Task ZoomWorksAsExpected() {
+            await Run(async () => {
+                await Load("<html><body>Zoom text</body></html>");
 
-            const double Zoom = 1.5;
-            TargetView.ZoomPercentage = Zoom;
+                const double Zoom = 1.5;
+                var zoomTask = Dispatcher.UIThread.InvokeAsync(() => TargetView.ZoomPercentage = Zoom);
+                Task.WaitAll(zoomTask);
 
-            Dispatcher.UIThread.RunJobs(DispatcherPriority.MinValue);
-            WaitFor(loadTask);
-
-            Assert.AreEqual(Zoom, TargetView.ZoomPercentage);
+                Assert.AreEqual(Zoom, TargetView.ZoomPercentage);
+            });
         }
 
         // TODO failing
