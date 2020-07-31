@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Threading;
@@ -6,6 +7,7 @@ using NUnit.Framework;
 
 namespace Tests.WebView {
 
+    [Timeout(10000)]
     public class CommonTests : WebViewTestBase {
 
         [Test(Description = "Attached listeners are called")]
