@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading.Tasks;
 using NUnit.Framework;
 using WebViewControl;
 
@@ -8,14 +9,15 @@ namespace Tests.WebView
     public class ResourcesLoading : WebViewTestBase {
 
         [Test(Description = "Html load encoding is well handled")]
-        public void HtmlIsWellEncoded() {
-            const string BodyContent = "some text and a double byte char '●'";
+        public async Task HtmlIsWellEncoded() {
+            await Run(async () => {
+                const string BodyContent = "some text and a double byte char '●'";
 
-            var loadTask = Load($"<html><script>;</script><body>{BodyContent}</body></html>");
-            WaitFor(loadTask);
+                await Load($"<html><script>;</script><body>{BodyContent}</body></html>");
 
-            var body = TargetView.EvaluateScript<string>("document.body.innerText");
-            Assert.AreEqual(BodyContent, body);
+                var body = TargetView.EvaluateScript<string>("document.body.innerText");
+                Assert.AreEqual(BodyContent, body);
+            });
         }
 
         [Test(Description = "Embedded files are correctly loaded")]
