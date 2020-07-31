@@ -1,6 +1,5 @@
 <RunSettings>
   <RunConfiguration>  
         <DisableAppDomain>true</DisableAppDomain>
-		<TestSessionTimeout>10000</TestSessionTimeout>
     </RunConfiguration>
 </RunSettings>
