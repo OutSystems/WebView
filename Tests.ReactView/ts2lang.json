@@ -1,0 +1,28 @@
+{
+    "tasks": [
+        {
+            "input": "TestAppView/*.tsx",
+            "output": "Generated/",
+            "template": "",
+            "parameters": {
+                "namespace": "Tests.ReactView",
+                "emitComponent": false,
+                "emitComponentInterface": false,
+                "emitComponentAdapter": false,
+                "emitViewObjects": false
+            }
+        },
+        {
+            "input": "TestAppView/*.ts",
+            "output": "Generated/",
+            "template": "",
+            "parameters": {
+                "namespace": "Tests.ReactView",
+                "emitComponent": false,
+                "emitComponentInterface": false,
+                "emitComponentAdapter": false,
+                "emitViewObjects": false
+            }
+        }
+    ]
+}

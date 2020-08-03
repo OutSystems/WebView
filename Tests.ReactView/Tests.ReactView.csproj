@@ -14,43 +14,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="ReactViewResources\Test\AliasedModule.js" />
-    <None Remove="ReactViewResources\Test\default.css" />
-    <None Remove="ReactViewResources\Test\imgs\image.png" />
-    <None Remove="ReactViewResources\Test\InnerView.js" />
-    <None Remove="ReactViewResources\Test\PluginModule.js" />
-    <None Remove="ReactViewResources\Test\styles-dependency.css" />
-    <None Remove="ReactViewResources\Test\styles.css" />
-    <None Remove="ReactViewResources\Test\TestApp.js" />
-    <None Remove="ReactViewResources\tsconfig.json" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Compile Include="..\Tests.WebView\App.xaml.cs" Link="App.xaml.cs" />
     <Compile Include="..\Tests.WebView\TestBase.cs" Link="TestBase.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="ReactViewResources\tsconfig.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="ReactViewResources\Test\AliasedModule.js">
-      <DependentUpon>AliasedModule.ts</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ReactViewResources\Test\default.css" />
-    <EmbeddedResource Include="ReactViewResources\Test\imgs\image.png" />
-    <EmbeddedResource Include="ReactViewResources\Test\InnerView.js">
-      <DependentUpon>InnerView.tsx</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ReactViewResources\Test\PluginModule.js">
-      <DependentUpon>PluginModule.ts</DependentUpon>
-    </EmbeddedResource>
-    <EmbeddedResource Include="ReactViewResources\Test\styles-dependency.css" />
-    <EmbeddedResource Include="ReactViewResources\Test\styles.css" />
-    <EmbeddedResource Include="ReactViewResources\Test\TestApp.js">
-      <DependentUpon>TestApp.tsx</DependentUpon>
-    </EmbeddedResource>
   </ItemGroup>
 
   <ItemGroup>
@@ -62,6 +27,10 @@
     <PackageReference Include="nunit" Version="3.12.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.6.1" />
+    <PackageReference Include="ViewGenerator" Version="1.0.302">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
@@ -72,10 +41,20 @@
   </ItemGroup>
 
     <ItemGroup>
-        <TypeScriptCompile Include="ReactViewResources\Test\AliasedModule.ts" />
-        <TypeScriptCompile Include="ReactViewResources\Test\InnerView.tsx" />
-        <TypeScriptCompile Include="ReactViewResources\Test\PluginModule.ts" />
-        <TypeScriptCompile Include="ReactViewResources\Test\TestApp.tsx" />
+        <Content Update="tsconfig.json">
+            <Visible>True</Visible>
+        </Content>
+    </ItemGroup>
+    
+    <ItemGroup>
+      <None Update="ts2lang.json">
+        <Visible>True</Visible>
+      </None>
+    </ItemGroup>
+    
+    <ItemGroup>
+      <EmbeddedResource Include="TestAppView\imgs\image.png" />
+      <DefaultStyleSheet Include="TestAppView\Default.scss" />
     </ItemGroup>
 
 </Project>

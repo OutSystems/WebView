@@ -34,7 +34,7 @@ namespace Tests.ReactView {
                 }
             }
 
-            protected override string MainJsSource => "/Tests/ReactViewResources/Test/PluginModule.js";
+            protected override string MainJsSource => "/Tests.ReactView/Generated/PluginModule.js";
             protected override string NativeObjectName => "Common";
             protected override string ModuleName => "Plugin/With/Slashes/On/Name";
             protected override object CreateNativeObject() {
