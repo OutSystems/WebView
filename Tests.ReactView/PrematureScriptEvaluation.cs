@@ -5,7 +5,7 @@ namespace Tests.ReactView {
 
     public class PrematureScriptEvaluation : ReactViewTestBase {
 
-        protected override bool WaitForReady => false;
+        protected override bool AwaitReady => false;
 
         [Test(Description = "Test executing a method before view is ready")]
         public void ExecuteBeforeReady() {

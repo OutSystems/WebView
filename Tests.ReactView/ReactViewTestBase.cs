@@ -11,7 +11,7 @@ namespace Tests.ReactView {
 
         protected override async Task AfterInitializeView() {
             await base.AfterInitializeView();
-            if (WaitForReady) {
+            if (AwaitReady) {
                 var taskCompletionSource = new TaskCompletionSource<bool>();
                 TargetView.Ready += delegate {
                     taskCompletionSource.SetResult(true);
@@ -20,7 +20,7 @@ namespace Tests.ReactView {
             }
         }
 
-        protected virtual bool WaitForReady => true;
+        protected virtual bool AwaitReady => true;
 
         protected void WithUnhandledExceptionHandling(Action action, Func<Exception, bool> onException) {
             void OnUnhandledException(WebViewControl.UnhandledAsyncExceptionEventArgs e) {
