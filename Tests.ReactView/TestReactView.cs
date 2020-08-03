@@ -37,7 +37,7 @@ namespace Tests.ReactView {
 
         protected override string NativeObjectName => nameof(TestReactView);
 
-        protected override string ModuleName => "App";
+        protected override string ModuleName => "TestApp";
 
         protected override object CreateNativeObject() {
             return new Properties(this);
