@@ -3,9 +3,9 @@ using System.Threading.Tasks;
 using NUnit.Framework;
 using WebViewControl;
 
-namespace Tests.WebView
-{
+namespace Tests.WebView {
 
+    [Timeout(10000)]
     public class ResourcesLoading : WebViewTestBase {
 
         [Test(Description = "Html load encoding is well handled")]

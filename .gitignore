@@ -52,3 +52,6 @@ ViewPacker/cake_tools
 launchSettings.json
 *.cache
 .npm-install-stamp
+Tests.ReactView/ReactViewResources/TestApp.js
+Tests.ReactView/ReactViewResources/node_modules/
+Tests.ReactView/ReactViewResources/dist/

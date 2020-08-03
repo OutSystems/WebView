@@ -1,0 +1,74 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <OutputPath>$(MSBuildProjectDirectory)\bin\</OutputPath>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <PlatformTarget>x64</PlatformTarget>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ReactViewControl.Avalonia\ReactViewControl.Avalonia.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="ReactViewResources\Test\AliasedModule.js" />
+    <None Remove="ReactViewResources\Test\default.css" />
+    <None Remove="ReactViewResources\Test\imgs\image.png" />
+    <None Remove="ReactViewResources\Test\InnerView.js" />
+    <None Remove="ReactViewResources\Test\PluginModule.js" />
+    <None Remove="ReactViewResources\Test\styles-dependency.css" />
+    <None Remove="ReactViewResources\Test\styles.css" />
+    <None Remove="ReactViewResources\Test\TestApp.js" />
+    <None Remove="ReactViewResources\tsconfig.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Tests.WebView\App.xaml.cs" Link="App.xaml.cs" />
+    <Compile Include="..\Tests.WebView\TestBase.cs" Link="TestBase.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="ReactViewResources\tsconfig.json" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="ReactViewResources\Test\AliasedModule.js">
+      <DependentUpon>AliasedModule.ts</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ReactViewResources\Test\default.css" />
+    <EmbeddedResource Include="ReactViewResources\Test\imgs\image.png" />
+    <EmbeddedResource Include="ReactViewResources\Test\InnerView.js">
+      <DependentUpon>InnerView.tsx</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ReactViewResources\Test\PluginModule.js">
+      <DependentUpon>PluginModule.ts</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ReactViewResources\Test\styles-dependency.css" />
+    <EmbeddedResource Include="ReactViewResources\Test\styles.css" />
+    <EmbeddedResource Include="ReactViewResources\Test\TestApp.js">
+      <DependentUpon>TestApp.tsx</DependentUpon>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Desktop" Version="0.9.11-preview-cibuild0007447-beta" />
+    <PackageReference Include="Microsoft.TypeScript.MSBuild" Version="3.9.6">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="nunit" Version="3.12.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.6.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="..\Tests.WebView\App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <Link>App.xaml</Link>
+    </EmbeddedResource>
+  </ItemGroup>
+
+</Project>

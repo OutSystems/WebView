@@ -5,6 +5,7 @@ using NUnit.Framework;
 
 namespace Tests.WebView {
 
+    [Timeout(10000)]
     public class RequestInterception : WebViewTestBase {
 
         private const string ResourceJs = "resource.js";
