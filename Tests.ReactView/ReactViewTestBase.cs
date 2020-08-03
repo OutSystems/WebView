@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace Tests.ReactView {
 
@@ -8,12 +9,16 @@ namespace Tests.ReactView {
             TargetView.UnhandledAsyncException += OnUnhandledAsyncException;
         }
 
-        // TODO
-        //protected override void AfterInitializeView() {
-        //    if (WaitForReady) {
-        //        WaitFor(() => TargetView.IsReady, DefaultTimeout, "view initialized");
-        //    }
-        //}
+        protected override async Task AfterInitializeView() {
+            await base.AfterInitializeView();
+            if (WaitForReady) {
+                var taskCompletionSource = new TaskCompletionSource<bool>();
+                TargetView.Ready += delegate {
+                    taskCompletionSource.SetResult(true);
+                };
+                await taskCompletionSource.Task;
+            }
+        }
 
         protected virtual bool WaitForReady => true;
 
