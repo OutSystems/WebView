@@ -53,8 +53,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="0.9.11-preview-cibuild0007447-beta" />
-    <PackageReference PrivateAssets="None" Include="CefGlue.Avalonia" Version="75.1.80" />
+    <PackageReference Include="Avalonia" Version="0.10.0-preview2" />
+    <PackageReference PrivateAssets="None" Include="CefGlue.Avalonia" Version="75.1.82" />
     <PackageReference Include="InjectModuleInitializer" Version="2.0.3">
       <PrivateAssets>all</PrivateAssets>
       <ExcludeAssets>all</ExcludeAssets>
