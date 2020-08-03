@@ -95,7 +95,7 @@ namespace Tests.ReactView {
                     return null;
                 };
 
-                TargetView.ExecuteMethod("loadCustomResource", "custom://webview/test.png");
+                TargetView.ExecuteMethod("loadCustomResource", "custom://resource//test.png");
                 await taskCompletionSource.Task;
 
                 Assert.IsTrue(taskCompletionSource.Task.Result, "Request handler was not called!");
