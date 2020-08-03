@@ -1,4 +1,5 @@
-﻿using NUnit.Framework;
+﻿using System.Threading.Tasks;
+using NUnit.Framework;
 using ReactViewControl;
 using WebViewControl;
 
@@ -19,17 +20,22 @@ namespace Tests.ReactView {
         }
 
         [Test(Description = "Tests default stylesheets get loaded")]
-        public void DefaultStylesheetIsLoaded() {
-            string stylesheet = null;
-            TargetView.Event += (args) => {
-                stylesheet = args;
-            };
+        public async Task DefaultStylesheetIsLoaded() {
+            await Run(async () => {
+                var taskCompletionSource = new TaskCompletionSource<bool>();
+                var stylesheet = string.Empty;
 
-            TargetView.ExecuteMethod("checkStyleSheetLoaded", "2");
+                TargetView.Event += (args) => {
+                    stylesheet = args;
+                    taskCompletionSource.SetResult(true);
+                };
 
-            WaitFor(() => stylesheet != null, DefaultTimeout, "stylesheet load");
+                TargetView.ExecuteMethod("checkStyleSheetLoaded", "2");
+                await taskCompletionSource.Task;
 
-            Assert.IsTrue(stylesheet.Contains(".bar"));
+                Assert.IsTrue(taskCompletionSource.Task.Result, "Stylesheet was not loaded!");
+                Assert.IsTrue(stylesheet.Contains(".bar"));
+            });
         }
     }
 }

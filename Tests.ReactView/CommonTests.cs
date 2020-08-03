@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using NUnit.Framework;
@@ -48,7 +47,7 @@ namespace Tests.ReactView {
         public async Task StylesheetsAreLoaded() {
             await Run(async () => {
                 var taskCompletionSource = new TaskCompletionSource<bool>();
-                string stylesheet = null;
+                var stylesheet = string.Empty;
 
                 TargetView.Event += (args) => {
                     stylesheet = args;
