@@ -217,7 +217,7 @@ namespace Tests.WebView {
                 );
 
                 var x = TargetView.EvaluateScript<int>("x", "");
-                var y = TargetView.EvaluateScript<int>("y", "test");
+                var y = TargetView.EvaluateScript<int>("test.y", "");
                 Assert.AreEqual(1, x);
                 Assert.AreEqual(2, y);
             });
