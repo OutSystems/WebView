@@ -48,10 +48,6 @@
       <ExcludeAssets>all</ExcludeAssets>
     </PackageReference>
   </ItemGroup>
-    
-  <PropertyGroup>
-    <PreBuildEvent>"$(MSBuildProjectDirectory)\..\kill_testsengine.bat"</PreBuildEvent>
-  </PropertyGroup>
   
   <Target Name="InjectModuleInitializer" AfterTargets="AfterBuild">
     <Exec Command="..\packages\injectmoduleinitializer\2.0.3\tools\net35\InjectModuleInitializer.exe &quot;$(TargetPath)&quot;" />
