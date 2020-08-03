@@ -155,28 +155,28 @@ namespace Tests.WebView {
             await Run(async () => {
                 const string DotNetObject = "DotNetObject";
 
-                var disposeCalled = false;
                 var taskCompletionSourceFunction = new TaskCompletionSource<bool>();
                 var taskCompletionSourceDispose = new TaskCompletionSource<bool>();
 
                 Func<int> functionToCall = () => {
                     TargetView.Dispose();
-                    Assert.IsFalse(disposeCalled); // dispose should have been scheduled
-                    taskCompletionSourceFunction.SetResult(true);
+                    var disposeRan = taskCompletionSourceDispose.Task.IsCompleted;
+                    taskCompletionSourceFunction.SetResult(disposeRan);
                     return 1;
                 };
 
                 TargetView.RegisterJavascriptObject(DotNetObject, functionToCall, executeCallsInUI: true);
                 await Load($"<html><script>function test() {{ {DotNetObject}.invoke(); return 1; }}</script><body></body></html>");
-                TargetView.Disposed += () => {
-                    disposeCalled = true;
-                    taskCompletionSourceDispose.SetResult(true);
-                };
 
-                var result = TargetView.EvaluateScriptFunction<int>("test");
-                Task.WaitAll(taskCompletionSourceFunction.Task, taskCompletionSourceDispose.Task);
+                TargetView.Disposed += () => taskCompletionSourceDispose.SetResult(true);
 
-                Assert.IsTrue(disposeCalled);
+                TargetView.EvaluateScriptFunction<int>("test");
+
+                var disposed = await taskCompletionSourceFunction.Task;
+                Assert.IsFalse(disposed, "Dispose should have been scheduled");
+
+                disposed = await taskCompletionSourceDispose.Task;
+                Assert.IsTrue(disposed);
             });
         }
 
