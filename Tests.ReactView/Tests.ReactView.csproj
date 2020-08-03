@@ -71,4 +71,11 @@
     </EmbeddedResource>
   </ItemGroup>
 
+    <ItemGroup>
+        <TypeScriptCompile Include="ReactViewResources\Test\AliasedModule.ts" />
+        <TypeScriptCompile Include="ReactViewResources\Test\InnerView.tsx" />
+        <TypeScriptCompile Include="ReactViewResources\Test\PluginModule.ts" />
+        <TypeScriptCompile Include="ReactViewResources\Test\TestApp.tsx" />
+    </ItemGroup>
+
 </Project>
