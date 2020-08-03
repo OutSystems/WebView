@@ -39,10 +39,10 @@ namespace ReactViewControl {
             WebView.Focus();
         }
 
-        protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs e) {
-            base.OnPropertyChanged(e);
+        protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change) {
+            base.OnPropertyChanged(change);
 
-            if (!WebView.OsrEnabled && e.Property == IsEffectivelyEnabledProperty) {
+            if (!WebView.OsrEnabled && change.Property == IsEffectivelyEnabledProperty) {
                  DisableInputInteractions(!IsEffectivelyEnabled);
             }
         }
