@@ -117,82 +117,45 @@ namespace Tests.WebView {
             await Run(() => {
                 const string ExceptionMessage = "nooo";
 
-                Exception exception = null;
-
-                var controlUnhandled = false;
-                var dispatcherUnhandled = false;
-                var markAsHandled = true;
-                var taskCompletionSource = new TaskCompletionSource<bool>();
-
-                void AssertResult(int result) {
-                    Assert.NotNull(exception);
-                    Assert.IsTrue(exception.Message.Contains(exception.Message));
-                    Assert.AreEqual(2, result, "Result should not be affected");
-                }
-
-                void OnUnhandledDispatcherException(object o, UnhandledExceptionEventArgs e) {
-                    exception = e.ExceptionObject as Exception;
-                    dispatcherUnhandled = true;
-                    taskCompletionSource.SetResult(true);
-                }
-
-                AppDomain.CurrentDomain.UnhandledException += OnUnhandledDispatcherException;
+                var taskCompletionSource = new TaskCompletionSource<Exception>();
 
                 WithUnhandledExceptionHandling(() => {
-                    try {
-                        TargetView.ExecuteScript($"throw new Error('{ExceptionMessage}')");
-                        var result = TargetView.EvaluateScript<int>("1+1"); // force exception to occur
+                    TargetView.ExecuteScript($"throw new Error('{ExceptionMessage}')");
 
-                        AssertResult(result);
-                        Assert.IsTrue(controlUnhandled);
-                        Assert.IsFalse(dispatcherUnhandled);
+                    var result = TargetView.EvaluateScript<int>("1+1"); // force exception to occur
+                    Assert.AreEqual(2, result, "Result should not be affected");
 
-                        controlUnhandled = false;
-                        markAsHandled = false;
+                    var exception = taskCompletionSource.Task.Result;
 
-                        TargetView.ExecuteScript($"throw new Error('{ExceptionMessage}')");
-                        result = TargetView.EvaluateScript<int>("1+1"); // force exception to occur
-
-                        Task.WaitAll(taskCompletionSource.Task);
-
-                        AssertResult(result);
-                        Assert.IsTrue(controlUnhandled);
-                        Assert.IsTrue(dispatcherUnhandled);
-
-                    } finally {
-                        AppDomain.CurrentDomain.UnhandledException -= OnUnhandledDispatcherException;
-                    }
+                    StringAssert.Contains(ExceptionMessage, exception.Message);
                 },
                 e => {
-                    exception = e;
-                    controlUnhandled = true;
-                    return markAsHandled;
+                    taskCompletionSource.SetResult(e);
+                    return true;
                 });
             });
         }
 
-        [Test(Description = "Javascript errors that occur asyncrounsly throw unhandled exception")]
+        [Test(Description = "Javascript async errors throw unhandled exception")]
         public async Task JavascriptAsyncErrorsThrowUnhandledException() {
             await Run(() => {
                 const string ExceptionMessage = "nooo";
-                var taskCompletionSource = new TaskCompletionSource<bool>();
-
-                Exception exception = null;
+                var taskCompletionSource = new TaskCompletionSource<Exception>();
 
                 WithUnhandledExceptionHandling(() => {
                     TargetView.ExecuteScript($"function foo() {{ throw new Error('{ExceptionMessage}'); }}; setTimeout(function() {{ foo(); }}, 1); ");
 
-                    Task.WaitAll(taskCompletionSource.Task);
+                    var exception = taskCompletionSource.Task.Result;
 
-                    Assert.IsTrue(exception.Message.Contains(ExceptionMessage), "Found " + exception.Message);
+                    StringAssert.Contains(ExceptionMessage, exception.Message);
+
                     var stack = exception.StackTrace.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
                     Assert.AreEqual(2, stack.Length);
                     Assert.True(stack.ElementAt(0).StartsWith("   at foo in about:blank:line 1"), "Found " + stack.ElementAt(0));
                     Assert.True(stack.ElementAt(1).StartsWith("   at <anonymous> in about:blank:line 1"), "Found " + stack.ElementAt(1));
                 },
                 e => {
-                    exception = e;
-                    taskCompletionSource.SetResult(true);
+                    taskCompletionSource.SetResult(e);
                     return true;
                 });
             });

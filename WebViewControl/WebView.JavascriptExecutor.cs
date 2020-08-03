@@ -152,7 +152,7 @@ namespace WebViewControl {
                             task.Wait((int)timeout.TotalMilliseconds, FlushTaskCancelationToken.Token);
                         } catch (Exception e) {
                             var evaluatedScriptFunctions = scriptsToExecute.Select(s => s.FunctionName);
-                            OwnerWebView.ExecuteWithAsyncErrorHandlingOnFrame(() => throw ParseException(e, evaluatedScriptFunctions), frameName);
+                            OwnerWebView.ForwardUnhandledAsyncException(ParseException(e, evaluatedScriptFunctions), frameName);
                         }
                     }
                 }

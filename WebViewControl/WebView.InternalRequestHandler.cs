@@ -85,7 +85,7 @@ namespace WebViewControl {
                         break;
                 }
 
-                OwnerWebView.ExecuteWithAsyncErrorHandling(() => throw exception);
+                OwnerWebView.ForwardUnhandledAsyncException(exception);
             }
 
             protected override CefResourceRequestHandler GetResourceRequestHandler(CefBrowser browser, CefFrame frame, CefRequest request, bool isNavigation, bool isDownload, string requestInitiator, ref bool disableDefaultHandling) {

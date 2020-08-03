@@ -56,7 +56,7 @@ namespace WebViewControl {
                         if (resourceLoadFailed != null) {
                             resourceLoadFailed(url.ToString());
                         } else {
-                            OwnerWebView.ExecuteWithAsyncErrorHandling(() => throw new InvalidOperationException("Resource not found: " + url));
+                            OwnerWebView.ForwardUnhandledAsyncException(new InvalidOperationException("Resource not found: " + url));
                         }
                     });
                 } else {
