@@ -5,7 +5,6 @@ using NUnit.Framework;
 
 namespace Tests.ReactView {
 
-    [Timeout(10000)]
     public class CommonTests : ReactViewTestBase {
 
         [Test(Description = "Test loading a simple react component")]

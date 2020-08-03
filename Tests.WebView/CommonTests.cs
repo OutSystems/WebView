@@ -6,7 +6,6 @@ using NUnit.Framework;
 
 namespace Tests.WebView {
 
-    [Timeout(10000)]
     public class CommonTests : WebViewTestBase {
 
         [Test(Description = "Attached listeners are called")]

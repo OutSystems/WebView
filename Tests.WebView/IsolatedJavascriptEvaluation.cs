@@ -5,7 +5,6 @@ using NUnit.Framework;
 
 namespace Tests.WebView {
 
-    [Timeout(10000)]
     public class IsolatedJavascriptEvaluation : WebViewTestBase {
 
         protected override void InitializeView() { }

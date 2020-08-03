@@ -6,7 +6,6 @@ using JavascriptException = WebViewControl.WebView.JavascriptException;
 
 namespace Tests.WebView {
 
-    [Timeout(10000)]
     public class JavascriptEvaluation : WebViewTestBase {
 
         [Test(Description = "A simple script evaluates correctly")]

@@ -4,7 +4,6 @@ using WebViewControl;
 
 namespace Tests.WebView {
 
-    [Timeout(10000)]
     public class SerializationTests {
 
         private enum SerializationEnum {
