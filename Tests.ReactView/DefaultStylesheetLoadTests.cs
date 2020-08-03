@@ -7,7 +7,7 @@ namespace Tests.ReactView {
     public class DefaultStyleSheetLoadTests : ReactViewTestBase {
 
         protected class ViewFactoryWithStyleSheet : TestReactViewFactory {
-            public override ResourceUrl DefaultStyleSheet => new ResourceUrl(typeof(DefaultStyleSheetLoadTests).Assembly, "ReactViewResources", "Test", "default.css");
+            public override ResourceUrl DefaultStyleSheet => new ResourceUrl(typeof(DefaultStyleSheetLoadTests).Assembly, "Generated", "Default.css");
         }
 
         protected class ReactViewWithStyleSheet : TestReactView {

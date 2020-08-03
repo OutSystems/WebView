@@ -1,15 +1,12 @@
-﻿/// <amd-dependency path="ViewFrame" name="ViewFrame"/>
-
-import * as React from 'react';
-import "css!styles.css";
+﻿import * as React from 'react';
+import { ViewFrame } from "ViewFrame";
+import "./Styles.scss";
 
 interface IAppProperties {
     event: (args: string) => void;
     propertyValue: string;
     autoShowInnerView: boolean;
 }
-
-declare var ViewFrame: { default: React.ComponentClass<{ name: string }> };
 
 class App extends React.Component<IAppProperties> {
 
@@ -24,7 +21,7 @@ class App extends React.Component<IAppProperties> {
     }
 
     renderInnerViewContainer() {
-        return this.props.autoShowInnerView ? <ViewFrame.default name="test"/> : null;
+        return this.props.autoShowInnerView ? <ViewFrame name="test"/> : null;
     }
 
     render() {
@@ -77,11 +74,9 @@ class App extends React.Component<IAppProperties> {
     }
 
     checkAliasedModuleLoaded() {
-        require(["SimpleModuleWithAlias"], () => {
-            if ((window as any).AliasedModuleLoaded) {
-                this.props.event("AliasedModuleLoaded");
-            }
-        });
+        if ((window as any).AliasedModuleLoaded) {
+            this.props.event("AliasedModuleLoaded");
+        }
     }
 
     checkViewReady() {

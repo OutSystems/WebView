@@ -1,12 +1,12 @@
 ﻿{
   "compilerOptions": {
     "module": "amd",
-    "target": "es2015",
+    "target": "es2017",
     "sourceMap": false,
     "allowJs": true,
     "jsx": "react",
     "moduleResolution": "node",
-    "rootDir": "Test",
+    "rootDir": "TestAppView",
     "forceConsistentCasingInFileNames": true,
     "noImplicitReturns": true,
     "noImplicitThis": true,
