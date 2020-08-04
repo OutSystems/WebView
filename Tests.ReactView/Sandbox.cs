@@ -39,7 +39,7 @@ namespace Tests.ReactView {
             set => View.PropertyValue = value; 
         }
 
-        public async Task AwaitReady() {
+        public async Task Ready() {
             var taskCompletionSource = new TaskCompletionSource<bool>();
             View.Ready += delegate {
                 taskCompletionSource.SetResult(true);
