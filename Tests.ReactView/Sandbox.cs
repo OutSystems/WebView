@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Avalonia.Controls;
 
 namespace Tests.ReactView {
@@ -9,12 +10,13 @@ namespace Tests.ReactView {
 
         public Sandbox(Window window, string propertyValue, TimeSpan timeout) : this(propertyValue) {
             AttachTo(window);
-            WaitReady(timeout);
+            //await AwaitReady();
         }
 
         public Sandbox(string propertyValue) {
-            View = new TestReactView();
-            View.PropertyValue = propertyValue;
+            View = new TestReactView {
+                PropertyValue = propertyValue
+            };
         }
 
         public void AttachTo(Window window) {
@@ -33,10 +35,17 @@ namespace Tests.ReactView {
             return View.EvaluateMethod<string>("getPropertyValue");
         }
 
-        public string PropertyValue { get => View.PropertyValue; set => View.PropertyValue = value; }
+        public string PropertyValue { 
+            get => View.PropertyValue; 
+            set => View.PropertyValue = value; 
+        }
 
-        public void WaitReady(TimeSpan timeout) {
-            ReactViewTestBase.WaitFor(() => View.IsReady, timeout, "View is ready");
+        public async Task AwaitReady() {
+            var taskCompletionSource = new TaskCompletionSource<bool>();
+            View.Ready += delegate {
+                taskCompletionSource.SetResult(true);
+            };
+            await taskCompletionSource.Task;
         }
 
         public void Dispose() {

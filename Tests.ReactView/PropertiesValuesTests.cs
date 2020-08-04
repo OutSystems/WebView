@@ -1,4 +1,5 @@
-﻿using Avalonia.Controls;
+﻿using System.Threading.Tasks;
+using Avalonia.Controls;
 using NUnit.Framework;
 
 namespace Tests.ReactView {
@@ -9,32 +10,29 @@ namespace Tests.ReactView {
             return null;
         }
 
-        protected override void ShowDebugConsole() {
-        }
+        protected override void ShowDebugConsole() { }
 
         [Test(Description = "Test setting properties after component added to window but window is not visible yet.")]
-        public void PropertyValuesArePassedToView() {
-            const string PropertyValue = "test value";
-
-            using (var sandbox = new Sandbox("initial value")) {
+        public async Task PropertyValuesArePassedToView() {
+            await Run(async () => {
+                const string PropertyValue = "test value";
+                using var sandbox = new Sandbox("initial value");
                 var window = new Window() {
                     Title = CurrentTestName
                 };
+
                 try {
                     sandbox.AttachTo(window);
-
                     sandbox.PropertyValue = PropertyValue;
-
                     window.Show();
-
-                    sandbox.WaitReady(DefaultTimeout);
+                    await sandbox.AwaitReady();
 
                     var actualPropertyValue = sandbox.GetPropertyValue();
                     Assert.AreEqual(PropertyValue, actualPropertyValue);
                 } finally {
                     window.Close();
                 }
-            }
+            });
         }
     }
 }
