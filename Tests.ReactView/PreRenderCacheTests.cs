@@ -32,7 +32,7 @@ namespace Tests.ReactView {
             WithCacheSize(2, () => {
                 var firstRenders = new List<string>();
                 for (var i = 0; i < 3; i++) {
-                    using (var sandbox = new Sandbox(Window, CurrentTestName + i, DefaultTimeout)) {
+                    using (var sandbox = new Sandbox(Window, CurrentTestName + i)) {
                         var firstRenderHtml = sandbox.GetFirstRenderHtml();
                         Assert.IsEmpty(firstRenderHtml);
 
@@ -44,7 +44,7 @@ namespace Tests.ReactView {
 
                 var secondRenders = new List<string>();
                 for (var i = 2; i >= 0; i--) {
-                    using (var sandbox = new Sandbox(Window, CurrentTestName + i, DefaultTimeout)) {
+                    using (var sandbox = new Sandbox(Window, CurrentTestName + i)) {
                         var firstRenderHtml = sandbox.GetFirstRenderHtml();
                         secondRenders.Insert(0, firstRenderHtml);
                     }
@@ -61,7 +61,7 @@ namespace Tests.ReactView {
             var propertyName = CurrentTestName + "1";
             WithCacheSize(2, () => {
                 string firstRenderedHtml;
-                using (var sandbox = new Sandbox(Window, propertyName, DefaultTimeout)) {
+                using (var sandbox = new Sandbox(Window, propertyName)) {
                     firstRenderedHtml = sandbox.GetFirstRenderHtml();
                     Assert.IsEmpty(firstRenderedHtml);
 
@@ -69,7 +69,7 @@ namespace Tests.ReactView {
                     Assert.IsNotEmpty(firstRenderedHtml);
                 }
 
-                using (var sandbox = new Sandbox(Window, propertyName, DefaultTimeout)) {
+                using (var sandbox = new Sandbox(Window, propertyName)) {
                     var currentRenderedHtml = sandbox.GetFirstRenderHtml();
                     AssertContains(currentRenderedHtml, firstRenderedHtml, "Component should have been rendered from cache");
                 }
@@ -80,12 +80,12 @@ namespace Tests.ReactView {
         public void HtmlAndStylesheetsAreStoredInCache() {
             var propertyName = CurrentTestName + "1";
             WithCacheSize(2, () => {
-                using (var sandbox = new Sandbox(Window, propertyName, DefaultTimeout)) {
+                using (var sandbox = new Sandbox(Window, propertyName)) {
                     var firstRenderHtml = sandbox.GetFirstRenderHtml();
                     Assert.IsEmpty(firstRenderHtml);
                 }
 
-                using (var sandbox = new Sandbox(Window, propertyName, DefaultTimeout)) {
+                using (var sandbox = new Sandbox(Window, propertyName)) {
                     var firstRenderHtml = sandbox.GetFirstRenderHtml();
                     AssertContains(firstRenderHtml, "<link", "Cache should contain stylesheets");
                     AssertContains(firstRenderHtml, "<div", "Cache should contain html");
@@ -97,10 +97,10 @@ namespace Tests.ReactView {
         public void ComponentIsRenderedAfterPreRender() {
             var propertyName = CurrentTestName + "1";
             WithCacheSize(2, () => {
-                using (var sandbox = new Sandbox(Window, propertyName, DefaultTimeout)) {
+                using (var sandbox = new Sandbox(Window, propertyName)) {
                 }
 
-                using (var sandbox = new Sandbox(Window, propertyName, DefaultTimeout)) {
+                using (var sandbox = new Sandbox(Window, propertyName)) {
                     var firstRenderHtml = sandbox.GetFirstRenderHtml();
                     Assert.IsNotEmpty(firstRenderHtml);
 
@@ -114,12 +114,12 @@ namespace Tests.ReactView {
         [Test(Description = "Tests that different property values does not use cache")]
         public void DifferentPropertyValueDoesNotUseCache() {
             WithCacheSize(2, () => {
-                using (var sandbox = new Sandbox(Window, CurrentTestName + "1", DefaultTimeout)) {
+                using (var sandbox = new Sandbox(Window, CurrentTestName + "1")) {
                     var firstRenderHtml = sandbox.GetFirstRenderHtml();
                     Assert.IsEmpty(firstRenderHtml);
                 }
 
-                using (var sandbox = new Sandbox(Window, CurrentTestName + "2", DefaultTimeout)) {
+                using (var sandbox = new Sandbox(Window, CurrentTestName + "2")) {
                     var firstRenderHtml = sandbox.GetFirstRenderHtml();
                     Assert.IsEmpty(firstRenderHtml);
                 }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
@@ -15,8 +14,6 @@ namespace Tests {
 
         private static object initLock = new object();
         private static bool initialized = false;
-
-        protected virtual TimeSpan DefaultTimeout => TimeSpan.FromSeconds(5);
 
         private Window window;
         private T view;
@@ -132,47 +129,5 @@ namespace Tests {
                 }));
             }
         }
-
-
-        // TODO remove the methods below
-
-        public void WaitFor(params Task[] tasks) {
-            WaitFor(DefaultTimeout, tasks);
-        }
-
-        public void WaitFor(TimeSpan timeout, params Task[] tasks) {
-            var start = DateTime.Now;
-            while (tasks.Any(t => !t.IsCompleted)) {
-                if ((DateTime.Now - start) >= timeout) {
-                    throw new TimeoutException("Timed out waiting for a task to complete!");
-                }
-                Dispatcher.UIThread.RunJobs(DispatcherPriority.MinValue);
-                Thread.Sleep(1);
-            }
-        }
-
-        public void WaitFor(Func<bool> predicate, string purpose = "") {
-            WaitFor(predicate, DefaultTimeout, purpose);
-        }
-
-        public static void WaitFor(Func<bool> predicate, TimeSpan timeout, string purpose = "") {
-            var start = DateTime.Now;
-            while (!predicate() && (DateTime.Now - start) < timeout && Application.Current != null) {
-                DoEvents();
-            }
-            var elapsed = DateTime.Now - start;
-            if (!predicate()) {
-                throw new TimeoutException("Timed out waiting for " + purpose);
-            }
-        }
-
-        [DebuggerNonUserCode]
-        protected static void DoEvents() {
-            var task = Dispatcher.UIThread.InvokeAsync(delegate { }, DispatcherPriority.MinValue);
-            Dispatcher.UIThread.RunJobs(DispatcherPriority.MinValue);
-            task.Wait();
-            Thread.Sleep(1);
-        }
-
     }
 }

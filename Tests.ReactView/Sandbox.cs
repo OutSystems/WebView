@@ -8,9 +8,8 @@ namespace Tests.ReactView {
 
         private TestReactView View { get; }
 
-        public Sandbox(Window window, string propertyValue, TimeSpan timeout) : this(propertyValue) {
+        public Sandbox(Window window, string propertyValue) : this(propertyValue) {
             AttachTo(window);
-            //await AwaitReady();
         }
 
         public Sandbox(string propertyValue) {
