@@ -1,15 +1,13 @@
 ﻿using System;
 using System.Runtime.ExceptionServices;
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Interactivity;
 using Avalonia.Threading;
 using Xilium.CefGlue.Common;
 
 namespace WebViewControl {
 
-    partial class WebView : Control {
+    partial class WebView : BaseControl {
 
         private static bool osrEnabled = true;
 
@@ -36,26 +34,6 @@ namespace WebViewControl {
                 ToggleDeveloperTools();
                 e.Handled = true;
             }
-        }
-
-        protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e) {
-            if (e.Root is Window window) {
-                // need to subscribe the event this way because close gets closed after all elements get detached
-                window.AddHandler(Window.WindowClosedEvent, (EventHandler<RoutedEventArgs>) OnHostWindowClosed);
-            }
-            base.OnAttachedToVisualTree(e);
-        }
-
-        protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e) {
-            if (e.Root is Window window) {
-                window.RemoveHandler(Window.WindowClosedEvent, (EventHandler<RoutedEventArgs>) OnHostWindowClosed);
-            }
-            base.OnDetachedFromVisualTree(e);
-        }
-
-        private void OnHostWindowClosed(object sender, RoutedEventArgs eventArgs) {
-            ((Window)sender).RemoveHandler(Window.WindowClosedEvent, (EventHandler<RoutedEventArgs>)OnHostWindowClosed);
-            Dispose();
         }
 
         private void ForwardException(ExceptionDispatchInfo exceptionInfo) {
@@ -95,5 +73,7 @@ namespace WebViewControl {
             e.Handled = true;
             chromium.Focus();
         }
+
+        protected override void InternalDispose() => Dispose();
     }
 }

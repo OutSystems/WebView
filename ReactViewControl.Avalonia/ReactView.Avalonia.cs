@@ -1,11 +1,11 @@
 ﻿using System;
-using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Threading;
+using WebViewControl;
 
 namespace ReactViewControl {
 
-    partial class ReactView : Control {
+    partial class ReactView : BaseControl {
 
         partial void ExtraInitialize() {
             AttachedToVisualTree += OnAttachedToVisualTree;
@@ -25,5 +25,7 @@ namespace ReactViewControl {
         private static void AsyncExecuteInUI(Action action, bool lowPriority) {
             Dispatcher.UIThread.Post(action, lowPriority ? DispatcherPriority.Background : DispatcherPriority.Normal);
         }
+
+        protected override void InternalDispose() => Dispose();
     }
 }
