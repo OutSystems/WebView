@@ -23,14 +23,12 @@ namespace Tests.WebView {
         [Test(Description = "Resource requested is intercepted")]
         public async Task ResourceRequestIsIntercepted() {
             await Run(async () => {
-                var taskCompletionSource = new TaskCompletionSource<bool>();
-                var resourceRequested = "";
+                var taskCompletionSource = new TaskCompletionSource<string>();
                 TargetView.BeforeResourceLoad += (resourceHandler) => {
-                    resourceRequested = resourceHandler.Url;
-                    taskCompletionSource.SetResult(true);
+                    taskCompletionSource.SetResult(resourceHandler.Url);
                 };
                 await Load(HtmlWithResource);
-                Task.WaitAll(taskCompletionSource.Task);
+                var resourceRequested = await taskCompletionSource.Task;
 
                 Assert.AreEqual("/" + ResourceJs, new Uri(resourceRequested).AbsolutePath);
             });
@@ -45,10 +43,10 @@ namespace Tests.WebView {
                     taskCompletionSource.SetResult(true);
                 };
                 await Load(HtmlWithResource);
-                Task.WaitAll(taskCompletionSource.Task);
+                await taskCompletionSource.Task;
 
                 var loaded = TargetView.EvaluateScript<bool>("scriptLoaded"); // check that the value of x is what was declared before in the resource
-                Assert.True(loaded);
+                Assert.IsTrue(loaded);
             });
         }
 
@@ -61,10 +59,10 @@ namespace Tests.WebView {
                     taskCompletionSource.SetResult(true);
                 };
                 await Load(HtmlWithResource);
-                Task.WaitAll(taskCompletionSource.Task);
+                await taskCompletionSource.Task;
 
                 var failed = TargetView.EvaluateScript<bool>("scriptFailed"); // check that the value of x is what was declared before in the resource
-                Assert.True(failed);
+                Assert.IsTrue(failed);
             });
         }
 
@@ -72,7 +70,6 @@ namespace Tests.WebView {
         public async Task RequestRedirect() {
             await Run(async () => {
                 var taskCompletionSource = new TaskCompletionSource<bool>();
-                var redirected = false;
                 const string RedirectUrl = "anotherResource.js";
 
                 TargetView.BeforeResourceLoad += (resourceHandler) => {
@@ -82,15 +79,14 @@ namespace Tests.WebView {
                             resourceHandler.Redirect(url.GetLeftPart(UriPartial.Authority) + "/" + RedirectUrl);
                             break;
                         case RedirectUrl:
-                            redirected = true;
                             taskCompletionSource.SetResult(true);
                             break;
                     }
                 };
                 await Load(HtmlWithResource);
-                Task.WaitAll(taskCompletionSource.Task);
+                var redirected = await taskCompletionSource.Task;
 
-                Assert.True(redirected);
+                Assert.IsTrue(redirected);
             });
         }
     }

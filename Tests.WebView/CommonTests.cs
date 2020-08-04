@@ -62,9 +62,8 @@ namespace Tests.WebView {
         [Test(Description = "Unhandled Exception event is called when an async unhandled error occurs inside a listener")]
         public async Task UnhandledExceptionEventIsCalledOnListenerError() {
             await Run(() => {
-                var taskCompletionSource = new TaskCompletionSource<bool>();
+                var taskCompletionSource = new TaskCompletionSource<Exception>();
                 const string ExceptionMessage = "hey";
-                Exception exception = null;
 
                 WithUnhandledExceptionHandling(async () => {
                     var listener = TargetView.AttachListener("event_name");
@@ -73,12 +72,11 @@ namespace Tests.WebView {
                     };
 
                     await Load($"<html><script>{listener}</script><body></body></html>");
-                    await taskCompletionSource.Task;
+                    var exception = await taskCompletionSource.Task;
                     StringAssert.Contains(ExceptionMessage, exception.Message);
                 },
                 e => {
-                    exception = e;
-                    taskCompletionSource.SetResult(true);
+                    taskCompletionSource.SetResult(e);
                     return true;
                 });
             });
