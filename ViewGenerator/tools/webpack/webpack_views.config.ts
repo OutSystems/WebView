@@ -11,17 +11,17 @@ const config = (_, argv) => {
     let externalsMap: Dictionary<string> = {};
 
     // Get aliases and externals from a configuration file, if exists
-    let generateExtendedConfig = (pluginsRelativePath: string): void => {
-        let pluginsPath: string = pluginsRelativePath.replace(/\\/g, "/")
+    let generateExtendedConfig = (relativePath: string, throwError: boolean): void => {
+        let fullPath: string = relativePath.replace(/\\/g, "/")
 
-        let webpackOutputConfigFile = resolve(pluginsPath, "webpack-output-config.json");
+        let webpackOutputConfigFile = resolve(fullPath, "webpack-output-config.json");
         if (existsSync(webpackOutputConfigFile)) {
             let outputConfig = require(webpackOutputConfigFile);
 
             // Aliases
             let allAliases = outputConfig.alias;
             if (allAliases) {
-                Object.keys(allAliases).forEach(key => aliasMap[key] = resolve(pluginsPath, allAliases[key]));
+                Object.keys(allAliases).forEach(key => aliasMap[key] = resolve(fullPath, allAliases[key]));
             }
 
             // Externals
@@ -30,7 +30,7 @@ const config = (_, argv) => {
                 Object.keys(allExternals).forEach(key => externalsMap["^(.*\/)?" + key + "$"] = allExternals[key]);
             }
 
-        } else {
+        } else if (throwError) {
             throw new Error("Extended configuration file not found.");
         }
     };
@@ -59,27 +59,25 @@ const config = (_, argv) => {
     // Default is 30 characters, so we need to increase this value.
     (standardConfig.optimization.splitChunks as any).automaticNameMaxLength = 250;
 
-    if (argv.pluginsRelativePath) {
-        generateExtendedConfig(argv.pluginsRelativePath);
+    generateExtendedConfig(argv.pluginsRelativePath || ".", !!argv.pluginsRelativePath);
 
-        // resolve.alias
-        if (Object.keys(aliasMap).length > 0) {
-            standardConfig.resolve.alias = aliasMap;
-        }
+    // resolve.alias
+    if (Object.keys(aliasMap).length > 0) {
+        standardConfig.resolve.alias = aliasMap;
+    }
 
-        // externals
-        if (Object.keys(externalsMap).length > 0) {
-            standardConfig.externals = [
-                standardConfig.externals as Dictionary<string>,
-                function (_, request: string, callback: any) {
-                    let match = Object.keys(externalsMap).find(key => new RegExp(key).test(request));
-                    if (match) {
-                        return callback(null, externalsMap[match]);
-                    }
-                    callback();
+    // externals
+    if (Object.keys(externalsMap).length > 0) {
+        standardConfig.externals = [
+            standardConfig.externals as Dictionary<string>,
+            function (_, request: string, callback: any) {
+                let match = Object.keys(externalsMap).find(key => new RegExp(key).test(request));
+                if (match) {
+                    return callback(null, externalsMap[match]);
                 }
-            ];
-        }
+                callback();
+            }
+        ];
     }
 
     if (argv.useCache) {
