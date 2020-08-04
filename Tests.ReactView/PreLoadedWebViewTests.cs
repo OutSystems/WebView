@@ -34,8 +34,8 @@ namespace Tests.ReactView {
                 };
                 Window.Content = newView;
 
-                await taskCompletionSource.Task;
-                Assert.IsTrue(newView.IsReady, "Second view was not properly loaded!");
+                var isNewViewReady = await taskCompletionSource.Task;
+                Assert.IsTrue(isNewViewReady, "Second view was not properly loaded!");
             });
         }
 
@@ -56,8 +56,8 @@ namespace Tests.ReactView {
                 };
                 Window.Content = newView;
 
-                await taskCompletionSource.Task;
-                Assert.IsTrue(newView.IsReady, "Second view was not properly loaded!");
+                var isNewViewReady = await taskCompletionSource.Task;
+                Assert.IsTrue(isNewViewReady, "Second view was not properly loaded!");
 
                 var startTime = newView.EvaluateMethod<double>("getStartTime");
                 Assert.LessOrEqual(startTime, currentTime, "The second webview should have been loaded before!");

@@ -16,9 +16,14 @@ namespace Tests.ReactView {
             await base.AfterInitializeView();
             if (AwaitReady) {
                 var taskCompletionSource = new TaskCompletionSource<bool>();
-                TargetView.Ready += delegate {
-                    taskCompletionSource.SetResult(true);
-                };
+                void OnReady() {
+                    try {
+                        taskCompletionSource.SetResult(true);
+                    } finally {
+                        TargetView.Ready -= OnReady;
+                    }
+                }
+                TargetView.Ready += OnReady;
                 await taskCompletionSource.Task;
             }
         }

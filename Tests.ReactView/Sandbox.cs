@@ -39,12 +39,17 @@ namespace Tests.ReactView {
             set => View.PropertyValue = value; 
         }
 
-        public async Task Ready() {
+        public Task Ready() {
             var taskCompletionSource = new TaskCompletionSource<bool>();
-            View.Ready += delegate {
-                taskCompletionSource.SetResult(true);
-            };
-            await taskCompletionSource.Task;
+            void OnReady() {
+                try {
+                    taskCompletionSource.SetResult(true);
+                } finally {
+                    View.Ready -= OnReady;
+                }
+            }
+            View.Ready += OnReady;
+            return taskCompletionSource.Task;
         }
 
         public void Dispose() {

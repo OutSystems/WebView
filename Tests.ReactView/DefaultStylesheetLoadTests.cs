@@ -22,18 +22,15 @@ namespace Tests.ReactView {
         [Test(Description = "Tests default stylesheets get loaded")]
         public async Task DefaultStylesheetIsLoaded() {
             await Run(async () => {
-                var taskCompletionSource = new TaskCompletionSource<bool>();
-                var stylesheet = string.Empty;
+                var taskCompletionSource = new TaskCompletionSource<string>();
 
                 TargetView.Event += (args) => {
-                    stylesheet = args;
-                    taskCompletionSource.SetResult(true);
+                    taskCompletionSource.SetResult(args);
                 };
 
                 TargetView.ExecuteMethod("checkStyleSheetLoaded", "2");
-                await taskCompletionSource.Task;
+                var stylesheet = await taskCompletionSource.Task;
 
-                Assert.IsTrue(taskCompletionSource.Task.Result, "Stylesheet was not loaded!");
                 Assert.IsTrue(stylesheet.Contains(".bar"));
             });
         }

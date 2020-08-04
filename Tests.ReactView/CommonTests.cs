@@ -20,8 +20,8 @@ namespace Tests.ReactView {
                     taskCompletionSource.SetResult(true);
                 };
                 TargetView.ExecuteMethod("callEvent");
-                await taskCompletionSource.Task;
-                Assert.IsTrue(taskCompletionSource.Task.Result, "Event 'callEvent' was not called!");
+                var eventCalled = await taskCompletionSource.Task;
+                Assert.IsTrue(eventCalled, "Event 'callEvent' was not called!");
             });
         }
 
@@ -37,27 +37,24 @@ namespace Tests.ReactView {
                 };
 
                 TargetView.ExecuteMethod("callEvent");
-                await taskCompletionSource.Task;
+                var eventCalled = await taskCompletionSource.Task;
 
-                Assert.IsTrue(taskCompletionSource.Task.Result, "View was not disposed!");
+                Assert.IsTrue(eventCalled, "View was not disposed!");
             });
         }
 
         [Test(Description = "Tests stylesheets get loaded")]
         public async Task StylesheetsAreLoaded() {
             await Run(async () => {
-                var taskCompletionSource = new TaskCompletionSource<bool>();
-                var stylesheet = string.Empty;
+                var taskCompletionSource = new TaskCompletionSource<string>();
 
                 TargetView.Event += (args) => {
-                    stylesheet = args;
-                    taskCompletionSource.SetResult(true);
+                    taskCompletionSource.SetResult(args);
                 };
 
                 TargetView.ExecuteMethod("checkStyleSheetLoaded", "1");
-                await taskCompletionSource.Task;
+                var stylesheet = await taskCompletionSource.Task;
 
-                Assert.IsTrue(taskCompletionSource.Task.Result, "Stylesheet was not loaded!");
                 Assert.IsTrue(stylesheet.Contains(".foo"));
                 Assert.IsTrue(stylesheet.Contains(".baz")); // from dependency
             });
@@ -67,39 +64,32 @@ namespace Tests.ReactView {
         public async Task EventsAreNotHandledInDispatcherThread() {
             await Run(async () => {
                 var taskCompletionSource = new TaskCompletionSource<bool>();
-                bool? canAccessDispatcher = null;
-                TargetView.Event += (args) => {
-                    canAccessDispatcher = Dispatcher.UIThread.CheckAccess();
-                    taskCompletionSource.SetResult(true);
+                TargetView.Event += delegate {
+                    taskCompletionSource.SetResult(Dispatcher.UIThread.CheckAccess());
                 };
 
                 TargetView.ExecuteMethod("callEvent");
-                await taskCompletionSource.Task;
+                var canAccessDispatcher = await taskCompletionSource.Task;
 
-                Assert.IsTrue(taskCompletionSource.Task.Result, "Event was not called!");
-                Assert.IsFalse(canAccessDispatcher, "Can access dispatcher");
+                Assert.IsFalse(canAccessDispatcher, "Can access dispatcher!");
             });
         }
 
         [Test(Description = "Custom requests handler is called in another thread")]
         public async Task CustomRequestsAreHandledByAnotherThread() {
             await Run(async () => {
-                var taskCompletionSource = new TaskCompletionSource<bool>();
+                var taskCompletionSource = new TaskCompletionSource<int>();
                 var mainThread = Thread.CurrentThread.ManagedThreadId;
-                var customResourceRequestThread = -1;
 
                 TargetView.CustomResourceRequested += delegate {
-                    customResourceRequestThread = Thread.CurrentThread.ManagedThreadId;
-                    taskCompletionSource.SetResult(true);
+                    taskCompletionSource.SetResult(Thread.CurrentThread.ManagedThreadId);
                     return null;
                 };
 
                 TargetView.ExecuteMethod("loadCustomResource", "custom://resource//test.png");
-                await taskCompletionSource.Task;
+                var customResourceRequestThread = await taskCompletionSource.Task;
 
-                Assert.IsTrue(taskCompletionSource.Task.Result, "Request handler was not called!");
                 Assert.AreNotEqual(mainThread, customResourceRequestThread, "Custom resource request thread should be different from main thread");
-
             });
         }
 
@@ -107,16 +97,13 @@ namespace Tests.ReactView {
         public async Task ViewReadyEventIsDispatched() {
             await Run(async () => {
                 var taskCompletionSource = new TaskCompletionSource<bool>();
-                var viewIsReady = false;
                 TargetView.Event += (args) => {
-                    viewIsReady = args == "ViewReadyTrigger";
-                    taskCompletionSource.SetResult(true);
+                    taskCompletionSource.SetResult(args == "ViewReadyTrigger");
                 };
 
                 TargetView.ExecuteMethod("checkViewReady");
-                await taskCompletionSource.Task;
+                var viewIsReady = await taskCompletionSource.Task;
 
-                Assert.IsTrue(taskCompletionSource.Task.Result, "Event was not called!");
                 Assert.IsTrue(viewIsReady, "View is not ready!");
             });
         }

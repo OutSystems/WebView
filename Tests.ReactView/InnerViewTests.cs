@@ -18,9 +18,9 @@ namespace Tests.ReactView {
                 var taskCompletionSource = new TaskCompletionSource<bool>();
                 TargetView.InnerView.Loaded += () => taskCompletionSource.SetResult(true);
                 TargetView.InnerView.Load();
-                await taskCompletionSource.Task;
+                var isLoaded = await taskCompletionSource.Task;
 
-                Assert.IsTrue(taskCompletionSource.Task.Result, "Inner view module was not loaded!");
+                Assert.IsTrue(isLoaded, "Inner view module was not loaded!");
             });
         }
 
@@ -33,9 +33,9 @@ namespace Tests.ReactView {
                 innerView.MethodCalled += () => taskCompletionSource.SetResult(true);
                 innerView.Load();
                 innerView.TestMethod();
-                await taskCompletionSource.Task;
+                var methodCalled = await taskCompletionSource.Task;
 
-                Assert.IsTrue(taskCompletionSource.Task.Result, "Method was not called!");
+                Assert.IsTrue(methodCalled, "Method was not called!");
             });
         }
     }

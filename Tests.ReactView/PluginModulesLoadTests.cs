@@ -71,9 +71,9 @@ namespace Tests.ReactView {
 
                 TargetView.Event += (args) => taskCompletionSource.SetResult(args);
                 TargetView.ExecuteMethod("checkPluginModuleLoaded");
-                await taskCompletionSource.Task;
+                var eventArg = await taskCompletionSource.Task;
 
-                Assert.AreEqual("PluginModuleLoaded", taskCompletionSource.Task.Result, "Plugin module was not loaded!");
+                Assert.AreEqual("PluginModuleLoaded", eventArg, "Plugin module was not loaded!");
             });
         }
 
@@ -84,9 +84,9 @@ namespace Tests.ReactView {
 
                 TargetView.Event += (args) => taskCompletionSource.SetResult(args);
                 TargetView.ExecuteMethod("checkAliasedModuleLoaded");
-                await taskCompletionSource.Task;
+                var eventArg = await taskCompletionSource.Task;
 
-                Assert.AreEqual("AliasedModuleLoaded", taskCompletionSource.Task.Result, "Aliased module was not loaded!");
+                Assert.AreEqual("AliasedModuleLoaded", eventArg, "Aliased module was not loaded!");
             });
         }
     }

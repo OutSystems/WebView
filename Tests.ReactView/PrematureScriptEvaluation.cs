@@ -26,9 +26,9 @@ namespace Tests.ReactView {
                 Assert.IsFalse(taskCompletionSource.Task.IsCompleted);
 
                 Window.Show();
-                await taskCompletionSource.Task;
+                var isReady = await taskCompletionSource.Task;
 
-                Assert.IsTrue(taskCompletionSource.Task.Result);
+                Assert.IsTrue(isReady);
             });
         }
     }
