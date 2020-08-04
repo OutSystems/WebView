@@ -25,7 +25,7 @@
   <ItemGroup>
     <PackageReference Include="Avalonia.Desktop" Version="0.9.11-preview-cibuild0007447-beta" />
     <PackageReference Include="NLog" Version="4.6.2" />
-    <PackageReference Include="ViewGenerator" Version="1.0.299">
+    <PackageReference Include="ViewGenerator" Version="1.0.305">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>

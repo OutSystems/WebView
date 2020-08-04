@@ -20,7 +20,7 @@ namespace Tests.WebView {
 
                 var exception = Assert.Throws<WebViewControl.WebView.JavascriptException>(() => TargetView.EvaluateScript<int>("1", timeout: TimeSpan.FromMilliseconds(10)));
                 Assert.IsNotNull(exception);
-                Assert.IsTrue(exception.Message.Contains("Timeout"));
+                StringAssert.Contains("Timeout", exception.Message);
             });
         }
 

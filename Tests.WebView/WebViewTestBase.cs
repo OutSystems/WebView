@@ -30,8 +30,11 @@ namespace Tests.WebView {
             
             void OnNavigated(string url, string frameName) {
                 if (url != UrlHelper.AboutBlankUrl) {
-                    taskCompletionSource.SetResult(true);
-                    TargetView.Navigated -= OnNavigated;
+                    try {
+                        taskCompletionSource.SetResult(true);
+                    } finally {
+                        TargetView.Navigated -= OnNavigated;
+                    }
                 }
             }
             TargetView.Navigated += OnNavigated;
