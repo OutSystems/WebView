@@ -7,7 +7,7 @@ namespace Tests.WebView {
 
     public class IsolatedJavascriptEvaluation : WebViewTestBase {
 
-        protected override void InitializeView() { }
+        protected override void InitializeView() => base.InitializeView();
 
         protected override Task AfterInitializeView() {
             return Task.CompletedTask;

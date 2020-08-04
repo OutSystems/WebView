@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Avalonia.Controls;
+using Avalonia.Markup.Data;
 using Avalonia.Threading;
 using NUnit.Framework;
 
@@ -122,22 +123,15 @@ namespace Tests.WebView {
             await Run(async () => {
                 var taskCompletionSource = new TaskCompletionSource<bool>();
                 var view = new WebViewControl.WebView();
-                var window = new Window {
-                    Title = CurrentTestName
-                };
+                view.Disposed += delegate { taskCompletionSource.SetResult(true); };
+
+                var window = new Window { Title = CurrentTestName };
 
                 try {
                     window.Content = view;
-
-                    var disposed = false;
-                    view.Disposed += delegate {
-                        disposed = true;
-                        taskCompletionSource.SetResult(true);
-                    };
-
                     window.Close();
 
-                    await taskCompletionSource.Task;
+                    var disposed = await taskCompletionSource.Task;
                     Assert.IsTrue(disposed);
                 } finally {
                     window.Close();
@@ -150,12 +144,7 @@ namespace Tests.WebView {
             await Run(async () => {
                 var taskCompletionSource = new TaskCompletionSource<bool>();
                 var view = new WebViewControl.WebView();
-
-                var disposed = false;
-                view.Disposed += delegate {
-                    taskCompletionSource.SetResult(true);
-                    disposed = true;
-                };
+                view.Disposed += delegate { taskCompletionSource.SetResult(true); };
 
                 var window = new Window {
                     Title = CurrentTestName,
@@ -165,11 +154,11 @@ namespace Tests.WebView {
                 try {
                     window.Show();
                     window.Content = null;
-                    Assert.IsFalse(disposed);
+                    Assert.IsFalse(taskCompletionSource.Task.IsCompleted);
 
                     window.Content = view;
                     window.Close();
-                    await taskCompletionSource.Task;
+                    var disposed = await taskCompletionSource.Task;
                     Assert.IsTrue(disposed);
                 } finally {
                     window.Close();
