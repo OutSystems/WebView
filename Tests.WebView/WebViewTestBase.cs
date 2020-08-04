@@ -34,9 +34,15 @@ namespace Tests.WebView {
                     TargetView.Navigated -= OnNavigated;
                 }
             }
+
             TargetView.Navigated += OnNavigated;
-            TargetView.LoadHtml(html);
-            return taskCompletionSource.Task;
+            try {  
+                TargetView.LoadHtml(html);
+                return taskCompletionSource.Task;
+
+            } finally {
+                TargetView.Navigated -= OnNavigated;
+            }
         }
 
         protected void WithUnhandledExceptionHandling(Action action, Func<Exception, bool> onException) {
