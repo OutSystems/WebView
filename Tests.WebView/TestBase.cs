@@ -70,13 +70,9 @@ namespace Tests {
 
                 if (view == null) {
                     view = CreateView();
-
-                    if (view != null) {
-                        InitializeView();
-                    }
-
                     window.Content = view;
-                    window.Show();
+
+                    InitializeView();
 
                     if (view != null) {
                         await AfterInitializeView();
@@ -91,7 +87,7 @@ namespace Tests {
             return new T();
         }
 
-        protected virtual void InitializeView() { }
+        protected virtual void InitializeView() => window.Show();
 
         protected virtual Task AfterInitializeView() {
             return Task.CompletedTask;

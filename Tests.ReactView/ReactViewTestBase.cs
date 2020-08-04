@@ -6,7 +6,10 @@ namespace Tests.ReactView {
     public abstract class ReactViewTestBase<T> : TestBase<T> where T : TestReactView, new() {
 
         protected override void InitializeView() {
-            TargetView.UnhandledAsyncException += OnUnhandledAsyncException;
+            if (TargetView != null) {
+                TargetView.UnhandledAsyncException += OnUnhandledAsyncException;
+            }
+            base.InitializeView();
         }
 
         protected override async Task AfterInitializeView() {

@@ -6,7 +6,9 @@ namespace Tests.ReactView {
     public class InnerViewTests : ReactViewTestBase {
 
         protected override void InitializeView() {
-            TargetView.AutoShowInnerView = true;
+            if (TargetView != null) {
+                TargetView.AutoShowInnerView = true;
+            }
             base.InitializeView();
         }
 

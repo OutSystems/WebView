@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using NLog.Targets;
 using NUnit.Framework;
 
 namespace Tests.ReactView {
@@ -8,18 +9,27 @@ namespace Tests.ReactView {
 
         protected override bool AwaitReady => false;
 
-        [Test(Description = "Test executing a method before view is ready")]
+        protected override void InitializeView() { 
+            //Do nothing on purpose. Window is shown explicitly
+        }
+
+        [Test(Description = "Test executing a method before view is queued until view is loaded")]
         public async Task ExecuteBeforeReady() {
             await Run(async () => {
                 var taskCompletionSource = new TaskCompletionSource<bool>();
-
-                TargetView.Event += delegate {  
-                    taskCompletionSource.SetResult(TargetView.IsReady); 
+                var scriptExecuted = false;
+                TargetView.Event += delegate {
+                    scriptExecuted = true;
+                    taskCompletionSource.SetResult(true);
                 };
                 TargetView.ExecuteMethod("callEvent");
+                Assert.IsFalse(TargetView.IsReady);
+                Assert.IsFalse(scriptExecuted);
+
+                Window.Show();
                 await taskCompletionSource.Task;
 
-                Assert.IsFalse(taskCompletionSource.Task.Result, "View should not be ready yet!");
+                Assert.IsTrue(scriptExecuted);                
             });
         }
     }

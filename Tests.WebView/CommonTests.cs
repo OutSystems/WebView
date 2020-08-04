@@ -119,18 +119,22 @@ namespace Tests.WebView {
 
         [Test(Description = "Tests that the webview is disposed when host window is not shown")]
         public async Task WebViewIsDisposedWhenHostWindowIsNotShown() {
-            await Run(async () => {
+            await Run(async () =>
+            {
                 var taskCompletionSource = new TaskCompletionSource<bool>();
                 var view = new WebViewControl.WebView();
-                var window = new Window {
+                var window = new Window
+                {
                     Title = CurrentTestName
                 };
 
-                try {
+                try
+                {
                     window.Content = view;
 
                     var disposed = false;
-                    view.Disposed += delegate {
+                    view.Disposed += delegate
+                    {
                         disposed = true;
                         taskCompletionSource.SetResult(true);
                     };
@@ -139,7 +143,9 @@ namespace Tests.WebView {
 
                     await taskCompletionSource.Task;
                     Assert.IsTrue(disposed);
-                } finally {
+                }
+                finally
+                {
                     window.Close();
                 }
             });
