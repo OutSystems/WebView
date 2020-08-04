@@ -46,18 +46,16 @@ namespace Tests.WebView {
         public async Task ListenersAreCalledInDispatcherThread() {
             await Run(async () => {
                 var taskCompletionSource = new TaskCompletionSource<bool>();
-                bool? canAccessDispatcher = null;
 
                 var listener = TargetView.AttachListener("event_name");
                 listener.UIHandler += delegate {
-                    canAccessDispatcher = Dispatcher.UIThread.CheckAccess();
-                    taskCompletionSource.SetResult(true);
+                    taskCompletionSource.SetResult(Dispatcher.UIThread.CheckAccess());
                 };
 
                 await Load($"<html><script>{listener}</script><body></body></html>");
-                await taskCompletionSource.Task;
+                var canAccessDispatcher = await taskCompletionSource.Task;
 
-                Assert.IsTrue(canAccessDispatcher);
+                Assert.IsTrue(canAccessDispatcher, "Listeners are not being called in dispatcher thread!");
             });
         }
 
@@ -90,15 +88,13 @@ namespace Tests.WebView {
         public async Task BeforeNavigateHookCalled() {
             await Run(async () => {
                 var taskCompletionSource = new TaskCompletionSource<bool>();
-                var beforeNavigatedCalled = false;
                 TargetView.BeforeNavigate += (request) => {
-                    beforeNavigatedCalled = true;
                     taskCompletionSource.SetResult(true);
                     request.Cancel();
                 };
                 TargetView.Address = "https://www.google.com";
-                await taskCompletionSource.Task;
-                Assert.IsTrue(beforeNavigatedCalled);
+                var beforeNavigateCalled = await taskCompletionSource.Task;
+                Assert.IsTrue(beforeNavigateCalled, "BeforeNavigate hook was not called!");
             });
         }
 
@@ -106,15 +102,13 @@ namespace Tests.WebView {
         public async Task JavascriptEvaluationOnNavigatedDoesNotBlock() {
             await Run(async () => {
                 var taskCompletionSource = new TaskCompletionSource<bool>();
-                var navigated = false;
                 TargetView.Navigated += delegate {
                     TargetView.EvaluateScript<int>("1+1");
-                    navigated = true;
                     taskCompletionSource.SetResult(true);
                 };
                 await Load("<html><body></body></html>");
-                await taskCompletionSource.Task;
-                Assert.IsTrue(navigated);
+                var navigatedCalled = await taskCompletionSource.Task;
+                Assert.IsTrue(navigatedCalled, "JS evaluation on navigated event is blocked!");
             });
         }
 
@@ -123,7 +117,9 @@ namespace Tests.WebView {
             await Run(async () => {
                 var taskCompletionSource = new TaskCompletionSource<bool>();
                 var view = new WebViewControl.WebView();
-                view.Disposed += delegate { taskCompletionSource.SetResult(true); };
+                view.Disposed += delegate { 
+                    taskCompletionSource.SetResult(true); 
+                };
 
                 var window = new Window { Title = CurrentTestName };
 
@@ -144,7 +140,9 @@ namespace Tests.WebView {
             await Run(async () => {
                 var taskCompletionSource = new TaskCompletionSource<bool>();
                 var view = new WebViewControl.WebView();
-                view.Disposed += delegate { taskCompletionSource.SetResult(true); };
+                view.Disposed += delegate { 
+                    taskCompletionSource.SetResult(true); 
+                };
 
                 var window = new Window {
                     Title = CurrentTestName,
