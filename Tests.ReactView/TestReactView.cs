@@ -33,6 +33,8 @@ namespace Tests.ReactView {
 
         public bool AutoShowInnerView { get; set; }
 
+        public InnerViewModule InnerView { get => GetOrAddChildView<InnerViewModule>("test"); }
+
         protected override string MainJsSource => "/Tests.ReactView/Generated/TestApp.js";
 
         protected override string NativeObjectName => nameof(TestReactView);
@@ -69,6 +71,8 @@ namespace Tests.ReactView {
         public string PropertyValue { get => MainModule.PropertyValue; set => MainModule.PropertyValue = value; }
 
         public bool AutoShowInnerView { get => MainModule.AutoShowInnerView; set => MainModule.AutoShowInnerView = value; }
+
+        public InnerViewModule InnerView => MainModule.InnerView;
 
         public T EvaluateMethod<T>(string functionName, params object[] args) {
             return MainModule.EvaluateMethod<T>(functionName, args);

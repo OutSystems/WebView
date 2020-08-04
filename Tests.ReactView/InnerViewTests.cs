@@ -16,10 +16,8 @@ namespace Tests.ReactView {
         public async Task InnerViewIsLoaded() {
             await Run(async () => {
                 var taskCompletionSource = new TaskCompletionSource<bool>();
-                var innerView = new InnerViewModule();
-                innerView.Loaded += () => taskCompletionSource.SetResult(true);
-
-                innerView.Load();
+                TargetView.InnerView.Loaded += () => taskCompletionSource.SetResult(true);
+                TargetView.InnerView.Load();
                 await taskCompletionSource.Task;
 
                 Assert.IsTrue(taskCompletionSource.Task.Result, "Inner view module was not loaded!");
@@ -30,9 +28,9 @@ namespace Tests.ReactView {
         public async Task InnerViewMethodIsExecuted() {
             await Run(async () => {
                 var taskCompletionSource = new TaskCompletionSource<bool>();
-                var innerView = new InnerViewModule();
-                innerView.MethodCalled += () => taskCompletionSource.SetResult(true);
+                var innerView = TargetView.InnerView;
 
+                innerView.MethodCalled += () => taskCompletionSource.SetResult(true);
                 innerView.Load();
                 innerView.TestMethod();
                 await taskCompletionSource.Task;
