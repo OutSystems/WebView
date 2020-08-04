@@ -11,7 +11,7 @@ const config = (_, argv) => {
     let externalsMap: Dictionary<string> = {};
 
     // Get aliases and externals from a configuration file, if exists
-    let generateExtendedConfig = (relativePath: string): void => {
+    let generateExtendedConfig = (relativePath: string, throwError: boolean): void => {
         let fullPath: string = relativePath.replace(/\\/g, "/")
 
         let webpackOutputConfigFile = resolve(fullPath, "webpack-output-config.json");
@@ -30,7 +30,7 @@ const config = (_, argv) => {
                 Object.keys(allExternals).forEach(key => externalsMap["^(.*\/)?" + key + "$"] = allExternals[key]);
             }
 
-        } else {
+        } else if (throwError) {
             throw new Error("Extended configuration file not found.");
         }
     };
@@ -59,7 +59,7 @@ const config = (_, argv) => {
     // Default is 30 characters, so we need to increase this value.
     (standardConfig.optimization.splitChunks as any).automaticNameMaxLength = 250;
 
-    generateExtendedConfig(argv.pluginsRelativePath || ".");
+    generateExtendedConfig(argv.pluginsRelativePath || ".", !!argv.pluginsRelativePath);
 
     // resolve.alias
     if (Object.keys(aliasMap).length > 0) {
