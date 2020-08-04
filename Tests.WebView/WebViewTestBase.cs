@@ -7,7 +7,10 @@ namespace Tests.WebView {
     public class WebViewTestBase : TestBase<WebViewControl.WebView> {
 
         protected override void InitializeView() {
-            TargetView.UnhandledAsyncException += OnUnhandledAsyncException;
+            if (TargetView != null) {
+                TargetView.UnhandledAsyncException += OnUnhandledAsyncException;
+            }
+            base.InitializeView();
         }
 
         protected override async Task AfterInitializeView() {
