@@ -1,3 +1,3 @@
 ﻿(window as any).AliasedModuleLoaded = true;
 
-export function dummy() { }
+export default function dummy() { }

@@ -1,5 +1,6 @@
 ﻿import * as React from 'react';
 import { ViewFrame } from "ViewFrame";
+import InnerView from "./InnerView";
 import "./Styles.scss";
 import * as Image from "./imgs/image.png";
 
@@ -7,6 +8,10 @@ interface IAppProperties {
     event: (args: string) => void;
     propertyValue: string;
     autoShowInnerView: boolean;
+}
+
+interface IChildViews {
+    test: InnerView;
 }
 
 class App extends React.Component<IAppProperties> {
@@ -22,7 +27,7 @@ class App extends React.Component<IAppProperties> {
     }
 
     renderInnerViewContainer() {
-        return this.props.autoShowInnerView ? <ViewFrame name="test"/> : null;
+        return this.props.autoShowInnerView ? <ViewFrame<IChildViews> key="test_frame" name="test" className="" /> : null;
     }
 
     render() {
