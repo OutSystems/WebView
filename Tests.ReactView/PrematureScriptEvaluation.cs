@@ -13,23 +13,22 @@ namespace Tests.ReactView {
             //Do nothing on purpose. Window is shown explicitly
         }
 
-        [Test(Description = "Test executing a method before view is queued until view is loaded")]
+        [Test(Description = "Tests that an execution of a method is queued until view is loaded (window is shown)")]
         public async Task ExecuteBeforeReady() {
             await Run(async () => {
                 var taskCompletionSource = new TaskCompletionSource<bool>();
-                var scriptExecuted = false;
+
                 TargetView.Event += delegate {
-                    scriptExecuted = true;
                     taskCompletionSource.SetResult(true);
                 };
                 TargetView.ExecuteMethod("callEvent");
                 Assert.IsFalse(TargetView.IsReady);
-                Assert.IsFalse(scriptExecuted);
+                Assert.IsFalse(taskCompletionSource.Task.IsCompleted);
 
                 Window.Show();
                 await taskCompletionSource.Task;
 
-                Assert.IsTrue(scriptExecuted);                
+                Assert.IsTrue(taskCompletionSource.Task.Result);
             });
         }
     }
