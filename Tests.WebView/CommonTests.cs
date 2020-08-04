@@ -117,20 +117,6 @@ namespace Tests.WebView {
             });
         }
 
-        [Test(Description = "Setting zoom works as expected")]
-        [Ignore("Zoom not working in CefGlue")]
-        public async Task ZoomWorksAsExpected() {
-            await Run(async () => {
-                await Load("<html><body>Zoom text</body></html>");
-
-                const double Zoom = 1.5;
-                var zoomTask = Dispatcher.UIThread.InvokeAsync(() => TargetView.ZoomPercentage = Zoom);
-                await zoomTask;
-
-                Assert.AreEqual(Zoom, TargetView.ZoomPercentage);
-            });
-        }
-
         [Test(Description = "Tests that the webview is disposed when host window is not shown")]
         public async Task WebViewIsDisposedWhenHostWindowIsNotShown() {
             await Run(async () => {
