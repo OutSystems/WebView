@@ -71,16 +71,16 @@ namespace Tests.WebView {
                 WithUnhandledExceptionHandling(async () => {
                     var listener = TargetView.AttachListener("event_name");
                     listener.Handler += delegate {
-                        taskCompletionSource.SetResult(true);
                         throw new Exception(ExceptionMessage);
                     };
 
                     await Load($"<html><script>{listener}</script><body></body></html>");
                     await taskCompletionSource.Task;
-                    Assert.IsTrue(exception.Message.Contains(ExceptionMessage));
+                    StringAssert.Contains(ExceptionMessage, exception.Message);
                 },
                 e => {
                     exception = e;
+                    taskCompletionSource.SetResult(true);
                     return true;
                 });
             });
