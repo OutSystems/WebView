@@ -92,10 +92,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Properties\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <EmbeddedResource Include="node_modules\react\umd\react.production.min.js" />
   </ItemGroup>
 
