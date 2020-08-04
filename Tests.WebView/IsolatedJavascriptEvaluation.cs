@@ -28,11 +28,9 @@ namespace Tests.WebView {
         public async Task RegisteredJsObjectMethodInterception() {
             await Run(async () => {
                 const string DotNetObject = "DotNetObject";
-                var functionCalled = false;
                 var interceptorCalled = false;
                 var taskCompletionSource = new TaskCompletionSource<bool>();
                 Func<int> functionToCall = () => {
-                    functionCalled = true;
                     taskCompletionSource.SetResult(true);
                     return 10;
                 };
@@ -42,7 +40,7 @@ namespace Tests.WebView {
                 }
                 TargetView.RegisterJavascriptObject(DotNetObject, functionToCall, Interceptor);
                 await Load($"<html><script>{DotNetObject}.invoke();</script><body></body></html>");
-                await taskCompletionSource.Task;
+                var functionCalled = await taskCompletionSource.Task;
 
                 Assert.IsTrue(functionCalled);
                 Assert.IsTrue(interceptorCalled);
@@ -52,17 +50,15 @@ namespace Tests.WebView {
         [Test(Description = "Registered object methods are called in Dispatcher thread")]
         public async Task RegisteredJsObjectMethodExecutesInDispatcherThread() {
             const string DotNetObject = "DotNetObject";
-            bool? canAccessDispatcher = null;
             var taskCompletionSource = new TaskCompletionSource<bool>();
 
             Func<int> functionToCall = () => {
-                canAccessDispatcher = Dispatcher.UIThread.CheckAccess();
-                taskCompletionSource.SetResult(true);
+                taskCompletionSource.SetResult(Dispatcher.UIThread.CheckAccess());
                 return 10;
             };
             TargetView.RegisterJavascriptObject(DotNetObject, functionToCall, executeCallsInUI: true);
             await Load($"<html><script>{DotNetObject}.invoke();</script><body></body></html>");
-            await taskCompletionSource.Task;
+            var canAccessDispatcher = await taskCompletionSource.Task;
 
             Assert.IsTrue(canAccessDispatcher);
         }
@@ -92,20 +88,17 @@ namespace Tests.WebView {
         public async Task RegisteredJsObjectMethodNullParamsSerialization() {
             await Run(async () => {
                 const string DotNetObject = "DotNetObject";
-                var taskCompletionSource = new TaskCompletionSource<bool>();
-                string obtainedArg1 = "";
-                string[] obtainedArg2 = null;
+                var taskCompletionSource = new TaskCompletionSource<Tuple<string, string[]>>();
+
                 Action<string, string[]> functionToCall = (string arg1, string[] arg2) => {
-                    obtainedArg1 = arg1;
-                    obtainedArg2 = arg2;
-                    taskCompletionSource.SetResult(true);
+                    taskCompletionSource.SetResult(new Tuple<string, string[]>(arg1, arg2));
                 };
                 TargetView.RegisterJavascriptObject(DotNetObject, functionToCall);
                 await Load($"<html><script>{DotNetObject}.invoke(null, ['hello', null, 'world']);</script><body></body></html>");
 
-                await taskCompletionSource.Task;
-                Assert.AreEqual(null, obtainedArg1);
-                Assert.That(new[] { "hello", null, "world" }, Is.EquivalentTo(obtainedArg2));
+                var obtainedArgs = await taskCompletionSource.Task;
+                Assert.AreEqual(null, obtainedArgs.Item1);
+                Assert.That(new[] { "hello", null, "world" }, Is.EquivalentTo(obtainedArgs.Item2));
             });
         }
 
@@ -115,7 +108,6 @@ namespace Tests.WebView {
                 const string DotNetObject = "DotNetObject";
                 const string DotNetSetResult = "DotNetSetResult";
 
-                TestObject result = null;
                 var testObject = new TestObject() {
                     Age = 33,
                     Kind = Kind.B,
@@ -126,19 +118,18 @@ namespace Tests.WebView {
                         Kind = Kind.C
                     }
                 };
-                var taskCompletionSource = new TaskCompletionSource<bool>();
+                var taskCompletionSource = new TaskCompletionSource<TestObject>();
 
                 Func<TestObject> functionToCall = () => testObject;
                 Action<TestObject> setResult = (r) => {
-                    result = r;
-                    taskCompletionSource.SetResult(true);
+                    taskCompletionSource.SetResult(r);
                 };
 
                 TargetView.RegisterJavascriptObject(DotNetObject, functionToCall);
                 TargetView.RegisterJavascriptObject(DotNetSetResult, setResult);
                 await Load($"<html><script>(async function test() {{ var result = await {DotNetObject}.invoke(); {DotNetSetResult}.invoke(result); }})()</script><body></body></html>");
 
-                await taskCompletionSource.Task;
+                var result = await taskCompletionSource.Task;
                 Assert.IsNotNull(result);
                 Assert.AreEqual(testObject.Name, result.Name);
                 Assert.AreEqual(testObject.Age, result.Age);
@@ -183,17 +174,15 @@ namespace Tests.WebView {
         [Test(Description = "Javascript evaluation returns default values after webview is disposed")]
         public async Task JsEvaluationReturnsDefaultValuesAfterWebViewDispose() {
             await Run(async () => {
-                var disposeCalled = false;
                 var taskCompletionSource = new TaskCompletionSource<bool>();
                 await Load("<html><script>function test() { return 1; }</script><body></body></html>");
 
                 TargetView.Disposed += () => {
-                    disposeCalled = true;
                     taskCompletionSource.SetResult(true);
                 };
                 TargetView.Dispose();
 
-                await taskCompletionSource.Task;
+                var disposeCalled = await taskCompletionSource.Task;
 
                 var result = TargetView.EvaluateScriptFunction<int>("test");
 
