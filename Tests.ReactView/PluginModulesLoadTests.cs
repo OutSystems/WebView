@@ -35,8 +35,8 @@ namespace Tests.ReactView {
             }
 
             protected override string MainJsSource => "/Tests.ReactView/Generated/PluginModule.js";
-            protected override string NativeObjectName => "Common";
-            protected override string ModuleName => "Plugin/With/Slashes/On/Name";
+            protected override string NativeObjectName => nameof(PluginModule);
+            protected override string ModuleName => "PluginModule";
             protected override object CreateNativeObject() {
                 return new Properties(this);
             }
@@ -61,7 +61,7 @@ namespace Tests.ReactView {
                 var taskCompletionSource = new TaskCompletionSource<string>();
 
                 TargetView.Event += (args) => taskCompletionSource.SetResult(args);
-                TargetView.ExecuteMethod("checkPluginModuleLoaded");
+                TargetView.ExecuteMethod("checkAliasedModuleLoaded");
                 await taskCompletionSource.Task;
 
                 Assert.AreEqual("AliasedModuleLoaded", taskCompletionSource.Task.Result, "Aliased module was not loaded!");
