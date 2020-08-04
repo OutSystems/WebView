@@ -12,12 +12,14 @@ namespace Tests.ReactView {
         public async Task ExecuteBeforeReady() {
             await Run(async () => {
                 var taskCompletionSource = new TaskCompletionSource<bool>();
-                var isViewReady = false;
-                TargetView.Event += delegate { isViewReady = TargetView.IsReady; taskCompletionSource.SetResult(true); };
+
+                TargetView.Event += delegate {  
+                    taskCompletionSource.SetResult(TargetView.IsReady); 
+                };
                 TargetView.ExecuteMethod("callEvent");
                 await taskCompletionSource.Task;
-                Assert.IsFalse(isViewReady);
-                Assert.IsTrue(taskCompletionSource.Task.Result, "Event was not called!");
+
+                Assert.IsFalse(taskCompletionSource.Task.Result, "View should not be ready yet!");
             });
         }
     }

@@ -1,10 +1,11 @@
 ﻿using System;
-using System.Windows;
+using System.Threading;
+using System.Threading.Tasks;
 using NUnit.Framework;
 using ReactViewControl;
 
 namespace Tests.ReactView {
-  
+
     public class TestReactViewFactoryWithPreload : TestReactViewFactory {
         public override bool EnableViewPreload => true;
     }
@@ -23,28 +24,44 @@ namespace Tests.ReactView {
     public class PreLoadedWebViewTests : ReactViewTestBase<TestReactViewWithPreload> {
 
         [Test(Description = "Loading a view with a inner view and preload enabled loads the component successfully the second time")]
-        public void PreloadLoadsComponent() {
-            using (var newView = new TestReactViewWithPreload()) {
+        public async Task PreloadLoadsComponent() {
+            await Run(async () => {
+                var taskCompletionSource = new TaskCompletionSource<bool>();
+
+                using var newView = new TestReactViewWithPreload();
+                newView.Ready += delegate {
+                    taskCompletionSource.SetResult(newView.IsReady);
+                };
                 Window.Content = newView;
-                WaitFor(() => newView.IsReady, "second view load");
-            }
+
+                await taskCompletionSource.Task;
+                Assert.IsTrue(newView.IsReady, "Second view was not properly loaded!");
+            });
         }
 
         [Test(Description = "Loading a view with preload enabled uses a webview from cache")]
-        public void PreloadUsesWebViewFromCache() {
-            var start = DateTime.Now;
-            while ((DateTime.Now - start).TotalSeconds < 1) {
-                DoEvents(); // let the cached webview have time to be created
-            }
-            
-            var currentTime = TargetView.EvaluateMethod<double>("getCurrentTime");
+        public async Task PreloadUsesWebViewFromCache() {
+            await Run(async () => {
+                var start = DateTime.Now;
+                while ((DateTime.Now - start).TotalSeconds < 1) {
+                    Thread.Sleep(1); // let the cached webview have time to be created
+                }
 
-            using (var newView = new TestReactViewWithPreload()) {
+                var taskCompletionSource = new TaskCompletionSource<bool>();
+
+                var currentTime = TargetView.EvaluateMethod<double>("getCurrentTime");
+                using var newView = new TestReactViewWithPreload();
+                newView.Ready += delegate {
+                    taskCompletionSource.SetResult(newView.IsReady);
+                };
                 Window.Content = newView;
-                WaitFor(() => newView.IsReady, "second view load");
+
+                await taskCompletionSource.Task;
+                Assert.IsTrue(newView.IsReady, "Second view was not properly loaded!");
+
                 var startTime = newView.EvaluateMethod<double>("getStartTime");
-                Assert.LessOrEqual(startTime, currentTime, "The second webview should have been loaded before");
-            }
+                Assert.LessOrEqual(startTime, currentTime, "The second webview should have been loaded before!");
+            });
         }
     }
 }

@@ -1,6 +1,6 @@
-﻿using NUnit.Framework;
+﻿using System.Threading.Tasks;
+using NUnit.Framework;
 using ReactViewControl;
-using WebViewControl;
 
 namespace Tests.ReactView {
 
@@ -43,27 +43,29 @@ namespace Tests.ReactView {
         }
 
         [Test(Description = "Tests plugin module is loaded")]
-        public void PluginModuleIsLoaded() {
-            var pluginModuleLoaded = false;
-            TargetView.Event += (args) => {
-                pluginModuleLoaded = args == "PluginModuleLoaded";
-            };
+        public async Task PluginModuleIsLoaded() {
+            await Run(async () => {
+                var taskCompletionSource = new TaskCompletionSource<string>();
 
-            TargetView.ExecuteMethod("checkPluginModuleLoaded");
+                TargetView.Event += (args) => taskCompletionSource.SetResult(args);
+                TargetView.ExecuteMethod("checkPluginModuleLoaded");
+                await taskCompletionSource.Task;
 
-            WaitFor(() => pluginModuleLoaded, "plugin module load");
+                Assert.AreEqual("PluginModuleLoaded", taskCompletionSource.Task.Result, "Plugin module was not loaded!");
+            });
         }
 
         [Test(Description = "Tests module with alias is loaded")]
-        public void AliasedModuleIsLoaded() {
-            var pluginModuleLoaded = false;
-            TargetView.Event += (args) => {
-                pluginModuleLoaded = args == "AliasedModuleLoaded";
-            };
+        public async Task AliasedModuleIsLoaded() {
+            await Run(async () => {
+                var taskCompletionSource = new TaskCompletionSource<string>();
 
-            TargetView.ExecuteMethod("checkAliasedModuleLoaded");
+                TargetView.Event += (args) => taskCompletionSource.SetResult(args);
+                TargetView.ExecuteMethod("checkPluginModuleLoaded");
+                await taskCompletionSource.Task;
 
-            WaitFor(() => pluginModuleLoaded, "aliased module load");
+                Assert.AreEqual("AliasedModuleLoaded", taskCompletionSource.Task.Result, "Aliased module was not loaded!");
+            });
         }
     }
 }
