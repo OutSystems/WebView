@@ -1,4 +1,5 @@
 ﻿import * as React from 'react';
+import dummy from "ModuleWithAlias";
 import { ViewFrame } from "ViewFrame";
 import InnerView from "./InnerView";
 import "./Styles.scss";
@@ -80,7 +81,7 @@ class App extends React.Component<IAppProperties> {
     }
 
     checkAliasedModuleLoaded() {
-        if ((window as any).AliasedModuleLoaded) {
+        if (dummy()) {
             this.props.event("AliasedModuleLoaded");
         }
     }
