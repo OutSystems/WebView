@@ -8,7 +8,7 @@ namespace Tests.ReactView {
 
         private TestReactView View { get; }
 
-        public Sandbox(Window window, string propertyValue) : this(propertyValue) {
+        private Sandbox(Window window, string propertyValue) : this(propertyValue) {
             AttachTo(window);
         }
 
@@ -16,6 +16,13 @@ namespace Tests.ReactView {
             View = new TestReactView {
                 PropertyValue = propertyValue
             };
+        }
+
+        public static async Task<Sandbox> InitializeAsync(Window window, string propertyValue) {
+            var sandbox = new Sandbox(window, propertyValue);
+            await sandbox.Ready();
+
+            return sandbox;
         }
 
         public void AttachTo(Window window) {
