@@ -36,7 +36,7 @@ namespace Tests.ReactView {
                 await WithCacheSize(2, async () => {
                     var firstRenders = new List<string>();
                     for (var i = 0; i < 3; i++) {
-                        using var sandbox = Sandbox.InitializeAsync(Window, CurrentTestName + i).Result;
+                        using var sandbox = await Sandbox.InitializeAsync(Window, CurrentTestName + i);
 
                         var firstRenderHtml = sandbox.GetFirstRenderHtml();
                         Assert.IsEmpty(firstRenderHtml);
@@ -48,7 +48,7 @@ namespace Tests.ReactView {
 
                     var secondRenders = new List<string>();
                     for (var i = 2; i >= 0; i--) {
-                        using var sandbox = Sandbox.InitializeAsync(Window, CurrentTestName + i).Result;
+                        using var sandbox = await Sandbox.InitializeAsync(Window, CurrentTestName + i);
 
                         var firstRenderHtml = sandbox.GetFirstRenderHtml();
                         secondRenders.Insert(0, firstRenderHtml);
@@ -67,7 +67,7 @@ namespace Tests.ReactView {
                 var propertyName = CurrentTestName + "1";
                 await WithCacheSize(2, async () => {
                     string firstRenderedHtml;
-                    using (var sandbox = Sandbox.InitializeAsync(Window, propertyName).Result) {
+                    using (var sandbox = await Sandbox.InitializeAsync(Window, propertyName)) {
                         firstRenderedHtml = sandbox.GetFirstRenderHtml();
                         Assert.IsEmpty(firstRenderedHtml);
 
@@ -75,7 +75,7 @@ namespace Tests.ReactView {
                         Assert.IsNotEmpty(firstRenderedHtml);
                     }
 
-                    using (var sandbox = Sandbox.InitializeAsync(Window, propertyName).Result) {
+                    using (var sandbox = await Sandbox.InitializeAsync(Window, propertyName)) {
 
                         var currentRenderedHtml = sandbox.GetFirstRenderHtml();
                         AssertContains(currentRenderedHtml, firstRenderedHtml, "Component should have been rendered from cache");
@@ -89,12 +89,12 @@ namespace Tests.ReactView {
             await Run(async () => {
                 var propertyName = CurrentTestName + "1";
                 await WithCacheSize(2, async () => {
-                    using (var sandbox = Sandbox.InitializeAsync(Window, propertyName).Result) {
+                    using (var sandbox = await Sandbox.InitializeAsync(Window, propertyName)) {
                         var firstRenderHtml = sandbox.GetFirstRenderHtml();
                         Assert.IsEmpty(firstRenderHtml);
                     }
 
-                    using (var sandbox = Sandbox.InitializeAsync(Window, propertyName).Result) {
+                    using (var sandbox = await Sandbox.InitializeAsync(Window, propertyName)) {
                         var firstRenderHtml = sandbox.GetFirstRenderHtml();
                         AssertContains(firstRenderHtml, "<link", "Cache should contain stylesheets");
                         AssertContains(firstRenderHtml, "<div", "Cache should contain html");
@@ -108,9 +108,9 @@ namespace Tests.ReactView {
             await Run(async () => {
                 var propertyName = CurrentTestName + "1";
                 await WithCacheSize(2, async () => {
-                    using (var sandbox = Sandbox.InitializeAsync(Window, propertyName).Result) {}
+                    using (var sandbox = await Sandbox.InitializeAsync(Window, propertyName)) {}
 
-                    using (var sandbox = Sandbox.InitializeAsync(Window, propertyName).Result) {
+                    using (var sandbox = await Sandbox.InitializeAsync(Window, propertyName)) {
                         var firstRenderHtml = sandbox.GetFirstRenderHtml();
                         Assert.IsNotEmpty(firstRenderHtml);
 
@@ -126,12 +126,12 @@ namespace Tests.ReactView {
         public async Task DifferentPropertyValueDoesNotUseCache() {
             await Run(async () => {
                 await WithCacheSize(2, async () => {
-                    using (var sandbox = Sandbox.InitializeAsync(Window, CurrentTestName + "1").Result) {
+                    using (var sandbox = await Sandbox.InitializeAsync(Window, CurrentTestName + "1")) {
                         var firstRenderHtml = sandbox.GetFirstRenderHtml();
                         Assert.IsEmpty(firstRenderHtml);
                     }
 
-                    using (var sandbox = Sandbox.InitializeAsync(Window, CurrentTestName + "2").Result) {
+                    using (var sandbox = await Sandbox.InitializeAsync(Window, CurrentTestName + "2")) {
                         var firstRenderHtml = sandbox.GetFirstRenderHtml();
                         Assert.IsEmpty(firstRenderHtml);
                     }
