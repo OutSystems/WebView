@@ -90,7 +90,6 @@ namespace Tests {
         protected virtual void InitializeView() => window.Show();
 
         protected virtual Task AfterInitializeView() {
-            ShowDebugConsole();
             return Task.CompletedTask;
         }
 
