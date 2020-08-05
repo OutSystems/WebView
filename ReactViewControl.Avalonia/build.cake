@@ -77,7 +77,8 @@ var tests = Task("Tests")
     {
         Information("Starting Tests");
         var testSettings = new VSTestSettings{
-            ToolPath = Context.Tools.Resolve("vstest.console.exe")
+            ToolPath = Context.Tools.Resolve("vstest.console.exe"),
+            ArgumentCustomization = arg => arg.Append("/logger:trx;LogFileName=TestResults.xml")
         };
         if(testsdllFilePath!=null)
             VSTest(testsdllFilePath, testSettings);
