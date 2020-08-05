@@ -16,12 +16,14 @@ namespace Tests.ReactView {
 
         private static Task WithCacheSize(int size, Func<Task> func) {
             var previousCacheSize = TestReactView.PreloadedCacheEntriesSize;
-            try {
-                TestReactView.PreloadedCacheEntriesSize = size;
-                return func.Invoke();
-            } finally {
-                TestReactView.PreloadedCacheEntriesSize = previousCacheSize;
-            }
+            TestReactView.PreloadedCacheEntriesSize = size;
+            return Task.Run(() => {
+                try {
+                    func.Invoke();
+                } finally {
+                    TestReactView.PreloadedCacheEntriesSize = previousCacheSize;
+                }
+            });
         }
 
         private static void AssertContains(string obtained, string substring, string message) {
