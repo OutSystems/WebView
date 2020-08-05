@@ -75,7 +75,7 @@ namespace Tests.WebView {
                 var stack = exception.StackTrace.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
                 Assert.Greater(stack.Length, 1);
                 StringAssert.StartsWith("   at Math.min in eval", stack.ElementAt(0));
-                StringAssert.Contains("123", stack.ElementAt(0));
+                StringAssert.DoesNotContain("123", stack.ElementAt(0));
             });
         }
 
