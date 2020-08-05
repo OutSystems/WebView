@@ -366,7 +366,7 @@ namespace WebViewControl {
             }
 
             if (interceptCall == null) {
-                interceptCall = target => target.Invoke();
+                interceptCall = target => target();
             }
 
             object CallTargetMethod(Func<object> target) {

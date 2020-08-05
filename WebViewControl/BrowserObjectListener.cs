@@ -7,7 +7,7 @@ namespace WebViewControl {
         public event Action<string, object[]> NotificationReceived;
 
         public void Notify(string listenerName, params object[] args) {
-            NotificationReceived?.Invoke(listenerName, args ?? new object[0]);
+            NotificationReceived?.Invoke(listenerName, args);
         }
     }
 }
