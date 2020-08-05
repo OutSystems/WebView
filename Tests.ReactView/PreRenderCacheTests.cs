@@ -51,7 +51,7 @@ namespace Tests.ReactView {
                     }
 
                     Assert.IsEmpty(secondRenders[0], "First screen cache entry should not exist"); // property 1 - second render
-                    StringAssert.Contains(firstRenders[1], secondRenders[1], $"Second screen cache entry must exist"); // property 2 - second render
+                    StringAssert.Contains(firstRenders[1], secondRenders[1], "Second screen cache entry must exist"); // property 2 - second render
                     StringAssert.Contains(firstRenders[2], secondRenders[2], "Third screen cache entry must exist"); // property 3 - second render
                 });
             });
