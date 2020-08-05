@@ -161,12 +161,6 @@ namespace WebViewControl {
                 return;
             }
 
-#if DEBUG
-            if (!System.Diagnostics.Debugger.IsAttached) {
-                throw new InvalidOperationException("Running debug version");
-            }
-#endif
-
             if (useSharedDomain) {
                 CurrentDomainId = string.Empty;
             } else {

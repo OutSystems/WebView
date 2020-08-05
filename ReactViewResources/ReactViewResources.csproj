@@ -92,10 +92,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Properties\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <EmbeddedResource Include="node_modules\react\umd\react.production.min.js" />
   </ItemGroup>
 
@@ -109,10 +105,6 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
   </ItemGroup>
-
-  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="npm ci" />
-  </Target>
 
   <Target Name="MergeLoaderFiles" AfterTargets="CompileTypeScriptWithTSConfig" BeforeTargets="AssignTargetPath">
     <Exec Command="copy /b &quot;$(ProjectDir)AMDLoader\AMDLoaderExports.js&quot; + &quot;$(ProjectDir)AMDLoader\AMDLoader.js&quot; + &quot;$(ProjectDir)Loader\_Loader.js&quot; &quot;$(ProjectDir)Loader.js&quot;" />

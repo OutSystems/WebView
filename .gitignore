@@ -10,10 +10,7 @@ obj
 WebViewExample/
 Release/
 Debug/
-Tests/ReactViewResources/testapp.js
-Tests/ReactViewResources/node_modules/
 .vs/config/applicationhost.config
-Tests/ReactViewResources/dist/
 .vs/
 ViewGenerator/tools/dist/
 *.js
@@ -25,7 +22,6 @@ ViewGenerator/tools/node_modules/
 Example/Generated/
 Example/node_modules/
 ViewGeneratorCore/tools/node_modules/
-Tests/TestResult.xml
 ViewGenerator/declarations/
 manifest.json
 ViewGenerator/contentFiles/node_modules/@types/
@@ -41,6 +37,11 @@ Example.Avalonia/Generated/
 Example.Avalonia/node_modules/
 Example.Avalonia/viewgenerator.cache
 Example.Avalonia/global.d.ts
+Tests.ReactView/.wpcache/
+Tests.ReactView/Generated/
+Tests.ReactView/node_modules/
+Tests.ReactView/*.cache
+Tests.ReactView/global.d.ts
 ReactViewControl/cake_tools
 ReactViewControl.Avalonia/cake_tools
 ReactViewResources/cake_tools
@@ -51,3 +52,6 @@ ViewGeneratorCore/cake_tools
 ViewPacker/cake_tools
 launchSettings.json
 *.cache
+.npm-install-stamp
+**/TestResults.xml
+
