@@ -20,7 +20,7 @@ namespace Tests.ReactView {
 
         public static async Task<Sandbox> InitializeAsync(Window window, string propertyValue) {
             var sandbox = new Sandbox(window, propertyValue);
-            await sandbox.Ready();
+            await sandbox.Initialize();
 
             return sandbox;
         }
@@ -46,17 +46,19 @@ namespace Tests.ReactView {
             set => View.PropertyValue = value; 
         }
 
-        public Task Ready() {
+        public async Task Initialize() {
             var taskCompletionSource = new TaskCompletionSource<bool>();
             void OnReady() {
-                try {
-                    taskCompletionSource.SetResult(true);
-                } finally {
-                    View.Ready -= OnReady;
-                }
+                taskCompletionSource.SetResult(true);
             }
             View.Ready += OnReady;
-            return taskCompletionSource.Task;
+
+            try {
+                await taskCompletionSource.Task;
+
+            } finally {
+                View.Ready -= OnReady;
+            }
         }
 
         public void Dispose() {

@@ -25,7 +25,7 @@ namespace Tests.ReactView {
                     sandbox.AttachTo(window);
                     sandbox.PropertyValue = PropertyValue;
                     window.Show();
-                    await sandbox.Ready();
+                    await sandbox.Initialize();
 
                     var actualPropertyValue = sandbox.GetPropertyValue();
                     Assert.AreEqual(PropertyValue, actualPropertyValue);

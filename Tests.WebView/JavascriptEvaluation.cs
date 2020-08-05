@@ -62,8 +62,8 @@ namespace Tests.WebView {
                 Assert.AreEqual("Error: ups", exception.Message);
                 var stack = exception.StackTrace.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
                 Assert.Greater(stack.Length, 2);
-                Assert.True(stack.ElementAt(0).StartsWith("   at bar in about"));
-                Assert.True(stack.ElementAt(1).StartsWith("   at foo in about"));
+                StringAssert.StartsWith("   at bar in about", stack.ElementAt(0));
+                StringAssert.StartsWith("   at foo in about", stack.ElementAt(1));
             });
         }
 
@@ -74,8 +74,8 @@ namespace Tests.WebView {
 
                 var stack = exception.StackTrace.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
                 Assert.Greater(stack.Length, 1);
-                Assert.True(stack.ElementAt(0).StartsWith("   at Math.min in eval"));
-                Assert.IsFalse(stack.ElementAt(0).Contains("123"));
+                StringAssert.StartsWith("   at Math.min in eval", stack.ElementAt(0));
+                StringAssert.Contains("123", stack.ElementAt(0));
             });
         }
 
@@ -99,7 +99,7 @@ namespace Tests.WebView {
                 var exception = Assert.Throws<JavascriptException>(
                 () => TargetView.EvaluateScript<int>("var start = new Date().getTime(); while((new Date().getTime() - start) < 150);",
                 timeout: TimeSpan.FromMilliseconds(50)));
-                Assert.True(exception.Message.Contains("Timeout"));
+                StringAssert.Contains("Timeout", exception.Message);
             });
         }
 
@@ -151,8 +151,8 @@ namespace Tests.WebView {
 
                     var stack = exception.StackTrace.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
                     Assert.AreEqual(2, stack.Length);
-                    Assert.True(stack.ElementAt(0).StartsWith("   at foo in about:blank:line 1"), "Found " + stack.ElementAt(0));
-                    Assert.True(stack.ElementAt(1).StartsWith("   at <anonymous> in about:blank:line 1"), "Found " + stack.ElementAt(1));
+                    StringAssert.StartsWith("   at foo in about:blank:line 1", stack.ElementAt(0), "Found " + stack.ElementAt(0));
+                    StringAssert.StartsWith("   at <anonymous> in about:blank:line 1", stack.ElementAt(1), "Found " + stack.ElementAt(1));
                 },
                 e => {
                     taskCompletionSource.SetResult(e);
