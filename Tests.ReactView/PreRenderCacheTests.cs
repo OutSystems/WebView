@@ -6,7 +6,7 @@ using NUnit.Framework;
 
 namespace Tests.ReactView {
 
-    public class ReactViewPreRenderCacheTests : TestBase<TestReactView> {
+    public class ReactViewPreRenderCacheTests : ReactViewTestBase {
 
         protected override TestReactView CreateView() {
             return null;

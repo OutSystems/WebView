@@ -6,22 +6,26 @@ using ReactViewControl;
 
 namespace Tests.ReactView {
 
-    public class TestReactViewFactoryWithPreload : TestReactViewFactory {
-        public override bool EnableViewPreload => true;
-    }
+    public class PreLoadedWebViewTests : ReactViewTestBase {
 
-    public class TestReactViewWithPreload : TestReactView {
-
-        public TestReactViewWithPreload() {
-            AutoShowInnerView = true;
-            var innerView = new InnerViewModule();
-            innerView.Load();
+        private class TestReactViewFactoryWithPreload : TestReactViewFactory {
+            public override bool EnableViewPreload => true;
         }
 
-        protected override ReactViewFactory Factory => new TestReactViewFactoryWithPreload();
-    }
+        private class TestReactViewWithPreload : TestReactView {
 
-    public class PreLoadedWebViewTests : ReactViewTestBase<TestReactViewWithPreload> {
+            public TestReactViewWithPreload() {
+                AutoShowInnerView = true;
+                var innerView = new InnerViewModule();
+                innerView.Load();
+            }
+
+            protected override ReactViewFactory Factory => new TestReactViewFactoryWithPreload();
+        }
+
+        protected override TestReactView CreateView() {
+            return new TestReactViewWithPreload();
+        }
 
         [Test(Description = "Loading a view with a inner view and preload enabled loads the component successfully the second time")]
         public async Task PreloadLoadsComponent() {
