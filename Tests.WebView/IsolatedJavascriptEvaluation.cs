@@ -18,7 +18,7 @@ namespace Tests.WebView {
             await Run(async () => {
                 await Load("<html><body></body></html>");
 
-                var exception = Assert.Throws<WebViewControl.WebView.JavascriptException>(() => TargetView.EvaluateScript<int>("1", timeout: TimeSpan.FromMilliseconds(10)));
+                var exception = Assert.Throws<WebViewControl.WebView.JavascriptException>(() => TargetView.EvaluateScript<int>("1", timeout: TimeSpan.FromMilliseconds(0)));
                 Assert.IsNotNull(exception);
                 StringAssert.Contains("Timeout", exception.Message);
             });
