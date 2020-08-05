@@ -18,7 +18,7 @@ namespace Tests {
         private Window window;
         private T view;
 
-        protected static string CurrentTestName => TestContext.CurrentContext.Test.Name + Guid.NewGuid(); 
+        protected static string CurrentTestName => TestContext.CurrentContext.Test.Name; 
 
         protected Task Run(Func<Task> func) => Dispatcher.UIThread.InvokeAsync(func, DispatcherPriority.Background);
 
@@ -63,9 +63,11 @@ namespace Tests {
 
         [SetUp]
         protected async Task SetUp() {
+            var currentTestName = CurrentTestName; // we cannot access TestContext properly in asynchronous mode
+
             await Run(async () => {
                 window = new Window {
-                    Title = "Running: " + CurrentTestName
+                    Title = "Running: " + currentTestName
                 };
 
                 if (view == null) {
