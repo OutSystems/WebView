@@ -96,15 +96,13 @@ namespace Tests.ReactView {
         [Test(Description = "Tests view ready event is dispatched.")]
         public async Task ViewReadyEventIsDispatched() {
             await Run(async () => {
-                var taskCompletionSource = new TaskCompletionSource<bool>();
-                TargetView.Event += (args) => {
-                    taskCompletionSource.SetResult(args == "ViewReadyTrigger");
-                };
+                var taskCompletionSource = new TaskCompletionSource<string>();
+                TargetView.Event += (args) => taskCompletionSource.SetResult(args);
 
                 TargetView.ExecuteMethod("checkViewReady");
                 var viewIsReady = await taskCompletionSource.Task;
 
-                Assert.IsTrue(viewIsReady, "View is not ready!");
+                Assert.AreEqual("ViewReadyTrigger", viewIsReady, "View is not ready!");
             });
         }
     }

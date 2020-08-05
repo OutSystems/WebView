@@ -31,7 +31,7 @@ namespace Tests.ReactView {
                 TargetView.ExecuteMethod("checkStyleSheetLoaded", "2");
                 var stylesheet = await taskCompletionSource.Task;
 
-                Assert.IsTrue(stylesheet.Contains(".bar"));
+                StringAssert.Contains(".bar", stylesheet);
             });
         }
     }

@@ -26,10 +26,6 @@ namespace Tests.ReactView {
             });
         }
 
-        private static void AssertContains(string obtained, string substring, string message) {
-            Assert.IsTrue(obtained.Contains(substring), $"{message}{Environment.NewLine}'{substring}'{Environment.NewLine} not found in {Environment.NewLine}'{obtained}'");
-        }
-
         [Test(Description = "Tests that cache size does not grow beyond limit")]
         public async Task CacheSizeDoesNotGrowBeyondLimit() {
             await Run(async () => {
@@ -55,8 +51,8 @@ namespace Tests.ReactView {
                     }
 
                     Assert.IsEmpty(secondRenders[0], "First screen cache entry should not exist"); // property 1 - second render
-                    AssertContains(secondRenders[1], firstRenders[1], "Second screen cache entry must exist"); // property 2 - second render
-                    AssertContains(secondRenders[2], firstRenders[2], "Third screen cache entry must exist"); // property 3 - second render
+                    StringAssert.Contains(firstRenders[1], secondRenders[1], $"Second screen cache entry must exist"); // property 2 - second render
+                    StringAssert.Contains(firstRenders[2], secondRenders[2], "Third screen cache entry must exist"); // property 3 - second render
                 });
             });
         }
@@ -78,7 +74,7 @@ namespace Tests.ReactView {
                     using (var sandbox = await Sandbox.InitializeAsync(Window, propertyName)) {
 
                         var currentRenderedHtml = sandbox.GetFirstRenderHtml();
-                        AssertContains(currentRenderedHtml, firstRenderedHtml, "Component should have been rendered from cache");
+                        StringAssert.Contains(firstRenderedHtml, currentRenderedHtml, "Component should have been rendered from cache");
                     } 
                 });
             });
@@ -96,8 +92,8 @@ namespace Tests.ReactView {
 
                     using (var sandbox = await Sandbox.InitializeAsync(Window, propertyName)) {
                         var firstRenderHtml = sandbox.GetFirstRenderHtml();
-                        AssertContains(firstRenderHtml, "<link", "Cache should contain stylesheets");
-                        AssertContains(firstRenderHtml, "<div", "Cache should contain html");
+                        StringAssert.Contains("<link", firstRenderHtml, "Cache should contain stylesheets");
+                        StringAssert.Contains("<div", firstRenderHtml, "Cache should contain html");
                     }
                 });
             });
