@@ -7,6 +7,17 @@ namespace Example {
 
         protected override ReactViewFactory Factory => new ExtendedReactViewFactory();
 
-        public ExtendedReactView(IViewModule mainModule) : base(mainModule) { }
+        public ExtendedReactView(IViewModule mainModule) : base(mainModule) {
+            Settings.StylePreferenceChanged += OnColorPreferenceChanged;
+        }
+
+        protected override void InnerDispose() {
+            base.InnerDispose();
+            Settings.StylePreferenceChanged -= OnColorPreferenceChanged;
+        }
+
+        private void OnColorPreferenceChanged() {
+            RefreshDefaultStyleSheet();
+        }
     }
 }

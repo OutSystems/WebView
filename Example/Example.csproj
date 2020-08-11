@@ -68,6 +68,7 @@
     <Compile Include="ReactViewExample.xaml.cs">
       <DependentUpon>ReactViewExample.xaml</DependentUpon>
     </Compile>
+    <Compile Include="Settings.cs" />
     <Compile Include="WebViewExample.xaml.cs">
       <DependentUpon>WebViewExample.xaml</DependentUpon>
     </Compile>
@@ -112,6 +113,7 @@
     </EmbeddedResource>
     <DefaultStyleSheet Include="ExampleView\DefaultStyleSheet.scss" />
     <DefaultStyleSheet Include="ExampleView\Example.export.scss" />
+    <DefaultStyleSheet Include="ExampleView\DefaultStyleSheetWithBorders.scss" />
     <None Include="ExampleView\SubExampleView.scss" />
     <None Include="ExampleView\ExampleView.scss" />
     <None Include="packages.config" />

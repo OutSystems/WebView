@@ -359,9 +359,9 @@ namespace ReactViewControl {
         /// </summary>
         public ResourceUrl DefaultStyleSheet {
             get { return defaultStyleSheet; }
-            private set {
+            set {
                 if (IsMainComponentLoaded) {
-                    throw new InvalidOperationException($"Cannot set {nameof(DefaultStyleSheet)} after component has been loaded");
+                    Loader.SetDefaultStyleSheet(value);
                 }
                 defaultStyleSheet = value;
             }

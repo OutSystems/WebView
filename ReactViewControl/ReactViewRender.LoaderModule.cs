@@ -75,6 +75,14 @@ namespace ReactViewControl {
             }
 
             /// <summary>
+            /// Set the specified stylesheet.
+            /// </summary>
+            /// <param name="stylesheet"></param>
+            public void SetDefaultStyleSheet(ResourceUrl stylesheet) {
+                ExecuteLoaderFunction("setDefaultStyleSheet", JavascriptSerializer.Serialize(NormalizeUrl(ViewRender.ToFullUrl(stylesheet.ToString()))));
+            }
+
+            /// <summary>
             /// Loads the specified plugins modules in the specified frame.
             /// </summary>
             /// <param name="plugins"></param>

@@ -6,7 +6,9 @@ namespace Example {
 
     internal class ExtendedReactViewFactory : ReactViewFactory {
 
-        public override ResourceUrl DefaultStyleSheet => new ResourceUrl(typeof(ReactViewExample).Assembly, "Generated", "DefaultStyleSheet.css");
+        public override ResourceUrl DefaultStyleSheet => Settings.IsBorderLessPreference ?
+            new ResourceUrl(typeof(ReactViewExample).Assembly, "Generated", "DefaultStyleSheet.css") :
+            new ResourceUrl(typeof(ReactViewExample).Assembly, "Generated", "DefaultStyleSheetWithBorders.css");
 
         public override IViewModule[] InitializePlugins() {
             return new[]{
