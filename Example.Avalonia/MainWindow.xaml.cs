@@ -49,6 +49,10 @@ namespace Example.Avalonia {
             SelectedView.CallInnerViewPluginMenuItemClick();
         }
 
+        private void OnToggleDefaultStyleSheetMenuItemClick(object sender, RoutedEventArgs e) {
+            Settings.IsBorderLessPreference = !Settings.IsBorderLessPreference;
+        }
+
         private void OnShowDevTools(object sender, RoutedEventArgs e) {
             SelectedView.ShowDevTools();
         }

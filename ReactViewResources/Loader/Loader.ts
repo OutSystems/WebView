@@ -22,6 +22,8 @@ const reactDOMLib: string = "ReactDOM";
 const viewsBundleName: string = "Views";
 const pluginsBundleName: string = "Plugins";
 
+let defaultStyleSheetLink: HTMLLinkElement;
+
 const [
     libsPath,
     enableDebugMode,
@@ -160,7 +162,15 @@ function loadStyleSheet(stylesheet: string, containerElement: Element, markAsSti
             .then(resolve);
 
         containerElement.appendChild(link);
+
+        if (!defaultStyleSheetLink) {
+            defaultStyleSheetLink = link;
+        }
     });
+}
+
+export function setDefaultStyleSheet(stylesheet: string): void {
+    defaultStyleSheetLink.setAttribute("href", stylesheet);
 }
 
 export function loadDefaultStyleSheet(stylesheet: string): void {

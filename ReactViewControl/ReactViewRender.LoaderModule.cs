@@ -71,7 +71,15 @@ namespace ReactViewControl {
             /// </summary>
             /// <param name="stylesheet"></param>
             public void LoadDefaultStyleSheet(ResourceUrl stylesheet) {
-                ExecuteLoaderFunction("loadDefaultStyleSheet", JavascriptSerializer.Serialize(NormalizeUrl(ViewRender.ToFullUrl(stylesheet.ToString()))));
+                ExecuteLoaderFunction("loadDefaultStyleSheet", SerializableResourceUrl(stylesheet));
+            }
+
+            /// <summary>
+            /// Set the specified stylesheet.
+            /// </summary>
+            /// <param name="stylesheet"></param>
+            public void SetDefaultStyleSheet(ResourceUrl stylesheet) {
+                ExecuteLoaderFunction("setDefaultStyleSheet", SerializableResourceUrl(stylesheet));
             }
 
             /// <summary>
@@ -142,6 +150,10 @@ namespace ReactViewControl {
                 using (var sha256 = SHA256.Create()) {
                     return Convert.ToBase64String(sha256.ComputeHash(Encoding.UTF8.GetBytes(inputString)));
                 }
+            }
+
+            private string SerializableResourceUrl(ResourceUrl resource) {
+                return JavascriptSerializer.Serialize(NormalizeUrl(ViewRender.ToFullUrl(resource.ToString())));
             }
         }
     }

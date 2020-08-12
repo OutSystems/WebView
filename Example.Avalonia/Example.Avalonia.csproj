@@ -20,6 +20,7 @@
       <Generator></Generator>
     </EmbeddedResource>
     <DefaultStyleSheet Include="ExampleView\DefaultStyleSheet.scss" />
+    <DefaultStyleSheet Include="ExampleView\DefaultStyleSheetWithBorders.scss" />
   </ItemGroup>
 
   <ItemGroup>
@@ -56,5 +57,5 @@
       <Visible>True</Visible>
     </None>
   </ItemGroup>
-
+    
 </Project>
