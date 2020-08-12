@@ -162,7 +162,9 @@ function loadStyleSheet(stylesheet: string, containerElement: Element, markAsSti
 }
 
 export function setDefaultStyleSheet(stylesheet: string): void {
-    defaultStyleSheetLink.setAttribute("href", stylesheet);
+    if (defaultStyleSheetLink) {
+        defaultStyleSheetLink.setAttribute("href", stylesheet);
+    }
 }
 
 export function loadDefaultStyleSheet(stylesheet: string): void {
