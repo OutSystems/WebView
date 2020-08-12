@@ -17,7 +17,8 @@ const reactLib: string = "React";
 const reactDOMLib: string = "ReactDOM";
 const viewsBundleName: string = "Views";
 const pluginsBundleName: string = "Plugins";
-const defaultStyleSheetId = "default-stylesheet";
+
+let defaultStyleSheetLink: HTMLLinkElement;
 
 const [
     libsPath,
@@ -146,7 +147,6 @@ function loadStyleSheet(stylesheet: string, containerElement: Element, markAsSti
         link.type = "text/css";
         link.rel = "stylesheet";
         link.href = stylesheet;
-        link.id = defaultStyleSheetId;
         if (markAsSticky) {
             link.dataset.sticky = "true";
         }
@@ -155,14 +155,14 @@ function loadStyleSheet(stylesheet: string, containerElement: Element, markAsSti
             .then(resolve);
 
         containerElement.appendChild(link);
+        if (!defaultStyleSheetLink) {
+            defaultStyleSheetLink = link; 
+        }
     });
 }
 
 export function setDefaultStyleSheet(stylesheet: string): void {
-    let doc: any = document;
-    if (doc) {
-        doc.getElementById(defaultStyleSheetId).setAttribute("href", stylesheet);
-    }
+    defaultStyleSheetLink.setAttribute("href", stylesheet);
 }
 
 export function loadDefaultStyleSheet(stylesheet: string): void {
