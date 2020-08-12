@@ -86,7 +86,8 @@ namespace ReactViewControl {
         /// </summary>
         protected virtual ReactViewFactory Factory => new ReactViewFactory();
 
-        protected void RefreshDefaultStyleSheet() {    
+        protected void RefreshDefaultStyleSheet() {
+            CachedViews.Clear();
             View.DefaultStyleSheet = Factory.DefaultStyleSheet;
         }
 
