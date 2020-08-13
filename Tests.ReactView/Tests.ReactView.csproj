@@ -36,6 +36,7 @@
     </EmbeddedResource>
     <EmbeddedResource Include="TestAppView\imgs\image.png" />
     <DefaultStyleSheet Include="TestAppView\Default.scss" />
+    <DefaultStyleSheet Include="TestAppView\Default_2.scss" />
     <Content Update="tsconfig.json">
       <Visible>True</Visible>
     </Content>
@@ -43,5 +44,5 @@
       <Visible>True</Visible>
     </Content>
   </ItemGroup>
-
+  
 </Project>
