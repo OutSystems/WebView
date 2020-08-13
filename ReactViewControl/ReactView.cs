@@ -87,8 +87,10 @@ namespace ReactViewControl {
         protected virtual ReactViewFactory Factory => new ReactViewFactory();
 
         protected void RefreshDefaultStyleSheet() {
-            CachedViews.Clear();
             View.DefaultStyleSheet = Factory.DefaultStyleSheet;
+            Dispatcher.CurrentDispatcher.BeginInvoke((Action)(() => {
+                CachedViews.Remove(Factory.GetType()); 
+            }), DispatcherPriority.Background);
         }
 
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e) {
