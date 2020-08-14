@@ -7,26 +7,30 @@ namespace Tests.ReactView {
 
     public class DefaultStyleSheetLoadTests : ReactViewTestBase {
 
-        private static ReactViewWithStyleSheet currentView;
-        private static bool loadPrimaryStyleSheet = true;
-
         protected class ViewFactoryWithStyleSheet : TestReactViewFactory {
-            public override ResourceUrl DefaultStyleSheet => loadPrimaryStyleSheet ?
-                new ResourceUrl(typeof(DefaultStyleSheetLoadTests).Assembly, "Generated", "Default.css") :
-                new ResourceUrl(typeof(DefaultStyleSheetLoadTests).Assembly, "Generated", "Default_2.css");
+            private ResourceUrl defaultStyleSheet;
+
+            public ViewFactoryWithStyleSheet(bool loadPrimaryStyleSheet) : base() {
+                defaultStyleSheet = loadPrimaryStyleSheet ?
+                    new ResourceUrl(typeof(DefaultStyleSheetLoadTests).Assembly, "Generated", "Default.css") :
+                    new ResourceUrl(typeof(DefaultStyleSheetLoadTests).Assembly, "Generated", "Default_2.css");
+            }
+
+            public override ResourceUrl DefaultStyleSheet => defaultStyleSheet;
         }
 
         protected class ReactViewWithStyleSheet : TestReactView {
-            protected override ReactViewFactory Factory => new ViewFactoryWithStyleSheet();
+            protected override ReactViewFactory Factory => new ViewFactoryWithStyleSheet(LoadPrimaryStyleSheet);
 
             public void RefreshStyleSheetTests() {
                 RefreshDefaultStyleSheet();
             }
+
+            public bool LoadPrimaryStyleSheet { get; set; }
         }
 
         protected override TestReactView CreateView() {
-            currentView = new ReactViewWithStyleSheet();
-            return currentView;
+            return new ReactViewWithStyleSheet();
         }
 
         [Test(Description = "Tests default stylesheets get loaded")]
@@ -48,11 +52,11 @@ namespace Tests.ReactView {
         [Test(Description = "Tests default stylesheets get loaded when refreshed")]
         public async Task SecondaryStylesheetIsLoadedWhenDefaultStyleSheetIsRefreshed() {
             // Arrange
-            var initialLoadPrimaryStyleSheet = loadPrimaryStyleSheet;
-            loadPrimaryStyleSheet = false;
-            
+            var view = TargetView as ReactViewWithStyleSheet;
+            view.LoadPrimaryStyleSheet = false;
+
             // Act
-            currentView.RefreshStyleSheetTests();
+            view.RefreshStyleSheetTests();
 
             // Asssert
             await Run(async () => {
@@ -67,9 +71,6 @@ namespace Tests.ReactView {
 
                 StringAssert.Contains(".bazz-version-2", stylesheet);
             });
-
-            // Tear down
-            loadPrimaryStyleSheet = initialLoadPrimaryStyleSheet;
         }
     }
 }
