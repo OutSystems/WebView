@@ -10,7 +10,7 @@
     <description>$description$</description>
     <copyright>$copyright$</copyright>
     <dependencies>
-      <dependency id="WebViewControl-Avalonia" version="2.75.54" />
+      <dependency id="WebViewControl-Avalonia" version="2.75.55" />
     </dependencies>
   </metadata>
 </package>
