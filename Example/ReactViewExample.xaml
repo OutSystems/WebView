@@ -13,6 +13,7 @@
                 <MenuItem Header="Call Inner View" Click="OnCallInnerViewMenuItemClick"></MenuItem>
                 <MenuItem Header="Call Inner View Plugin" Click="OnCallInnerViewPluginMenuItemClick"></MenuItem>
                 <MenuItem Header="Show dev tools" Click="OnShowDevTools"></MenuItem>
+                <MenuItem Header="Toggle DefaultStyleSheet" Click="OnToggleDefaultStyleSheetMenuItemClick"></MenuItem>
             </MenuItem>
         </Menu>
 

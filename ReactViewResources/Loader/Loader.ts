@@ -22,6 +22,8 @@ const reactDOMLib: string = "ReactDOM";
 const viewsBundleName: string = "Views";
 const pluginsBundleName: string = "Plugins";
 
+let defaultStyleSheetLink: HTMLLinkElement;
+
 const [
     libsPath,
     enableDebugMode,
@@ -160,7 +162,17 @@ function loadStyleSheet(stylesheet: string, containerElement: Element, markAsSti
             .then(resolve);
 
         containerElement.appendChild(link);
+
+        if (!defaultStyleSheetLink) {
+            defaultStyleSheetLink = link;
+        }
     });
+}
+
+export function setDefaultStyleSheet(stylesheet: string): void {
+    if (defaultStyleSheetLink) {
+        defaultStyleSheetLink.setAttribute("href", stylesheet);
+    }
 }
 
 export function loadDefaultStyleSheet(stylesheet: string): void {
@@ -215,7 +227,7 @@ export function loadPlugins(plugins: any[][], frameName: string): void {
                     }
 
                     const pluginNativeObject = await bindNativeObject(nativeObjectFullName);
-                    
+
                     view.nativeObjectNames.push(nativeObjectFullName); // add to the native objects collection
                     view.modules.set(moduleName, new module.default(pluginNativeObject, view.root));
                 });
@@ -266,7 +278,7 @@ export function loadComponent(
 
             const componentCacheKey = getComponentCacheKey(componentHash);
             const enableHtmlCache = view.isMain; // disable cache retrieval for inner views, since react does not currently support portals hydration
-            const cachedComponentHtml = enableHtmlCache ? localStorage.getItem(componentCacheKey) : null; 
+            const cachedComponentHtml = enableHtmlCache ? localStorage.getItem(componentCacheKey) : null;
             const shouldStoreComponentHtml = enableHtmlCache && !cachedComponentHtml && maxPreRenderedCacheEntries > 0;
             if (cachedComponentHtml) {
                 // render cached component html to reduce time to first render
@@ -301,7 +313,7 @@ export function loadComponent(
             }
 
             const { createView } = await import("./Loader.View");
-            
+
             const viewElement = createView(componentClass, properties, view, componentName, onChildViewAdded, onChildViewRemoved);
             const render = view.renderHandler;
             if (!render) {

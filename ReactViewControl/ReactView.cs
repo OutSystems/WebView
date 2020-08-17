@@ -77,6 +77,11 @@ namespace ReactViewControl {
         /// </summary>
         protected virtual ReactViewFactory Factory => new ReactViewFactory();
 
+        protected void RefreshDefaultStyleSheet() {
+            View.DefaultStyleSheet = Factory.DefaultStyleSheet;
+            AsyncExecuteInUI(() => CachedViews.Remove(Factory.GetType()), lowPriority: true);
+        }
+
         /// <summary>
         /// Tries to loads the main component.
         /// </summary>

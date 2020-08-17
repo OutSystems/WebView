@@ -34,6 +34,10 @@ namespace Example {
             ((SubExampleViewModule)exampleView.SubView).WithPlugin<ViewPlugin>().Test();
         }
 
+        private void OnToggleDefaultStyleSheetMenuItemClick(object sender, RoutedEventArgs e) {
+            Settings.IsBorderLessPreference = !Settings.IsBorderLessPreference;
+        }
+
         private void OnShowDevTools(object sender, RoutedEventArgs e) {
             exampleView.ShowDeveloperTools();
         }
