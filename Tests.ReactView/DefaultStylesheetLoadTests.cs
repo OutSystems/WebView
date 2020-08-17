@@ -26,7 +26,7 @@ namespace Tests.ReactView {
                 RefreshDefaultStyleSheet();
             }
 
-            public bool LoadPrimaryStyleSheet { get; set; }
+            public bool LoadPrimaryStyleSheet { get; set; } = true;
         }
 
         protected override TestReactView CreateView() {
