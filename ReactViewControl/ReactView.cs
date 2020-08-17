@@ -212,13 +212,16 @@ namespace ReactViewControl {
         /// <summary>
         /// Called when executing a native method.
         /// </summary>
-        protected virtual object OnNativeMethodCalled(Func<object> nativeMethod) {
-            return nativeMethod();
-        }
+        protected virtual object OnNativeMethodCalled(Func<object> nativeMethod) => nativeMethod();
+
+        /// <summary>
+        /// Called before executing/evaluating a JS method
+        /// </summary>
+        protected virtual void OnBeforeExecuteMethod() { }
+
+        internal void HandledBeforeExecuteMethod() => OnBeforeExecuteMethod();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal object CallNativeMethod(Func<object> nativeMethod) {
-            return OnNativeMethodCalled(nativeMethod);
-        }
+        internal object CallNativeMethod(Func<object> nativeMethod) => OnNativeMethodCalled(nativeMethod);
     }
 }

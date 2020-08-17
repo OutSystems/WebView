@@ -17,6 +17,8 @@ namespace ReactViewControl {
         }
 
         public void ExecuteMethod(IViewModule module, string methodCall, params object[] args) {
+            module.Host?.HandledBeforeExecuteMethod();
+
             if (webView != null) {
                 var method = FormatMethodInvocation(module, methodCall);
                 webView.ExecuteScriptFunctionWithSerializedParams(method, args);
@@ -29,6 +31,7 @@ namespace ReactViewControl {
             if (webView == null) {
                 return default(T);
             }
+            module.Host?.HandledBeforeExecuteMethod();
             var method = FormatMethodInvocation(module, methodCall);
             return webView.EvaluateScriptFunctionWithSerializedParams<T>(method, args);
         }
