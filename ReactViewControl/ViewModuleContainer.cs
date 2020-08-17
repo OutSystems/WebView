@@ -121,6 +121,6 @@ namespace ReactViewControl {
             return childViewHost.GetOrAddChildView<T>(frame.Name + (string.IsNullOrEmpty(frame.Name) ? "" : ".") + frameName);
         }
 
-        public ReactView Host => childViewHost.Host;
+        public ReactView Host => childViewHost?.Host;
     }
 }
