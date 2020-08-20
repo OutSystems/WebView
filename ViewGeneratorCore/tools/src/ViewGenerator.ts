@@ -142,7 +142,7 @@ class Generator {
 
     private generateNativeApiObject(objInterface: Units.TsInterface) {
         return (
-            `public struct ${this.getTypeNameAlias(objInterface.name)} {\n` +
+            `public partial struct ${this.getTypeNameAlias(objInterface.name)} {\n` +
             `    ${f(objInterface.properties.map(p => `public ${this.getTypeName(p.type)} ${p.name} { get; set; }`).join("\n"))}\n` +
             `}`
         );
