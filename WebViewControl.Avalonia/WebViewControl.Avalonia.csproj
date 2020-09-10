@@ -12,7 +12,7 @@
     <Product>WebViewControl</Product>
     <Copyright>Copyright ©  2019</Copyright>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.75.57</Version>
+    <Version>2.75.58</Version>
     <PackageId>WebViewControl-Avalonia</PackageId>
     <Authors>OutSystems</Authors>
     <PackageOutputPath>$(MSBuildProjectDirectory)\..\nuget</PackageOutputPath>

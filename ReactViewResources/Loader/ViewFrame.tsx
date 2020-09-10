@@ -98,7 +98,7 @@ export class ViewFrame<T> extends React.Component<IViewFrameProps<T>, {}, ViewMe
     }
 
     public render() {
-        return <div ref={e => this.placeholder = e!} className={this.props.className} />;
+        return <div ref={e => this.placeholder = e!} data-innerView="true" className={this.props.className} />;
     }
 }
 
