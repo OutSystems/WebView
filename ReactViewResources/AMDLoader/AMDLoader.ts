@@ -1,5 +1,3 @@
-declare const exports: {};
-
 namespace AMDLoader {
     export const defines: { [module: string]: boolean } = {};
     const promises: { [module: string]: Promise<any> } = {};
