@@ -53,6 +53,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!--When we upload Avalonia here, we should increase the version of both WebViewControl.Avalonia as well as ReactViewControl.Avalonia-->  
     <PackageReference Include="Avalonia" Version="0.10.0-preview5" />
     <PackageReference PrivateAssets="None" Include="CefGlue.Avalonia" Version="75.1.87" />
     <PackageReference Include="InjectModuleInitializer" Version="2.0.3">
