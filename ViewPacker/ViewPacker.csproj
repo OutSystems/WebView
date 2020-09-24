@@ -64,8 +64,12 @@
     <PreBuildEvent>npm install --no-bin-links --prefix "$(ProjectDir)tools" "$(ProjectDir)tools"</PreBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PostBuildEvent>"$(ProjectDir)..\packages\Node.js.redist.10.16.3\tools\win-x64\node.exe" "$(ProjectDir)tools\node_modules\node-sass\scripts\install.js"
+    <PostBuildEvent Condition="'$(OS)' == 'Windows_NT'">"$(ProjectDir)..\packages\Node.js.redist.10.16.3\tools\win-x64\node.exe" "$(ProjectDir)tools\node_modules\node-sass\scripts\install.js"
 "$(ProjectDir)..\nuget" pack "$(ProjectDir)ViewPacker.nuspec" -OutputDirectory "$(ProjectDir)..\Nuget\ " -Properties Configuration=$(ConfigurationName)
 </PostBuildEvent>
+    <PostBuildEvent Condition="'$(OS)' != 'Windows_NT'">
+        "$(ProjectDir)..\packages\Node.js.redist.10.16.3\tools\osx-x64\node" "$(ProjectDir)tools\node_modules\node-sass\scripts\install.js"
+"$(ProjectDir)..\nuget" pack "$(ProjectDir)ViewPacker.nuspec" -OutputDirectory "$(ProjectDir)..\Nuget\ " -Properties Configuration=$(ConfigurationName)
+    </PostBuildEvent>
   </PropertyGroup>
 </Project>

@@ -17,10 +17,16 @@
   </ItemGroup>
   
   <Target Name="VG_SetVariables">
-    <ItemGroup>     
-      <_ViewGeneratorNodeJsExe Include="$(MSBuildThisFileDirectory)..\..\..\Node.js.redist\*\tools\win-x64\node.exe"/>
-      <_ViewGeneratorNodeJsExe Include="$(MSBuildThisFileDirectory)..\..\Node.js.redist*\tools\win-x64\node.exe"/>
-    </ItemGroup>
+      <ItemGroup Condition="'$(OS)' == 'Windows_NT'">
+          <_ViewGeneratorNodeJsExe Include="$(MSBuildThisFileDirectory)..\..\..\Node.js.redist\*\tools\win-x64\node.exe"/>
+          <_ViewGeneratorNodeJsExe Include="$(MSBuildThisFileDirectory)..\..\Node.js.redist*\tools\win-x64\node.exe"/>
+
+      </ItemGroup>
+      <ItemGroup Condition="'$(OS)' != 'Windows_NT'">
+          <_ViewGeneratorNodeJsExe Include="$(MSBuildThisFileDirectory)..\..\..\Node.js.redist\*\tools\osx-x64\node"/>
+          <_ViewGeneratorNodeJsExe Include="$(MSBuildThisFileDirectory)..\..\Node.js.redist*\tools\osx-x64\node"/>
+
+      </ItemGroup>
       
     <PropertyGroup>
       <ViewGeneratorPath>$([System.IO.Path]::GetFullPath(&quot;$(MSBuildThisFileDirectory)..\&quot;))</ViewGeneratorPath>
@@ -30,9 +36,11 @@
       <ViewGeneratorNodeJsExe>$(__ViewGeneratorNodeJsExe.Substring(0, $(__ViewGeneratorNodeJsExe.IndexOf(';'))))</ViewGeneratorNodeJsExe>
     </PropertyGroup>
   </Target>
- 
-  <Target Name="VG_LinkNodeModules" Condition="'$(PluginsRelativePath)' != ''" >     
-    <Exec Condition="!Exists('$(ProjectDir)node_modules\webview.plugins')" Command="mklink /J &quot;$(ProjectDir)node_modules\webview.plugins&quot; &quot;$(ProjectDir)$(PluginsRelativePath)node_modules&quot;" />
+
+  <Target Name="VG_LinkNodeModules" Condition="'$(PluginsRelativePath)' != ''" >
+      <Exec Condition="!Exists('$(ProjectDir)node_modules\webview.plugins') and '$(OS)' == 'Windows_NT'" Command="mklink /J &quot;$(ProjectDir)node_modules\webview.plugins&quot; &quot;$(ProjectDir)$(PluginsRelativePath)node_modules&quot;" />
+      <!-- Take into account that ln -s takes the arguments in a different order from mklink e.g. first is destination and second is source -->
+      <Exec Condition="!Exists('$(ProjectDir)node_modules\webview.plugins') and '$(OS)' != 'Windows_NT'" Command="ln -s &quot;$(ProjectDir)$(PluginsRelativePath)node_modules&quot; &quot;$(ProjectDir)node_modules/webview.plugins&quot;" />
   </Target>
 
   <Target Name="VG_UnlinkNodeModules">     
@@ -66,7 +74,9 @@
   </Target>
 
   <Target Name="VG_SetupViewPacker" DependsOnTargets="VG_EnsureViewPackerInstalled;VG_SetVariables" Condition="!Exists('$(ViewGeneratorToolsPath)\webpack\node_modules')">
-    <Exec Command="mklink /J &quot;$(ViewGeneratorToolsPath)\webpack\node_modules&quot; &quot;$(ViewPackerToolNodeModules)&quot;" />
+      <Exec Condition="'$(OS)' == 'Windows_NT'" Command="mklink /J &quot;$(ViewGeneratorToolsPath)\webpack\node_modules&quot; &quot;$(ViewPackerToolNodeModules)&quot;" />
+      <!-- Take into account that ln -s takes the arguments in a different order from mklink e.g. first is destination and second is source -->
+      <Exec Condition="'$(OS)' != 'Windows_NT'" Command="ln -s &quot;$(ViewPackerToolNodeModules)&quot; &quot;$(ViewGeneratorToolsPath)webpack/node_modules&quot;" />
   </Target>
 
   <Target Name="VG_EnsureViewPackerInstalled" Condition="'$(ViewPackerToolScript)' == ''">
