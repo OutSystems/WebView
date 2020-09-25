@@ -14,7 +14,6 @@ export interface IViewPortalProps {
 
 interface IViewPortalState {
     component: React.ReactElement;
-    hasError: boolean;
 }
 
 /**
@@ -33,10 +32,7 @@ export class ViewPortal extends React.Component<IViewPortalProps, IViewPortalSta
     constructor(props: IViewPortalProps) {
         super(props);
 
-        this.state = {
-            component: null!,
-            hasError: false
-        };
+        this.state = { component: null! };
         
         this.shadowRoot = props.view.placeholder.attachShadow({ mode: "open" }).getRootNode() as HTMLElement;
 
@@ -83,7 +79,7 @@ export class ViewPortal extends React.Component<IViewPortalProps, IViewPortalSta
                 </head>
                 <body>
                     <div id={webViewRootId} ref={e => this.props.view.root = e!}>
-                        {this.state.component && !this.state.hasError ? this.state.component : null}
+                        {this.state.component ? this.state.component : null}
                     </div>
                 </body>
             </>,
