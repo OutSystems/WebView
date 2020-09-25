@@ -26,7 +26,7 @@ let defaultStyleSheetLink: HTMLLinkElement;
 
 const [
     libsPath,
-    enableDebugMode,
+    isDebugModeEnabled,
     modulesFunctionName,
     eventListenerObjectName,
     viewInitializedEventName,
@@ -34,9 +34,12 @@ const [
     viewLoadedEventName,
     disableKeyboardCallback,
     customResourceBaseUrl
-] = Array.from(new URLSearchParams(location.search).keys());
+] = (() => {
+    const params = Array.from(new URLSearchParams(location.search).keys());
+    return params.map(v => v === "false" ? "" : v);
+})();
 
-const defaultLoadResourcesTimeout = (enableDebugMode ? 60 : 10) * 1000; // ms
+const defaultLoadResourcesTimeout = (isDebugModeEnabled ? 60 : 10) * 1000; // ms
 
 const externalLibsPath = libsPath + "node_modules/";
 
@@ -74,15 +77,15 @@ function getModule(viewName: string, id: string, moduleName: string) {
 
 window[modulesFunctionName] = getModule;
 
-export async function showErrorMessage(msg: string): Promise<void> {
-    return showMessage(msg, true);
+export async function showErrorMessage(msg: string, targetElement?: HTMLElement): Promise<void> {
+    return showMessage(msg, true, targetElement);
 }
 
-function showWarningMessage(msg: string): Promise<void> {
-    return showMessage(msg, false);
+function showWarningMessage(msg: string, targetElement?: HTMLElement): Promise<void> {
+    return showMessage(msg, false, targetElement);
 }
 
-async function showMessage(msg: string, isError: boolean): Promise<void> {
+async function showMessage(msg: string, isError: boolean, targetElement?: HTMLElement): Promise<void> {
     const containerId = "webview_error";
     let msgContainer = document.getElementById(containerId) as HTMLDivElement;
     if (!msgContainer) {
@@ -95,7 +98,7 @@ async function showMessage(msg: string, isError: boolean): Promise<void> {
         style.fontWeight = "bold";
         style.fontSize = "10px"
         style.padding = "3px";
-        style.position = "absolute";
+        style.position = "relative";
         style.top = "0";
         style.left = "0";
         style.right = "0";
@@ -105,7 +108,7 @@ async function showMessage(msg: string, isError: boolean): Promise<void> {
         style.visibility = "visible";
 
         await waitForDOMReady();
-        document.body.appendChild(msgContainer);
+        (targetElement || document.body).appendChild(msgContainer);
     }
     msgContainer.innerText = msg;
 
@@ -192,10 +195,11 @@ export function loadDefaultStyleSheet(stylesheet: string): void {
 
 export function loadPlugins(plugins: any[][], frameName: string): void {
     async function innerLoad() {
+        let view: ViewMetadata;
         try {
             await bootstrapTask.promise;
 
-            const view = getView(frameName);
+            view = getView(frameName);
 
             if (!view.isMain) {
                 // wait for main frame plugins to be loaded, otherwise modules won't be loaded yet
@@ -237,7 +241,7 @@ export function loadPlugins(plugins: any[][], frameName: string): void {
 
             view.pluginsLoadTask.setResult();
         } catch (error) {
-            handleError(error);
+            handleError(error, view!);
         }
     }
 
@@ -262,13 +266,14 @@ export function loadComponent(
     }
 
     async function innerLoad() {
+        let view: ViewMetadata;
         try {
             if (hasStyleSheet) {
                 // wait for the stylesheet to load before first render
                 await defaultStylesheetLoadTask.promise;
             }
 
-            const view = getView(frameName);
+            view = getView(frameName);
             const head = view.head;
             const rootElement = view.root;
 
@@ -314,7 +319,15 @@ export function loadComponent(
 
             const { createView } = await import("./Loader.View");
 
-            const viewElement = createView(componentClass, properties, view, componentName, onChildViewAdded, onChildViewRemoved);
+            const viewElement = createView(
+                componentClass,
+                properties,
+                view,
+                componentName,
+                onChildViewAdded,
+                onChildViewRemoved,
+                onChildViewErrorRaised);
+
             const render = view.renderHandler;
             if (!render) {
                 throw new Error(`View ${view.name} render handler is not set`);
@@ -352,7 +365,7 @@ export function loadComponent(
 
             fireNativeNotification(viewLoadedEventName, view.name, view.id.toString());
         } catch (error) {
-            handleError(error);
+            handleError(error, view!);
         }
     }
 
@@ -471,10 +484,10 @@ async function bindNativeObject(nativeObjectName: string) {
     return window[nativeObjectName];
 }
 
-function handleError(error: Error | string) {
-    if (enableDebugMode) {
+function handleError(error: Error | string, view?: ViewMetadata) {
+    if (isDebugModeEnabled) {
         const msg = error instanceof Error ? error.message : error;
-        showErrorMessage(msg);
+        showErrorMessage(msg, view ? view.root as HTMLElement : undefined);
     }
     throw error;
 }
@@ -499,7 +512,7 @@ function waitForLoad(element: HTMLElement, url: string, timeout: number) {
     return new Promise((resolve) => {
         const timeoutHandle = setTimeout(
             () => {
-                if (enableDebugMode) {
+                if (isDebugModeEnabled) {
                     showWarningMessage(`Timeout loading resouce: '${url}'. If you paused the application to debug, you may disregard this message.`);
                 }
             },
@@ -525,6 +538,10 @@ function onChildViewAdded(childView: ViewMetadata) {
 function onChildViewRemoved(childView: ViewMetadata) {
     views.delete(childView.name);
     fireNativeNotification(viewDestroyedEventName, childView.name, childView.id.toString());
+}
+
+function onChildViewErrorRaised(childView: ViewMetadata, error: Error) {
+    handleError(error, childView);
 }
 
 export const disableInputInteractions = (() => {

@@ -23,6 +23,8 @@ namespace Example.Avalonia {
         public override int MaxNativeMethodsParallelCalls => 1;
 
 #if DEBUG
+        public override bool EnableDebugMode => true;
+
         public override Uri DevServerURI => null;
 #endif
     }

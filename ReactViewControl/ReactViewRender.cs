@@ -89,7 +89,7 @@ namespace ReactViewControl {
 
             var urlParams = new string[] {
                 new ResourceUrl(ResourcesAssembly).ToString(),
-                enableDebugMode ? "1" : "0",
+                enableDebugMode ? "true" : "false",
                 ModulesObjectName,
                 Listener.EventListenerObjName,
                 ViewInitializedEventName,

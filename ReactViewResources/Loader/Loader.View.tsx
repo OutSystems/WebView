@@ -3,7 +3,7 @@ import * as ReactDOM from "react-dom";
 import { PluginsContext, PluginsContextHolder } from "./PluginsContext";
 import { ViewContext } from "./ViewContext";
 import { ViewMetadata } from "./ViewMetadata";
-import { ViewPortalsCollection, ViewLifecycleEventHandler } from "./ViewPortalsCollection";
+import { ViewPortalsCollection, ViewLifecycleEventHandler, ViewErrorHandler } from "./ViewPortalsCollection";
 import { ResourceLoader, formatUrl } from "./ResourceLoader";
 
 export function createView(
@@ -12,7 +12,8 @@ export function createView(
     view: ViewMetadata,
     componentName: string,
     childViewAddedHandler: ViewLifecycleEventHandler,
-    childViewRemovedHandler: ViewLifecycleEventHandler) {
+    childViewRemovedHandler: ViewLifecycleEventHandler,
+    childViewErrorRaised: ViewErrorHandler) {
 
     componentClass.contextType = PluginsContext;
 
@@ -22,7 +23,10 @@ export function createView(
         <ViewContext.Provider value={view}>
             <PluginsContext.Provider value={new PluginsContextHolder(Array.from(view.modules.values()))}>
                 <ResourceLoader.Provider value={makeResourceUrl}>
-                    <ViewPortalsCollection views={view.childViews} viewAdded={childViewAddedHandler} viewRemoved={childViewRemovedHandler} />
+                    <ViewPortalsCollection views={view.childViews}
+                        viewAdded={childViewAddedHandler}
+                        viewRemoved={childViewRemovedHandler}
+                        viewErrorRaised={childViewErrorRaised} />
                     {React.createElement(componentClass, { ref: e => view.modules.set(componentName, e), ...properties })}
                 </ResourceLoader.Provider>
             </PluginsContext.Provider>

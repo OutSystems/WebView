@@ -3,15 +3,18 @@ import { webViewRootId, getStylesheets } from "./LoaderCommon"
 import { ViewMetadata } from "./ViewMetadata";
 
 export type ViewLifecycleEventHandler = (view: ViewMetadata) => void;
+export type ViewErrorHandler = (view: ViewMetadata, error: Error) => void;
 
 export interface IViewPortalProps {
     view: ViewMetadata
     viewMounted: ViewLifecycleEventHandler;
     viewUnmounted: ViewLifecycleEventHandler;
+    viewErrorRaised: ViewErrorHandler;
 }
 
 interface IViewPortalState {
     component: React.ReactElement;
+    hasError: boolean;
 }
 
 /**
@@ -25,14 +28,17 @@ interface IViewPortalState {
 export class ViewPortal extends React.Component<IViewPortalProps, IViewPortalState> {
 
     private head: Element;
-    private shadowRoot: Element;
+    private shadowRoot: HTMLElement;
 
     constructor(props: IViewPortalProps) {
         super(props);
 
-        this.state = { component: null! };
+        this.state = {
+            component: null!,
+            hasError: false
+        };
         
-        this.shadowRoot = props.view.placeholder.attachShadow({ mode: "open" }).getRootNode() as Element;
+        this.shadowRoot = props.view.placeholder.attachShadow({ mode: "open" }).getRootNode() as HTMLElement;
 
         props.view.renderHandler = component => this.renderPortal(component);
     }
@@ -48,7 +54,7 @@ export class ViewPortal extends React.Component<IViewPortalProps, IViewPortalSta
 
     public componentDidMount() {
         this.props.view.head = this.head;
-
+        
         const styleResets = document.createElement("style");
         styleResets.innerHTML = ":host { all: initial; display: block; }";
 
@@ -65,6 +71,11 @@ export class ViewPortal extends React.Component<IViewPortalProps, IViewPortalSta
         this.props.viewUnmounted(this.props.view);
     }
 
+    public componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+        // execute error handling inside promise, to avoid the error handler to rethrow exception inside componentDidCatch
+        Promise.resolve(null).then(() => this.props.viewErrorRaised(this.props.view, error));
+    }
+
     public render(): React.ReactNode {
         return ReactDOM.createPortal(
             <>
@@ -72,7 +83,7 @@ export class ViewPortal extends React.Component<IViewPortalProps, IViewPortalSta
                 </head>
                 <body>
                     <div id={webViewRootId} ref={e => this.props.view.root = e!}>
-                        {this.state.component ? this.state.component : null}
+                        {this.state.component && !this.state.hasError ? this.state.component : null}
                     </div>
                 </body>
             </>,
