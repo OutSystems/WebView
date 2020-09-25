@@ -7,9 +7,6 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <developmentDependency>true</developmentDependency>
     <description>Creates bundles for view files using webpack</description>
-    <dependencies>
-      <dependency id="Node.js.redist" version="10.16.3" />
-    </dependencies>
   </metadata>
   <files>
     <file src="build\**" target="build" />

@@ -52,24 +52,18 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Folder Include="build\node-sass-vendors\" />
     <Folder Include="tools\" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Node.js.redist">
-      <Version>10.16.3</Version>
-    </PackageReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PreBuildEvent>npm install --no-bin-links --prefix "$(ProjectDir)tools" "$(ProjectDir)tools"</PreBuildEvent>
   </PropertyGroup>
-  <PropertyGroup>
-    <PostBuildEvent Condition="'$(OS)' == 'Windows_NT'">"$(ProjectDir)..\packages\Node.js.redist.10.16.3\tools\win-x64\node.exe" "$(ProjectDir)tools\node_modules\node-sass\scripts\install.js"
-"$(ProjectDir)..\nuget" pack "$(ProjectDir)ViewPacker.nuspec" -OutputDirectory "$(ProjectDir)..\Nuget\ " -Properties Configuration=$(ConfigurationName)
-</PostBuildEvent>
-    <PostBuildEvent Condition="'$(OS)' != 'Windows_NT'">
-        "$(ProjectDir)..\packages\Node.js.redist.10.16.3\tools\osx-x64\node" "$(ProjectDir)tools\node_modules\node-sass\scripts\install.js"
-"$(ProjectDir)..\nuget" pack "$(ProjectDir)ViewPacker.nuspec" -OutputDirectory "$(ProjectDir)..\Nuget\ " -Properties Configuration=$(ConfigurationName)
-    </PostBuildEvent>
-  </PropertyGroup>
+  <Target Name="CopySassVendors" AfterTargets="AfterBuild">
+     <CreateItem Include="$(ProjectDir)build\node-sass-vendors\**\*.*">
+        <Output TaskParameter="Include" ItemName="FilesToCopy" />
+     </CreateItem>
+     <Copy SourceFiles="@(FilesToCopy)"
+           DestinationFiles="@(FilesToCopy->'$(ProjectDir)tools\node_modules\node-sass\vendor\%(RecursiveDir)%(Filename)%(Extension)')" />
+  </Target>
 </Project>
