@@ -25,4 +25,6 @@ For now we are using the following node versions:
 - 10.16.3
 - 12.18.4
 
+**Note:** If you wish to upgrade the node version at use, don't forget to delete/replace any previous bindings related to the OS (`darwin-x64-72/` represents node 12.X.X's version).
+
 ###################
