@@ -16,5 +16,13 @@ WebView is a WPF control that wraps [CefSharp](https://github.com/cefsharp/CefSh
 # Build pre-requisites
 - NodeJS
 
-# TODO
-- Improve documentation
+# ViewPacker
+
+We have a node package, _**node-sass**_ which creates a folder of vendors for each OS. However, to generate these vendors, the following command needs to run in each OS:
+Inside ViewPacker with node_modules installed, the user should run `node scripts/install.js` which will generate a new vendor folder inside `node_modules/node_sass/vendor/` for the user's selected OS. This new vendor folder (e.g. `darwin-x64-72/`) and its **binding.node** content file shall then be added to ViewPacker's `build/node-sass-vendors/`.
+
+For now we are using the following node versions:
+- 10.16.3
+- 12.18.4
+
+###################
