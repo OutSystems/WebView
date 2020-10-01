@@ -118,12 +118,15 @@ namespace WebViewControl {
             cefSettings.UncaughtExceptionStackSize = 100; // enable stack capture
             cefSettings.CachePath = CachePath; // enable cache for external resources to speedup loading
             cefSettings.WindowlessRenderingEnabled = OsrEnabled;
-
+            
             var customSchemes = CustomSchemes.Select(s => new CustomScheme() { SchemeName = s, SchemeHandlerFactory = new SchemeHandlerFactory() }).ToArray();
-
-            // disable NetworkService https://bitbucket.org/chromiumembedded/cef/issues/2795/crash-in-openinputstreamwrapper
+            
             var customFlags = new[] {
-                new KeyValuePair<string, string>("disable-features", "NetworkService,VizDisplayCompositor")
+                // disable NetworkService https://bitbucket.org/chromiumembedded/cef/issues/2795/crash-in-openinputstreamwrapper
+                new KeyValuePair<string, string>("disable-features", "NetworkService,VizDisplayCompositor"),
+
+                // enable experimental feature flags
+                new KeyValuePair<string, string>("enable-experimental-web-platform-features", null)
             };
 
             CefRuntimeLoader.Initialize(settings: cefSettings, flags: customFlags, customSchemes: customSchemes);
