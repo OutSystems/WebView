@@ -49,9 +49,9 @@
       <ExcludeAssets>all</ExcludeAssets>
     </PackageReference>
   </ItemGroup>
-  
+
   <Target Name="InjectModuleInitializer" AfterTargets="AfterBuild">
-    <Exec Command="..\packages\injectmoduleinitializer\2.0.3\tools\net35\InjectModuleInitializer.exe &quot;$(TargetPath)&quot;" />
+    <Exec Command="$(NuGetPackageRoot)\injectmoduleinitializer\2.0.3\tools\net35\InjectModuleInitializer.exe &quot;$(TargetPath)&quot;" />
   </Target>
     
 </Project>
