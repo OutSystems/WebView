@@ -16,7 +16,7 @@ Provides the following additional features:
 - Option to run in offscreen mode 
 
 # Build pre-requisites
-- NodeJS
+- CefGlue Nuget packages
 
 # TODO
 - Improve documentation
