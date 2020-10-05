@@ -1,0 +1,12 @@
+﻿{
+  "compilerOptions": {
+    "module": "commonjs",
+    "target": "es6",
+    "esModuleInterop": true
+  },
+  "compileOnSave": true,
+  "exclude": [
+    "dist",
+    "node_modules"
+  ]
+}
