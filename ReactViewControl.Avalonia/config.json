@@ -1,7 +1,0 @@
-{
-	"slnFilePath": "../WebView.sln",
-	"configuration": "Release",
-	"testsdllFilePath": "../Tests.ReactView/bin/Tests.ReactView.dll",
-	"csprojFilePath": "./ReactViewControl.Avalonia.csproj",
-	"packageRootPath":"../"
-}

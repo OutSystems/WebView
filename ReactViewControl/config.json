@@ -1,7 +1,0 @@
-{
-	"slnFilePath": "../WebView.sln",
-	"configuration": "Release",
-	"testsdllFilePath": "../Release/Tests.dll",
-	"csprojFilePath": "./ReactViewControl.csproj",
-	"packageRootPath":"../"
-}

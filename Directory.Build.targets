@@ -1,7 +1,0 @@
-<Project>
-  <Target Name="NpmInstall" BeforeTargets="BeforeBuild" Inputs="@(PackageJsons)" Outputs="$(NpmInstallStampFile)">
-    <Message Importance="high" Text="Installing packages from %(PackageJsons.Identity)"/>
-    <Exec Command="npm install" WorkingDirectory="%(PackageJsons.RootDir)%(PackageJsons.Directory)"/>
-    <Touch Files="$(NpmInstallStampFile)" AlwaysCreate="true" />
-  </Target>
-</Project>
