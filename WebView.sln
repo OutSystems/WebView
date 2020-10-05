@@ -17,9 +17,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example.Avalonia", "Example
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ReactViewControl", "ReactViewControl\ReactViewControl.csproj", "{4FE01227-BBE0-4B87-9B11-2418F6F77512}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.WebView", "Tests.WebView\Tests.WebView.csproj", "{BE65D793-AFB3-4F5D-A85F-7B7396A5FE59}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.WebView", "Tests.WebView\Tests.WebView.csproj", "{BE65D793-AFB3-4F5D-A85F-7B7396A5FE59}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests.ReactView", "Tests.ReactView\Tests.ReactView.csproj", "{34EDE6B5-1AFA-45E2-BFD2-048D8BD5FA5C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.ReactView", "Tests.ReactView\Tests.ReactView.csproj", "{34EDE6B5-1AFA-45E2-BFD2-048D8BD5FA5C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleWebView.Avalonia", "SampleWebView.Avalonia\SampleWebView.Avalonia.csproj", "{68B0F20F-77AE-4819-83CB-92C9C78E8E05}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -137,6 +139,18 @@ Global
 		{34EDE6B5-1AFA-45E2-BFD2-048D8BD5FA5C}.Release|x64.Build.0 = Release|Any CPU
 		{34EDE6B5-1AFA-45E2-BFD2-048D8BD5FA5C}.Release|x86.ActiveCfg = Release|Any CPU
 		{34EDE6B5-1AFA-45E2-BFD2-048D8BD5FA5C}.Release|x86.Build.0 = Release|Any CPU
+		{68B0F20F-77AE-4819-83CB-92C9C78E8E05}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{68B0F20F-77AE-4819-83CB-92C9C78E8E05}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{68B0F20F-77AE-4819-83CB-92C9C78E8E05}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{68B0F20F-77AE-4819-83CB-92C9C78E8E05}.Debug|x64.Build.0 = Debug|Any CPU
+		{68B0F20F-77AE-4819-83CB-92C9C78E8E05}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{68B0F20F-77AE-4819-83CB-92C9C78E8E05}.Debug|x86.Build.0 = Debug|Any CPU
+		{68B0F20F-77AE-4819-83CB-92C9C78E8E05}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{68B0F20F-77AE-4819-83CB-92C9C78E8E05}.Release|Any CPU.Build.0 = Release|Any CPU
+		{68B0F20F-77AE-4819-83CB-92C9C78E8E05}.Release|x64.ActiveCfg = Release|Any CPU
+		{68B0F20F-77AE-4819-83CB-92C9C78E8E05}.Release|x64.Build.0 = Release|Any CPU
+		{68B0F20F-77AE-4819-83CB-92C9C78E8E05}.Release|x86.ActiveCfg = Release|Any CPU
+		{68B0F20F-77AE-4819-83CB-92C9C78E8E05}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
