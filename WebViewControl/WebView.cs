@@ -118,7 +118,8 @@ namespace WebViewControl {
             cefSettings.UncaughtExceptionStackSize = 100; // enable stack capture
             cefSettings.CachePath = CachePath; // enable cache for external resources to speedup loading
             cefSettings.WindowlessRenderingEnabled = OsrEnabled;
-            
+            cefSettings.RemoteDebuggingPort = RemoteDebuggingPort;
+
             var customSchemes = CustomSchemes.Select(s => new CustomScheme() { SchemeName = s, SchemeHandlerFactory = new SchemeHandlerFactory() }).ToArray();
             
             var customFlags = new[] {
@@ -629,6 +630,8 @@ namespace WebViewControl {
         public static bool PersistCache { get; set; } = false;
 
         public static bool EnableErrorLogOnly { get; set; } = false;
+        
+        public static int RemoteDebuggingPort { get; set; }
 
         internal bool IsDisposing => isDisposing;
 
