@@ -118,7 +118,7 @@ namespace WebViewControl {
             cefSettings.UncaughtExceptionStackSize = 100; // enable stack capture
             cefSettings.CachePath = CachePath; // enable cache for external resources to speedup loading
             cefSettings.WindowlessRenderingEnabled = OsrEnabled;
-            cefSettings.RemoteDebuggingPort = RemoteDebuggingPort;
+            cefSettings.RemoteDebuggingPort = GetRemoteDebuggingPort();
 
             var customSchemes = CustomSchemes.Select(s => new CustomScheme() { SchemeName = s, SchemeHandlerFactory = new SchemeHandlerFactory() }).ToArray();
             
@@ -630,8 +630,6 @@ namespace WebViewControl {
         public static bool PersistCache { get; set; } = false;
 
         public static bool EnableErrorLogOnly { get; set; } = false;
-        
-        public static int RemoteDebuggingPort { get; set; }
 
         internal bool IsDisposing => isDisposing;
 
@@ -741,6 +739,17 @@ namespace WebViewControl {
             } else {
                 ShowDeveloperTools();
             }
+        }
+
+        private static int GetRemoteDebuggingPort() {
+#if REMOTE_DEBUG_SUPPORT
+            const string ArgPrefix = "-remoteDebuggingPort=";
+            var arg = Environment.GetCommandLineArgs().FirstOrDefault(a => a.StartsWith(ArgPrefix));
+            int.TryParse(arg != null ? arg.Substring(ArgPrefix.Length) : "", out var result);
+            return result;
+#else
+            return 0;
+#endif
         }
 
         internal static bool IsMainFrame(string frameName) {
