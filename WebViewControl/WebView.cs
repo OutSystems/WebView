@@ -1,4 +1,7 @@
-﻿using System;
+﻿#if REMOTE_DEBUG_SUPPORT
+using Microsoft.Extensions.Configuration;
+#endif
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -743,9 +746,11 @@ namespace WebViewControl {
 
         private static int GetRemoteDebuggingPort() {
 #if REMOTE_DEBUG_SUPPORT
-            const string ArgPrefix = "-remoteDebuggingPort=";
-            var arg = Environment.GetCommandLineArgs().FirstOrDefault(a => a.StartsWith(ArgPrefix));
-            int.TryParse(arg != null ? arg.Substring(ArgPrefix.Length) : "", out var result);
+            var configurationBuilder = new ConfigurationBuilder();
+            configurationBuilder.AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
+            var configuration = configurationBuilder.Build();
+            var port = configuration["RemoteDebuggingPort"];
+            int.TryParse(port != null ? port : "", out var result);
             return result;
 #else
             return 0;
