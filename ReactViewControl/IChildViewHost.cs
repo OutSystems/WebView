@@ -1,4 +1,6 @@
-﻿namespace ReactViewControl {
+﻿using System;
+
+namespace ReactViewControl {
 
     public interface IChildViewHost {
         void LoadComponent(string frameName);
@@ -8,5 +10,7 @@
         ReactView Host { get; }
 
         bool IsHotReloadEnabled { get; }
+
+        Uri DevServerUri { get; }
     }
 }
