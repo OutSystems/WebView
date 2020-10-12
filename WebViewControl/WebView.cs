@@ -1,4 +1,7 @@
-﻿using System;
+﻿#if REMOTE_DEBUG_SUPPORT
+using Microsoft.Extensions.Configuration;
+#endif
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -118,7 +121,8 @@ namespace WebViewControl {
             cefSettings.UncaughtExceptionStackSize = 100; // enable stack capture
             cefSettings.CachePath = CachePath; // enable cache for external resources to speedup loading
             cefSettings.WindowlessRenderingEnabled = OsrEnabled;
-            
+            cefSettings.RemoteDebuggingPort = GetRemoteDebuggingPort();
+
             var customSchemes = CustomSchemes.Select(s => new CustomScheme() { SchemeName = s, SchemeHandlerFactory = new SchemeHandlerFactory() }).ToArray();
             
             var customFlags = new[] {
@@ -738,6 +742,19 @@ namespace WebViewControl {
             } else {
                 ShowDeveloperTools();
             }
+        }
+
+        private static int GetRemoteDebuggingPort() {
+#if REMOTE_DEBUG_SUPPORT
+            var configurationBuilder = new ConfigurationBuilder();
+            configurationBuilder.AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
+            var configuration = configurationBuilder.Build();
+            var port = configuration["RemoteDebuggingPort"];
+            int.TryParse(port != null ? port : "", out var result);
+            return result;
+#else
+            return 0;
+#endif
         }
 
         internal static bool IsMainFrame(string frameName) {

@@ -15,7 +15,7 @@
     <PackageId>WebViewControl-WPF</PackageId>
     <Authors>OutSystems</Authors>
     <PackageOutputPath>$(MSBuildProjectDirectory)\..\nuget</PackageOutputPath>
-    <Configurations>Debug;Release;ReleaseAvalonia;ReleaseWPF</Configurations>
+    <Configurations>Debug;Release;ReleaseAvalonia;ReleaseWPF;ReleaseAvaloniaRemoteDebugSupport</Configurations>
   </PropertyGroup>
   
   <ItemGroup>
