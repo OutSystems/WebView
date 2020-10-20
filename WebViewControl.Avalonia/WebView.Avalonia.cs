@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Runtime.ExceptionServices;
+using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Threading;
 using Xilium.CefGlue.Common;
@@ -10,6 +12,25 @@ namespace WebViewControl {
     partial class WebView : BaseControl {
 
         private static bool osrEnabled = true;
+
+        public static readonly StyledProperty<string> CurrentAddressProperty =
+            AvaloniaProperty.Register<WebView, string>(nameof(CurrentAddress), defaultBindingMode: BindingMode.TwoWay);
+
+        public string CurrentAddress
+        {
+            get => GetValue(CurrentAddressProperty);
+            set => SetValue(CurrentAddressProperty, value);
+        }
+
+        protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
+        {
+            base.OnPropertyChanged(change);
+
+            if (change.Property == CurrentAddressProperty)
+            {
+                Address = CurrentAddress;
+            }
+        }
 
         partial void ExtraInitialize() {
             VisualChildren.Add(chromium);
