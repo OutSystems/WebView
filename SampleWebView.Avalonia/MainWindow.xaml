@@ -26,7 +26,7 @@
             </TextBox>
 
 
-            <webview:WebView x:Name="PART_WebView" CurrentAddress="{Binding CurrentAddress}" />
+            <webview:WebView CurrentAddress="{Binding CurrentAddress}" />
         </DockPanel>
     </Panel>
 </Window>

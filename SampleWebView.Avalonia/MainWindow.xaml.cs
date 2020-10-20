@@ -6,8 +6,6 @@ namespace SampleWebView.Avalonia
 {
     internal class MainWindow : Window
     {
-        private WebView _webView;
-        
         public MainWindow()
         {
             WebView.OsrEnabled = false;
@@ -19,8 +17,6 @@ namespace SampleWebView.Avalonia
         private void InitializeComponent()
         {
             AvaloniaXamlLoader.Load(this);
-
-            _webView = this.FindControl<WebView>("PART_WebView");
         }
     }
 }
