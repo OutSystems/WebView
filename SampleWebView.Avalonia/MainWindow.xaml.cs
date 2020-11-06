@@ -4,25 +4,19 @@ using WebViewControl;
 
 namespace SampleWebView.Avalonia
 {
-
     internal class MainWindow : Window
     {
-
         public MainWindow()
         {
             WebView.OsrEnabled = false;
             InitializeComponent();
+
+            DataContext = new MainWindowViewModel();
         }
 
         private void InitializeComponent()
         {
             AvaloniaXamlLoader.Load(this);
-
-            var webView = new WebView();
-            webView.Address = "http://www.google.com";
-
-            var grid = this.FindControl<Grid>("grid");
-            grid.Children.Add(webView);
         }
     }
 }

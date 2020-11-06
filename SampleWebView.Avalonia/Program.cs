@@ -1,4 +1,5 @@
 ﻿using Avalonia;
+using Avalonia.ReactiveUI;
 
 namespace SampleWebView.Avalonia
 {
@@ -8,6 +9,7 @@ namespace SampleWebView.Avalonia
         {
             AppBuilder.Configure<App>()
                       .UsePlatformDetect()
+                      .UseReactiveUI()
                       .StartWithClassicDesktopLifetime(args);
         }
     }
