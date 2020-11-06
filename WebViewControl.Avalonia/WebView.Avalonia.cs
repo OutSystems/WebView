@@ -13,30 +13,9 @@ namespace WebViewControl {
 
         private static bool osrEnabled = true;
 
-        public static readonly StyledProperty<string> CurrentAddressProperty =
-            AvaloniaProperty.Register<WebView, string>(nameof(CurrentAddress), defaultBindingMode: BindingMode.TwoWay);
+        private bool IsInDesignMode => false;
 
-        public string CurrentAddress
-        {
-            get => GetValue(CurrentAddressProperty);
-            set => SetValue(CurrentAddressProperty, value);
-        }
-
-        protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change)
-        {
-            base.OnPropertyChanged(change);
-
-            if (change.Property == CurrentAddressProperty)
-            {
-                Address = CurrentAddress;
-            }
-        }
-
-        partial void ExtraInitialize() {
-            VisualChildren.Add(chromium);
-        }
-        
-        public static bool OsrEnabled { 
+        public static bool OsrEnabled {
             get => osrEnabled;
             set {
                 if (CefRuntimeLoader.IsLoaded) {
@@ -46,9 +25,25 @@ namespace WebViewControl {
             }
         }
 
-        internal IInputElement FocusableElement => chromium;
+        public static readonly StyledProperty<string> CurrentAddressProperty =
+            AvaloniaProperty.Register<WebView, string>(nameof(CurrentAddress), defaultBindingMode: BindingMode.TwoWay);
 
-        private bool IsInDesignMode => false;
+        public string CurrentAddress {
+            get => GetValue(CurrentAddressProperty);
+            set => SetValue(CurrentAddressProperty, value);
+        }
+
+        protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change) {
+            base.OnPropertyChanged(change);
+
+            if (change.Property == CurrentAddressProperty) {
+                Address = CurrentAddress;
+            }
+        }
+
+        partial void ExtraInitialize() {
+            VisualChildren.Add(chromium);
+        }
 
         protected override void OnKeyDown(KeyEventArgs e) {
             if (AllowDeveloperTools && e.Key == Key.F12) {
@@ -56,6 +51,13 @@ namespace WebViewControl {
                 e.Handled = true;
             }
         }
+
+        protected override void OnGotFocus(GotFocusEventArgs e) {
+            e.Handled = true;
+            chromium.Focus();
+        }
+
+        protected override void InternalDispose() => Dispose();
 
         private void ForwardException(ExceptionDispatchInfo exceptionInfo) {
             // TODO
@@ -85,12 +87,5 @@ namespace WebViewControl {
         internal void InitializeBrowser(WindowBase hostingWindow, int initialWidth, int initialHeight) {
             chromium.CreateBrowser(hostingWindow, initialWidth, initialHeight);
         }
-
-        protected override void OnGotFocus(GotFocusEventArgs e) {
-            e.Handled = true;
-            chromium.Focus();
-        }
-
-        protected override void InternalDispose() => Dispose();
     }
 }
