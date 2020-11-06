@@ -6,7 +6,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using System.Threading;
@@ -36,8 +35,6 @@ namespace WebViewControl {
 
     public partial class WebView : IDisposable {
 
-        private const string AboutBlankUrl = "about:blank";
-
         private const string MainFrameName = null;
 
         private static string[] CustomSchemes { get; } = new[] {
@@ -63,7 +60,6 @@ namespace WebViewControl {
         private volatile bool isDisposing;
         private IDisposable[] disposables;
 
-        private BrowserObjectListener EventsListener { get; } = new BrowserObjectListener();
         private CancellationTokenSource AsyncCancellationTokenSource { get; } = new CancellationTokenSource();
 
         public event Action WebViewInitialized;
@@ -103,6 +99,14 @@ namespace WebViewControl {
         private string CurrentDomainId { get; }
 
         private string DefaultLocalUrl { get; }
+
+        public static string LogFile { get; set; }
+
+        public static string CachePath { get; set; } = Path.Combine(Path.GetTempPath(), "WebView" + Guid.NewGuid().ToString().Replace("-", null) + DateTime.UtcNow.Ticks);
+
+        public static bool PersistCache { get; set; } = false;
+
+        public static bool EnableErrorLogOnly { get; set; } = false;
 
         /// <summary>
         /// Executed when a web view is initialized. Can be used to attach or configure the webview before it's ready.
@@ -154,6 +158,8 @@ namespace WebViewControl {
                 if (dirInfo.Exists) {
                     dirInfo.Delete(true);
                 }
+            } catch (UnauthorizedAccessException) {
+                // ignore
             } catch (IOException) {
                 // ignore
             }
@@ -188,11 +194,11 @@ namespace WebViewControl {
             chromium.BrowserInitialized += OnWebViewBrowserInitialized;
             chromium.LoadEnd += OnWebViewLoadEnd;
             chromium.LoadError += OnWebViewLoadError;
-            chromium.TitleChanged += OnWebViewTitleChanged;
+            chromium.TitleChanged += delegate { TitleChanged?.Invoke(); };
             chromium.JavascriptContextCreated += OnJavascriptContextCreated;
             chromium.JavascriptContextReleased += OnJavascriptContextReleased;
             chromium.JavascriptUncaughException += OnJavascriptUncaughException;
-            chromium.UnhandledException += OnUnhandledException;
+            chromium.UnhandledException += (o, e) => ForwardUnhandledAsyncException(e.Exception);
 
             chromium.RequestHandler = new InternalRequestHandler(this);
             chromium.LifeSpanHandler = new InternalLifeSpanHandler(this);
@@ -207,8 +213,6 @@ namespace WebViewControl {
                 chromium,
                 AsyncCancellationTokenSource
             };
-
-            RegisterJavascriptObject(Listener.EventListenerObjName, EventsListener);
 
             ExtraInitialize();
 
@@ -281,18 +285,17 @@ namespace WebViewControl {
             InternalDispose();
         }
 
-        public void ShowDeveloperTools() {
-            ExecuteWhenInitialized(() => {
-                chromium.ShowDeveloperTools();
-                isDeveloperToolsOpened = true;
-            });
-        }
+        internal ChromiumBrowser UnderlyingBrowser => chromium;
 
-        public void CloseDeveloperTools() {
-            if (isDeveloperToolsOpened) {
-                chromium.CloseDeveloperTools();
-                isDeveloperToolsOpened = false;
-            }
+        internal bool IsDisposing => isDisposing;
+
+        /// <summary>
+        /// Specifies the maximium number of calls that can be made simultaneously to native
+        //  object methods. Defaults to the int.MaxValue.
+        /// </summary>
+        internal int MaxNativeMethodsParallelCalls {
+            get => chromium.MaxNativeMethodsParallelCalls;
+            set => chromium.MaxNativeMethodsParallelCalls = value;
         }
 
         public bool AllowDeveloperTools { get; set; }
@@ -302,29 +305,20 @@ namespace WebViewControl {
             set { LoadUrl(value, MainFrameName); }
         }
 
-        public void LoadUrl(string address, string frameName) {
-            if (IsMainFrame(frameName) && address != DefaultLocalUrl) {
-                htmlToLoad = null;
-            }
-            if (address.Contains(Uri.SchemeDelimiter) || address == UrlHelper.AboutBlankUrl || address.StartsWith("data:")) {
-                if (IsMainFrame(frameName)) {
-                    chromium.Address = address;
-                } else {
-                    GetFrame(frameName)?.LoadUrl(address);
-                }
-            } else {
-                var userAssembly = GetUserCallingMethod().ReflectedType.Assembly;
-                LoadUrl(new ResourceUrl(userAssembly, address).WithDomain(CurrentDomainId), frameName);
-            }
+        public bool CanGoBack {
+            get { return chromium.CanGoBack; }
         }
 
-        public void LoadResource(ResourceUrl resourceUrl, string frameName = MainFrameName) {
-            LoadUrl(resourceUrl.WithDomain(CurrentDomainId), frameName);
+        public bool CanGoForward {
+            get { return chromium.CanGoForward; }
         }
 
-        public void LoadHtml(string html) {
-            htmlToLoad = html;
-            LoadUrl(DefaultLocalUrl, MainFrameName);
+        public void GoBack() {
+            chromium.GoBack();
+        }
+
+        public void GoForward() {
+            chromium.GoForward();
         }
 
         public bool IsSecurityDisabled {
@@ -355,130 +349,6 @@ namespace WebViewControl {
 
         public bool IgnoreMissingResources { get; set; }
 
-        /// <summary>
-        /// Registers an object with the specified name in the window context of the browser
-        /// </summary>
-        /// <param name="name"></param>
-        /// <param name="objectToBind"></param>
-        /// <param name="interceptCall"></param>
-        /// <param name="executeCallsInUI"></param>
-        /// <returns>True if the object was registered or false if the object was already registered before</returns>
-        public bool RegisterJavascriptObject(string name, object objectToBind, Func<Func<object>, object> interceptCall = null, bool executeCallsInUI = false) {
-            if (chromium.IsJavascriptObjectRegistered(name)) {
-                return false;
-            }
-
-            if (executeCallsInUI) {
-                return RegisterJavascriptObject(name, objectToBind, target => ExecuteInUI<object>(target), false);
-            }
-
-            if (interceptCall == null) {
-                interceptCall = target => target();
-            }
-
-            object CallTargetMethod(Func<object> target) {
-                if (isDisposing) {
-                    return null;
-                }
-                try {
-                    JavascriptPendingCalls.AddCount();
-                    if (isDisposing) {
-                        // check again, to avoid concurrency problems with dispose
-                        return null;
-                    }
-                    return interceptCall(target);
-                } finally {
-                    JavascriptPendingCalls.Signal();
-                }
-            }
-
-            chromium.RegisterJavascriptObject(objectToBind, name, CallTargetMethod);
-
-            return true;
-        }
-
-        /// <summary>
-        /// Unregisters an object with the specified name in the window context of the browser
-        /// </summary>
-        /// <param name="name"></param>
-        public void UnregisterJavascriptObject(string name) {
-            chromium.UnregisterJavascriptObject(name);
-        }
-
-        public T EvaluateScript<T>(string script, string frameName = MainFrameName, TimeSpan? timeout = null) {
-            var jsExecutor = GetJavascriptExecutor(frameName);
-            if (jsExecutor != null) {
-                return jsExecutor.EvaluateScript<T>(script, timeout: timeout);
-            }
-            return default(T);
-        }
-
-        public void ExecuteScript(string script, string frameName = MainFrameName) {
-            GetJavascriptExecutor(frameName)?.ExecuteScript(script);
-        }
-
-        public void ExecuteScriptFunction(string functionName, params string[] args) {
-            ExecuteScriptFunctionInFrame(functionName, MainFrameName, args);
-        }
-
-        public void ExecuteScriptFunctionInFrame(string functionName, string frameName, params string[] args) {
-            GetJavascriptExecutor(frameName)?.ExecuteScriptFunction(functionName, false, args);
-        }
-
-        public T EvaluateScriptFunction<T>(string functionName, params string[] args) {
-            return EvaluateScriptFunctionInFrame<T>(functionName, MainFrameName, args);
-        }
-
-        public T EvaluateScriptFunctionInFrame<T>(string functionName, string frameName, params string[] args) {
-            var jsExecutor = GetJavascriptExecutor(frameName);
-            if (jsExecutor != null) {
-                return jsExecutor.EvaluateScriptFunction<T>(functionName, false, args);
-            }
-            return default(T);
-        }
-
-        internal void ExecuteScriptFunctionWithSerializedParams(string functionName, params object[] args) {
-            ExecuteScriptFunctionWithSerializedParamsInFrame(functionName, MainFrameName, args);
-        }
-
-        internal void ExecuteScriptFunctionWithSerializedParamsInFrame(string functionName, string frameName, params object[] args) {
-            GetJavascriptExecutor(frameName)?.ExecuteScriptFunction(functionName, true, args);
-        }
-
-        internal T EvaluateScriptFunctionWithSerializedParams<T>(string functionName, params object[] args) {
-            return EvaluateScriptFunctionWithSerializedParamsInFrame<T>(functionName, MainFrameName, args);
-        }
-
-        internal T EvaluateScriptFunctionWithSerializedParamsInFrame<T>(string functionName, string frameName, params object[] args) {
-            var jsExecutor = GetJavascriptExecutor(frameName);
-            if (jsExecutor != null) {
-                return jsExecutor.EvaluateScriptFunction<T>(functionName, true, args);
-            }
-            return default(T);
-        }
-
-        public bool CanGoBack {
-            get { return chromium.CanGoBack; }
-        }
-
-        public bool CanGoForward {
-            get { return chromium.CanGoForward; }
-        }
-
-        public void GoBack() {
-            chromium.GoBack();
-        }
-
-        public void GoForward() {
-            chromium.GoForward();
-        }
-
-        public void Reload(bool ignoreCache = false) {
-            if (IsBrowserInitialized && !chromium.IsLoading) {
-                chromium.Reload(ignoreCache);
-            }
-        }
-
         public string Title {
             get { return chromium.Title; }
         }
@@ -488,18 +358,57 @@ namespace WebViewControl {
             set { ExecuteWhenInitialized(() => chromium.ZoomLevel = Math.Log(value, PercentageToZoomFactor)); }
         }
 
-        public Listener AttachListener(string name) {
-            void HandleEvent(ListenerEventHandler handler, object[] args, bool executeInUI) {
-                if (!isDisposing) {
-                    if (executeInUI) {
-                        AsyncExecuteInUI(() => handler(new object[] { args }));
-                    } else {
-                        ExecuteWithAsyncErrorHandling(handler, new object[] { args });
-                    }
-                }
-            }
+        public void ShowDeveloperTools() {
+            ExecuteWhenInitialized(() => {
+                chromium.ShowDeveloperTools();
+                isDeveloperToolsOpened = true;
+            });
+        }
 
-            return new Listener(name, HandleEvent, EventsListener);
+        public void CloseDeveloperTools() {
+            if (isDeveloperToolsOpened) {
+                chromium.CloseDeveloperTools();
+                isDeveloperToolsOpened = false;
+            }
+        }
+
+        private void ToggleDeveloperTools() {
+            if (isDeveloperToolsOpened) {
+                CloseDeveloperTools();
+            } else {
+                ShowDeveloperTools();
+            }
+        }
+
+        public void LoadUrl(string address, string frameName) {
+            if (this.IsMainFrame(frameName) && address != DefaultLocalUrl) {
+                htmlToLoad = null;
+            }
+            if (address.Contains(Uri.SchemeDelimiter) || address == UrlHelper.AboutBlankUrl || address.StartsWith("data:")) {
+                if (this.IsMainFrame(frameName)) {
+                    chromium.Address = address;
+                } else {
+                    this.GetFrame(frameName)?.LoadUrl(address);
+                }
+            } else {
+                var userAssembly = ResourceUrl.GetUserCallingMethod().ReflectedType.Assembly;
+                LoadUrl(new ResourceUrl(userAssembly, address).WithDomain(CurrentDomainId), frameName);
+            }
+        }
+
+        public void LoadResource(ResourceUrl resourceUrl, string frameName = MainFrameName) {
+            LoadUrl(resourceUrl.WithDomain(CurrentDomainId), frameName);
+        }
+
+        public void LoadHtml(string html) {
+            htmlToLoad = html;
+            LoadUrl(DefaultLocalUrl, MainFrameName);
+        }
+
+        public void Reload(bool ignoreCache = false) {
+            if (IsBrowserInitialized && !chromium.IsLoading) {
+                chromium.Reload(ignoreCache);
+            }
         }
 
         private void OnWebViewBrowserInitialized() {
@@ -557,20 +466,6 @@ namespace WebViewControl {
             }
         }
 
-        private void OnWebViewTitleChanged(object sender, string title) {
-            TitleChanged?.Invoke();
-        }
-
-        internal static MethodBase GetUserCallingMethod(bool captureFilenames = false) {
-            var currentAssembly = typeof(WebView).Assembly;
-            var callstack = new StackTrace(captureFilenames).GetFrames().Select(f => f.GetMethod()).Where(m => m.ReflectedType.Assembly != currentAssembly);
-            var userMethod = callstack.First(m => !IsFrameworkAssemblyName(m.ReflectedType.Assembly.GetName().Name));
-            if (userMethod == null) {
-                throw new InvalidOperationException("Unable to find calling method");
-            }
-            return userMethod;
-        }
-
         private void ExecuteWhenInitialized(Action action) {
             if (IsBrowserInitialized) {
                 action();
@@ -585,6 +480,7 @@ namespace WebViewControl {
             }
         }
 
+        [DebuggerNonUserCode]
         private void ExecuteWithAsyncErrorHandling(Action action) {
             ExecuteWithAsyncErrorHandlingOnFrame(action, null);
         }
@@ -595,15 +491,6 @@ namespace WebViewControl {
                 action();
             } catch (Exception e) {
                 ForwardUnhandledAsyncException(e, frameName);
-            }
-        }
-
-        [DebuggerNonUserCode]
-        private void ExecuteWithAsyncErrorHandling(Delegate method, params object[] args) {
-            try {
-                method.DynamicInvoke(args);
-            } catch (Exception e) {
-                ForwardUnhandledAsyncException(e.InnerException);
             }
         }
 
@@ -626,38 +513,11 @@ namespace WebViewControl {
             }
         }
 
-        public static string LogFile { get; set; }
-
-        public static string CachePath { get; set; } = Path.Combine(Path.GetTempPath(), "WebView" + Guid.NewGuid().ToString().Replace("-", null) + DateTime.UtcNow.Ticks);
-
-        public static bool PersistCache { get; set; } = false;
-
-        public static bool EnableErrorLogOnly { get; set; } = false;
-
-        internal bool IsDisposing => isDisposing;
-
-        protected virtual string GetRequestUrl(string url, ResourceType resourceType) {
-            return url;
-        }
-
-        public string[] GetFrameNames() {
-            var browser = chromium.GetBrowser();
-            return browser?.GetFrameNames().Where(n => !IsMainFrame(n)).ToArray() ?? new string[0];
-        }
-
-        internal bool HasFrame(string name) {
-            return GetFrame(name) != null;
-        }
-
-        private CefFrame GetFrame(string frameName) {
-            return chromium.GetBrowser()?.GetFrame(frameName ?? "");
-        }
-
         private JavascriptExecutor GetJavascriptExecutor(string frameName) {
             lock (JsExecutors) {
                 var frameNameForIndex = frameName ?? "";
                 if (!JsExecutors.TryGetValue(frameNameForIndex, out var jsExecutor)) {
-                    jsExecutor = new JavascriptExecutor(this, GetFrame(frameName));
+                    jsExecutor = new JavascriptExecutor(this, this.GetFrame(frameName));
                     JsExecutors.Add(frameNameForIndex, jsExecutor);
                 }
                 return jsExecutor;
@@ -677,7 +537,7 @@ namespace WebViewControl {
                 lock (JsExecutors) {
                     var frameName = frame.Name;
 
-                    if (IsMainFrame(frameName)) {
+                    if (this.IsMainFrame(frameName)) {
                         // when a new main frame in created, dispose all running executors -> since they should not be valid anymore
                         // all child iframes were gone
                         DisposeJavascriptExecutors(JsExecutors.Where(je => !je.Value.IsValid).Select(je => je.Key).ToArray());
@@ -716,10 +576,6 @@ namespace WebViewControl {
             ForwardUnhandledAsyncException(javascriptException, e.Frame.Name);
         }
 
-        private void OnUnhandledException(object sender, AsyncUnhandledExceptionEventArgs e) {
-            ForwardUnhandledAsyncException(e.Exception);
-        }
-
         private void HandleRenderProcessCrashed() {
             lock (JsExecutors) {
                 DisposeJavascriptExecutors(JsExecutors.Keys.ToArray());
@@ -736,12 +592,8 @@ namespace WebViewControl {
             }
         }
 
-        private void ToggleDeveloperTools() {
-            if (isDeveloperToolsOpened) {
-                CloseDeveloperTools();
-            } else {
-                ShowDeveloperTools();
-            }
+        protected virtual string GetRequestUrl(string url, ResourceType resourceType) {
+            return url;
         }
 
         private static int GetRemoteDebuggingPort() {
@@ -755,23 +607,6 @@ namespace WebViewControl {
 #else
             return 0;
 #endif
-        }
-
-        internal static bool IsMainFrame(string frameName) {
-            return string.IsNullOrEmpty(frameName);
-        }
-
-        /// <summary>
-        /// Specifies the maximium number of calls that can be made simultaneously to native
-        //  object methods. Defaults to the int.MaxValue.
-        /// </summary>
-        internal int MaxNativeMethodsParallelCalls { 
-            get => chromium.MaxNativeMethodsParallelCalls; 
-            set => chromium.MaxNativeMethodsParallelCalls = value;
-        }
-
-        internal void SendKeyEvent(CefKeyEvent keyEvent) {
-            chromium.GetBrowser()?.GetHost()?.SendKeyEvent(keyEvent);
         }
     }
 }
