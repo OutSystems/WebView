@@ -12,7 +12,7 @@
     <Product>WebViewControl</Product>
     <Copyright>Copyright ©  2019</Copyright>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.75.62</Version>
+    <Version>2.75.63</Version>
     <PackageId>WebViewControl-Avalonia</PackageId>
     <Authors>OutSystems</Authors>
     <PackageOutputPath>$(MSBuildProjectDirectory)\..\nuget</PackageOutputPath>
@@ -27,11 +27,9 @@
   <ItemGroup>
     <Compile Include="..\WebViewControl\AssemblyCache.cs" Link="AssemblyCache.cs" />
     <Compile Include="..\WebViewControl\AsyncResourceHandler.cs" Link="AsyncResourceHandler.cs" />
-    <Compile Include="..\WebViewControl\BrowserObjectListener.cs" Link="BrowserObjectListener.cs" />
     <Compile Include="..\WebViewControl\CefLoader.cs" Link="CefLoader.cs" />
     <Compile Include="..\WebViewControl\ChromiumBrowser.cs" Link="ChromiumBrowser.cs" />
     <Compile Include="..\WebViewControl\JavascriptSerializationHelper.cs" Link="JavascriptSerializationHelper.cs" />
-    <Compile Include="..\WebViewControl\Listener.cs" Link="Listener.cs" />
     <Compile Include="..\WebViewControl\ModuleInitializer.cs" Link="ModuleInitializer.cs" />
     <Compile Include="..\WebViewControl\ProxyAuthentication.cs" Link="ProxyAuthentication.cs" />
     <Compile Include="..\WebViewControl\RenderProcessTerminatedException.cs" Link="RenderProcessTerminatedException.cs" />
@@ -44,6 +42,7 @@
     <Compile Include="..\WebViewControl\UnhandledAsyncExceptionEventArgs.cs" Link="UnhandledAsyncExceptionEventArgs.cs" />
     <Compile Include="..\WebViewControl\UrlHelper.cs" Link="UrlHelper.cs" />
     <Compile Include="..\WebViewControl\WebView.cs" Link="WebView.cs" />
+    <Compile Include="..\WebViewControl\WebView.Extensions.cs" Link="WebView.Extensions.cs" />
     <Compile Include="..\WebViewControl\WebView.InternalContextMenuHandler.cs" Link="WebView.InternalContextMenuHandler.cs" />
     <Compile Include="..\WebViewControl\WebView.InternalDialogHandler.cs" Link="WebView.InternalDialogHandler.cs" />
     <Compile Include="..\WebViewControl\WebView.InternalDownloadHandler.cs" Link="WebView.InternalDownloadHandler.cs" />
@@ -54,6 +53,7 @@
     <Compile Include="..\WebViewControl\WebView.InternalRequestHandler.cs" Link="WebView.InternalRequestHandler.cs" />
     <Compile Include="..\WebViewControl\WebView.InternalResourceRequestHandler.cs" Link="WebView.InternalResourceRequestHandler.cs" />
     <Compile Include="..\WebViewControl\WebView.JavascriptException.cs" Link="WebView.JavascriptException.cs" />
+    <Compile Include="..\WebViewControl\WebView.JavascriptExecutionApi.cs" Link="WebView.JavascriptExecutionApi.cs" />
     <Compile Include="..\WebViewControl\WebView.JavascriptExecutor.cs" Link="WebView.JavascriptExecutor.cs" />
     <Compile Include="..\WebViewControl\WebView.ResourceHandler.cs" Link="WebView.ResourceHandler.cs" />
   </ItemGroup>

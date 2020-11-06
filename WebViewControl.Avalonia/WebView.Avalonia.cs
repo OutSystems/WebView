@@ -61,10 +61,6 @@ namespace WebViewControl {
                 DispatcherPriority.Normal);
         }
 
-        private static bool IsFrameworkAssemblyName(string name) {
-            return name.StartsWith("Avalonia") || name == "mscorlib";
-        }
-
         internal void InitializeBrowser(WindowBase hostingWindow, int initialWidth, int initialHeight) {
             chromium.CreateBrowser(hostingWindow, initialWidth, initialHeight);
         }
