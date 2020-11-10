@@ -10,38 +10,53 @@ namespace WebViewControl {
 
     partial class WebView : UserControl {
 
-        partial void ExtraInitialize() {
-            Content = chromium;
-
-            FocusManager.SetIsFocusScope(this, true);
-            FocusManager.SetFocusedElement(this, FocusableElement);
-        }
-
         internal IInputElement FocusableElement => chromium;
 
         private static bool OsrEnabled => true;
 
         private bool IsInDesignMode => DesignerProperties.GetIsInDesignMode(this);
 
-        protected override void OnPreviewKeyDown(KeyEventArgs e) {
-            if (AllowDeveloperTools && e.Key == Key.F12) {
-                ToggleDeveloperTools();
-                e.Handled = true;
-            }
+        public static readonly DependencyProperty AddressProperty = DependencyProperty.Register(nameof(Address), typeof(string), typeof(WebView));
+
+        public string Address {
+            get { return (string)GetValue(AddressProperty); }
+            set { SetValue(AddressProperty, value); }
         }
 
         protected override void OnPropertyChanged(DependencyPropertyChangedEventArgs e) {
             base.OnPropertyChanged(e);
 
             // IWindowService is a WPF internal property set when component is loaded into a new window, even if the window isn't shown
-            if (e.Property.Name == "IWindowService") {
-                if (e.OldValue is Window oldWindow) {
-                    oldWindow.Closed -= OnHostWindowClosed;
-                }
+            switch (e.Property.Name) {
+                case "IWindowService":
+                    if (e.OldValue is Window oldWindow) {
+                        oldWindow.Closed -= OnHostWindowClosed;
+                    }
 
-                if (e.NewValue is Window newWindow) {
-                    newWindow.Closed += OnHostWindowClosed;
-                }
+                    if (e.NewValue is Window newWindow) {
+                        newWindow.Closed += OnHostWindowClosed;
+                    }
+                    break;
+
+                case nameof(Address):
+                    InternalAddress = (string)e.NewValue;
+                    break;
+            }
+        }
+
+        partial void ExtraInitialize() {
+            Content = chromium;
+
+            chromium.AddressChanged += (o, address) => ExecuteInUI(() => Address = address);
+
+            FocusManager.SetIsFocusScope(this, true);
+            FocusManager.SetFocusedElement(this, FocusableElement);
+        }
+
+        protected override void OnPreviewKeyDown(KeyEventArgs e) {
+            if (AllowDeveloperTools && e.Key == Key.F12) {
+                ToggleDeveloperTools();
+                e.Handled = true;
             }
         }
 

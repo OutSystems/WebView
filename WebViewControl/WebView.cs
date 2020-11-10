@@ -302,7 +302,11 @@ namespace WebViewControl {
 
         private string InternalAddress {
             get { return chromium.Address; }
-            set { LoadUrl(value, MainFrameName); }
+            set {
+                if (chromium.Address != value) {
+                    LoadUrl(value, MainFrameName);
+                }
+            }
         }
 
         public bool CanGoBack {

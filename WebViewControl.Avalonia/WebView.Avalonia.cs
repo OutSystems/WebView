@@ -37,9 +37,7 @@ namespace WebViewControl {
             base.OnPropertyChanged(change);
 
             if (change.Property == AddressProperty) {
-                if (InternalAddress != Address) {
-                    InternalAddress = Address;
-                }
+                InternalAddress = Address;
             }
         }
 
