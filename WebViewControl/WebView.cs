@@ -300,7 +300,7 @@ namespace WebViewControl {
 
         public bool AllowDeveloperTools { get; set; }
 
-        public string Address {
+        private string InternalAddress {
             get { return chromium.Address; }
             set { LoadUrl(value, MainFrameName); }
         }
@@ -384,15 +384,10 @@ namespace WebViewControl {
             if (this.IsMainFrame(frameName) && address != DefaultLocalUrl) {
                 htmlToLoad = null;
             }
-            if (address.Contains(Uri.SchemeDelimiter) || address == UrlHelper.AboutBlankUrl || address.StartsWith("data:")) {
-                if (this.IsMainFrame(frameName)) {
-                    chromium.Address = address;
-                } else {
-                    this.GetFrame(frameName)?.LoadUrl(address);
-                }
+            if (this.IsMainFrame(frameName)) {
+                chromium.Address = address;
             } else {
-                var userAssembly = ResourceUrl.GetUserCallingMethod().ReflectedType.Assembly;
-                LoadUrl(new ResourceUrl(userAssembly, address).WithDomain(CurrentDomainId), frameName);
+                this.GetFrame(frameName)?.LoadUrl(address);
             }
         }
 
