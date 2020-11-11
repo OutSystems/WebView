@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 
@@ -88,17 +87,6 @@ namespace WebViewControl {
 
         internal string WithDomain(string domain) {
             return string.Format(Url, string.IsNullOrEmpty(domain) ? "" : ("." + domain));
-        }
-
-        internal static MethodBase GetUserCallingMethod(bool captureFilenames = false) {
-            var currentAssembly = typeof(WebView).Assembly;
-            var callstack = new StackTrace(captureFilenames).GetFrames().Select(f => f.GetMethod()).Where(m => m.ReflectedType.Assembly != currentAssembly);
-            var userMethod = callstack.First(m => !IsFrameworkAssemblyName(m.ReflectedType.Assembly.GetName().Name));
-            if (userMethod == null)
-            {
-                throw new InvalidOperationException("Unable to find calling method");
-            }
-            return userMethod;
         }
     }
 }

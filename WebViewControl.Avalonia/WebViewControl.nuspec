@@ -9,8 +9,6 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
     <copyright>$copyright$</copyright>
-    <dependencies>
-      <dependency id="CefGlue.Avalonia" version="75.1.37" />
-    </dependencies>
+    <projectUrl>$packageProjectUrl$</projectUrl>
   </metadata>
 </package>

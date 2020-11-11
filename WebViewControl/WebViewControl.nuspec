@@ -9,5 +9,6 @@
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>$description$</description>
     <copyright>$copyright$</copyright>
+    <projectUrl>$packageProjectUrl$</projectUrl>
   </metadata>
 </package>

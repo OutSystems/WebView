@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Reactive;
 using ReactiveUI;
 
@@ -13,6 +14,14 @@ namespace SampleWebView.Avalonia {
             NavigateCommand = ReactiveCommand.Create(() => {
                 CurrentAddress = Address;
             });
+
+            PropertyChanged += OnPropertyChanged;
+        }
+
+        private void OnPropertyChanged(object sender, PropertyChangedEventArgs e) {
+            if (e.PropertyName == nameof(CurrentAddress)) {
+                Address = CurrentAddress;
+            }
         }
 
         public string Address {

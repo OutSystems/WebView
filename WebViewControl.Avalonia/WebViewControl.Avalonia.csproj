@@ -12,9 +12,10 @@
     <Product>WebViewControl</Product>
     <Copyright>Copyright ©  2019</Copyright>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.75.63</Version>
+    <Version>2.75.66</Version>
     <PackageId>WebViewControl-Avalonia</PackageId>
     <Authors>OutSystems</Authors>
+    <PackageProjectUrl>https://github.com/OutSystems/WebView</PackageProjectUrl>
     <PackageOutputPath>$(MSBuildProjectDirectory)\..\nuget</PackageOutputPath>
     <Configurations>Debug;Release;ReleaseAvalonia;ReleaseWPF;ReleaseAvaloniaRemoteDebugSupport</Configurations>
   </PropertyGroup>

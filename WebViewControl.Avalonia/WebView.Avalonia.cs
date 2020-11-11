@@ -25,24 +25,25 @@ namespace WebViewControl {
             }
         }
 
-        public static readonly StyledProperty<string> CurrentAddressProperty =
-            AvaloniaProperty.Register<WebView, string>(nameof(CurrentAddress), defaultBindingMode: BindingMode.TwoWay);
+        public static readonly StyledProperty<string> AddressProperty =
+            AvaloniaProperty.Register<WebView, string>(nameof(Address), defaultBindingMode: BindingMode.TwoWay);
 
-        public string CurrentAddress {
-            get => GetValue(CurrentAddressProperty);
-            set => SetValue(CurrentAddressProperty, value);
+        public string Address {
+            get => GetValue(AddressProperty);
+            set => SetValue(AddressProperty, value);
         }
 
         protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change) {
             base.OnPropertyChanged(change);
 
-            if (change.Property == CurrentAddressProperty) {
-                Address = CurrentAddress;
+            if (change.Property == AddressProperty) {
+                InternalAddress = Address;
             }
         }
 
         partial void ExtraInitialize() {
             VisualChildren.Add(chromium);
+            chromium.AddressChanged += (o, address) => ExecuteInUI(() => Address = address);
         }
 
         protected override void OnKeyDown(KeyEventArgs e) {
