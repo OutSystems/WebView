@@ -208,6 +208,7 @@ namespace WebViewControl {
             chromium.JSDialogHandler = new InternalJsDialogHandler(this);
             chromium.DragHandler = new InternalDragHandler(this);
             chromium.KeyboardHandler = new InternalKeyboardHandler(this);
+            chromium.FocusHandler = new InternalFocusHandler(this);
 
             disposables = new IDisposable[] {
                 chromium,
@@ -594,6 +595,24 @@ namespace WebViewControl {
         protected virtual string GetRequestUrl(string url, ResourceType resourceType) {
             return url;
         }
+
+        /// <summary>
+        /// Called when the webview has received focus.
+        /// </summary>
+        protected virtual void OnGotFocus() { }
+
+        /// <summary>
+        /// Called when the webview is about to loose focus. For instance, if
+        /// focus was on the last HTML element and the user pressed the TAB key.
+        /// </summary>
+        protected virtual void OnLostFocus() { }
+
+        /// <summary>
+        /// Called when the webview is requesting focus. Return false to allow the
+        /// focus to be set or true to cancel setting the focus.
+        /// <paramref name="isSystemEvent">True if is a system focus event, or false if is a navigation</paramref>
+        /// </summary>
+        protected virtual bool OnSetFocus(bool isSystemEvent) => false;
 
         private static int GetRemoteDebuggingPort() {
 #if REMOTE_DEBUG_SUPPORT
