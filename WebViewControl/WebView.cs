@@ -208,6 +208,7 @@ namespace WebViewControl {
             chromium.JSDialogHandler = new InternalJsDialogHandler(this);
             chromium.DragHandler = new InternalDragHandler(this);
             chromium.KeyboardHandler = new InternalKeyboardHandler(this);
+            chromium.FocusHandler = new InternalFocusHandler(this);
 
             disposables = new IDisposable[] {
                 chromium,

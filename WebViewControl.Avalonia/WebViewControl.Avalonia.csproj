@@ -12,7 +12,7 @@
     <Product>WebViewControl</Product>
     <Copyright>Copyright ©  2019</Copyright>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.75.67</Version>
+    <Version>2.75.68</Version>
     <PackageId>WebViewControl-Avalonia</PackageId>
     <Authors>OutSystems</Authors>
     <PackageProjectUrl>https://github.com/OutSystems/WebView</PackageProjectUrl>
@@ -47,6 +47,7 @@
     <Compile Include="..\WebViewControl\WebView.InternalContextMenuHandler.cs" Link="WebView.InternalContextMenuHandler.cs" />
     <Compile Include="..\WebViewControl\WebView.InternalDialogHandler.cs" Link="WebView.InternalDialogHandler.cs" />
     <Compile Include="..\WebViewControl\WebView.InternalDownloadHandler.cs" Link="WebView.InternalDownloadHandler.cs" />
+    <Compile Include="..\WebViewControl\WebView.InternalFocusHandler.cs" Link="WebView.InternalFocusHandler.cs" />
     <Compile Include="..\WebViewControl\WebView.InternalJsDialogHandler.cs" Link="WebView.InternalJsDialogHandler.cs" />
     <Compile Include="..\WebViewControl\WebView.InternalDragHandler.cs" Link="WebView.InternalDragHandler.cs" />
     <Compile Include="..\WebViewControl\WebView.InternalKeyboardHandler.cs" Link="WebView.InternalKeyboardHandler.cs" />
