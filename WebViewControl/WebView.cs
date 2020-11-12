@@ -595,6 +595,25 @@ namespace WebViewControl {
             return url;
         }
 
+        /// <summary>
+        /// Called when the webview has received focus.
+        /// </summary>
+        protected virtual void OnGotFocus() { }
+
+        /// <summary>
+        /// Called when the webview is about to loose focus. For instance, if
+        /// focus was on the last HTML element and the user pressed the TAB key.
+        /// </summary>
+        protected virtual void OnLostFocus() { }
+
+        /// <summary>
+        /// Called when the webview is requesting focus. |source| indicates
+        /// where the focus request is originating from. Return false to allow the
+        /// focus to be set or true to cancel setting the focus.
+        /// <paramref name="isSystemEvent">True if is a system focus event, or false if is a navigation</paramref>
+        /// </summary>
+        protected virtual bool OnSetFocus(bool isSystemEvent) => false;
+
         private static int GetRemoteDebuggingPort() {
 #if REMOTE_DEBUG_SUPPORT
             var configurationBuilder = new ConfigurationBuilder();
