@@ -66,7 +66,9 @@
     <PackageReference PrivateAssets="None" Include="CefGlue.Avalonia" Version="75.1.89" />
     <PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
     <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
-    <PackageReference Include="ModuleInit.Fody" Version="2.1.1" />
+    <PackageReference Include="ModuleInit.Fody" Version="2.1.1">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Fody" Version="6.3.0">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
