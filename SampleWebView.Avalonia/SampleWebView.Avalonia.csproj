@@ -9,6 +9,7 @@
   <ItemGroup>
     <None Remove="App.xaml" />
     <None Remove="MainWindow.xaml" />
+    <None Remove="tmp\**\*.*" />
   </ItemGroup>
 
   <ItemGroup>

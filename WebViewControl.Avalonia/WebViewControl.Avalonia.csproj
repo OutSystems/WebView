@@ -64,21 +64,18 @@
     <!--When we upload Avalonia here, we should increase the version of both WebViewControl.Avalonia as well as ReactViewControl.Avalonia-->  
     <PackageReference Include="Avalonia" Version="0.10.0-preview6" />
     <PackageReference PrivateAssets="None" Include="CefGlue.Avalonia" Version="75.1.89" />
-    <PackageReference Include="InjectModuleInitializer" Version="2.0.3">
-      <PrivateAssets>all</PrivateAssets>
-      <ExcludeAssets>all</ExcludeAssets>
-    </PackageReference>
     <PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
     <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
+    <PackageReference Include="ModuleInit.Fody" Version="2.1.1" />
+    <PackageReference Include="Fody" Version="6.3.0">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseAvaloniaRemoteDebugSupport|AnyCPU'">
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="3.1.8" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="4.7.0" />
   </ItemGroup>
-
-  <Target Name="InjectModuleInitializer" AfterTargets="AfterBuild">
-    <Exec Command="$(NuGetPackageRoot)\injectmoduleinitializer\2.0.3\tools\net35\InjectModuleInitializer.exe &quot;$(TargetPath)&quot;" />
-  </Target>
 
 </Project>
