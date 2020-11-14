@@ -16,7 +16,7 @@ Provides the following additional features:
 - Option to run in offscreen mode 
 
 # Build pre-requisites
-- CefGlue Nuget packages
+- CefGlue Nuget packages (from https://gitlab.com/joaompneves/cefglue)
 
 # TODO
 - Improve documentation
