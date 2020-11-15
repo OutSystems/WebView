@@ -39,6 +39,12 @@ EOF
     fi
 }
 
+NETTARGET="netcoreapp3.1"
+CONFIG="Debug"
+
+echo "Publishing"
+dotnet publish SampleWebView.Avalonia.csproj -r osx-x64 -f "$NETTARGET"
+
 TARGET="tmp"
 if [ ! -d "$TARGET" ]; then
     mkdir "$TARGET"
@@ -66,8 +72,6 @@ APPDIR="$APPNAME.app/Contents"
 APPFRAMEWORKSDIR="$APPDIR/Frameworks"
 APPHELPERNAME="$APPNAME Helper"
 APPHELPERDIR="$APPFRAMEWORKSDIR/$APPHELPERNAME.app/Contents"
-CONFIG="Debug"
-NETTARGET="netcoreapp3.1"
 
 create_app_structure "$APPNAME" .
 emit_plist "$APPNAME" "$APPDIR"
@@ -82,15 +86,15 @@ cp -R "$CEFFRAMEWORK_DIR/Chromium Embedded Framework.framework" "$APPHELPERDIR/F
 cp "$APPFRAMEWORKSDIR/Chromium Embedded Framework.framework/Chromium Embedded Framework" "$APPHELPERDIR/MacOS/libcef"
 
 echo "Copy App binaries"
-rsync -a "../bin/$CONFIG/$NETTARGET/" "$APPDIR/MacOS/"
-cp "$APPDIR/MacOS/x64/Xilium"*.dll "$APPDIR/MacOS/"
-cp "$APPDIR/MacOS/x64/Xilium.CefGlue.BrowserProcess.exe" "$APPHELPERDIR/MacOS/Xilium.CefGlue.BrowserProcess.dll"
-rm -rf "$APPDIR/MacOS/x64"
-cp -R "$APPDIR/MacOS/" "$APPHELPERDIR/MacOS/"
+BUILDFILES="../bin/$CONFIG/$NETTARGET"
+cp "$BUILDFILES/"*.* "$APPDIR/MacOS/"
+cp "$BUILDFILES/osx-x64/$APPNAME" "$APPDIR/MacOS/"
+cp "$BUILDFILES/x64/Xilium"*.dll "$APPDIR/MacOS/"
+cp "$BUILDFILES/"*.* "$APPHELPERDIR/MacOS/"
+cp "$BUILDFILES/x64/Xilium.CefGlue.BrowserProcess.exe" "$APPHELPERDIR/MacOS/Xilium.CefGlue.BrowserProcess.dll"
+cp "$BUILDFILES/osx-x64/"*.* "$APPHELPERDIR/MacOS/"
+cp "$BUILDFILES/x64/Xilium"*.dll "$APPHELPERDIR/MacOS/"
 cp -R "../resources/" "$APPHELPERDIR/MacOS/"
-
-
-chmod +x "$APPHELPERDIR/MacOS/$APPHELPERNAME"
 
 
 
