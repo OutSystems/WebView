@@ -56,3 +56,5 @@ launchSettings.json
 **/TestResults.xml
 
 .idea
+WebViewControl/FodyWeavers.xsd
+WebViewControl.Avalonia/FodyWeavers.xsd
