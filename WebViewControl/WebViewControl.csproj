@@ -11,7 +11,7 @@
     <Product>WebViewControl</Product>
     <Copyright>Copyright ©  2019</Copyright>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.75.67</Version>
+    <Version>2.84.1</Version>
     <PackageId>WebViewControl-WPF</PackageId>
     <Authors>OutSystems</Authors>
     <PackageProjectUrl>https://github.com/OutSystems/WebView</PackageProjectUrl>
@@ -44,7 +44,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference PrivateAssets="None" Include="CefGlue.Wpf" Version="75.1.89" />
+    <PackageReference PrivateAssets="None" Include="CefGlue.Wpf" Version="84.4147.2" />
     <PackageReference Include="ModuleInit.Fody" Version="2.1.1">
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>

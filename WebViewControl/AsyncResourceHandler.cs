@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Text;
 using Xilium.CefGlue;
 using Xilium.CefGlue.Common.Handlers;
@@ -85,42 +84,5 @@ namespace WebViewControl {
                 }
             }
         }
-
-        #region Legacy NetworkService
-
-        [Obsolete]
-        protected override bool ProcessRequest(CefRequest request, CefCallback callback) {
-            lock (SyncRoot) {
-                if (Response == null && string.IsNullOrEmpty(RedirectUrl)) {
-                    responseCallback = callback;
-                } else {
-                    callback.Continue();
-                }
-                return true;
-            }
-        }
-
-        [Obsolete]
-        protected override bool ReadResponse(Stream response, int bytesToRead, out int bytesRead, CefCallback callback) {
-            callback.Dispose();
-
-            if (Response == null) {
-                bytesRead = 0;
-                return false;
-            }
-
-            var buffer = new byte[response.Length];
-            bytesRead = Response.Read(buffer, 0, buffer.Length);
-
-            if (bytesRead == 0) {
-                return false;
-            }
-
-            response.Write(buffer, 0, buffer.Length);
-
-            return bytesRead > 0;
-        }
-
-        #endregion
     }
 }

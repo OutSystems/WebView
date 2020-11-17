@@ -130,9 +130,6 @@ namespace WebViewControl {
             var customSchemes = CustomSchemes.Select(s => new CustomScheme() { SchemeName = s, SchemeHandlerFactory = new SchemeHandlerFactory() }).ToArray();
             
             var customFlags = new[] {
-                // disable NetworkService https://bitbucket.org/chromiumembedded/cef/issues/2795/crash-in-openinputstreamwrapper
-                new KeyValuePair<string, string>("disable-features", "NetworkService,VizDisplayCompositor"),
-
                 // enable experimental feature flags
                 new KeyValuePair<string, string>("enable-experimental-web-platform-features", null)
             };
