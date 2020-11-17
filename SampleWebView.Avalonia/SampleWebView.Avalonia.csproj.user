@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Condition=" '$(RunConfiguration)' == 'Default' ">
+    <StartAction>Program</StartAction>
+    <StartProgram>tmp\SampleWebView.Avalonia.app\Contents\MacOS\SampleWebView.Avalonia</StartProgram>
+    <StartWorkingDirectory>tmp\SampleWebView.Avalonia.app\Contents\MacOS\</StartWorkingDirectory>
+    <ExternalConsole>true</ExternalConsole>
+  </PropertyGroup>
+</Project>

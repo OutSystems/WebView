@@ -8,6 +8,7 @@ namespace SampleWebView.Avalonia {
 
         public MainWindow() {
             WebView.OsrEnabled = false;
+            WebView.LogFile = "ceflog.txt";
             AvaloniaXamlLoader.Load(this);
 
             DataContext = new MainWindowViewModel();

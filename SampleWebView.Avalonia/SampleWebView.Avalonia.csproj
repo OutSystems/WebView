@@ -6,9 +6,20 @@
     <Configurations>Debug;Release;ReleaseAvalonia;ReleaseWPF;ReleaseAvaloniaRemoteDebugSupport</Configurations>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' and $([MSBuild]::IsOSPlatform('OSX'))">
+    <CustomCommands>
+      <CustomCommands>
+        <Command>
+          <type>AfterBuild</type>
+          <command>sh bundle.sh</command>
+        </Command>
+      </CustomCommands>
+    </CustomCommands>
+  </PropertyGroup>
   <ItemGroup>
     <None Remove="App.xaml" />
     <None Remove="MainWindow.xaml" />
+    <None Remove="tmp\**\*.*" />
   </ItemGroup>
 
   <ItemGroup>
