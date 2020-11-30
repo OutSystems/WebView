@@ -51,7 +51,6 @@ namespace WebViewControl {
 
             private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(60);
             private static readonly TimeSpan InitializationTimeout = TimeSpan.FromSeconds(15);
-            private static readonly Task InfiniteWaitTask = Task.Delay(TimeSpan.FromMilliseconds(-1));
 
             private static Regex StackFrameRegex { get; } = new Regex(@"at\s*(?<method>.*?)\s\(?(?<location>[^\s]+):(?<line>\d+):(?<column>\d+)", RegexOptions.Compiled);
             
@@ -84,6 +83,7 @@ namespace WebViewControl {
                     if (flushTask != null || !frame.IsValid || FlushTaskCancelationToken.IsCancellationRequested) {
                         return;
                     }
+                    this.frame = frame;
                     flushTask = Task.Factory.StartNew(FlushScripts, FlushTaskCancelationToken.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
                 }
             }
@@ -157,6 +157,7 @@ namespace WebViewControl {
             }
 
             public async Task<T> EvaluateScript<T>(string script, string functionName = null, TimeSpan? timeout = null) {
+                const string TimeoutExceptionName = "Timeout";
 #if DEBUG
                 System.Diagnostics.Debug.WriteLine($"{nameof(EvaluateScript)} '{script}' on ('{Id}')");
 #endif
@@ -171,7 +172,13 @@ namespace WebViewControl {
                         innerEvaluationTask.Wait(FlushTaskCancelationToken.Token);
                         evaluationTask.SetResult(GetResult<T>(innerEvaluationTask.Result));
                     } catch (Exception e) {
-                        evaluationTask.SetException(ParseException(e, new[] { functionName }));
+                        if (FlushTaskCancelationToken.IsCancellationRequested) {
+                            evaluationTask.SetCanceled();
+                        } else if (e.InnerException is TaskCanceledException) {
+                            evaluationTask.SetException(new JavascriptException(TimeoutExceptionName, "Script evaluation timed out"));
+                        } else {
+                            evaluationTask.SetException(ParseException(e, new[] { functionName }));
+                        }
                     }
                 }
 
@@ -179,14 +186,28 @@ namespace WebViewControl {
                 if (scriptTask == null) {
                     return default;
                 }
-                
-                var timeoutTask = IsFlushTaskInitializing ? Task.Delay(InitializationTimeout) : InfiniteWaitTask;
 
-                // wait with timeout if flush is not running yet to avoid hanging forever
-                var task = await Task.WhenAny(evaluationTask.Task, timeoutTask);
+                var tasks = new List<Task>(2)
+                {
+                    evaluationTask.Task
+                };
+
+                Task timeoutTask = null;
+                if (timeout.HasValue) {
+                    timeoutTask = Task.Delay(timeout.Value);
+                    tasks.Add(timeoutTask);
+                }
                 
-                if (task == timeoutTask && IsFlushTaskInitializing) {
-                    throw new JavascriptException("Timeout", $"Javascript engine is not initialized after {InitializationTimeout.Seconds}s");
+                // wait with timeout if flush is not running yet to avoid hanging forever
+                var task = await Task.WhenAny(tasks);
+
+                if (task == timeoutTask) {
+                    if (IsFlushTaskInitializing) {
+                        throw new JavascriptException(TimeoutExceptionName, $"Javascript engine is not initialized after {InitializationTimeout.Seconds}s");
+                    }
+                } else if (evaluationTask.Task.IsCanceled) {
+                    // task was cancelled, return default value
+                    return default;
                 }
 
                 return await evaluationTask.Task;

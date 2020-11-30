@@ -13,7 +13,7 @@ namespace Tests.WebView {
                 const string BodyContent = "some text and a double byte char '●'";
                 await Load($"<html><script>;</script><body>{BodyContent}</body></html>");
 
-                var body = TargetView.EvaluateScript<string>("document.body.innerText");
+                var body = await TargetView.EvaluateScript<string>("document.body.innerText");
                 Assert.AreEqual(BodyContent, body);
             });
         }

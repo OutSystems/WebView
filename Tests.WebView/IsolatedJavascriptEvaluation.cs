@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using NUnit.Framework;
+using static WebViewControl.WebView;
 
 namespace Tests.WebView {
 
@@ -18,7 +19,7 @@ namespace Tests.WebView {
             await Run(async () => {
                 await Load("<html><body></body></html>");
 
-                var exception = Assert.Throws<WebViewControl.WebView.JavascriptException>(() => TargetView.EvaluateScript<int>("1", timeout: TimeSpan.FromMilliseconds(0)));
+                var exception = await Assertions.AssertThrows<JavascriptException>(async () => await TargetView.EvaluateScript<int>("1", timeout: TimeSpan.FromMilliseconds(0)));
                 Assert.IsNotNull(exception);
                 StringAssert.Contains("Timeout", exception.Message);
             });
@@ -156,8 +157,8 @@ namespace Tests.WebView {
             await Run(async () => {
                 const string DotNetObject = "DotNetObject";
 
-                var taskCompletionSourceFunction = new TaskCompletionSource<bool>();
-                var taskCompletionSourceDispose = new TaskCompletionSource<bool>();
+                var taskCompletionSourceFunction = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                var taskCompletionSourceDispose = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
                 Func<int> functionToCall = () => {
                     TargetView.Dispose();
@@ -171,7 +172,8 @@ namespace Tests.WebView {
 
                 TargetView.Disposed += () => taskCompletionSourceDispose.SetResult(true);
 
-                await TargetView.EvaluateScriptFunction<int>("test");
+                var result = await TargetView.EvaluateScriptFunction<int>("test");
+                Assert.AreEqual(0, result, "Script evaluation should be cancelled and default value returned");
 
                 var disposed = await taskCompletionSourceFunction.Task;
                 Assert.IsFalse(disposed, "Dispose should have been scheduled");
