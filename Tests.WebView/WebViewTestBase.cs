@@ -26,15 +26,12 @@ namespace Tests.WebView {
         }
 
         protected Task Load(string html) {
-            var taskCompletionSource = new TaskCompletionSource<bool>();
+            var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             
             void OnNavigated(string url, string frameName) {
                 if (url != UrlHelper.AboutBlankUrl) {
-                    try {
-                        taskCompletionSource.SetResult(true);
-                    } finally {
-                        TargetView.Navigated -= OnNavigated;
-                    }
+                    TargetView.Navigated -= OnNavigated;
+                    taskCompletionSource.SetResult(true);
                 }
             }
             TargetView.Navigated += OnNavigated;

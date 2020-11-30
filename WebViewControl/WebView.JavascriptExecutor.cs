@@ -28,7 +28,7 @@ namespace WebViewControl {
 
         internal class ScriptTask {
 
-            public ScriptTask(string script, string functionName, Action evaluate = null) {
+            public ScriptTask(string script, string functionName, Action<string> evaluate = null) {
                 Script = script;
                 Evaluate = evaluate;
                 FunctionName = functionName;
@@ -42,185 +42,157 @@ namespace WebViewControl {
             /// </summary>
             public string FunctionName { get; }
 
-            public Action Evaluate { get; }
+            public Action<string> Evaluate { get; }
         }
 
         internal class JavascriptExecutor : IDisposable {
 
+            private const string InternalException = "|WebViewInternalException";
+
             private static readonly TimeSpan DefaultTimeout = TimeSpan.FromSeconds(60);
+            private static readonly TimeSpan InitializationTimeout = TimeSpan.FromSeconds(15);
+            private static readonly Task InfiniteWaitTask = Task.Delay(TimeSpan.FromMilliseconds(-1));
 
             private static Regex StackFrameRegex { get; } = new Regex(@"at\s*(?<method>.*?)\s\(?(?<location>[^\s]+):(?<line>\d+):(?<column>\d+)", RegexOptions.Compiled);
-
-            private const string InternalException = "|WebViewInternalException";
             
             private BlockingCollection<ScriptTask> PendingScripts { get; } = new BlockingCollection<ScriptTask>();
             private CancellationTokenSource FlushTaskCancelationToken { get; } = new CancellationTokenSource();
-            private ManualResetEvent StoppedFlushHandle { get; } = new ManualResetEvent(false);
-
-            private CefFrame frame;
-            private volatile bool isFlushRunning;
 
             private WebView OwnerWebView { get; }
 
 #if DEBUG
-            private int Id { get; }
+            private string Id { get; } = Guid.NewGuid().ToString();
 #endif
+
+            private CefFrame frame;
+            private Task flushTask;
+
             public JavascriptExecutor(WebView owner, CefFrame frame = null) {
                 OwnerWebView = owner;
-#if DEBUG
-                Id = GetHashCode();
-#endif
-                if (frame != null) {
-                    StartFlush(frame);
-                }
+                this.frame = frame;
             }
 
             public bool IsValid => frame == null || frame.IsValid; // consider valid when not bound (yet) or frame is valid
 
+            private bool IsFlushTaskInitializing => flushTask == null || flushTask.Status < TaskStatus.Running;
+
             public void StartFlush(CefFrame frame) {
+#if DEBUG
+                System.Diagnostics.Debug.WriteLine($"{nameof(StartFlush)} ('{Id}')");
+#endif
                 lock (FlushTaskCancelationToken) {
-                    if (this.frame != null || !frame.IsValid || FlushTaskCancelationToken.IsCancellationRequested) {
+                    if (flushTask != null || !frame.IsValid || FlushTaskCancelationToken.IsCancellationRequested) {
                         return;
                     }
-                    this.frame = frame;
+                    flushTask = Task.Factory.StartNew(FlushScripts, FlushTaskCancelationToken.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
                 }
-                Task.Factory.StartNew(FlushScripts, FlushTaskCancelationToken.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
             }
 
             private void StopFlush() {
+#if DEBUG
+                System.Diagnostics.Debug.WriteLine($"{nameof(StopFlush)} ('{Id}')");
+#endif
                 lock (FlushTaskCancelationToken) {
                     if (FlushTaskCancelationToken.IsCancellationRequested) {
                         return;
                     }
                     FlushTaskCancelationToken.Cancel();
+                    PendingScripts.CompleteAdding();
                 }
-                if (isFlushRunning) {
-                    StoppedFlushHandle.WaitOne();
-                }
-
-                PendingScripts.Dispose();
-                FlushTaskCancelationToken.Dispose();
             }
 
-            private ScriptTask QueueScript(string script, string functionName = null, Action evaluate = null) {
-                if (OwnerWebView.isDisposing) {
-                    return null;
-                }
+            private ScriptTask QueueScript(string script, string functionName = null, Action<string> evaluate = null) {
+                lock (FlushTaskCancelationToken) {
+                    if (FlushTaskCancelationToken.IsCancellationRequested) {
+                        return null;
+                    }
 
-                var scriptTask = new ScriptTask(script, functionName, evaluate);
-                PendingScripts.Add(scriptTask);
-                return scriptTask;
+                    var scriptTask = new ScriptTask(script, functionName, evaluate);
+                    PendingScripts.Add(scriptTask);
+                    return scriptTask;
+                }
             }
 
             private void FlushScripts() {
-                OwnerWebView.ExecuteWithAsyncErrorHandling(() => {
-                    try {
-                        isFlushRunning = true;
-                        while (!FlushTaskCancelationToken.IsCancellationRequested) {
-                            InnerFlushScripts();
-                        }
-                    } catch (OperationCanceledException) {
-                        // stop
-                    } finally {
-                        isFlushRunning = false;
-                        StoppedFlushHandle.Set();
-                    }
-                });
+#if DEBUG
+                System.Diagnostics.Debug.WriteLine($"{nameof(FlushScripts)} running ('{Id}')");
+#endif
+                OwnerWebView.ExecuteWithAsyncErrorHandling(InnerFlushScripts);
             }
 
             private void InnerFlushScripts() {
-                ScriptTask scriptToEvaluate = null;
-                var scriptsToExecute = new List<ScriptTask>();
-
-                do {
-                    var scriptTask = PendingScripts.Take(FlushTaskCancelationToken.Token);
-                    if (scriptTask.Evaluate == null) {
-                        scriptsToExecute.Add(scriptTask);
-                    } else { 
-                        scriptToEvaluate = scriptTask;
-                        break; // this script result needs to be handled separately
-                    }
-                } while (PendingScripts.Count > 0);
-
-                if (scriptsToExecute.Count > 0) {
-                    var script = string.Join(";" + Environment.NewLine, scriptsToExecute.Select(s => s.Script));
-                    if (frame.IsValid) {
-                        var frameName = frame.Name;
-                        try {
-                            var task = OwnerWebView.chromium.EvaluateJavaScript<object>(WrapScriptWithErrorHandling(script));
-                            var timeout = OwnerWebView.DefaultScriptsExecutionTimeout ?? DefaultTimeout;
-                            task.Wait((int)timeout.TotalMilliseconds, FlushTaskCancelationToken.Token);
-                        } catch (Exception e) {
-                            var evaluatedScriptFunctions = scriptsToExecute.Select(s => s.FunctionName);
-                            OwnerWebView.ForwardUnhandledAsyncException(ParseException(e, evaluatedScriptFunctions), frameName);
+                try {
+                    var scriptsToExecute = new List<ScriptTask>();
+                    foreach (var scriptTask in PendingScripts.GetConsumingEnumerable()) {
+                        if (scriptTask.Evaluate == null) {
+                            scriptsToExecute.Add(scriptTask);
                         }
+                        if ((PendingScripts.Count == 0 || scriptTask.Evaluate != null) && scriptsToExecute.Count > 0) {
+                            BulkExecuteScripts(scriptsToExecute);
+                            scriptsToExecute.Clear();
+                        }
+                        scriptTask.Evaluate?.Invoke(scriptTask.Script);
                     }
-                }
-
-                if (scriptToEvaluate != null) {
-                    scriptToEvaluate.Evaluate();
+                } catch (OperationCanceledException) {
+                    // stop
+                } finally {
+                    PendingScripts.Dispose();
+                    FlushTaskCancelationToken.Dispose();
                 }
             }
 
-            public T EvaluateScript<T>(string script, string functionName = null, TimeSpan? timeout = null) {
-                var result = default(T);
-                Exception exception = null;
-                var waitHandle = new ManualResetEvent(false);
-                var scriptWithErrorHandling = WrapScriptWithErrorHandling(script);
-
-                void Evaluate() {
-                    var effectiveTimeout = timeout ?? OwnerWebView.DefaultScriptsExecutionTimeout ?? DefaultTimeout;
-
+            private void BulkExecuteScripts(IEnumerable<ScriptTask> scriptsToExecute) {
+                var script = string.Join(";" + Environment.NewLine, scriptsToExecute.Select(s => s.Script));
+                if (frame.IsValid) {
+                    var frameName = frame.Name;
                     try {
-                        var task = OwnerWebView.chromium.EvaluateJavaScript<T>(scriptWithErrorHandling);
-
-                        if (task.Wait((int)effectiveTimeout.TotalMilliseconds, FlushTaskCancelationToken.Token)) {
-                            result = task.Result;
-                            return;
-                        }
-
-                        exception = MakeTimeoutException(functionName, effectiveTimeout);
-
-                    } catch (TaskCanceledException) {
-                        exception = MakeTimeoutException(functionName, effectiveTimeout);
-
-                    } catch (AggregateException e) {
-                        if (e.InnerExceptions.Count == 1) {
-                            // throw the only and wrapped exception
-                            exception = e.InnerException;
-                        } else {
-                            exception = e;
-                        }
-
+                        var timeout = OwnerWebView.DefaultScriptsExecutionTimeout ?? DefaultTimeout;
+                        var task = OwnerWebView.chromium.EvaluateJavaScript<object>(WrapScriptWithErrorHandling(script), timeout: timeout);
+                        task.Wait(FlushTaskCancelationToken.Token);
                     } catch (Exception e) {
-                        exception = e;
-
-                    } finally {
-                        waitHandle.Set();
+                        var evaluatedScriptFunctions = scriptsToExecute.Select(s => s.FunctionName);
+                        OwnerWebView.ForwardUnhandledAsyncException(ParseException(e, evaluatedScriptFunctions), frameName);
                     }
                 }
-
-                var scriptTask = QueueScript(scriptWithErrorHandling, functionName, Evaluate);
-                if (scriptTask != null) {
-                    if (!isFlushRunning) {
-                        var initializationTimeout = timeout ?? TimeSpan.FromSeconds(15);
-                        var succeededWaitHandleIndex = WaitHandle.WaitAny(new[] { waitHandle, FlushTaskCancelationToken.Token.WaitHandle }, initializationTimeout); // wait with timeout if flush is not running yet to avoid hanging forever
-                        if (succeededWaitHandleIndex == WaitHandle.WaitTimeout) {
-                            throw new JavascriptException("Timeout", $"Javascript engine is not initialized after {initializationTimeout.Seconds}s");
-                        }
-                    } else {
-                        WaitHandle.WaitAny(new[] { waitHandle, FlushTaskCancelationToken.Token.WaitHandle });
-                    }
-
-                    if (exception != null) {
-                        throw ParseException(exception, new[] { functionName });
-                    }
-                }
-
-                return GetResult<T>(result);
             }
 
-            public T EvaluateScriptFunction<T>(string functionName, bool serializeParams, params object[] args) {
+            public async Task<T> EvaluateScript<T>(string script, string functionName = null, TimeSpan? timeout = null) {
+#if DEBUG
+                System.Diagnostics.Debug.WriteLine($"{nameof(EvaluateScript)} '{script}' on ('{Id}')");
+#endif
+                var evaluationTask = new TaskCompletionSource<T>(TaskContinuationOptions.RunContinuationsAsynchronously);
+
+                void Evaluate(string scriptToEvaluate) {
+#if DEBUG
+                    System.Diagnostics.Debug.WriteLine($"Evaluating '{script}' on ('{Id}')");
+#endif
+                    try {
+                        var innerEvaluationTask = OwnerWebView.chromium.EvaluateJavaScript<T>(WrapScriptWithErrorHandling(scriptToEvaluate), timeout: timeout);
+                        innerEvaluationTask.Wait(FlushTaskCancelationToken.Token);
+                        evaluationTask.SetResult(GetResult<T>(innerEvaluationTask.Result));
+                    } catch (Exception e) {
+                        evaluationTask.SetException(ParseException(e, new[] { functionName }));
+                    }
+                }
+
+                var scriptTask = QueueScript(script, functionName, Evaluate);
+                if (scriptTask == null) {
+                    return default;
+                }
+                
+                var timeoutTask = IsFlushTaskInitializing ? Task.Delay(InitializationTimeout) : InfiniteWaitTask;
+
+                // wait with timeout if flush is not running yet to avoid hanging forever
+                var task = await Task.WhenAny(evaluationTask.Task, timeoutTask);
+                
+                if (task == timeoutTask && IsFlushTaskInitializing) {
+                    throw new JavascriptException("Timeout", $"Javascript engine is not initialized after {InitializationTimeout.Seconds}s");
+                }
+
+                return await evaluationTask.Task;
+            }
+
+            public Task<T> EvaluateScriptFunction<T>(string functionName, bool serializeParams, params object[] args) {
                 return EvaluateScript<T>(MakeScript(functionName, serializeParams, args), functionName);
             }
 

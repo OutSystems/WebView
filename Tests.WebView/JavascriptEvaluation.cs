@@ -10,8 +10,8 @@ namespace Tests.WebView {
 
         [Test(Description = "A simple script evaluates correctly")]
         public async Task EvaluateSimpleScript() {
-            await Run(() => {
-                var result = TargetView.EvaluateScript<int>("2+1");
+            await Run(async () => {
+                var result = await TargetView.EvaluateScript<int>("2+1");
                 Assert.AreEqual(3, result);
             });
         }
@@ -42,8 +42,8 @@ namespace Tests.WebView {
 
         [Test(Description = "Evaluation of complex objects returns the expected results")]
         public async Task ComplexObjectsEvaluation() {
-            await Run(() => {
-                var result = TargetView.EvaluateScript<TestObject>("({ Name: 'Snows', Age: 32, Parent: { Name: 'Snows Parent', Age: 60 }, Kind: 2 })");
+            await Run(async () => {
+                var result = await TargetView.EvaluateScript<TestObject>("({ Name: 'Snows', Age: 32, Parent: { Name: 'Snows Parent', Age: 60 }, Kind: 2 })");
                 Assert.IsNotNull(result);
                 Assert.AreEqual("Snows", result.Name);
                 Assert.AreEqual(32, result.Age);
@@ -57,7 +57,7 @@ namespace Tests.WebView {
         [Test(Description = "Evaluation of scripts with errors returns stack and message details")]
         public async Task EvaluationErrorsContainsMessageAndJavascriptStack() {
             await Run(() => {
-                var exception = Assert.Throws<JavascriptException>(() => TargetView.EvaluateScript<int>("(function foo() { (function bar() { throw new Error('ups'); })() })()"));
+                var exception = Assert.ThrowsAsync<JavascriptException>(async () => await TargetView.EvaluateScript<int>("(function foo() { (function bar() { throw new Error('ups'); })() })()"));
 
                 Assert.AreEqual("Error: ups", exception.Message);
                 var stack = exception.StackTrace.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
@@ -70,7 +70,7 @@ namespace Tests.WebView {
         [Test(Description = "Evaluation of scripts includes evaluated function but not args")]
         public async Task EvaluationErrorsContainsEvaluatedJavascript() {
             await Run(() => {
-                var exception = Assert.Throws<JavascriptException>(() => TargetView.EvaluateScriptFunction<int>("Math.min", "123", "(function() { throw new Error() })()"));
+                var exception = Assert.ThrowsAsync<JavascriptException>(async () => await TargetView.EvaluateScriptFunction<int>("Math.min", "123", "(function() { throw new Error() })()"));
 
                 var stack = exception.StackTrace.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
                 Assert.Greater(stack.Length, 1);
@@ -105,8 +105,8 @@ namespace Tests.WebView {
 
         [Test(Description = "Evaluation of null returns empty array when result is array type")]
         public async Task EvaluationReturnsEmptyArraysWhenNull() {
-            await Run(() => {
-                var result = TargetView.EvaluateScript<int[]>("null");
+            await Run(async () => {
+                var result = await TargetView.EvaluateScript<int[]>("null");
                 Assert.IsNotNull(result);
                 Assert.AreEqual(0, result.Length);
             });

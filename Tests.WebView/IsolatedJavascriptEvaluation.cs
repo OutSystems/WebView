@@ -24,6 +24,16 @@ namespace Tests.WebView {
             });
         }
 
+        [Test(Description = "Evaluation works after engine is initialized")]
+        public async Task EvaluateAfterInitialization() {
+            await Run(async () => {
+                await Load("<html><script></script><body>1</body></html>");
+                await Load("<html><script></script><body>2</body></html>");
+                var result = await TargetView.EvaluateScript<int>("1", timeout: TimeSpan.FromSeconds(30));
+                Assert.AreEqual(result, 1);
+            });
+        }
+
         [Test(Description = "Method interception function is called")]
         public async Task RegisteredJsObjectMethodInterception() {
             await Run(async () => {
@@ -78,7 +88,7 @@ namespace Tests.WebView {
                 TargetView.RegisterJavascriptObject(DotNetObject, functionToCall, executeCallsInUI: true);
                 await Load("<html><script>function test() { DotNetObject.invoke(); return 1; }</script><body></body></html>");
 
-                var result = TargetView.EvaluateScriptFunction<int>("test");
+                var result = await TargetView.EvaluateScriptFunction<int>("test");
                 await taskCompletionSource.Task;
                 Assert.AreEqual(1, result);
             });
@@ -161,7 +171,7 @@ namespace Tests.WebView {
 
                 TargetView.Disposed += () => taskCompletionSourceDispose.SetResult(true);
 
-                TargetView.EvaluateScriptFunction<int>("test");
+                await TargetView.EvaluateScriptFunction<int>("test");
 
                 var disposed = await taskCompletionSourceFunction.Task;
                 Assert.IsFalse(disposed, "Dispose should have been scheduled");
@@ -184,7 +194,7 @@ namespace Tests.WebView {
 
                 var disposeCalled = await taskCompletionSource.Task;
 
-                var result = TargetView.EvaluateScriptFunction<int>("test");
+                var result = await TargetView.EvaluateScriptFunction<int>("test");
 
                 Assert.IsTrue(disposeCalled);
                 Assert.AreEqual(result, 0);
@@ -205,8 +215,8 @@ namespace Tests.WebView {
                     "</html>"
                 );
 
-                var x = TargetView.EvaluateScript<int>("x", "");
-                var y = TargetView.EvaluateScript<int>("test.y", "");
+                var x = await TargetView.EvaluateScript<int>("x", "");
+                var y = await TargetView.EvaluateScript<int>("test.y", "");
                 Assert.AreEqual(1, x);
                 Assert.AreEqual(2, y);
             });
