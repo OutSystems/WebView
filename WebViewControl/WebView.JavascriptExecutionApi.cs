@@ -87,19 +87,19 @@ namespace WebViewControl {
             return Task.FromResult(default(T));
         }
 
-        internal void ExecuteScriptFunctionWithSerializedParams(string functionName, params object[] args) {
+        protected void ExecuteScriptFunctionWithSerializedParams(string functionName, params object[] args) {
             ExecuteScriptFunctionWithSerializedParamsInFrame(functionName, MainFrameName, args);
         }
 
-        internal void ExecuteScriptFunctionWithSerializedParamsInFrame(string functionName, string frameName, params object[] args) {
+        protected void ExecuteScriptFunctionWithSerializedParamsInFrame(string functionName, string frameName, params object[] args) {
             GetJavascriptExecutor(frameName)?.ExecuteScriptFunction(functionName, true, args);
         }
 
-        internal Task<T> EvaluateScriptFunctionWithSerializedParams<T>(string functionName, params object[] args) {
+        protected Task<T> EvaluateScriptFunctionWithSerializedParams<T>(string functionName, params object[] args) {
             return EvaluateScriptFunctionWithSerializedParamsInFrame<T>(functionName, MainFrameName, args);
         }
 
-        internal Task<T> EvaluateScriptFunctionWithSerializedParamsInFrame<T>(string functionName, string frameName, params object[] args) {
+        protected Task<T> EvaluateScriptFunctionWithSerializedParamsInFrame<T>(string functionName, string frameName, params object[] args) {
             var jsExecutor = GetJavascriptExecutor(frameName);
             if (jsExecutor != null) {
                 return jsExecutor.EvaluateScriptFunction<T>(functionName, true, args);
