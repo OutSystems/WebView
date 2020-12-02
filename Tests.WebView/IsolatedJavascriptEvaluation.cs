@@ -168,7 +168,7 @@ namespace Tests.WebView {
                 };
 
                 TargetView.RegisterJavascriptObject(DotNetObject, functionToCall, executeCallsInUI: true);
-                await Load($"<html><script>function test() {{ {DotNetObject}.invoke(); return 1; }}</script><body></body></html>");
+                await Load($"<html><script>function test() {{ {DotNetObject}.invoke(); while(true); return 1; }}</script><body></body></html>");
 
                 TargetView.Disposed += () => taskCompletionSourceDispose.SetResult(true);
 
