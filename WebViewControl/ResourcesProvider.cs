@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
 
 namespace WebViewControl {
 
@@ -12,7 +8,7 @@ namespace WebViewControl {
             var stream = ResourcesManager.TryGetResource(url, true, out string extension);
 
             if (stream != null) {
-                resourceHandler.RespondWith(stream, extension);
+                resourceHandler.RespondWith(stream, extension, preventStreamConcurrentAccess: true);
             }
         }
     }
