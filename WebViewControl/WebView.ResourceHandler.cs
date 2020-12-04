@@ -67,10 +67,7 @@ namespace WebViewControl {
             Continue();
         }
 
-        public void RespondWith(Stream stream, string extension = null, bool preventStreamConcurrentAccess = false) {
-            if (preventStreamConcurrentAccess) {
-                stream = Stream.Synchronized(stream);
-            }
+        public void RespondWith(Stream stream, string extension = null) {
             GetOrCreateCefResourceHandler().SetResponse(stream, ResourcesManager.GetExtensionMimeType(extension));
             Continue();
         }
