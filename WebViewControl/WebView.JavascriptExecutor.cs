@@ -149,6 +149,8 @@ namespace WebViewControl {
                         var timeout = OwnerWebView.DefaultScriptsExecutionTimeout ?? DefaultTimeout;
                         var task = OwnerWebView.chromium.EvaluateJavaScript<object>(WrapScriptWithErrorHandling(script), timeout: timeout);
                         task.Wait(FlushTaskCancelationToken.Token);
+                    } catch (OperationCanceledException) { 
+                        // ignore
                     } catch (Exception e) {
                         var evaluatedScriptFunctions = scriptsToExecute.Select(s => s.FunctionName);
                         OwnerWebView.ForwardUnhandledAsyncException(ParseException(e, evaluatedScriptFunctions), frameName);
