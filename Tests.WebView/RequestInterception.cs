@@ -45,7 +45,7 @@ namespace Tests.WebView {
                 await Load(HtmlWithResource);
                 await taskCompletionSource.Task;
 
-                var loaded = TargetView.EvaluateScript<bool>("scriptLoaded"); // check that the value of x is what was declared before in the resource
+                var loaded = await TargetView.EvaluateScript<bool>("scriptLoaded"); // check that the value of x is what was declared before in the resource
                 Assert.IsTrue(loaded);
             });
         }
@@ -61,7 +61,7 @@ namespace Tests.WebView {
                 await Load(HtmlWithResource);
                 await taskCompletionSource.Task;
 
-                var failed = TargetView.EvaluateScript<bool>("scriptFailed"); // check that the value of x is what was declared before in the resource
+                var failed = await TargetView.EvaluateScript<bool>("scriptFailed"); // check that the value of x is what was declared before in the resource
                 Assert.IsTrue(failed);
             });
         }

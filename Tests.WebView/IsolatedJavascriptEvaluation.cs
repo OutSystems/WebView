@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using NUnit.Framework;
+using static WebViewControl.WebView;
 
 namespace Tests.WebView {
 
@@ -18,9 +19,19 @@ namespace Tests.WebView {
             await Run(async () => {
                 await Load("<html><body></body></html>");
 
-                var exception = Assert.Throws<WebViewControl.WebView.JavascriptException>(() => TargetView.EvaluateScript<int>("1", timeout: TimeSpan.FromMilliseconds(0)));
+                var exception = await Assertions.AssertThrows<JavascriptException>(async () => await TargetView.EvaluateScript<int>("1", timeout: TimeSpan.FromMilliseconds(0)));
                 Assert.IsNotNull(exception);
                 StringAssert.Contains("Timeout", exception.Message);
+            });
+        }
+
+        [Test(Description = "Evaluation works after engine is initialized")]
+        public async Task EvaluateAfterInitialization() {
+            await Run(async () => {
+                await Load("<html><script></script><body>1</body></html>");
+                await Load("<html><script></script><body>2</body></html>");
+                var result = await TargetView.EvaluateScript<int>("1", timeout: TimeSpan.FromSeconds(30));
+                Assert.AreEqual(result, 1);
             });
         }
 
@@ -78,7 +89,7 @@ namespace Tests.WebView {
                 TargetView.RegisterJavascriptObject(DotNetObject, functionToCall, executeCallsInUI: true);
                 await Load("<html><script>function test() { DotNetObject.invoke(); return 1; }</script><body></body></html>");
 
-                var result = TargetView.EvaluateScriptFunction<int>("test");
+                var result = await TargetView.EvaluateScriptFunction<int>("test");
                 await taskCompletionSource.Task;
                 Assert.AreEqual(1, result);
             });
@@ -146,8 +157,8 @@ namespace Tests.WebView {
             await Run(async () => {
                 const string DotNetObject = "DotNetObject";
 
-                var taskCompletionSourceFunction = new TaskCompletionSource<bool>();
-                var taskCompletionSourceDispose = new TaskCompletionSource<bool>();
+                var taskCompletionSourceFunction = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                var taskCompletionSourceDispose = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
 
                 Func<int> functionToCall = () => {
                     TargetView.Dispose();
@@ -157,11 +168,12 @@ namespace Tests.WebView {
                 };
 
                 TargetView.RegisterJavascriptObject(DotNetObject, functionToCall, executeCallsInUI: true);
-                await Load($"<html><script>function test() {{ {DotNetObject}.invoke(); return 1; }}</script><body></body></html>");
+                await Load($"<html><script>function test() {{ {DotNetObject}.invoke(); while(true); return 1; }}</script><body></body></html>");
 
                 TargetView.Disposed += () => taskCompletionSourceDispose.SetResult(true);
 
-                TargetView.EvaluateScriptFunction<int>("test");
+                var result = await TargetView.EvaluateScriptFunction<int>("test");
+                Assert.AreEqual(0, result, "Script evaluation should be cancelled and default value returned");
 
                 var disposed = await taskCompletionSourceFunction.Task;
                 Assert.IsFalse(disposed, "Dispose should have been scheduled");
@@ -184,7 +196,7 @@ namespace Tests.WebView {
 
                 var disposeCalled = await taskCompletionSource.Task;
 
-                var result = TargetView.EvaluateScriptFunction<int>("test");
+                var result = await TargetView.EvaluateScriptFunction<int>("test");
 
                 Assert.IsTrue(disposeCalled);
                 Assert.AreEqual(result, 0);
@@ -205,8 +217,8 @@ namespace Tests.WebView {
                     "</html>"
                 );
 
-                var x = TargetView.EvaluateScript<int>("x", "");
-                var y = TargetView.EvaluateScript<int>("test.y", "");
+                var x = await TargetView.EvaluateScript<int>("x", "");
+                var y = await TargetView.EvaluateScript<int>("test.y", "");
                 Assert.AreEqual(1, x);
                 Assert.AreEqual(2, y);
             });

@@ -13,7 +13,7 @@ namespace Tests.WebView {
                 const string BodyContent = "some text and a double byte char '●'";
                 await Load($"<html><script>;</script><body>{BodyContent}</body></html>");
 
-                var body = TargetView.EvaluateScript<string>("document.body.innerText");
+                var body = await TargetView.EvaluateScript<string>("document.body.innerText");
                 Assert.AreEqual(BodyContent, body);
             });
         }
@@ -24,7 +24,7 @@ namespace Tests.WebView {
                 var embeddedResourceUrl = new ResourceUrl(GetType().Assembly, "Resources", "EmbeddedJavascriptFile.js");
                 await Load($"<html><script src='{embeddedResourceUrl}'></script></html>");
 
-                var embeddedFileLoaded = TargetView.EvaluateScript<bool>("embeddedFileLoaded");
+                var embeddedFileLoaded = await TargetView.EvaluateScript<bool>("embeddedFileLoaded");
                 Assert.IsTrue(embeddedFileLoaded);
             });
         }
@@ -35,7 +35,7 @@ namespace Tests.WebView {
                 var embeddedResourceUrl = new ResourceUrl(GetType().Assembly, "Resources", "dash-folder", "EmbeddedJavascriptFile-With-Dashes.js");
                 await Load($"<html><script src='{embeddedResourceUrl}'></script></html>");
 
-                var embeddedFileLoaded = TargetView.EvaluateScript<bool>("embeddedFileLoaded");
+                var embeddedFileLoaded = await TargetView.EvaluateScript<bool>("embeddedFileLoaded");
                 Assert.IsTrue(embeddedFileLoaded);
             });
         }
@@ -46,7 +46,7 @@ namespace Tests.WebView {
                 var embeddedResourceUrl = new ResourceUrl(GetType().Assembly, "Resources", "ResourceJavascriptFile.js");
                 await Load($"<html><script src='{embeddedResourceUrl}'></script></html>");
 
-                var resourceFileLoaded = TargetView.EvaluateScript<bool>("resourceFileLoaded");
+                var resourceFileLoaded = await TargetView.EvaluateScript<bool>("resourceFileLoaded");
                 Assert.IsTrue(resourceFileLoaded);
 
                 Stream missingResource = null;

@@ -10,15 +10,15 @@ namespace Tests.WebView {
 
         [Test(Description = "A simple script evaluates correctly")]
         public async Task EvaluateSimpleScript() {
-            await Run(() => {
-                var result = TargetView.EvaluateScript<int>("2+1");
+            await Run(async () => {
+                var result = await TargetView.EvaluateScript<int>("2+1");
                 Assert.AreEqual(3, result);
             });
         }
 
         [Test(Description = "The order of the executed scripts is respected")]
         public async Task ExecutionOrderIsRespected() {
-            await Run(() => {
+            await Run(async() => {
                 try {
                     TargetView.ExecuteScript("x = ''");
                     var expectedResult = "";
@@ -27,23 +27,23 @@ namespace Tests.WebView {
                         TargetView.ExecuteScript($"x += '{i},'");
                         expectedResult += i + ",";
                     }
-                    var result = TargetView.EvaluateScript<string>("x");
+                    var result = await TargetView.EvaluateScript<string>("x");
                     Assert.AreEqual(expectedResult, result);
 
                     TargetView.ExecuteScript("x = '-'");
-                    result = TargetView.EvaluateScript<string>("x");
+                    result = await TargetView.EvaluateScript<string>("x");
                     Assert.AreEqual("-", result);
 
                 } finally {
-                    TargetView.EvaluateScript<bool>("delete x");
+                    await TargetView.EvaluateScript<bool>("delete x");
                 }
             });
         }
 
         [Test(Description = "Evaluation of complex objects returns the expected results")]
         public async Task ComplexObjectsEvaluation() {
-            await Run(() => {
-                var result = TargetView.EvaluateScript<TestObject>("({ Name: 'Snows', Age: 32, Parent: { Name: 'Snows Parent', Age: 60 }, Kind: 2 })");
+            await Run(async () => {
+                var result = await TargetView.EvaluateScript<TestObject>("({ Name: 'Snows', Age: 32, Parent: { Name: 'Snows Parent', Age: 60 }, Kind: 2 })");
                 Assert.IsNotNull(result);
                 Assert.AreEqual("Snows", result.Name);
                 Assert.AreEqual(32, result.Age);
@@ -56,9 +56,9 @@ namespace Tests.WebView {
 
         [Test(Description = "Evaluation of scripts with errors returns stack and message details")]
         public async Task EvaluationErrorsContainsMessageAndJavascriptStack() {
-            await Run(() => {
-                var exception = Assert.Throws<JavascriptException>(() => TargetView.EvaluateScript<int>("(function foo() { (function bar() { throw new Error('ups'); })() })()"));
-
+            await Run(async () => {
+                var exception = await Assertions.AssertThrows<JavascriptException>(async () => await TargetView.EvaluateScript<int>("(function foo() { (function bar() { throw new Error('ups'); })() })()"));
+                
                 Assert.AreEqual("Error: ups", exception.Message);
                 var stack = exception.StackTrace.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
                 Assert.Greater(stack.Length, 2);
@@ -69,8 +69,8 @@ namespace Tests.WebView {
 
         [Test(Description = "Evaluation of scripts includes evaluated function but not args")]
         public async Task EvaluationErrorsContainsEvaluatedJavascript() {
-            await Run(() => {
-                var exception = Assert.Throws<JavascriptException>(() => TargetView.EvaluateScriptFunction<int>("Math.min", "123", "(function() { throw new Error() })()"));
+            await Run(async () => {
+                var exception = await Assertions.AssertThrows<JavascriptException>(async () => await TargetView.EvaluateScriptFunction<int>("Math.min", "123", "(function() { throw new Error() })()"));
 
                 var stack = exception.StackTrace.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
                 Assert.Greater(stack.Length, 1);
@@ -81,32 +81,31 @@ namespace Tests.WebView {
 
         [Test(Description = "Evaluation of scripts with comments, json objects, and var declarations")]
         public async Task ScriptsWithComplexSyntaxAreEvaluated() {
-            await Run(() => {
-                var result = TargetView.EvaluateScript<int>("2+1 // some comments");
+            await Run(async () => {
+                var result = await TargetView.EvaluateScript<int>("2+1 // some comments");
                 Assert.AreEqual(3, result);
 
-                result = TargetView.EvaluateScript<int>("var x = 1; 5");
+                result = await TargetView.EvaluateScript<int>("var x = 1; 5");
                 Assert.AreEqual(5, result);
 
-                var resultObj = TargetView.EvaluateScript<TestObject>("({ Name: 'Snows', Age: 32})");
+                var resultObj = await TargetView.EvaluateScript<TestObject>("({ Name: 'Snows', Age: 32})");
                 Assert.IsNotNull(resultObj);
             });
         }
 
         [Test(Description = "Evaluation of scripts timesout after timeout elapsed")]
         public async Task EvaluationTimeoutIsThrown() {
-            await Run(() => {
-                var exception = Assert.Throws<JavascriptException>(
-                () => TargetView.EvaluateScript<int>("var start = new Date().getTime(); while((new Date().getTime() - start) < 150);",
-                timeout: TimeSpan.FromMilliseconds(50)));
+            await Run(async () => {
+                var exception = await Assertions.AssertThrows<JavascriptException>(
+                    async() => await TargetView.EvaluateScript<int>("var start = new Date().getTime(); while((new Date().getTime() - start) < 150);", timeout: TimeSpan.FromMilliseconds(50)));
                 StringAssert.Contains("Timeout", exception.Message);
             });
         }
 
         [Test(Description = "Evaluation of null returns empty array when result is array type")]
         public async Task EvaluationReturnsEmptyArraysWhenNull() {
-            await Run(() => {
-                var result = TargetView.EvaluateScript<int[]>("null");
+            await Run(async () => {
+                var result = await TargetView.EvaluateScript<int[]>("null");
                 Assert.IsNotNull(result);
                 Assert.AreEqual(0, result.Length);
             });
@@ -114,17 +113,17 @@ namespace Tests.WebView {
 
         [Test(Description = "Unhandled Exception event is called when an async error occurs")]
         public async Task UnhandledExceptionEventIsCalled() {
-            await Run(() => {
-                const string ExceptionMessage = "nooo";
+            const string ExceptionMessage = "nooo";
 
-                var taskCompletionSource = new TaskCompletionSource<Exception>();
-
-                WithUnhandledExceptionHandling(() => {
+            var taskCompletionSource = new TaskCompletionSource<Exception>();
+            await Run(async () => {
+                await WithUnhandledExceptionHandling(async () => {
                     TargetView.ExecuteScript($"throw new Error('{ExceptionMessage}')");
 
-                    var result = TargetView.EvaluateScript<int>("1+1"); // force exception to occur
+                    var result = await TargetView.EvaluateScript<int>("1+1"); // force exception to occur
                     Assert.AreEqual(2, result, "Result should not be affected");
 
+                    await taskCompletionSource.Task;
                     var exception = taskCompletionSource.Task.Result;
 
                     StringAssert.Contains(ExceptionMessage, exception.Message);
@@ -138,13 +137,15 @@ namespace Tests.WebView {
 
         [Test(Description = "Javascript async errors throw unhandled exception")]
         public async Task JavascriptAsyncErrorsThrowUnhandledException() {
-            await Run(() => {
-                const string ExceptionMessage = "nooo";
-                var taskCompletionSource = new TaskCompletionSource<Exception>();
+            const string ExceptionMessage = "nooo";
 
-                WithUnhandledExceptionHandling(() => {
+            var taskCompletionSource = new TaskCompletionSource<Exception>();
+
+            await Run(async () => {
+                await WithUnhandledExceptionHandling(async () => {
                     TargetView.ExecuteScript($"function foo() {{ throw new Error('{ExceptionMessage}'); }}; setTimeout(function() {{ foo(); }}, 1); ");
 
+                    await taskCompletionSource.Task;
                     var exception = taskCompletionSource.Task.Result;
 
                     StringAssert.Contains(ExceptionMessage, exception.Message);
