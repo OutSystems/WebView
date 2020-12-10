@@ -189,10 +189,7 @@ namespace WebViewControl {
                     return default;
                 }
 
-                var tasks = new List<Task>(2)
-                {
-                    evaluationTask.Task
-                };
+                var tasks = new List<Task>(2) { evaluationTask.Task };
 
                 Task timeoutTask = null;
                 if (timeout.HasValue) {

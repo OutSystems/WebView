@@ -55,7 +55,7 @@ namespace WebViewControl {
             chromium.UnregisterJavascriptObject(name);
         }
 
-        public Task<T> EvaluateScript<T>(string script, string frameName = MainFrameName, TimeSpan ? timeout = null) {
+        public Task<T> EvaluateScript<T>(string script, string frameName = MainFrameName, TimeSpan? timeout = null) {
             var jsExecutor = GetJavascriptExecutor(frameName);
             if (jsExecutor != null) {
                 return jsExecutor.EvaluateScript<T>(script, timeout: timeout);
