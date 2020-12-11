@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Reactive;
 using ReactiveUI;
+using WebViewControl;
 
 namespace SampleWebView.Avalonia {
     class MainWindowViewModel : ReactiveObject {
@@ -8,11 +9,15 @@ namespace SampleWebView.Avalonia {
         private string address;
         private string currentAddress;
 
-        public MainWindowViewModel() {
+        public MainWindowViewModel(WebView webview) {
             Address = CurrentAddress = "http://www.google.com/";
 
             NavigateCommand = ReactiveCommand.Create(() => {
                 CurrentAddress = Address;
+            });
+
+            ShowDevToolsCommand = ReactiveCommand.Create(() => {
+                webview.ShowDeveloperTools();
             });
 
             PropertyChanged += OnPropertyChanged;
@@ -35,5 +40,7 @@ namespace SampleWebView.Avalonia {
         }
 
         public ReactiveCommand<Unit, Unit> NavigateCommand { get; }
+
+        public ReactiveCommand<Unit, Unit> ShowDevToolsCommand { get; }
     }
 }

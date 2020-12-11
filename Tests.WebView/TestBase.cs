@@ -18,7 +18,7 @@ namespace Tests {
         private Window window;
         private T view;
 
-        protected static string CurrentTestName => TestContext.CurrentContext.Test.Name; 
+        protected static string CurrentTestName => TestContext.CurrentContext.Test.Name;
 
         protected Task Run(Func<Task> func) => Dispatcher.UIThread.InvokeAsync(func, DispatcherPriority.Background);
 
@@ -98,8 +98,9 @@ namespace Tests {
         [TearDown]
         protected async Task TearDown() {
             if (Debugger.IsAttached && TestContext.CurrentContext.Result.FailCount > 0) {
-                ShowDebugConsole();
-                await new TaskCompletionSource<bool>().Task;
+                if (ShowDebugConsole()) {
+                    await new TaskCompletionSource<bool>().Task;
+                }
             } else {
                 await Run(() => {
                     if (view != null) {
@@ -112,7 +113,7 @@ namespace Tests {
             }
         }
 
-        protected abstract void ShowDebugConsole();
+        protected abstract bool ShowDebugConsole();
 
         protected T TargetView {
             get { return view; }

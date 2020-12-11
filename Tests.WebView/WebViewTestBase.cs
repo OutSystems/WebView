@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using NUnit.Framework;
 using WebViewControl;
 
 namespace Tests.WebView {
@@ -26,15 +27,12 @@ namespace Tests.WebView {
         }
 
         protected Task Load(string html) {
-            var taskCompletionSource = new TaskCompletionSource<bool>();
+            var taskCompletionSource = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             
             void OnNavigated(string url, string frameName) {
                 if (url != UrlHelper.AboutBlankUrl) {
-                    try {
-                        taskCompletionSource.SetResult(true);
-                    } finally {
-                        TargetView.Navigated -= OnNavigated;
-                    }
+                    TargetView.Navigated -= OnNavigated;
+                    taskCompletionSource.SetResult(true);
                 }
             }
             TargetView.Navigated += OnNavigated;
@@ -42,7 +40,7 @@ namespace Tests.WebView {
             return taskCompletionSource.Task;
         }
 
-        protected void WithUnhandledExceptionHandling(Action action, Func<Exception, bool> onException) {
+        protected async Task WithUnhandledExceptionHandling(AsyncTestDelegate action, Func<Exception, bool> onException) {
             void OnUnhandledException(UnhandledAsyncExceptionEventArgs e) {
                 e.Handled = onException(e.Exception);
             }
@@ -52,15 +50,19 @@ namespace Tests.WebView {
             TargetView.UnhandledAsyncException += OnUnhandledException;
 
             try {
-                action();
+                await action();
             } finally {
                 TargetView.UnhandledAsyncException -= OnUnhandledException;
                 FailOnAsyncExceptions = failOnAsyncExceptions;
             }
         }
 
-        protected override void ShowDebugConsole() {
+        protected override bool ShowDebugConsole() {
+            if (TargetView.IsDisposing) {
+                return false;
+            }
             TargetView.ShowDeveloperTools();
+            return true;
         }
     }
 }

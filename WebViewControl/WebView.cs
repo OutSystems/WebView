@@ -130,9 +130,6 @@ namespace WebViewControl {
             var customSchemes = CustomSchemes.Select(s => new CustomScheme() { SchemeName = s, SchemeHandlerFactory = new SchemeHandlerFactory() }).ToArray();
             
             var customFlags = new[] {
-                // disable NetworkService https://bitbucket.org/chromiumembedded/cef/issues/2795/crash-in-openinputstreamwrapper
-                new KeyValuePair<string, string>("disable-features", "NetworkService,VizDisplayCompositor"),
-
                 // enable experimental feature flags
                 new KeyValuePair<string, string>("enable-experimental-web-platform-features", null)
             };
@@ -440,11 +437,10 @@ namespace WebViewControl {
                 // js context created event is not called for child frames
                 HandleJavascriptContextCreated(e.Frame);
             }
-            var navigated = Navigated;
-            if (navigated != null) {
+            if (Navigated != null) {
                 // store frame name and url beforehand (cannot do it later, since frame might be disposed)
                 var frameName = e.Frame.Name;
-                AsyncExecuteInUI(() => navigated(url, frameName));
+                AsyncExecuteInUI(() => Navigated?.Invoke(url, frameName));
             }
         }
 
@@ -458,11 +454,10 @@ namespace WebViewControl {
                 // failed loading default local url, discard html
                 htmlToLoad = null;
             }
-            var loadFailed = LoadFailed;
-            if (e.ErrorCode != CefErrorCode.Aborted && loadFailed != null) {
+            if (e.ErrorCode != CefErrorCode.Aborted && LoadFailed != null) {
                 var frameName = e.Frame.Name; // store frame name beforehand (cannot do it later, since frame might be disposed)
                 // ignore aborts, to prevent situations where we try to load an address inside Load failed handler (and its aborted)
-                AsyncExecuteInUI(() => loadFailed(url, (int)e.ErrorCode, frameName));
+                AsyncExecuteInUI(() => LoadFailed?.Invoke(url, (int)e.ErrorCode, frameName));
             }
         }
 

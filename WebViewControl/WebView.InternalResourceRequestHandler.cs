@@ -13,8 +13,6 @@ namespace WebViewControl {
 
             private WebView OwnerWebView { get; }
 
-            private ResourcesProvider ResourcesProvider { get; } = new ResourcesProvider();
-
             protected override CefCookieAccessFilter GetCookieAccessFilter(CefBrowser browser, CefFrame frame, CefRequest request) {
                 return null;
             }
@@ -44,7 +42,7 @@ namespace WebViewControl {
                             urlWithoutQuery.Query = string.Empty;
                         }
 
-                        OwnerWebView.ExecuteWithAsyncErrorHandling(() => ResourcesProvider.LoadEmbeddedResource(resourceHandler, urlWithoutQuery.Uri));
+                        OwnerWebView.ExecuteWithAsyncErrorHandling(() => resourceHandler.LoadEmbeddedResource(urlWithoutQuery.Uri));
 
                         TriggerBeforeResourceLoadEvent();
 

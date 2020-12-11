@@ -11,7 +11,7 @@ namespace SampleWebView.Avalonia {
             WebView.LogFile = "ceflog.txt";
             AvaloniaXamlLoader.Load(this);
 
-            DataContext = new MainWindowViewModel();
+            DataContext = new MainWindowViewModel(this.FindControl<WebView>("webview"));
         }
     }
 }

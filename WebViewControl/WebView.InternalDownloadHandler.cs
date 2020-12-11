@@ -19,19 +19,16 @@ namespace WebViewControl {
 
             protected override void OnDownloadUpdated(CefBrowser browser, CefDownloadItem downloadItem, CefDownloadItemCallback callback) {
                 if (downloadItem.IsComplete) {
-                    var downloadCompleted = OwnerWebView.DownloadCompleted;
-                    if (downloadCompleted != null) {
-                        OwnerWebView.AsyncExecuteInUI(() => downloadCompleted(downloadItem.FullPath));
+                    if (OwnerWebView.DownloadCompleted != null) {
+                        OwnerWebView.AsyncExecuteInUI(() => OwnerWebView.DownloadCompleted?.Invoke(downloadItem.FullPath));
                     }
                 } else if (downloadItem.IsCanceled) {
-                    var downloadCancelled = OwnerWebView.DownloadCancelled;
-                    if (downloadCancelled != null) {
-                        OwnerWebView.AsyncExecuteInUI(() => downloadCancelled(downloadItem.FullPath));
+                    if (OwnerWebView.DownloadCancelled != null) {
+                        OwnerWebView.AsyncExecuteInUI(() => OwnerWebView.DownloadCancelled?.Invoke(downloadItem.FullPath));
                     }
                 } else {
-                    var downloadProgressChanged = OwnerWebView.DownloadProgressChanged;
-                    if (downloadProgressChanged != null) {
-                        OwnerWebView.AsyncExecuteInUI(() => downloadProgressChanged(downloadItem.FullPath, downloadItem.ReceivedBytes, downloadItem.TotalBytes));
+                    if (OwnerWebView.DownloadProgressChanged != null) {
+                        OwnerWebView.AsyncExecuteInUI(() => OwnerWebView.DownloadProgressChanged?.Invoke(downloadItem.FullPath, downloadItem.ReceivedBytes, downloadItem.TotalBytes));
                     }
                 }
             }

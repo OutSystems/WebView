@@ -19,14 +19,16 @@
         </ExperimentalAcrylicBorder>
         <DockPanel>
 
-            <TextBox Background="Transparent" DockPanel.Dock="Top" Margin="0 0 400 0" Text="{Binding Address}">
-                <TextBox.KeyBindings>
-                    <KeyBinding Gesture="Enter" Command="{Binding NavigateCommand}" />
-                </TextBox.KeyBindings>
-            </TextBox>
+            <DockPanel DockPanel.Dock="Top" Margin="0 0 400 0">
+                <Button DockPanel.Dock="Right" Background="Transparent" Command="{Binding ShowDevToolsCommand}">Show DevTools</Button>
+                <TextBox Background="Transparent" Text="{Binding Address}">
+                    <TextBox.KeyBindings>
+                        <KeyBinding Gesture="Enter" Command="{Binding NavigateCommand}" />
+                    </TextBox.KeyBindings>
+                </TextBox>
+            </DockPanel>
 
-
-            <webview:WebView Address="{Binding CurrentAddress}" />
+            <webview:WebView x:Name="webview" Address="{Binding CurrentAddress}" />
         </DockPanel>
     </Panel>
 </Window>

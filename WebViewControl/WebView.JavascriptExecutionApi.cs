@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace WebViewControl {
 
@@ -54,12 +55,12 @@ namespace WebViewControl {
             chromium.UnregisterJavascriptObject(name);
         }
 
-        public T EvaluateScript<T>(string script, string frameName = MainFrameName, TimeSpan? timeout = null) {
+        public Task<T> EvaluateScript<T>(string script, string frameName = MainFrameName, TimeSpan? timeout = null) {
             var jsExecutor = GetJavascriptExecutor(frameName);
             if (jsExecutor != null) {
                 return jsExecutor.EvaluateScript<T>(script, timeout: timeout);
             }
-            return default(T);
+            return Task.FromResult(default(T));
         }
 
         public void ExecuteScript(string script, string frameName = MainFrameName) {
@@ -74,36 +75,36 @@ namespace WebViewControl {
             GetJavascriptExecutor(frameName)?.ExecuteScriptFunction(functionName, false, args);
         }
 
-        public T EvaluateScriptFunction<T>(string functionName, params string[] args) {
+        public Task<T> EvaluateScriptFunction<T>(string functionName, params string[] args) {
             return EvaluateScriptFunctionInFrame<T>(functionName, MainFrameName, args);
         }
 
-        public T EvaluateScriptFunctionInFrame<T>(string functionName, string frameName, params string[] args) {
+        public Task<T> EvaluateScriptFunctionInFrame<T>(string functionName, string frameName, params string[] args) {
             var jsExecutor = GetJavascriptExecutor(frameName);
             if (jsExecutor != null) {
                 return jsExecutor.EvaluateScriptFunction<T>(functionName, false, args);
             }
-            return default(T);
+            return Task.FromResult(default(T));
         }
 
-        internal void ExecuteScriptFunctionWithSerializedParams(string functionName, params object[] args) {
+        protected void ExecuteScriptFunctionWithSerializedParams(string functionName, params object[] args) {
             ExecuteScriptFunctionWithSerializedParamsInFrame(functionName, MainFrameName, args);
         }
 
-        internal void ExecuteScriptFunctionWithSerializedParamsInFrame(string functionName, string frameName, params object[] args) {
+        protected void ExecuteScriptFunctionWithSerializedParamsInFrame(string functionName, string frameName, params object[] args) {
             GetJavascriptExecutor(frameName)?.ExecuteScriptFunction(functionName, true, args);
         }
 
-        internal T EvaluateScriptFunctionWithSerializedParams<T>(string functionName, params object[] args) {
+        protected Task<T> EvaluateScriptFunctionWithSerializedParams<T>(string functionName, params object[] args) {
             return EvaluateScriptFunctionWithSerializedParamsInFrame<T>(functionName, MainFrameName, args);
         }
 
-        internal T EvaluateScriptFunctionWithSerializedParamsInFrame<T>(string functionName, string frameName, params object[] args) {
+        protected Task<T> EvaluateScriptFunctionWithSerializedParamsInFrame<T>(string functionName, string frameName, params object[] args) {
             var jsExecutor = GetJavascriptExecutor(frameName);
             if (jsExecutor != null) {
                 return jsExecutor.EvaluateScriptFunction<T>(functionName, true, args);
             }
-            return default(T);
+            return Task.FromResult(default(T));
         }
     }
 }

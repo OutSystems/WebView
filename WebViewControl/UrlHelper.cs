@@ -6,7 +6,7 @@ namespace WebViewControl {
 
     internal static class UrlHelper {
 
-        private const string ChromeInternalProtocol = "chrome-devtools:";
+        private const string ChromeInternalProtocol = "devtools:";
 
         public const string AboutBlankUrl = "about:blank";
 
