@@ -11,12 +11,16 @@
     <Product>WebViewControl</Product>
     <Copyright>Copyright ©  2019</Copyright>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.85.5</Version>
+    <Version>2.85.8</Version>
     <PackageId>WebViewControl-WPF</PackageId>
     <Authors>OutSystems</Authors>
     <PackageProjectUrl>https://github.com/OutSystems/WebView</PackageProjectUrl>
     <PackageOutputPath>$(MSBuildProjectDirectory)\..\nuget</PackageOutputPath>
     <Configurations>Debug;Release;ReleaseAvalonia;ReleaseWPF;ReleaseAvaloniaRemoteDebugSupport</Configurations>
+  </PropertyGroup>
+  
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWPF|AnyCPU'">
+    <Optimize>true</Optimize>
   </PropertyGroup>
   
   <ItemGroup>

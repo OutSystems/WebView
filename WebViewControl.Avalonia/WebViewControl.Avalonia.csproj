@@ -12,7 +12,7 @@
     <Product>WebViewControl</Product>
     <Copyright>Copyright ©  2019</Copyright>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.85.7</Version>
+    <Version>2.85.8</Version>
     <PackageId>WebViewControl-Avalonia</PackageId>
     <Authors>OutSystems</Authors>
     <PackageProjectUrl>https://github.com/OutSystems/WebView</PackageProjectUrl>
@@ -23,6 +23,11 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseAvaloniaRemoteDebugSupport|AnyCPU'">
     <DefineConstants>REMOTE_DEBUG_SUPPORT</DefineConstants>
     <PackageId>WebViewControl-Avalonia-RemoteDebugSupport</PackageId>
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseAvalonia|AnyCPU'">
+    <Optimize>true</Optimize>
   </PropertyGroup>
 
   <ItemGroup>
