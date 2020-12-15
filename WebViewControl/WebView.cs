@@ -208,7 +208,11 @@ namespace WebViewControl {
             chromium.JSDialogHandler = new InternalJsDialogHandler(this);
             chromium.DragHandler = new InternalDragHandler(this);
             chromium.KeyboardHandler = new InternalKeyboardHandler(this);
-            chromium.FocusHandler = new InternalFocusHandler(this);
+
+            if (!OsrEnabled) {
+                // having the handler (by default) seems to cause some focus troubles, enable only osr disabled
+                chromium.FocusHandler = new InternalFocusHandler(this);
+            }
 
             disposables = new IDisposable[] {
                 chromium,
