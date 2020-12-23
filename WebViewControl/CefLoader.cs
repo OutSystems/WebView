@@ -45,7 +45,7 @@ namespace Xilium.CefGlue {
 
         private static IEnumerable<string> GetProbingPaths() {
             var currentAssemblyPath = new Uri(typeof(CefLoader).Assembly.CodeBase);
-            var basePath = new FileInfo(currentAssemblyPath.AbsolutePath).Directory.FullName;
+            var basePath = new FileInfo(currentAssemblyPath.LocalPath).Directory.FullName;
             
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
                 yield return Path.Combine(basePath, "x64");
