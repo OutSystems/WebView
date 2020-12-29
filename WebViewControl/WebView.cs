@@ -99,7 +99,7 @@ namespace WebViewControl {
         private string CurrentDomainId { get; }
 
         private string DefaultLocalUrl { get; }
-
+        public static string UserAgent { get; set; }
         public static string LogFile { get; set; }
 
         public static string CachePath { get; set; } = Path.Combine(Path.GetTempPath(), "WebView" + Guid.NewGuid().ToString().Replace("-", null) + DateTime.UtcNow.Ticks);
@@ -119,13 +119,15 @@ namespace WebViewControl {
                 return;
             }
 
-            var cefSettings = new CefSettings();
-            cefSettings.LogSeverity = string.IsNullOrWhiteSpace(LogFile) ? CefLogSeverity.Disable : (EnableErrorLogOnly ? CefLogSeverity.Error : CefLogSeverity.Verbose);
-            cefSettings.LogFile = LogFile;
-            cefSettings.UncaughtExceptionStackSize = 100; // enable stack capture
-            cefSettings.CachePath = CachePath; // enable cache for external resources to speedup loading
-            cefSettings.WindowlessRenderingEnabled = OsrEnabled;
-            cefSettings.RemoteDebuggingPort = GetRemoteDebuggingPort();
+            var cefSettings = new CefSettings {
+                LogSeverity = string.IsNullOrWhiteSpace(LogFile) ? CefLogSeverity.Disable : (EnableErrorLogOnly ? CefLogSeverity.Error : CefLogSeverity.Verbose),
+                LogFile = LogFile,
+                UncaughtExceptionStackSize = 100, // enable stack capture
+                CachePath = CachePath, // enable cache for external resources to speedup loading
+                WindowlessRenderingEnabled = OsrEnabled,
+                RemoteDebuggingPort = GetRemoteDebuggingPort(),
+                UserAgent= UserAgent
+            };
 
             var customSchemes = CustomSchemes.Select(s => new CustomScheme() { SchemeName = s, SchemeHandlerFactory = new SchemeHandlerFactory() }).ToArray();
             
