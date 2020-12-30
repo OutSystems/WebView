@@ -66,8 +66,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!--When we upload Avalonia here, we should increase the version of both WebViewControl.Avalonia as well as ReactViewControl.Avalonia-->  
-    <PackageReference Include="Avalonia" Version="0.10.0-rc1" />  
+    <!--When we upload Avalonia here, we should increase the version of both WebViewControl.Avalonia as well as ReactViewControl.Avalonia-->
+    <PackageReference Include="Avalonia" Version="0.10.0-rc1" />
     <PackageReference PrivateAssets="None" Include="CefGlue.Avalonia" Version="85.4183.9" />
     <PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
     <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
