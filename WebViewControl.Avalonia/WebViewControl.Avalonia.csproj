@@ -12,7 +12,7 @@
     <Product>WebViewControl</Product>
     <Copyright>Copyright ©  2019</Copyright>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.85.12</Version>
+    <Version>2.85.13</Version>
     <PackageId>WebViewControl-Avalonia</PackageId>
     <Authors>OutSystems</Authors>
     <PackageProjectUrl>https://github.com/OutSystems/WebView</PackageProjectUrl>
@@ -68,7 +68,7 @@
   <ItemGroup>
     <!--When we upload Avalonia here, we should increase the version of both WebViewControl.Avalonia as well as ReactViewControl.Avalonia-->
     <PackageReference Include="Avalonia" Version="0.10.0-rc1" />
-    <PackageReference PrivateAssets="None" Include="CefGlue.Avalonia" Version="85.4183.9" />
+    <PackageReference PrivateAssets="None" Include="CefGlue.Avalonia" Version="85.4183.11" />
     <PackageReference Include="Microsoft.CSharp" Version="4.5.0" />
     <PackageReference Include="System.Runtime.Loader" Version="4.3.0" />
     <PackageReference Include="ModuleInit.Fody" Version="2.1.1">
