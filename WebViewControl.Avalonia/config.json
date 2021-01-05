@@ -1,7 +1,0 @@
-{
-	"slnFilePath": "../WebView.sln",
-	"csprojFilePath": "./WebViewControl.Avalonia.csproj",
-	"configuration": "Release",
-	"testsdllFilePath": "../Tests.WebView/bin/Tests.WebView.dll",
-	"packageRootPath":"../"
-}
