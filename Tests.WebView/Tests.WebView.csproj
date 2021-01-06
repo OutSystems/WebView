@@ -18,6 +18,7 @@
   <ItemGroup>
     <None Remove="App.xaml" />
     <None Remove="Resources\dash-folder\EmbeddedJavascriptFile-With-Dashes.js" />
+    <None Remove="Resources\EmbeddedHtml.html" />
     <None Remove="Resources\EmbeddedJavascriptFile.js" />
     <None Remove="Resources\ResourceJavascriptFile.js" />
   </ItemGroup>
@@ -27,6 +28,7 @@
       <Generator>MSBuild:Compile</Generator>
     </EmbeddedResource>
     <EmbeddedResource Include="Resources\dash-folder\EmbeddedJavascriptFile-With-Dashes.js" />
+    <EmbeddedResource Include="Resources\EmbeddedHtml.html" />
     <EmbeddedResource Include="Resources\EmbeddedJavascriptFile.js" />
     <EmbeddedResource Include="Resources\ResourceJavascriptFile.js" />
   </ItemGroup>
