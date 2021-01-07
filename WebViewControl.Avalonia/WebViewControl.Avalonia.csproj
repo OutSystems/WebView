@@ -34,6 +34,7 @@
     <Compile Include="..\WebViewControl\AssemblyCache.cs" Link="AssemblyCache.cs" />
     <Compile Include="..\WebViewControl\AsyncResourceHandler.cs" Link="AsyncResourceHandler.cs" />
     <Compile Include="..\WebViewControl\ChromiumBrowser.cs" Link="ChromiumBrowser.cs" />
+    <Compile Include="..\WebViewControl\GlobalSettings.cs" Link="GlobalSettings.cs" />
     <Compile Include="..\WebViewControl\JavascriptSerializationHelper.cs" Link="JavascriptSerializationHelper.cs" />
     <Compile Include="..\WebViewControl\ProxyAuthentication.cs" Link="ProxyAuthentication.cs" />
     <Compile Include="..\WebViewControl\RenderProcessTerminatedException.cs" Link="RenderProcessTerminatedException.cs" />
@@ -61,6 +62,7 @@
     <Compile Include="..\WebViewControl\WebView.JavascriptExecutionApi.cs" Link="WebView.JavascriptExecutionApi.cs" />
     <Compile Include="..\WebViewControl\WebView.JavascriptExecutor.cs" Link="WebView.JavascriptExecutor.cs" />
     <Compile Include="..\WebViewControl\WebView.ResourceHandler.cs" Link="WebView.ResourceHandler.cs" />
+    <Compile Include="..\WebViewControl\WebViewLoader.cs" Link="WebViewLoader.cs" />
   </ItemGroup>
 
   <ItemGroup>
