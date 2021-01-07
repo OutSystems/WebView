@@ -123,9 +123,8 @@ namespace Tests {
 
         protected void OnUnhandledAsyncException(WebViewControl.UnhandledAsyncExceptionEventArgs e) {
             if (FailOnAsyncExceptions) {
-                Dispatcher.UIThread.InvokeAsync(new Action(() => {
-                    Assert.Fail("An async exception ocurred: " + e.Exception.ToString());
-                }));
+                Console.WriteLine("An async exception ocurred: " + e.Exception.ToString());
+                Assert.Fail("An async exception ocurred: " + e.Exception.ToString());
             }
         }
     }

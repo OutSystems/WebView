@@ -4,18 +4,23 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <Configurations>Debug;Release;ReleaseAvalonia;ReleaseWPF;ReleaseAvaloniaRemoteDebugSupport</Configurations>
+    <RuntimeIdentifiers>osx-x64;win-x64</RuntimeIdentifiers>
   </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' and $([MSBuild]::IsOSPlatform('OSX'))">
-    <CustomCommands>
-      <CustomCommands>
-        <Command>
-          <type>AfterBuild</type>
-          <command>sh bundle.sh</command>
-        </Command>
-      </CustomCommands>
-    </CustomCommands>
+    
+  <PropertyGroup>
+    <CFBundleName>SampleWebView.Avalonia</CFBundleName> <!-- Also defines .app file name -->
+    <CFBundleDisplayName>SampleWebView</CFBundleDisplayName>
+    <CFBundleIdentifier>com.example</CFBundleIdentifier>
+    <CFBundleVersion>1.0.0</CFBundleVersion>
+    <CFBundlePackageType>AAPL</CFBundlePackageType>
+    <CFBundleSignature>4242</CFBundleSignature>
+    <CFBundleShortVersionString>DemoAvalonia</CFBundleShortVersionString>
+    <CFBundleExecutable>SampleWebView.Avalonia</CFBundleExecutable>
+    <CFBundleIconFile>AppName.icns</CFBundleIconFile> <!-- Will be copied from output directory -->
+    <NSPrincipalClass>NSApplication</NSPrincipalClass>
+    <NSHighResolutionCapable>true</NSHighResolutionCapable>
   </PropertyGroup>
+    
   <ItemGroup>
     <None Remove="App.xaml" />
     <None Remove="MainWindow.xaml" />
@@ -34,6 +39,7 @@
   <ItemGroup>
     <PackageReference Include="Avalonia.Desktop" Version="0.10.0-rc1" />
     <PackageReference Include="Avalonia.ReactiveUI" Version="0.10.0-rc1" />
+    <PackageReference Include="Dotnet.Bundle" Version="0.9.13" />
   </ItemGroup>
 
   <ItemGroup>

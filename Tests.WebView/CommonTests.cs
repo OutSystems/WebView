@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Avalonia.Controls;
 using NUnit.Framework;
+using WebViewControl;
 
 namespace Tests.WebView {
 
@@ -39,8 +40,8 @@ namespace Tests.WebView {
             await Run(async () => {
                 var taskCompletionSource = new TaskCompletionSource<bool>();
                 var view = new WebViewControl.WebView();
-                view.Disposed += delegate { 
-                    taskCompletionSource.SetResult(true); 
+                view.Disposed += delegate {
+                    taskCompletionSource.SetResult(true);
                 };
 
                 var window = new Window { Title = CurrentTestName };
@@ -62,8 +63,8 @@ namespace Tests.WebView {
             await Run(async () => {
                 var taskCompletionSource = new TaskCompletionSource<bool>();
                 var view = new WebViewControl.WebView();
-                view.Disposed += delegate { 
-                    taskCompletionSource.SetResult(true); 
+                view.Disposed += delegate {
+                    taskCompletionSource.SetResult(true);
                 };
 
                 var window = new Window {

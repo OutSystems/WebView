@@ -390,7 +390,7 @@ namespace WebViewControl {
             }
         }
 
-        public void LoadUrl(string address, string frameName) {
+        public void LoadUrl(string address, string frameName = MainFrameName) {
             if (this.IsMainFrame(frameName) && address != DefaultLocalUrl) {
                 htmlToLoad = null;
             }
