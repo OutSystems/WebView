@@ -9,25 +9,64 @@ namespace WebViewControl {
 
     public class GlobalSettings {
 
+        private bool persistCache;
+        private bool enableErrorLogOnly;
         private bool osrEnabled = true;
+        private string userAgent;
+        private string logFile;
+        private string cachePath = Path.Combine(Path.GetTempPath(), "WebView" + Guid.NewGuid().ToString().Replace("-", null) + DateTime.UtcNow.Ticks);
 
-        public string UserAgent { get; set; }
+        public string CachePath {
+            get => cachePath;
+            set {
+                EnsureNotLoaded(nameof(CachePath));
+                cachePath = value;
+            }
+        }
 
-        public string LogFile { get; set; }
+        public bool PersistCache {
+            get => persistCache;
+            set {
+                EnsureNotLoaded(nameof(PersistCache));
+                persistCache = value;
+            }
+        }
 
-        public string CachePath { get; set; } = Path.Combine(Path.GetTempPath(), "WebView" + Guid.NewGuid().ToString().Replace("-", null) + DateTime.UtcNow.Ticks);
+        public bool EnableErrorLogOnly {
+            get => enableErrorLogOnly;
+            set {
+                EnsureNotLoaded(nameof(EnableErrorLogOnly));
+                enableErrorLogOnly = value;
+            }
+        }
 
-        public bool PersistCache { get; set; } = false;
+        public string UserAgent {
+            get => userAgent;
+            set {
+                EnsureNotLoaded(nameof(UserAgent));
+                userAgent = value;
+            }
+        }
 
-        public bool EnableErrorLogOnly { get; set; } = false;
+        public string LogFile {
+            get => logFile;
+            set {
+                EnsureNotLoaded(nameof(LogFile));
+                logFile = value;
+            }
+        }
 
         public bool OsrEnabled {
             get => osrEnabled;
             set {
-                if (CefRuntimeLoader.IsLoaded) {
-                    throw new InvalidOperationException($"Cannot set {nameof(OsrEnabled)} after WebView engine has been loaded");
-                }
+                EnsureNotLoaded(nameof(OsrEnabled));
                 osrEnabled = value;
+            }
+        }
+
+        private void EnsureNotLoaded(string propertyName) {
+            if (CefRuntimeLoader.IsLoaded) {
+                throw new InvalidOperationException($"Cannot set {propertyName} after WebView engine has been loaded");
             }
         }
 
