@@ -47,6 +47,7 @@ namespace WebViewControl {
         private string htmlToLoad;
         private volatile bool isDisposing;
         private IDisposable[] disposables;
+        private Lazy<EditCommands> editCommands;
 
         private CancellationTokenSource AsyncCancellationTokenSource { get; } = new CancellationTokenSource();
 
@@ -143,6 +144,8 @@ namespace WebViewControl {
                 // having the handler (by default) seems to cause some focus troubles, enable only osr disabled
                 chromium.FocusHandler = new InternalFocusHandler(this);
             }
+
+            editCommands = new Lazy<EditCommands>(() => new EditCommands(chromium));
 
             disposables = new IDisposable[] {
                 chromium,
@@ -244,21 +247,15 @@ namespace WebViewControl {
             }
         }
 
-        public bool CanGoBack {
-            get { return chromium.CanGoBack; }
-        }
+        public EditCommands EditCommands => editCommands.Value;
 
-        public bool CanGoForward {
-            get { return chromium.CanGoForward; }
-        }
+        public bool CanGoBack => chromium.CanGoBack;
 
-        public void GoBack() {
-            chromium.GoBack();
-        }
+        public bool CanGoForward => chromium.CanGoForward;
 
-        public void GoForward() {
-            chromium.GoForward();
-        }
+        public void GoBack() => chromium.GoBack();
+
+        public void GoForward() => chromium.GoForward();
 
         public bool IsSecurityDisabled {
             get => chromium.Settings.WebSecurity == CefState.Disabled;
@@ -288,9 +285,7 @@ namespace WebViewControl {
 
         public bool IgnoreMissingResources { get; set; }
 
-        public string Title {
-            get { return chromium.Title; }
-        }
+        public string Title => chromium.Title;
 
         public double ZoomPercentage {
             get { return Math.Pow(PercentageToZoomFactor, chromium.ZoomLevel); }
@@ -413,9 +408,7 @@ namespace WebViewControl {
         }
 
         [DebuggerNonUserCode]
-        private void ExecuteWithAsyncErrorHandling(Action action) {
-            ExecuteWithAsyncErrorHandlingOnFrame(action, null);
-        }
+        private void ExecuteWithAsyncErrorHandling(Action action) => ExecuteWithAsyncErrorHandlingOnFrame(action, null);
 
         [DebuggerNonUserCode]
         private void ExecuteWithAsyncErrorHandlingOnFrame(Action action, string frameName) {
@@ -456,9 +449,7 @@ namespace WebViewControl {
             }
         }
 
-        private void OnJavascriptContextCreated(object sender, JavascriptContextLifetimeEventArgs e) {
-            HandleJavascriptContextCreated(e.Frame);
-        }
+        private void OnJavascriptContextCreated(object sender, JavascriptContextLifetimeEventArgs e) => HandleJavascriptContextCreated(e.Frame);
 
         private void HandleJavascriptContextCreated(CefFrame frame) {
             ExecuteWithAsyncErrorHandling(() => {
@@ -524,9 +515,7 @@ namespace WebViewControl {
             }
         }
 
-        protected virtual string GetRequestUrl(string url, ResourceType resourceType) {
-            return url;
-        }
+        protected virtual string GetRequestUrl(string url, ResourceType resourceType) => url;
 
         /// <summary>
         /// Called when the webview has received focus.
