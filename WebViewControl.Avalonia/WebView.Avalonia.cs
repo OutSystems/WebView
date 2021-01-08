@@ -5,25 +5,12 @@ using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Threading;
-using Xilium.CefGlue.Common;
 
 namespace WebViewControl {
 
     partial class WebView : BaseControl {
 
-        private static bool osrEnabled = true;
-
         private bool IsInDesignMode => false;
-
-        public static bool OsrEnabled {
-            get => osrEnabled;
-            set {
-                if (CefRuntimeLoader.IsLoaded) {
-                    throw new InvalidOperationException($"Cannot set {nameof(OsrEnabled)} after WebView engine has been loaded");
-                }
-                osrEnabled = value;
-            }
-        }
 
         public static readonly StyledProperty<string> AddressProperty =
             AvaloniaProperty.Register<WebView, string>(nameof(Address), defaultBindingMode: BindingMode.TwoWay);

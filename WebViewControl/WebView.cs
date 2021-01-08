@@ -1,19 +1,13 @@
-﻿#if REMOTE_DEBUG_SUPPORT
-using Microsoft.Extensions.Configuration;
-#endif
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Xilium.CefGlue;
-using Xilium.CefGlue.Common;
 using Xilium.CefGlue.Common.Events;
-using Xilium.CefGlue.Common.Shared;
 
 namespace WebViewControl {
 
@@ -37,12 +31,6 @@ namespace WebViewControl {
 
         private const string MainFrameName = null;
 
-        private static string[] CustomSchemes { get; } = new[] {
-            ResourceUrl.LocalScheme,
-            ResourceUrl.EmbeddedScheme,
-            ResourceUrl.CustomScheme
-        };
-
         // converts cef zoom percentage to css zoom (between 0 and 1)
         // from https://code.google.com/p/chromium/issues/detail?id=71484
         private const float PercentageToZoomFactor = 1.2f;
@@ -59,6 +47,7 @@ namespace WebViewControl {
         private string htmlToLoad;
         private volatile bool isDisposing;
         private IDisposable[] disposables;
+        private Lazy<EditCommands> editCommands;
 
         private CancellationTokenSource AsyncCancellationTokenSource { get; } = new CancellationTokenSource();
 
@@ -100,72 +89,13 @@ namespace WebViewControl {
 
         private string DefaultLocalUrl { get; }
 
-        public static string UserAgent { get; set; }
-
-        public static string LogFile { get; set; }
-
-        public static string CachePath { get; set; } = Path.Combine(Path.GetTempPath(), "WebView" + Guid.NewGuid().ToString().Replace("-", null) + DateTime.UtcNow.Ticks);
-
-        public static bool PersistCache { get; set; } = false;
-
-        public static bool EnableErrorLogOnly { get; set; } = false;
-
         /// <summary>
         /// Executed when a web view is initialized. Can be used to attach or configure the webview before it's ready.
         /// </summary>
         public static event Action<WebView> GlobalWebViewInitialized;
 
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private static void InitializeCef() {
-            if (CefRuntimeLoader.IsLoaded) {
-                return;
-            }
-
-            var cefSettings = new CefSettings {
-                LogSeverity = string.IsNullOrWhiteSpace(LogFile) ? CefLogSeverity.Disable : (EnableErrorLogOnly ? CefLogSeverity.Error : CefLogSeverity.Verbose),
-                LogFile = LogFile,
-                UncaughtExceptionStackSize = 100, // enable stack capture
-                CachePath = CachePath, // enable cache for external resources to speedup loading
-                WindowlessRenderingEnabled = OsrEnabled,
-                RemoteDebuggingPort = GetRemoteDebuggingPort(),
-                UserAgent = UserAgent
-            };
-
-            var customSchemes = CustomSchemes.Select(s => new CustomScheme() { SchemeName = s, SchemeHandlerFactory = new SchemeHandlerFactory() }).ToArray();
-
-            var customFlags = new[] {
-                // enable experimental feature flags
-                new KeyValuePair<string, string>("enable-experimental-web-platform-features", null)
-            };
-
-            CefRuntimeLoader.Initialize(settings: cefSettings, flags: customFlags, customSchemes: customSchemes);
-
-            AppDomain.CurrentDomain.ProcessExit += delegate { Cleanup(); };
-        }
-
-        /// <summary>
-        /// Release all resources and shutdown web view
-        /// </summary>
-        [DebuggerNonUserCode]
-        public static void Cleanup() {
-            CefRuntime.Shutdown(); // must shutdown cef to free cache files (so that cleanup is able to delete files)
-
-            if (PersistCache) {
-                return;
-            }
-
-            try {
-                var dirInfo = new DirectoryInfo(CachePath);
-                if (dirInfo.Exists) {
-                    dirInfo.Delete(true);
-                }
-            } catch (UnauthorizedAccessException) {
-                // ignore
-            } catch (IOException) {
-                // ignore
-            }
-        }
-
+        public static GlobalSettings Settings { get; } = new GlobalSettings();
+       
         public WebView() : this(false) { }
 
         /// <param name="useSharedDomain">Shared domains means that the webview default domain will always be the same. When <see cref="useSharedDomain"/> is false a
@@ -189,7 +119,7 @@ namespace WebViewControl {
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void Initialize() {
-            InitializeCef();
+            WebViewLoader.Initialize(Settings);
 
             chromium = new ChromiumBrowser();
             chromium.BrowserInitialized += OnWebViewBrowserInitialized;
@@ -210,10 +140,12 @@ namespace WebViewControl {
             chromium.DragHandler = new InternalDragHandler(this);
             chromium.KeyboardHandler = new InternalKeyboardHandler(this);
 
-            if (!OsrEnabled) {
+            if (!Settings.OsrEnabled) {
                 // having the handler (by default) seems to cause some focus troubles, enable only osr disabled
                 chromium.FocusHandler = new InternalFocusHandler(this);
             }
+
+            editCommands = new Lazy<EditCommands>(() => new EditCommands(chromium));
 
             disposables = new IDisposable[] {
                 chromium,
@@ -315,21 +247,15 @@ namespace WebViewControl {
             }
         }
 
-        public bool CanGoBack {
-            get { return chromium.CanGoBack; }
-        }
+        public EditCommands EditCommands => editCommands.Value;
 
-        public bool CanGoForward {
-            get { return chromium.CanGoForward; }
-        }
+        public bool CanGoBack => chromium.CanGoBack;
 
-        public void GoBack() {
-            chromium.GoBack();
-        }
+        public bool CanGoForward => chromium.CanGoForward;
 
-        public void GoForward() {
-            chromium.GoForward();
-        }
+        public void GoBack() => chromium.GoBack();
+
+        public void GoForward() => chromium.GoForward();
 
         public bool IsSecurityDisabled {
             get => chromium.Settings.WebSecurity == CefState.Disabled;
@@ -359,9 +285,7 @@ namespace WebViewControl {
 
         public bool IgnoreMissingResources { get; set; }
 
-        public string Title {
-            get { return chromium.Title; }
-        }
+        public string Title => chromium.Title;
 
         public double ZoomPercentage {
             get { return Math.Pow(PercentageToZoomFactor, chromium.ZoomLevel); }
@@ -484,9 +408,7 @@ namespace WebViewControl {
         }
 
         [DebuggerNonUserCode]
-        private void ExecuteWithAsyncErrorHandling(Action action) {
-            ExecuteWithAsyncErrorHandlingOnFrame(action, null);
-        }
+        private void ExecuteWithAsyncErrorHandling(Action action) => ExecuteWithAsyncErrorHandlingOnFrame(action, null);
 
         [DebuggerNonUserCode]
         private void ExecuteWithAsyncErrorHandlingOnFrame(Action action, string frameName) {
@@ -527,9 +449,7 @@ namespace WebViewControl {
             }
         }
 
-        private void OnJavascriptContextCreated(object sender, JavascriptContextLifetimeEventArgs e) {
-            HandleJavascriptContextCreated(e.Frame);
-        }
+        private void OnJavascriptContextCreated(object sender, JavascriptContextLifetimeEventArgs e) => HandleJavascriptContextCreated(e.Frame);
 
         private void HandleJavascriptContextCreated(CefFrame frame) {
             ExecuteWithAsyncErrorHandling(() => {
@@ -595,9 +515,7 @@ namespace WebViewControl {
             }
         }
 
-        protected virtual string GetRequestUrl(string url, ResourceType resourceType) {
-            return url;
-        }
+        protected virtual string GetRequestUrl(string url, ResourceType resourceType) => url;
 
         /// <summary>
         /// Called when the webview has received focus.
@@ -616,18 +534,5 @@ namespace WebViewControl {
         /// <paramref name="isSystemEvent">True if is a system focus event, or false if is a navigation</paramref>
         /// </summary>
         protected virtual bool OnSetFocus(bool isSystemEvent) => false;
-
-        private static int GetRemoteDebuggingPort() {
-#if REMOTE_DEBUG_SUPPORT
-            var configurationBuilder = new ConfigurationBuilder();
-            configurationBuilder.AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
-            var configuration = configurationBuilder.Build();
-            var port = configuration["RemoteDebuggingPort"];
-            int.TryParse(port != null ? port : "", out var result);
-            return result;
-#else
-            return 0;
-#endif
-        }
     }
 }

@@ -20,6 +20,34 @@ namespace SampleWebView.Avalonia {
                 webview.ShowDeveloperTools();
             });
 
+            CutCommand = ReactiveCommand.Create(() => {
+                webview.EditCommands.Cut();
+            });
+
+            CopyCommand = ReactiveCommand.Create(() => {
+                webview.EditCommands.Copy();
+            });
+
+            PasteCommand = ReactiveCommand.Create(() => {
+                webview.EditCommands.Paste();
+            });
+
+            UndoCommand = ReactiveCommand.Create(() => {
+                webview.EditCommands.Undo();
+            });
+
+            RedoCommand = ReactiveCommand.Create(() => {
+                webview.EditCommands.Redo();
+            });
+
+            SelectAllCommand = ReactiveCommand.Create(() => {
+                webview.EditCommands.SelectAll();
+            });
+
+            DeleteCommand = ReactiveCommand.Create(() => {
+                webview.EditCommands.Delete();
+            });
+
             PropertyChanged += OnPropertyChanged;
         }
 
@@ -42,5 +70,19 @@ namespace SampleWebView.Avalonia {
         public ReactiveCommand<Unit, Unit> NavigateCommand { get; }
 
         public ReactiveCommand<Unit, Unit> ShowDevToolsCommand { get; }
+
+        public ReactiveCommand<Unit, Unit> CutCommand { get; }
+
+        public ReactiveCommand<Unit, Unit> CopyCommand { get; }
+
+        public ReactiveCommand<Unit, Unit> PasteCommand { get; }
+
+        public ReactiveCommand<Unit, Unit> UndoCommand { get; }
+
+        public ReactiveCommand<Unit, Unit> RedoCommand { get; }
+
+        public ReactiveCommand<Unit, Unit> SelectAllCommand { get; }
+
+        public ReactiveCommand<Unit, Unit> DeleteCommand { get; }
     }
 }

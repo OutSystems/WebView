@@ -12,8 +12,6 @@ namespace WebViewControl {
 
         internal IInputElement FocusableElement => chromium;
 
-        private static bool OsrEnabled => true;
-
         private bool IsInDesignMode => DesignerProperties.GetIsInDesignMode(this);
 
         public static readonly DependencyProperty AddressProperty = DependencyProperty.Register(nameof(Address), typeof(string), typeof(WebView));
