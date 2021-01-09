@@ -1,0 +1,11 @@
+﻿<html>
+<body>
+    <iframe src="https://www.google.com" width="100%" height="100%"/>
+    <script>
+        let iframe = document.querySelector("iframe");
+        iframe.addEventListener("load", () => {
+            iframe.contentWindow.document.body.querySelector("input").focus();
+        });
+    </script>
+</body>
+</html>

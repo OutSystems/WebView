@@ -23,6 +23,7 @@
     
   <ItemGroup>
     <None Remove="App.xaml" />
+    <None Remove="index.html" />
     <None Remove="MainWindow.xaml" />
     <None Remove="tmp\**\*.*" />
   </ItemGroup>
@@ -31,6 +32,7 @@
     <EmbeddedResource Include="App.xaml">
       <Generator>MSBuild:Compile</Generator>
     </EmbeddedResource>
+    <EmbeddedResource Include="index.html" />
     <EmbeddedResource Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </EmbeddedResource>

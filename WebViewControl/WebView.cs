@@ -40,7 +40,8 @@ namespace WebViewControl {
         private static string[] CustomSchemes { get; } = new[] {
             ResourceUrl.LocalScheme,
             ResourceUrl.EmbeddedScheme,
-            ResourceUrl.CustomScheme
+            ResourceUrl.CustomScheme,
+            "https"
         };
 
         // converts cef zoom percentage to css zoom (between 0 and 1)
@@ -131,7 +132,7 @@ namespace WebViewControl {
                 UserAgent = UserAgent
             };
 
-            var customSchemes = CustomSchemes.Select(s => new CustomScheme() { SchemeName = s, SchemeHandlerFactory = new SchemeHandlerFactory() }).ToArray();
+            var customSchemes = CustomSchemes.Select(s => new CustomScheme() { SchemeName = s, IsCorsEnabled = true, IsCSPBypassing = true, IsSecure = true, SchemeHandlerFactory = new SchemeHandlerFactory() }).ToArray();
 
             var customFlags = new[] {
                 // enable experimental feature flags

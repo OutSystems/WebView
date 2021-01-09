@@ -10,7 +10,7 @@ namespace SampleWebView.Avalonia {
         private string currentAddress;
 
         public MainWindowViewModel(WebView webview) {
-            Address = CurrentAddress = "http://www.google.com/";
+            Address = CurrentAddress = "embedded://webview/SampleWebView.Avalonia/index.html";
 
             NavigateCommand = ReactiveCommand.Create(() => {
                 CurrentAddress = Address;
