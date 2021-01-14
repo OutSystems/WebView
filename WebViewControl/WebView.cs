@@ -47,7 +47,6 @@ namespace WebViewControl {
         private string htmlToLoad;
         private volatile bool isDisposing;
         private IDisposable[] disposables;
-        private Lazy<EditCommands> editCommands;
 
         private CancellationTokenSource AsyncCancellationTokenSource { get; } = new CancellationTokenSource();
 
@@ -145,7 +144,7 @@ namespace WebViewControl {
                 chromium.FocusHandler = new InternalFocusHandler(this);
             }
 
-            editCommands = new Lazy<EditCommands>(() => new EditCommands(chromium));
+            EditCommands = new EditCommands(chromium);
 
             disposables = new IDisposable[] {
                 chromium,
@@ -247,7 +246,7 @@ namespace WebViewControl {
             }
         }
 
-        public EditCommands EditCommands => editCommands.Value;
+        public EditCommands EditCommands { get; private set; }
 
         public bool CanGoBack => chromium.CanGoBack;
 
