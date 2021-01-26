@@ -48,7 +48,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference PrivateAssets="None" Include="CefGlue.Wpf" Version="85.4183.34653" />
+    <PackageReference PrivateAssets="None" Include="CefGlue.Wpf" Version="85.4183.35544" />
   </ItemGroup>
 
 </Project>
