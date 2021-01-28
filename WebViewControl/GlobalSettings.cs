@@ -1,7 +1,4 @@
-﻿#if REMOTE_DEBUG_SUPPORT
-using Microsoft.Extensions.Configuration;
-#endif
-using System;
+﻿using System;
 using System.IO;
 using Xilium.CefGlue.Common;
 
@@ -72,10 +69,7 @@ namespace WebViewControl {
 
         internal int GetRemoteDebuggingPort() {
 #if REMOTE_DEBUG_SUPPORT
-            var configurationBuilder = new ConfigurationBuilder();
-            configurationBuilder.AddJsonFile("appsettings.json", optional: true, reloadOnChange: false);
-            var configuration = configurationBuilder.Build();
-            var port = configuration["RemoteDebuggingPort"];
+            var port = Environment.GetEnvironmentVariable("WEBVIEW_REMOTE_DEBUGGING_PORT");
             int.TryParse(port != null ? port : "", out var result);
             return result;
 #else
