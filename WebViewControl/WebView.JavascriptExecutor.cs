@@ -175,7 +175,7 @@ namespace WebViewControl {
                         evaluationTask.SetResult(GetResult<T>(innerEvaluationTask.Result));
                     } catch (Exception e) {
                         if (FlushTaskCancelationToken.IsCancellationRequested) {
-                            evaluationTask.SetCanceled();
+                            evaluationTask.SetResult(GetResult<T>(default(T)));
                         } else if (e.InnerException is TaskCanceledException) {
                             evaluationTask.SetException(new JavascriptException(TimeoutExceptionName, "Script evaluation timed out"));
                         } else {
@@ -189,25 +189,22 @@ namespace WebViewControl {
                     return default;
                 }
 
-                var tasks = new List<Task>(2) { evaluationTask.Task };
-
-                Task timeoutTask = null;
                 if (timeout.HasValue) {
-                    timeoutTask = Task.Delay(timeout.Value);
-                    tasks.Add(timeoutTask);
-                }
-                
-                // wait with timeout if flush is not running yet to avoid hanging forever
-                var task = await Task.WhenAny(tasks);
+                    var tasks = new [] {
+                        evaluationTask.Task,
+                        Task.Delay(timeout.Value)
+                    };
 
-                if (task == timeoutTask) {
-                    if (IsFlushTaskInitializing) {
-                        throw new JavascriptException(TimeoutExceptionName, $"Javascript engine is not initialized after {InitializationTimeout.Seconds}s");
+                    // wait with timeout if flush is not running yet to avoid hanging forever
+                    var task = await Task.WhenAny(tasks).ConfigureAwait(false);
+
+                    if (task != evaluationTask.Task) {
+                        if (IsFlushTaskInitializing) {
+                            throw new JavascriptException(TimeoutExceptionName, $"Javascript engine is not initialized after {InitializationTimeout.Seconds}s");
+                        }
+                        // flush is already running, timeout will fire from the evaluation
                     }
-                } else if (evaluationTask.Task.IsCanceled) {
-                    // task was cancelled, return default value
-                    return default;
-                }
+                } 
 
                 return await evaluationTask.Task;
             }
