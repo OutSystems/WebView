@@ -36,13 +36,18 @@ namespace WebViewControl {
                 WindowlessRenderingEnabled = settings.OsrEnabled,
                 RemoteDebuggingPort = settings.GetRemoteDebuggingPort(),
                 UserAgent = settings.UserAgent
+             
             };
 
             var customSchemes = CustomSchemes.Select(s => new CustomScheme() { SchemeName = s, SchemeHandlerFactory = new SchemeHandlerFactory() }).ToArray();
 
             var customFlags = new[] {
                 // enable experimental feature flags
-                new KeyValuePair<string, string>("enable-experimental-web-platform-features", null)
+                new KeyValuePair<string, string>("enable-experimental-web-platform-features", null),
+
+                // OutOfBlinkCors moves CORS restriction handling from Blink to the NetworkService and is enabled by default since CEF 76.
+                // If enabled, it breaks the application of CORS restrictions for requests that are handled by us (e.g. importing fonts as external resources)
+                new KeyValuePair<string, string>("disable-features", "OutOfBlinkCors")
             };
 
             CefRuntimeLoader.Initialize(settings: cefSettings, flags: customFlags, customSchemes: customSchemes);
