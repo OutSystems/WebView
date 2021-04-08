@@ -15,13 +15,14 @@ namespace WebViewControl {
         private static string[] CustomSchemes { get; } = new[] {
             ResourceUrl.LocalScheme,
             ResourceUrl.EmbeddedScheme,
-            ResourceUrl.CustomScheme
+            ResourceUrl.CustomScheme,
+            ResourceUrl.HttpsScheme
         };
 
         private static GlobalSettings globalSettings;
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void Initialize(GlobalSettings settings) {
+        public static void Initialize(WebView ownerWebView, GlobalSettings settings) {
             if (CefRuntimeLoader.IsLoaded) {
                 return;
             }
@@ -39,15 +40,17 @@ namespace WebViewControl {
              
             };
 
-            var customSchemes = CustomSchemes.Select(s => new CustomScheme() { SchemeName = s, SchemeHandlerFactory = new SchemeHandlerFactory() }).ToArray();
+            var customSchemes = CustomSchemes.Select(s => new CustomScheme() { 
+                SchemeName = s, 
+                SchemeHandlerFactory = new SchemeHandlerFactory(ownerWebView),
+                IsCorsEnabled = true,
+                IsCSPBypassing = true,
+                IsSecure = true
+            }).ToArray();
 
             var customFlags = new[] {
                 // enable experimental feature flags
-                new KeyValuePair<string, string>("enable-experimental-web-platform-features", null),
-
-                // OutOfBlinkCors moves CORS restriction handling from Blink to the NetworkService and is enabled by default since CEF 76.
-                // If enabled, it breaks the application of CORS restrictions for requests that are handled by us (e.g. importing fonts as external resources)
-                new KeyValuePair<string, string>("disable-features", "OutOfBlinkCors")
+                new KeyValuePair<string, string>("enable-experimental-web-platform-features", null)
             };
 
             CefRuntimeLoader.Initialize(settings: cefSettings, flags: customFlags, customSchemes: customSchemes);

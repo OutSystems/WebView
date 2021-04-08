@@ -12,7 +12,7 @@
     <Product>WebViewControl</Product>
     <Copyright>Copyright ©  2019</Copyright>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <Version>2.85.31</Version>
+    <Version>2.85.32</Version>
     <PackageId>WebViewControl-Avalonia</PackageId>
     <Authors>OutSystems</Authors>
     <PackageProjectUrl>https://github.com/OutSystems/WebView</PackageProjectUrl>
@@ -36,6 +36,7 @@
     <Compile Include="..\WebViewControl\ChromiumBrowser.cs" Link="ChromiumBrowser.cs" />
     <Compile Include="..\WebViewControl\EditCommands.cs" Link="EditCommands.cs" />
     <Compile Include="..\WebViewControl\GlobalSettings.cs" Link="GlobalSettings.cs" />
+    <Compile Include="..\WebViewControl\HttpsResourceHandler.cs" Link="HttpsResourceHandler.cs" />
     <Compile Include="..\WebViewControl\JavascriptSerializationHelper.cs" Link="JavascriptSerializationHelper.cs" />
     <Compile Include="..\WebViewControl\ProxyAuthentication.cs" Link="ProxyAuthentication.cs" />
     <Compile Include="..\WebViewControl\RenderProcessTerminatedException.cs" Link="RenderProcessTerminatedException.cs" />
