@@ -16,26 +16,22 @@ namespace WebViewControl {
         };
 
         protected override RequestHandlingFashion ProcessRequestAsync(CefRequest request, CefCallback callback) {
-            Task.Run(() => {
-                var httpRequest = WebRequest.CreateHttp(request.Url);
-                var headers = request.GetHeaderMap();
-                foreach (var key in request.GetHeaderMap().AllKeys) {
-                    httpRequest.Headers.Add(key, headers[key]);
-                }
-                httpRequest.GetResponseAsync().ContinueWith(r => {
-                    try {
-                        Response = r.Result.GetResponseStream();
-                        Headers = r.Result.Headers;
-                        Headers.Add("Access-Control-Allow-Origin", "*");
-
-                    } finally {
-                        callback.Continue();
+            Task.Run(async () => {
+                try {
+                    var httpRequest = WebRequest.CreateHttp(request.Url);
+                    var headers = request.GetHeaderMap();
+                    foreach (var key in request.GetHeaderMap().AllKeys) {
+                        httpRequest.Headers.Add(key, headers[key]);
                     }
-                });
-            }).ContinueWith(t => {
-                callback.Continue();
-            }, TaskContinuationOptions.OnlyOnFaulted);
+                    var response = await httpRequest.GetResponseAsync();
+                    Response = response.GetResponseStream();
+                    Headers = response.Headers;
+                    Headers.Add("Access-Control-Allow-Origin", "*"); // we have to smash any existing value here
+                } finally {
+                    callback.Continue();
+                }
 
+            });
             return RequestHandlingFashion.ContinueAsync;       
         }
 
