@@ -6,9 +6,11 @@ using Xilium.CefGlue.Common.Handlers;
 
 namespace WebViewControl {
 
-    internal class HttpsResourceHandler : DefaultResourceHandler {
+    internal class HttpResourceHandler : DefaultResourceHandler {
 
         internal static readonly CefResourceType[] AcceptedResources = new CefResourceType[] {
+            // These resources types need an "Access-Control-Allow-Origin" header response entry
+            // to comply with CORS security restrictions.
             CefResourceType.SubFrame,
             CefResourceType.FontResource
         };
@@ -21,13 +23,20 @@ namespace WebViewControl {
                     httpRequest.Headers.Add(key, headers[key]);
                 }
                 httpRequest.GetResponseAsync().ContinueWith(r => {
-                    Response = r.Result.GetResponseStream();
-                    Headers = r.Result.Headers;
-                    Headers.Add("Access-Control-Allow-Origin", "*");
-                    callback.Continue();
+                    try {
+                        Response = r.Result.GetResponseStream();
+                        Headers = r.Result.Headers;
+                        Headers.Add("Access-Control-Allow-Origin", "*");
+
+                    } finally {
+                        callback.Continue();
+                    }
                 });
-            });
-            return RequestHandlingFashion.ContinueAsync;
+            }).ContinueWith(t => {
+                callback.Continue();
+            }, TaskContinuationOptions.OnlyOnFaulted);
+
+            return RequestHandlingFashion.ContinueAsync;       
         }
 
         protected override bool Read(Stream outResponse, int bytesToRead, out int bytesRead, CefResourceReadCallback callback) {

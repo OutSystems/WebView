@@ -16,13 +16,14 @@ namespace WebViewControl {
             ResourceUrl.LocalScheme,
             ResourceUrl.EmbeddedScheme,
             ResourceUrl.CustomScheme,
-            ResourceUrl.HttpsScheme
+            Uri.UriSchemeHttp,
+            Uri.UriSchemeHttps
         };
 
         private static GlobalSettings globalSettings;
 
         [MethodImpl(MethodImplOptions.NoInlining)]
-        public static void Initialize(WebView ownerWebView, GlobalSettings settings) {
+        public static void Initialize(GlobalSettings settings) {
             if (CefRuntimeLoader.IsLoaded) {
                 return;
             }
@@ -42,10 +43,7 @@ namespace WebViewControl {
 
             var customSchemes = CustomSchemes.Select(s => new CustomScheme() { 
                 SchemeName = s, 
-                SchemeHandlerFactory = new SchemeHandlerFactory(ownerWebView),
-                IsCorsEnabled = true,
-                IsCSPBypassing = true,
-                IsSecure = true
+                SchemeHandlerFactory = new SchemeHandlerFactory()
             }).ToArray();
 
             var customFlags = new[] {

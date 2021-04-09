@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Xilium.CefGlue;
 using Xilium.CefGlue.Common.Handlers;
 
@@ -89,6 +90,13 @@ namespace WebViewControl {
             }
 
             protected override CefResourceRequestHandler GetResourceRequestHandler(CefBrowser browser, CefFrame frame, CefRequest request, bool isNavigation, bool isDownload, string requestInitiator, ref bool disableDefaultHandling) {
+                if (request.Url != null) {
+                    var url = new Uri(request.Url);
+
+                    if ((url.Scheme == Uri.UriSchemeHttp || url.Scheme == Uri.UriSchemeHttps) && OwnerWebView.IsSecurityDisabled && HttpResourceHandler.AcceptedResources.Contains(request.ResourceType)) {
+                        return new HttpResourceRequestHandler();
+                    }
+                }
                 return ResourceRequestHandler;
             }
         }

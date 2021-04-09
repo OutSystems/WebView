@@ -118,7 +118,7 @@ namespace WebViewControl {
 
         [MethodImpl(MethodImplOptions.NoInlining)]
         private void Initialize() {
-            WebViewLoader.Initialize(this, Settings);
+            WebViewLoader.Initialize(Settings);
 
             chromium = new ChromiumBrowser();
             chromium.BrowserInitialized += OnWebViewBrowserInitialized;
