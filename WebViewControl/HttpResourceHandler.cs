@@ -31,8 +31,10 @@ namespace WebViewControl {
 
                     // we have to smash any existing value here
                     Headers.Remove(AccessControlAllowOriginHeaderKey);
-                    Headers.Add(AccessControlAllowOriginHeaderKey, "*"); 
+                    Headers.Add(AccessControlAllowOriginHeaderKey, "*");
 
+                } catch {
+                    // we should catch exceptions.. network errors cannot crash the app
                 } finally {
                     callback.Continue();
                 }
