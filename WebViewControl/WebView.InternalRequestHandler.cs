@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Xilium.CefGlue;
 using Xilium.CefGlue.Common.Handlers;
 
@@ -7,6 +8,8 @@ namespace WebViewControl {
     partial class WebView {
 
         private class InternalRequestHandler : RequestHandler {
+
+            private static readonly Lazy<HttpResourceRequestHandler> HttpResourceRequestHandler = new Lazy<HttpResourceRequestHandler>(() => new HttpResourceRequestHandler());
 
             private WebView OwnerWebView { get; }
             
@@ -88,7 +91,13 @@ namespace WebViewControl {
                 OwnerWebView.ForwardUnhandledAsyncException(exception);
             }
 
-            protected override CefResourceRequestHandler GetResourceRequestHandler(CefBrowser browser, CefFrame frame, CefRequest request, bool isNavigation, bool isDownload, string requestInitiator, ref bool disableDefaultHandling) {
+            protected override CefResourceRequestHandler GetResourceRequestHandler(CefBrowser browser, CefFrame frame, CefRequest request, bool isNavigation, bool isDownload, string requestInitiator, ref bool disableDefaultHandling) {              
+                if (OwnerWebView.IsSecurityDisabled && HttpResourceHandler.AcceptedResources.Contains(request.ResourceType) && request.Url != null) {
+                    var url = new Uri(request.Url);
+                    if (url.Scheme == Uri.UriSchemeHttp || url.Scheme == Uri.UriSchemeHttps) {
+                        return HttpResourceRequestHandler.Value;
+                    }
+                }
                 return ResourceRequestHandler;
             }
         }

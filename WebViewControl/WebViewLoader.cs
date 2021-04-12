@@ -15,7 +15,9 @@ namespace WebViewControl {
         private static string[] CustomSchemes { get; } = new[] {
             ResourceUrl.LocalScheme,
             ResourceUrl.EmbeddedScheme,
-            ResourceUrl.CustomScheme
+            ResourceUrl.CustomScheme,
+            Uri.UriSchemeHttp,
+            Uri.UriSchemeHttps
         };
 
         private static GlobalSettings globalSettings;
@@ -36,9 +38,13 @@ namespace WebViewControl {
                 WindowlessRenderingEnabled = settings.OsrEnabled,
                 RemoteDebuggingPort = settings.GetRemoteDebuggingPort(),
                 UserAgent = settings.UserAgent
+             
             };
 
-            var customSchemes = CustomSchemes.Select(s => new CustomScheme() { SchemeName = s, SchemeHandlerFactory = new SchemeHandlerFactory() }).ToArray();
+            var customSchemes = CustomSchemes.Select(s => new CustomScheme() { 
+                SchemeName = s, 
+                SchemeHandlerFactory = new SchemeHandlerFactory()
+            }).ToArray();
 
             var customFlags = new[] {
                 // enable experimental feature flags
