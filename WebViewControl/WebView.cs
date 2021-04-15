@@ -97,7 +97,7 @@ namespace WebViewControl {
        
         public WebView() : this(false) { }
 
-        /// <param name="useSharedDomain">Shared domains means that the webview default domain will always be the same. When <see cref="useSharedDomain"/> is false a
+        /// <param name="useSharedDomain">Shared domains means that the webview default domain will always be the same. When <paramref ref="useSharedDomain"/> is false a
         /// unique domain is used for every webview.</param>
         internal WebView(bool useSharedDomain) {
             if (IsInDesignMode) {
@@ -228,7 +228,7 @@ namespace WebViewControl {
 
         /// <summary>
         /// Specifies the maximium number of calls that can be made simultaneously to native
-        //  object methods. Defaults to the int.MaxValue.
+        /// object methods. Defaults to the int.MaxValue.
         /// </summary>
         internal int MaxNativeMethodsParallelCalls {
             get => chromium.MaxNativeMethodsParallelCalls;

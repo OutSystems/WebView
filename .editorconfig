@@ -273,3 +273,11 @@ dotnet_naming_symbols.parameters_group.applicable_kinds = parameter
 dotnet_naming_rule.parameters_rule.symbols              = parameters_group
 dotnet_naming_rule.parameters_rule.style                = camel_case_style
 dotnet_naming_rule.parameters_rule.severity             = suggestion
+
+# suppress warnings about missing documentation for public elements
+# (hopefully one day we can turn these off)
+# missing on public element
+dotnet_diagnostic.CS1591.severity = none
+# missing parameter doc
+dotnet_diagnostic.CS1573.severity = none
+
