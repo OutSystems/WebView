@@ -9,7 +9,7 @@ namespace WebViewControl {
 
         private CefCallback responseCallback;
         private bool autoDisposeStream;
-        private object SyncRoot = new object();
+        private object SyncRoot { get; } = new object();
 
         protected override RequestHandlingFashion ProcessRequestAsync(CefRequest request, CefCallback callback) {
             lock (SyncRoot) {
