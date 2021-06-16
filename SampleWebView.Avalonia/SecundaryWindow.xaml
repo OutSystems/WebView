@@ -1,0 +1,35 @@
+﻿<Window xmlns="https://github.com/avaloniaui" MinWidth="500" MinHeight="300"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:webview="clr-namespace:WebViewControl;assembly=WebViewControl.Avalonia"
+        x:Class="SampleWebView.Avalonia.SecundaryWindow"
+        Title="Sample Secundary WebView"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="PreferSystemChrome"
+        TransparencyLevelHint="AcrylicBlur"
+        Background="Transparent">
+
+   
+    <Panel>
+        <ExperimentalAcrylicBorder IsHitTestVisible="False">
+            <ExperimentalAcrylicBorder.Material>
+                <ExperimentalAcrylicMaterial BackgroundSource="Digger"
+                                             TintColor="{DynamicResource SystemAltHighColor}"
+                                             TintOpacity="1"
+                                             FallbackColor="Black"
+                                             MaterialOpacity="0.25" />
+            </ExperimentalAcrylicBorder.Material>
+        </ExperimentalAcrylicBorder>
+        <DockPanel>
+
+            <DockPanel DockPanel.Dock="Top" Margin="0 0 400 0">
+                <TextBox x:Name="textBoxx" Background="Transparent" Text="{Binding Address}">
+                    <TextBox.KeyBindings>
+                        <KeyBinding Gesture="Enter" Command="{Binding NavigateCommand}" />
+                    </TextBox.KeyBindings>
+                </TextBox>
+            </DockPanel>
+
+            <webview:WebView x:Name="webview" Address="{Binding CurrentAddress}" />
+        </DockPanel>
+    </Panel>
+</Window>

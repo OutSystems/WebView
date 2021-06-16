@@ -24,11 +24,15 @@
   <ItemGroup>
     <None Remove="App.xaml" />
     <None Remove="MainWindow.xaml" />
+    <None Remove="SecundaryWindow.xaml" />
     <None Remove="tmp\**\*.*" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="App.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SecundaryWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
     </EmbeddedResource>
     <EmbeddedResource Include="MainWindow.xaml">

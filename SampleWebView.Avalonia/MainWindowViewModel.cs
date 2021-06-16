@@ -16,10 +16,6 @@ namespace SampleWebView.Avalonia {
                 CurrentAddress = Address;
             });
 
-            ShowDevToolsCommand = ReactiveCommand.Create(() => {
-                webview.ShowDeveloperTools();
-            });
-
             CutCommand = ReactiveCommand.Create(() => {
                 webview.EditCommands.Cut();
             });

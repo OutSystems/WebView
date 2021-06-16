@@ -41,7 +41,7 @@
         <DockPanel>
 
             <DockPanel DockPanel.Dock="Top" Margin="0 0 400 0">
-                <Button DockPanel.Dock="Right" Background="Transparent" Command="{Binding ShowDevToolsCommand}">Show DevTools</Button>
+                <Button DockPanel.Dock="Right" Background="Transparent" x:Name="toggleWindows" >Toggle Window Visibility</Button>
                 <TextBox Background="Transparent" Text="{Binding Address}">
                     <TextBox.KeyBindings>
                         <KeyBinding Gesture="Enter" Command="{Binding NavigateCommand}" />
