@@ -12,7 +12,8 @@ namespace SampleWebView.Avalonia {
         }
 
         public void FocusInner() {
-            this.FindControl<WebView>("webview").Focus();
+            var webVieww = this.FindControl<WebView>("webview");
+            webVieww.Focus();
         }
     }
 }

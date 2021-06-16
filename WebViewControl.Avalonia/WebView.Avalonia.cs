@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Runtime.ExceptionServices;
 using Avalonia;
 using Avalonia.Controls;
@@ -40,9 +41,25 @@ namespace WebViewControl {
             }
         }
 
+        private static int incTotal = 0;
+        private static int incNotHandled = 0;
+        private static int incNotFromChromiumBrowser = 0;
+
         protected override void OnGotFocus(GotFocusEventArgs e) {
-            e.Handled = true;
-            chromium.Focus();
+            incTotal++;
+            if (!e.Handled) {
+                incNotHandled++;
+                e.Handled = true;
+                if (e.Source.GetType().Name != "ChromiumBrowser") {
+                    incNotFromChromiumBrowser++;
+                    e.Route = Avalonia.Interactivity.RoutingStrategies.Direct;
+                    chromium.Focus();
+                }
+            }
+
+            if (incTotal++ == 107) {
+                incTotal = 0;
+            }
         }
 
         protected override void InternalDispose() => Dispose();
