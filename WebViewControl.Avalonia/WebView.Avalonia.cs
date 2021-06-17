@@ -52,7 +52,6 @@ namespace WebViewControl {
                 e.Handled = true;
                 if (e.Source.GetType().Name != "ChromiumBrowser") {
                     incNotFromChromiumBrowser++;
-                    e.Route = Avalonia.Interactivity.RoutingStrategies.Direct;
                     chromium.Focus();
                 }
             }
