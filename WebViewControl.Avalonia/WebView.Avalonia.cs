@@ -50,7 +50,7 @@ namespace WebViewControl {
             if (!e.Handled) {
                 incNotHandled++;
                 e.Handled = true;
-                if (e.Source.GetType().Name != "ChromiumBrowser") {
+                if (e.Source.GetType().Name != nameof(ChromiumBrowser)) {
                     incNotFromChromiumBrowser++;
                     chromium.Focus();
                 }

@@ -19,7 +19,7 @@ namespace SampleWebView.Avalonia {
 
             DataContext = new MainWindowViewModel(this.FindControl<WebView>("webview"));
 
-            for (var i = 0; i < 5; i++) {
+            for (var i = 0; i < 2; i++) {
                 var w = new SecundaryWindow();
                 w.Opened += MainWindow_Opened;
                 ChildWindows.Add(w);
