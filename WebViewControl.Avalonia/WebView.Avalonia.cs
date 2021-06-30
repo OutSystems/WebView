@@ -41,23 +41,17 @@ namespace WebViewControl {
             }
         }
 
-        private static int incTotal = 0;
-        private static int incNotHandled = 0;
-        private static int incNotFromChromiumBrowser = 0;
-
         protected override void OnGotFocus(GotFocusEventArgs e) {
-            incTotal++;
             if (!e.Handled) {
-                incNotHandled++;
                 e.Handled = true;
-                if (e.Source.GetType().Name != nameof(ChromiumBrowser)) {
-                    incNotFromChromiumBrowser++;
-                    chromium.Focus();
-                }
-            }
+                base.OnGotFocus(e);
 
-            if (incTotal++ == 107) {
-                incTotal = 0;
+                // use async call to avoid reentrancy, otherwise window will fight to get the focus
+                Dispatcher.UIThread.Post(() => {
+                    if (IsFocused) {
+                        chromium.Focus();
+                    }
+                }, DispatcherPriority.Background);
             }
         }
 
