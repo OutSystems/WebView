@@ -41,8 +41,17 @@ namespace WebViewControl {
         }
 
         protected override void OnGotFocus(GotFocusEventArgs e) {
-            e.Handled = true;
-            chromium.Focus();
+            if (!e.Handled) {
+                e.Handled = true;
+                base.OnGotFocus(e);
+
+                // use async call to avoid reentrancy, otherwise the webview will fight to get the focus
+                Dispatcher.UIThread.Post(() => {
+                    if (IsFocused) {
+                        chromium.Focus();
+                    }
+                }, DispatcherPriority.Background);
+            }
         }
 
         protected override void InternalDispose() => Dispose();
