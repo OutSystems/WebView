@@ -45,7 +45,7 @@ namespace WebViewControl {
                 e.Handled = true;
                 base.OnGotFocus(e);
 
-                // use async call to avoid reentrancy, otherwise window will fight to get the focus
+                // use async call to avoid reentrancy, otherwise the webview will fight to get the focus
                 Dispatcher.UIThread.Post(() => {
                     if (IsFocused) {
                         chromium.Focus();
