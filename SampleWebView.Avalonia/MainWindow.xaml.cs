@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
@@ -19,7 +20,7 @@ namespace SampleWebView.Avalonia {
 
             DataContext = new MainWindowViewModel(this.FindControl<WebView>("webview"));
 
-            for (var i = 0; i < 2; i++) {
+            for (var i = 0; i < 1; i++) {
                 var w = new SecundaryWindow();
                 w.Opened += MainWindow_Opened;
                 ChildWindows.Add(w);
@@ -44,7 +45,17 @@ namespace SampleWebView.Avalonia {
         }
 
         private void MainWindow_Opened(object sender, EventArgs e) {
-            Dispatcher.UIThread.Post(() => ((SecundaryWindow)sender).FocusInner(), DispatcherPriority.Background);
+            Dispatcher.UIThread.Post(() => {
+                Debug.WriteLine("MAin setFocus call");
+                this.FindControl<WebView>("webview").Focus();
+            }, DispatcherPriority.Background);
+
+            Dispatcher.UIThread.Post(() => {
+                Debug.WriteLine("Secondary setFocus call");
+                ((SecundaryWindow)sender).FocusInner();
+               
+            }, DispatcherPriority.Background);
+            
         }
     }
 }
