@@ -94,7 +94,7 @@ namespace WebViewControl {
         public static event Action<WebView> GlobalWebViewInitialized;
 
         public static GlobalSettings Settings { get; } = new GlobalSettings();
-       
+
         public WebView() : this(false) { }
 
         /// <param name="useSharedDomain">Shared domains means that the webview default domain will always be the same. When <paramref ref="useSharedDomain"/> is false a
@@ -526,12 +526,5 @@ namespace WebViewControl {
         /// focus was on the last HTML element and the user pressed the TAB key.
         /// </summary>
         protected virtual void OnLostFocus() { }
-
-        /// <summary>
-        /// Called when the webview is requesting focus. Return false to allow the
-        /// focus to be set or true to cancel setting the focus.
-        /// <paramref name="isSystemEvent">True if is a system focus event, or false if is a navigation</paramref>
-        /// </summary>
-        protected virtual bool OnSetFocus(bool isSystemEvent) => false;
     }
 }
