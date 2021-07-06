@@ -43,15 +43,13 @@ namespace WebViewControl {
         protected override void OnGotFocus(GotFocusEventArgs e) {
             if (!e.Handled) {
                 e.Handled = true;
-                if (!chromium.IsFocused) {
-                    base.OnGotFocus(e);
-                    // use async call to avoid reentrancy, otherwise the webview will fight to get the focus
-                    Dispatcher.UIThread.Post(() => {
-                        if (IsFocused) {
-                            chromium.Focus();
-                        }
-                    }, DispatcherPriority.Background);
-                }
+                base.OnGotFocus(e);
+                // use async call to avoid reentrancy, otherwise the webview will fight to get the focus
+                Dispatcher.UIThread.Post(() => {
+                    if (IsFocused) {
+                        chromium.Focus();
+                    }
+                }, DispatcherPriority.Background);
             }
         }
 
