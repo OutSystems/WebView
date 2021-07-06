@@ -84,5 +84,15 @@ namespace WebViewControl {
         internal void InitializeBrowser(WindowBase hostingWindow, int initialWidth, int initialHeight) {
             chromium.CreateBrowser(hostingWindow, initialWidth, initialHeight);
         }
+
+        /// <summary>
+        /// Called when the webview is requesting focus. Return false to allow the
+        /// focus to be set or true to cancel setting the focus.
+        /// <paramref name="isSystemEvent">True if is a system focus event, or false if is a navigation</paramref>
+        /// </summary>
+        protected virtual bool OnSetFocus(bool isSystemEvent) {
+            var focusedElement = KeyboardDevice.Instance.FocusedElement;
+            return !(focusedElement == chromium || focusedElement == this);
+        }
     }
 }
