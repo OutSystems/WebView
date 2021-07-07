@@ -256,15 +256,7 @@ namespace WebViewControl {
 
         public void GoForward() => chromium.GoForward();
 
-        public bool IsSecurityDisabled {
-            get => chromium.Settings.WebSecurity == CefState.Disabled;
-            set {
-                if (IsBrowserInitialized) {
-                    throw new InvalidOperationException("Cannot change webview settings after initialized");
-                }
-                chromium.Settings.WebSecurity = (value ? CefState.Disabled : CefState.Enabled);
-            }
-        }
+        public bool IsSecurityDisabled { get; set; }
 
         public bool IgnoreCertificateErrors { get; set; }
 
