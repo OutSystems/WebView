@@ -8,7 +8,7 @@ namespace WebViewControl {
             if (IsBrowserInitialized) {
                 return;
             }
-            CreateBrowser(width, height);
+            base.CreateBrowser(width, height);
         }
     }
 }
