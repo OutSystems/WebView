@@ -81,8 +81,8 @@ namespace WebViewControl {
                 DispatcherPriority.Normal);
         }
 
-        internal void InitializeBrowser(WindowBase hostingWindow, int initialWidth, int initialHeight) {
-            chromium.CreateBrowser(hostingWindow, initialWidth, initialHeight);
+        internal void InitializeBrowser(int initialWidth, int initialHeight) {
+            chromium.CreateBrowser(initialWidth, initialHeight);
         }
 
         /// <summary>
