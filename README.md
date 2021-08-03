@@ -1,6 +1,6 @@
 # WebView
 
-WebView is a Avalonia/WPF control that wraps [CefGlue](https://gitlab.com/joaompneves/cefglue) webview control.
+WebView is a Avalonia/WPF control that wraps [CefGlue](https://github.com/OutSystems/CefGlue) webview control.
 Provides the following additional features:
 - Strongly-typed javascript evaluation: results of javascript evaluation returns the appropriate type
 - Scripts are aggregated and executed in bulk for improved performance
@@ -13,10 +13,7 @@ Provides the following additional features:
 - Error handling
 - Proxy configuration support
 - Runs under AnyCPU configuration (works both on x64 and x86 configurations)
-- Option to run in offscreen mode 
-
-# Build pre-requisites
-- CefGlue Nuget packages (from https://gitlab.com/joaompneves/cefglue)
+- Option to run in offscreen mode
 
 # TODO
 - Improve documentation
