@@ -19,6 +19,8 @@ It also provides the following additional features:
 
 ## Releases
 Stable binaries are released on NuGet, and contain everything you need to embed Chromium in your .NET/CLR application.
+- 	[WebViewControl-Avalonia](https://www.nuget.org/packages/WebViewControl-Avalonia/)
+- 	[WebViewControl-WPF](https://www.nuget.org/packages/WebViewControl-WPF/)
 
 ## Documentation
 See the [Sample](SampleWebView.Avalonia) project for example web browsers built with WebView. It demos some of the available features.
