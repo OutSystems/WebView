@@ -7,6 +7,7 @@ module Counter =
     
     type State = { address : string; toBrowse : string  }
     let init =
+        WebView.Settings.OsrEnabled <- false
         let defaultAddress = "https://github.com"
         { address = defaultAddress; toBrowse = defaultAddress }
 
@@ -39,4 +40,4 @@ module Counter =
                     WebView.address state.toBrowse
                 ]
             ]
-        ]       
+        ]
