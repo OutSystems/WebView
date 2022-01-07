@@ -28,7 +28,7 @@ Stable binaries are released on NuGet, and contain everything you need to embed 
 See the [Sample](SampleWebView.Avalonia) project for example web browsers built with WebView. It demos some of the available features.
 
 ## Other
-- [Avalonia FunUI Support](/WhiteBlackGoose/WebView).
+- [Avalonia FuncUI Support](https://github.com/WhiteBlackGoose/MoreFuncUI#morefuncuiwebview). 
 
 ## TODO
 - Improve documentation
