@@ -12,8 +12,8 @@ type MainWindow() as this =
     inherit HostWindow()
     do
         base.Title <- "WebViewControl.Avalonia.FuncUI.Sample"
-        base.Width <- 1200.0
-        base.Height <- 600.0
+        base.Width <- 1800.0
+        base.Height <- 900.0
 
         Elmish.Program.mkSimple (fun () -> Counter.init) Counter.update Counter.view
         |> Program.withHost this

@@ -25,11 +25,14 @@ module Counter =
                 TextBox.create [
                     TextBox.dock Dock.Top
                     TextBox.onTextChanged (fun s -> dispatch (AddressChanged s) )
+                    TextBox.text state.address
+                    TextBox.fontSize 20.0
                 ]
                 Button.create [
                     Button.dock Dock.Top
                     Button.onClick (fun _ -> dispatch NavigateToAddress)
                     Button.content "Run"
+                    Button.fontSize 20.0
                 ]
                 WebView.create [
                     WebView.dock Dock.Top
