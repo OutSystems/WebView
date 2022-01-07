@@ -42,7 +42,7 @@
 
             <DockPanel DockPanel.Dock="Top" Margin="0 0 400 0">
                 <Button DockPanel.Dock="Right" Background="Transparent" Command="{Binding ShowDevToolsCommand}">Show DevTools</Button>
-                <TextBox Background="Transparent" Text="{Binding Address}">
+                <TextBox Background="Transparent" Text="{Binding Address}" Margin="80 0 0 0">
                     <TextBox.KeyBindings>
                         <KeyBinding Gesture="Enter" Command="{Binding NavigateCommand}" />
                     </TextBox.KeyBindings>
