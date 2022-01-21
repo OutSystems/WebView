@@ -58,43 +58,6 @@ namespace Tests.WebView {
             });
         }
 
-        [Test(Description = "Registered object methods are called in Dispatcher thread")]
-        public async Task RegisteredJsObjectMethodExecutesInDispatcherThread() {
-            const string DotNetObject = "DotNetObject";
-            var taskCompletionSource = new TaskCompletionSource<bool>();
-
-            Func<int> functionToCall = () => {
-                taskCompletionSource.SetResult(Dispatcher.UIThread.CheckAccess());
-                return 10;
-            };
-            TargetView.RegisterJavascriptObject(DotNetObject, functionToCall, executeCallsInUI: true);
-            await Load($"<html><script>{DotNetObject}.invoke();</script><body></body></html>");
-            var canAccessDispatcher = await taskCompletionSource.Task;
-
-            Assert.IsTrue(canAccessDispatcher);
-        }
-
-        [Test(Description = "Registered object methods when called in Dispatcher thread do not block")]
-        public async Task RegisteredJsObjectMethodExecutesInDispatcherThreadWithoutBlocking() {
-            await Run(async () => {
-                const string DotNetObject = "DotNetObject";
-                var taskCompletionSource = new TaskCompletionSource<bool>();
-
-                Func<int> functionToCall = () => {
-                    TargetView.EvaluateScript<int>("1+1");
-                    taskCompletionSource.SetResult(true);
-                    return 1;
-                };
-
-                TargetView.RegisterJavascriptObject(DotNetObject, functionToCall, executeCallsInUI: true);
-                await Load("<html><script>function test() { DotNetObject.invoke(); return 1; }</script><body></body></html>");
-
-                var result = await TargetView.EvaluateScriptFunction<int>("test");
-                await taskCompletionSource.Task;
-                Assert.AreEqual(1, result);
-            });
-        }
-
         [Test(Description = ".Net Method params serialization works with nulls")]
         public async Task RegisteredJsObjectMethodNullParamsSerialization() {
             await Run(async () => {
@@ -167,7 +130,7 @@ namespace Tests.WebView {
                     return 1;
                 };
 
-                TargetView.RegisterJavascriptObject(DotNetObject, functionToCall, executeCallsInUI: true);
+                TargetView.RegisterJavascriptObject(DotNetObject, functionToCall);
                 await Load($"<html><script>function test() {{ {DotNetObject}.invoke(); while(true); return 1; }}</script><body></body></html>");
 
                 TargetView.Disposed += () => taskCompletionSourceDispose.SetResult(true);

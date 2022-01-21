@@ -8,37 +8,59 @@ namespace WebViewControl {
         /// <summary>
         /// Registers an object with the specified name in the window context of the browser
         /// </summary>
-        /// <param name="name"></param>
-        /// <param name="objectToBind"></param>
-        /// <param name="interceptCall"></param>
-        /// <param name="executeCallsInUI"></param>
+        /// <param name="name">Name of the object that will be available on the JS window context.</param>
+        /// <param name="objectToBind">.Net object instance that will be bound to the JS proxy object.</param>
+        /// <param name="interceptCall">Optional method that allows intercepting every call.</param>
         /// <returns>True if the object was registered or false if the object was already registered before</returns>
-        public bool RegisterJavascriptObject(string name, object objectToBind, Func<Func<object>, object> interceptCall = null, bool executeCallsInUI = false) {
+        public bool RegisterJavascriptObject(string name, object objectToBind, Func<Func<object>, object> interceptCall = null) {
+            if (interceptCall == null) {
+                interceptCall = target => target();
+            }
+            return InnerRegisterJavascriptObject(name, objectToBind, interceptCall);
+        }
+        
+        /// <summary>
+        /// Registers an object with the specified name in the window context of the browser.
+        /// Use this overload with async interceptor methods.
+        /// </summary>
+        /// <param name="name">Name of the object that will be available on the JS window context.</param>
+        /// <param name="objectToBind">.Net object instance that will be bound to the JS proxy object.</param>
+        /// <param name="interceptCall">Async method that allows intercepting every call.</param>
+        /// <returns>True if the object was registered or false if the object was already registered before</returns>
+        public bool RegisterJavascriptObject(string name, object objectToBind, Func<Func<object>, Task<object>> interceptCall) {
+            return InnerRegisterJavascriptObject(name, objectToBind, interceptCall);
+        }
+        
+        private bool InnerRegisterJavascriptObject<T>(string name, object objectToBind, Func<Func<object>, T> interceptCall) where T : class {
             if (chromium.IsJavascriptObjectRegistered(name)) {
                 return false;
             }
 
-            if (executeCallsInUI) {
-                return RegisterJavascriptObject(name, objectToBind, target => ExecuteInUI<object>(target), false);
-            }
-
-            if (interceptCall == null) {
-                interceptCall = target => target();
-            }
-
-            object CallTargetMethod(Func<object> target) {
+            T CallTargetMethod(Func<object> target) {
                 if (isDisposing) {
-                    return null;
+                    return default;
                 }
+
+                var isAsync = false;
                 try {
                     JavascriptPendingCalls.AddCount();
+                    
                     if (isDisposing) {
                         // check again, to avoid concurrency problems with dispose
-                        return null;
+                        return default;
                     }
-                    return interceptCall(target);
+                    
+                    var result = interceptCall(target);
+                    if (result is Task task) {
+                        task.ContinueWith(t => JavascriptPendingCalls.Signal());
+                        isAsync = true;
+                    }
+                    
+                    return result;
                 } finally {
-                    JavascriptPendingCalls.Signal();
+                    if (!isAsync) {
+                        JavascriptPendingCalls.Signal();
+                    }
                 }
             }
 

@@ -226,15 +226,6 @@ namespace WebViewControl {
 
         internal bool IsDisposing => isDisposing;
 
-        /// <summary>
-        /// Specifies the maximium number of calls that can be made simultaneously to native
-        /// object methods. Defaults to the int.MaxValue.
-        /// </summary>
-        internal int MaxNativeMethodsParallelCalls {
-            get => chromium.MaxNativeMethodsParallelCalls;
-            set => chromium.MaxNativeMethodsParallelCalls = value;
-        }
-
         public bool AllowDeveloperTools { get; set; }
 
         private string InternalAddress {
