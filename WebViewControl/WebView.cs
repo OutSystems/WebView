@@ -47,6 +47,7 @@ namespace WebViewControl {
         private string htmlToLoad;
         private volatile bool isDisposing;
         private IDisposable[] disposables;
+        private bool isDisposed;
 
         private CancellationTokenSource AsyncCancellationTokenSource { get; } = new CancellationTokenSource();
 
@@ -178,20 +179,17 @@ namespace WebViewControl {
                 GC.SuppressFinalize(this);
             }
 
-            var disposed = false;
-
             void InternalDispose() {
-                if (disposed) {
-                    return; // bail-out
+                lock (SyncRoot) {
+                    if (isDisposed) {
+                        return; // bail-out
+                    }
+
+                    isDisposed = true;
                 }
 
-                disposed = true;
-
-                try {
-                    AsyncCancellationTokenSource?.Cancel();
-                } catch (ObjectDisposedException) { }
+                AsyncCancellationTokenSource?.Cancel();
                 
-
                 WebViewInitialized = null;
                 BeforeNavigate = null;
                 BeforeResourceLoad = null;
