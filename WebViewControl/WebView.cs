@@ -189,7 +189,7 @@ namespace WebViewControl {
                 }
 
                 AsyncCancellationTokenSource?.Cancel();
-                
+
                 WebViewInitialized = null;
                 BeforeNavigate = null;
                 BeforeResourceLoad = null;
