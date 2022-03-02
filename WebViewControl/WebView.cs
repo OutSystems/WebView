@@ -178,13 +178,11 @@ namespace WebViewControl {
             var disposed = false;
 
             void InternalDispose() {
-                lock (SyncRoot) {
-                    if (disposed) {
-                        return; // bail-out
-                    }
-
-                    disposed = true;
+                if (disposed) {
+                    return; // bail-out
                 }
+
+                disposed = true;
 
                 AsyncCancellationTokenSource?.Cancel();
 
