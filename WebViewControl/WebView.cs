@@ -47,7 +47,6 @@ namespace WebViewControl {
         private string htmlToLoad;
         private volatile bool isDisposing;
         private IDisposable[] disposables;
-        private bool isDisposed;
 
         private CancellationTokenSource AsyncCancellationTokenSource { get; } = new CancellationTokenSource();
 
@@ -160,32 +159,31 @@ namespace WebViewControl {
         partial void ExtraInitialize();
 
         ~WebView() {
-            Dispose(isDisposing: false);
+            InnerDispose();
         }
 
         public void Dispose() {
-            Dispose(isDisposing: true);
+            InnerDispose();
+            GC.SuppressFinalize(this);
         }
 
-        private void Dispose(bool isDisposing = true) {
-            if (isDisposing) {
-                lock (SyncRoot) {
-                    if (this.isDisposing) {
-                        return;
-                    }
-
-                    this.isDisposing = true;
+        private void InnerDispose() {
+            lock (SyncRoot) {
+                if (isDisposing) {
+                    return;
                 }
-                GC.SuppressFinalize(this);
+                isDisposing = true;
             }
+
+            var disposed = false;
 
             void InternalDispose() {
                 lock (SyncRoot) {
-                    if (isDisposed) {
+                    if (disposed) {
                         return; // bail-out
                     }
 
-                    isDisposed = true;
+                    disposed = true;
                 }
 
                 AsyncCancellationTokenSource?.Cancel();
