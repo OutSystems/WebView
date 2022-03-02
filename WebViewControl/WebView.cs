@@ -187,7 +187,10 @@ namespace WebViewControl {
 
                 disposed = true;
 
-                AsyncCancellationTokenSource?.Cancel();
+                try {
+                    AsyncCancellationTokenSource?.Cancel();
+                } catch (ObjectDisposedException) { }
+                
 
                 WebViewInitialized = null;
                 BeforeNavigate = null;
