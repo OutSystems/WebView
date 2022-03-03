@@ -159,23 +159,20 @@ namespace WebViewControl {
         partial void ExtraInitialize();
 
         ~WebView() {
-            Dispose(isDisposing: false);
+            InnerDispose();
         }
 
         public void Dispose() {
-            Dispose(isDisposing: true);
+            InnerDispose();
+            GC.SuppressFinalize(this);
         }
 
-        private void Dispose(bool isDisposing = true) {
-            if (isDisposing) {
-                lock (SyncRoot) {
-                    if (this.isDisposing) {
-                        return;
-                    }
-
-                    this.isDisposing = true;
+        private void InnerDispose() {
+            lock (SyncRoot) {
+                if (isDisposing) {
+                    return;
                 }
-                GC.SuppressFinalize(this);
+                isDisposing = true;
             }
 
             var disposed = false;
