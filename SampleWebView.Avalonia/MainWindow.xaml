@@ -25,6 +25,14 @@
                     </NativeMenu>
                 </NativeMenuItem.Menu>
             </NativeMenuItem>
+            <NativeMenuItem Header="Navigate">
+                <NativeMenuItem.Menu>
+                    <NativeMenu>
+                        <NativeMenuItem Header="Back" Command="{Binding BackCommand}" />
+                        <NativeMenuItem Header="Forward" Command="{Binding ForwardCommand}" />
+                    </NativeMenu>
+                </NativeMenuItem.Menu>
+            </NativeMenuItem>
         </NativeMenu>
     </NativeMenu.Menu>
 

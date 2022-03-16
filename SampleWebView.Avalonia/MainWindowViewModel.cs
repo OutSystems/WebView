@@ -47,6 +47,14 @@ namespace SampleWebView.Avalonia {
             DeleteCommand = ReactiveCommand.Create(() => {
                 webview.EditCommands.Delete();
             });
+            
+            BackCommand = ReactiveCommand.Create(() => {
+                webview.GoBack();
+            });
+            
+            ForwardCommand = ReactiveCommand.Create(() => {
+                webview.GoForward();
+            });
 
             PropertyChanged += OnPropertyChanged;
         }
@@ -84,5 +92,9 @@ namespace SampleWebView.Avalonia {
         public ReactiveCommand<Unit, Unit> SelectAllCommand { get; }
 
         public ReactiveCommand<Unit, Unit> DeleteCommand { get; }
+
+        public ReactiveCommand<Unit, Unit> BackCommand { get; }
+        
+        public ReactiveCommand<Unit, Unit> ForwardCommand { get; }
     }
 }
