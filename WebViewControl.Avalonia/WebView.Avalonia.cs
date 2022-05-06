@@ -7,9 +7,7 @@ using Avalonia.Input;
 using Avalonia.Threading;
 
 namespace WebViewControl {
-
     partial class WebView : BaseControl {
-
         private bool IsInDesignMode => false;
 
         public static readonly StyledProperty<string> AddressProperty =
@@ -74,6 +72,7 @@ namespace WebViewControl {
             if (Dispatcher.UIThread.CheckAccess()) {
                 return action();
             }
+
             return Dispatcher.UIThread.InvokeAsync<T>(action).Result;
         }
 
@@ -81,6 +80,7 @@ namespace WebViewControl {
             if (isDisposing) {
                 return;
             }
+
             // use async call to avoid dead-locks, otherwise if the source action tries to to evaluate js it would block
             Dispatcher.UIThread.InvokeAsync(
                 () => {

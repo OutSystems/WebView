@@ -10,25 +10,35 @@ using Xilium.CefGlue;
 using Xilium.CefGlue.Common.Events;
 
 namespace WebViewControl {
-
     public delegate void BeforeNavigateEventHandler(Request request);
+
     public delegate void BeforeResourceLoadEventHandler(ResourceHandler resourceHandler);
+
     public delegate void NavigatedEventHandler(string url, string frameName);
+
     public delegate void LoadFailedEventHandler(string url, int errorCode, string frameName);
+
     public delegate void ResourceLoadFailedEventHandler(string resourceUrl);
+
     public delegate void DownloadProgressChangedEventHandler(string resourcePath, long receivedBytes, long totalBytes);
+
     public delegate void DownloadStatusChangedEventHandler(string resourcePath);
+
     public delegate void JavascriptContextCreatedEventHandler(string frameName);
+
     public delegate void UnhandledAsyncExceptionEventHandler(UnhandledAsyncExceptionEventArgs eventArgs);
+
     public delegate void FilesDraggingEventHandler(string[] fileNames);
+
     public delegate void TextDraggingEventHandler(string textContent);
 
     internal delegate void JavacriptDialogShowEventHandler(string text, Action closeDialog);
+
     internal delegate void JavascriptContextReleasedEventHandler(string frameName);
+
     internal delegate void KeyPressedEventHandler(CefKeyEvent keyEvent, out bool handled);
 
     public partial class WebView : IDisposable {
-
         private const string MainFrameName = null;
 
         // converts cef zoom percentage to css zoom (between 0 and 1)
@@ -37,7 +47,8 @@ namespace WebViewControl {
 
         private object SyncRoot { get; } = new object();
 
-        private Dictionary<string, JavascriptExecutor> JsExecutors { get; } = new Dictionary<string, JavascriptExecutor>();
+        private Dictionary<string, JavascriptExecutor> JsExecutors { get; } =
+            new Dictionary<string, JavascriptExecutor>();
 
         private CountdownEvent JavascriptPendingCalls { get; } = new CountdownEvent(1);
 
@@ -71,7 +82,7 @@ namespace WebViewControl {
         public event JavascriptContextCreatedEventHandler JavascriptContextCreated;
         public event Action TitleChanged;
         public event UnhandledAsyncExceptionEventHandler UnhandledAsyncException;
-        public event Action</*url*/string> PopupOpening;
+        public event Action< /*url*/string> PopupOpening;
 
         internal event Action Disposed;
         internal event JavascriptContextReleasedEventHandler JavascriptContextReleased;
@@ -129,18 +140,14 @@ namespace WebViewControl {
 
             EditCommands = new EditCommands(chromium);
 
-            disposables = new IDisposable[] {
-                chromium,
-                AsyncCancellationTokenSource
-            };
+            disposables = new IDisposable[] { chromium, AsyncCancellationTokenSource };
 
             ExtraInitialize();
 
             GlobalWebViewInitialized?.Invoke(this);
         }
 
-        private void InitializeChromium()
-        {
+        private void InitializeChromium() {
             chromium = new ChromiumBrowser();
             chromium.BrowserInitialized += OnWebViewBrowserInitialized;
             chromium.LoadEnd += OnWebViewLoadEnd;
@@ -161,8 +168,7 @@ namespace WebViewControl {
             chromium.KeyboardHandler = new InternalKeyboardHandler(this);
         }
 
-        private void DetachChromiumHandlers()
-        {
+        private void DetachChromiumHandlers() {
             chromium.BrowserInitialized -= OnWebViewBrowserInitialized;
             chromium.LoadEnd -= OnWebViewLoadEnd;
             chromium.LoadError -= OnWebViewLoadError;
@@ -181,7 +187,7 @@ namespace WebViewControl {
             chromium.DragHandler = null;
             chromium.KeyboardHandler = null;
         }
-        
+
         private void OnChromiumUnhandledException(object sender, AsyncUnhandledExceptionEventArgs e) {
             ForwardUnhandledAsyncException(e.Exception);
         }
@@ -202,12 +208,13 @@ namespace WebViewControl {
         }
 
         partial void PartialsInnerDispose();
-        
+
         private void InnerDispose() {
             lock (SyncRoot) {
                 if (isDisposing) {
                     return;
                 }
+
                 isDisposing = true;
             }
 
@@ -219,7 +226,7 @@ namespace WebViewControl {
                 }
 
                 disposed = true;
-                
+
                 PartialsInnerDispose();
 
                 AsyncCancellationTokenSource?.Cancel();
@@ -337,6 +344,7 @@ namespace WebViewControl {
             if (this.IsMainFrame(frameName) && address != DefaultLocalUrl) {
                 htmlToLoad = null;
             }
+
             if (this.IsMainFrame(frameName)) {
                 chromium.Address = address;
             } else {
@@ -368,6 +376,7 @@ namespace WebViewControl {
                             pendingInitialization = null;
                         }
                     }
+
                     WebViewInitialized?.Invoke();
                 });
             } else {
@@ -388,6 +397,7 @@ namespace WebViewControl {
                 // js context created event is not called for child frames
                 HandleJavascriptContextCreated(e.Frame);
             }
+
             if (Navigated != null) {
                 // store frame name and url beforehand (cannot do it later, since frame might be disposed)
                 var frameName = e.Frame.Name;
@@ -405,8 +415,10 @@ namespace WebViewControl {
                 // failed loading default local url, discard html
                 htmlToLoad = null;
             }
+
             if (e.ErrorCode != CefErrorCode.Aborted && LoadFailed != null) {
-                var frameName = e.Frame.Name; // store frame name beforehand (cannot do it later, since frame might be disposed)
+                var frameName =
+                    e.Frame.Name; // store frame name beforehand (cannot do it later, since frame might be disposed)
                 // ignore aborts, to prevent situations where we try to load an address inside Load failed handler (and its aborted)
                 AsyncExecuteInUI(() => LoadFailed?.Invoke(url, (int)e.ErrorCode, frameName));
             }
@@ -464,11 +476,13 @@ namespace WebViewControl {
                     jsExecutor = new JavascriptExecutor(this, this.GetFrame(frameName));
                     JsExecutors.Add(frameNameForIndex, jsExecutor);
                 }
+
                 return jsExecutor;
             }
         }
 
-        private void OnJavascriptContextCreated(object sender, JavascriptContextLifetimeEventArgs e) => HandleJavascriptContextCreated(e.Frame);
+        private void OnJavascriptContextCreated(object sender, JavascriptContextLifetimeEventArgs e) =>
+            HandleJavascriptContextCreated(e.Frame);
 
         private void HandleJavascriptContextCreated(CefFrame frame) {
             ExecuteWithAsyncErrorHandling(() => {
@@ -482,7 +496,8 @@ namespace WebViewControl {
                     if (this.IsMainFrame(frameName)) {
                         // when a new main frame in created, dispose all running executors -> since they should not be valid anymore
                         // all child iframes were gone
-                        DisposeJavascriptExecutors(JsExecutors.Where(je => !je.Value.IsValid).Select(je => je.Key).ToArray());
+                        DisposeJavascriptExecutors(JsExecutors.Where(je => !je.Value.IsValid).Select(je => je.Key)
+                            .ToArray());
                     }
 
                     var jsExecutor = GetJavascriptExecutor(frameName);
@@ -514,6 +529,7 @@ namespace WebViewControl {
                 // ignore internal exceptions, they will be handled by the EvaluateScript caller
                 return;
             }
+
             var javascriptException = new JavascriptException(e.Message, e.StackFrames);
             ForwardUnhandledAsyncException(javascriptException, e.Frame.Name);
         }

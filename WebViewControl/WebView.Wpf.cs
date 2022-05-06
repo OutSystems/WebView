@@ -7,14 +7,13 @@ using System.Windows.Input;
 using System.Windows.Threading;
 
 namespace WebViewControl {
-
     partial class WebView : UserControl {
-
         internal IInputElement FocusableElement => chromium;
 
         private bool IsInDesignMode => DesignerProperties.GetIsInDesignMode(this);
 
-        public static readonly DependencyProperty AddressProperty = DependencyProperty.Register(nameof(Address), typeof(string), typeof(WebView));
+        public static readonly DependencyProperty AddressProperty =
+            DependencyProperty.Register(nameof(Address), typeof(string), typeof(WebView));
 
         public string Address {
             get { return (string)GetValue(AddressProperty); }
@@ -34,6 +33,7 @@ namespace WebViewControl {
                     if (e.NewValue is Window newWindow) {
                         newWindow.Closed += OnHostWindowClosed;
                     }
+
                     break;
 
                 case nameof(Address):
@@ -88,6 +88,7 @@ namespace WebViewControl {
             if (isDisposing) {
                 return;
             }
+
             // use async call to avoid dead-locks, otherwise if the source action tries to to evaluate js it would block
             Dispatcher.InvokeAsync(
                 () => {
