@@ -405,8 +405,7 @@ namespace WebViewControl {
             }
 
             if (e.ErrorCode != CefErrorCode.Aborted && LoadFailed != null) {
-                var frameName =
-                    e.Frame.Name; // store frame name beforehand (cannot do it later, since frame might be disposed)
+                var frameName = e.Frame.Name; // store frame name beforehand (cannot do it later, since frame might be disposed)
                 // ignore aborts, to prevent situations where we try to load an address inside Load failed handler (and its aborted)
                 AsyncExecuteInUI(() => LoadFailed?.Invoke(url, (int)e.ErrorCode, frameName));
             }
@@ -469,8 +468,7 @@ namespace WebViewControl {
             }
         }
 
-        private void OnJavascriptContextCreated(object sender, JavascriptContextLifetimeEventArgs e) =>
-            HandleJavascriptContextCreated(e.Frame);
+        private void OnJavascriptContextCreated(object sender, JavascriptContextLifetimeEventArgs e) => HandleJavascriptContextCreated(e.Frame);
 
         private void HandleJavascriptContextCreated(CefFrame frame) {
             ExecuteWithAsyncErrorHandling(() => {
@@ -484,8 +482,7 @@ namespace WebViewControl {
                     if (this.IsMainFrame(frameName)) {
                         // when a new main frame in created, dispose all running executors -> since they should not be valid anymore
                         // all child iframes were gone
-                        DisposeJavascriptExecutors(JsExecutors.Where(je => !je.Value.IsValid).Select(je => je.Key)
-                            .ToArray());
+                        DisposeJavascriptExecutors(JsExecutors.Where(je => !je.Value.IsValid).Select(je => je.Key).ToArray());
                     }
 
                     var jsExecutor = GetJavascriptExecutor(frameName);
