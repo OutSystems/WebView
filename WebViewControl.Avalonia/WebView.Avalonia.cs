@@ -28,7 +28,6 @@ namespace WebViewControl {
 
         partial void ExtraInitialize() {
             VisualChildren.Add(chromium);
-
             chromium.AddressChanged += OnAddressChanged;
         }
 

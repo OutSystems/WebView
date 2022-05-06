@@ -11,31 +11,19 @@ using Xilium.CefGlue.Common.Events;
 
 namespace WebViewControl {
     public delegate void BeforeNavigateEventHandler(Request request);
-
     public delegate void BeforeResourceLoadEventHandler(ResourceHandler resourceHandler);
-
     public delegate void NavigatedEventHandler(string url, string frameName);
-
     public delegate void LoadFailedEventHandler(string url, int errorCode, string frameName);
-
     public delegate void ResourceLoadFailedEventHandler(string resourceUrl);
-
     public delegate void DownloadProgressChangedEventHandler(string resourcePath, long receivedBytes, long totalBytes);
-
     public delegate void DownloadStatusChangedEventHandler(string resourcePath);
-
     public delegate void JavascriptContextCreatedEventHandler(string frameName);
-
     public delegate void UnhandledAsyncExceptionEventHandler(UnhandledAsyncExceptionEventArgs eventArgs);
-
     public delegate void FilesDraggingEventHandler(string[] fileNames);
-
     public delegate void TextDraggingEventHandler(string textContent);
 
     internal delegate void JavacriptDialogShowEventHandler(string text, Action closeDialog);
-
     internal delegate void JavascriptContextReleasedEventHandler(string frameName);
-
     internal delegate void KeyPressedEventHandler(CefKeyEvent keyEvent, out bool handled);
 
     public partial class WebView : IDisposable {
@@ -82,7 +70,7 @@ namespace WebViewControl {
         public event JavascriptContextCreatedEventHandler JavascriptContextCreated;
         public event Action TitleChanged;
         public event UnhandledAsyncExceptionEventHandler UnhandledAsyncException;
-        public event Action< /*url*/string> PopupOpening;
+        public event Action</*url*/string> PopupOpening;
 
         internal event Action Disposed;
         internal event JavascriptContextReleasedEventHandler JavascriptContextReleased;
