@@ -30,7 +30,7 @@ namespace WebViewControl {
 
         partial void ExtraInitialize() {
             VisualChildren.Add(chromium);
-            chromium.AddressChanged += (o, address) => ExecuteInUI(() => Address = address);
+            chromium.AddressChanged += OnAddressChanged;
         }
 
         protected override void OnKeyDown(KeyEventArgs e) {
@@ -54,7 +54,17 @@ namespace WebViewControl {
             }
         }
 
-        protected override void InternalDispose() => Dispose();
+        protected override void InternalDispose() {
+            Dispose();
+        }
+
+        partial void PartialsInnerDispose() {
+            chromium.AddressChanged -= OnAddressChanged;
+        }
+
+        private void OnAddressChanged(object o, string address) {
+            ExecuteInUI(() => Address = address);
+        }
 
         private void ForwardException(ExceptionDispatchInfo exceptionInfo) {
             // TODO

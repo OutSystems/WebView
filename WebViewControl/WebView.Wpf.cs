@@ -45,7 +45,7 @@ namespace WebViewControl {
         partial void ExtraInitialize() {
             Content = chromium;
 
-            chromium.AddressChanged += (o, address) => AsyncExecuteInUI(() => Address = address);
+            chromium.AddressChanged += OnAddressChanged;
 
             FocusManager.SetIsFocusScope(this, true);
             FocusManager.SetFocusedElement(this, FocusableElement);
@@ -56,6 +56,14 @@ namespace WebViewControl {
                 ToggleDeveloperTools();
                 e.Handled = true;
             }
+        }
+
+        partial void PartialsInnerDispose() {
+            chromium.AddressChanged -= OnAddressChanged;
+        }
+
+        private void OnAddressChanged(object o, string address) {
+            AsyncExecuteInUI(() => Address = address);
         }
 
         private void OnHostWindowClosed(object sender, EventArgs e) {

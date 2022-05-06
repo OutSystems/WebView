@@ -120,24 +120,7 @@ namespace WebViewControl {
         private void Initialize() {
             WebViewLoader.Initialize(Settings);
 
-            chromium = new ChromiumBrowser();
-            chromium.BrowserInitialized += OnWebViewBrowserInitialized;
-            chromium.LoadEnd += OnWebViewLoadEnd;
-            chromium.LoadError += OnWebViewLoadError;
-            chromium.TitleChanged += delegate { TitleChanged?.Invoke(); };
-            chromium.JavascriptContextCreated += OnJavascriptContextCreated;
-            chromium.JavascriptContextReleased += OnJavascriptContextReleased;
-            chromium.JavascriptUncaughException += OnJavascriptUncaughException;
-            chromium.UnhandledException += (o, e) => ForwardUnhandledAsyncException(e.Exception);
-
-            chromium.RequestHandler = new InternalRequestHandler(this);
-            chromium.LifeSpanHandler = new InternalLifeSpanHandler(this);
-            chromium.ContextMenuHandler = new InternalContextMenuHandler(this);
-            chromium.DialogHandler = new InternalDialogHandler(this);
-            chromium.DownloadHandler = new InternalDownloadHandler(this);
-            chromium.JSDialogHandler = new InternalJsDialogHandler(this);
-            chromium.DragHandler = new InternalDragHandler(this);
-            chromium.KeyboardHandler = new InternalKeyboardHandler(this);
+            InitializeChromium();
 
             if (!Settings.OsrEnabled) {
                 // having the handler (by default) seems to cause some focus troubles, enable only osr disabled
@@ -156,6 +139,57 @@ namespace WebViewControl {
             GlobalWebViewInitialized?.Invoke(this);
         }
 
+        private void InitializeChromium()
+        {
+            chromium = new ChromiumBrowser();
+            chromium.BrowserInitialized += OnWebViewBrowserInitialized;
+            chromium.LoadEnd += OnWebViewLoadEnd;
+            chromium.LoadError += OnWebViewLoadError;
+            chromium.TitleChanged += OnChromiumTitleChanged;
+            chromium.JavascriptContextCreated += OnJavascriptContextCreated;
+            chromium.JavascriptContextReleased += OnJavascriptContextReleased;
+            chromium.JavascriptUncaughException += OnJavascriptUncaughException;
+            chromium.UnhandledException += OnChromiumUnhandledException;
+
+            chromium.RequestHandler = new InternalRequestHandler(this);
+            chromium.LifeSpanHandler = new InternalLifeSpanHandler(this);
+            chromium.ContextMenuHandler = new InternalContextMenuHandler(this);
+            chromium.DialogHandler = new InternalDialogHandler(this);
+            chromium.DownloadHandler = new InternalDownloadHandler(this);
+            chromium.JSDialogHandler = new InternalJsDialogHandler(this);
+            chromium.DragHandler = new InternalDragHandler(this);
+            chromium.KeyboardHandler = new InternalKeyboardHandler(this);
+        }
+
+        private void DetachChromiumHandlers()
+        {
+            chromium.BrowserInitialized -= OnWebViewBrowserInitialized;
+            chromium.LoadEnd -= OnWebViewLoadEnd;
+            chromium.LoadError -= OnWebViewLoadError;
+            chromium.TitleChanged -= OnChromiumTitleChanged;
+            chromium.JavascriptContextCreated -= OnJavascriptContextCreated;
+            chromium.JavascriptContextReleased -= OnJavascriptContextReleased;
+            chromium.JavascriptUncaughException -= OnJavascriptUncaughException;
+            chromium.UnhandledException -= OnChromiumUnhandledException;
+
+            chromium.RequestHandler = null;
+            chromium.LifeSpanHandler = null;
+            chromium.ContextMenuHandler = null;
+            chromium.DialogHandler = null;
+            chromium.DownloadHandler = null;
+            chromium.JSDialogHandler = null;
+            chromium.DragHandler = null;
+            chromium.KeyboardHandler = null;
+        }
+        
+        private void OnChromiumUnhandledException(object sender, AsyncUnhandledExceptionEventArgs e) {
+            ForwardUnhandledAsyncException(e.Exception);
+        }
+
+        private void OnChromiumTitleChanged(object sender, string title) {
+            TitleChanged?.Invoke();
+        }
+
         partial void ExtraInitialize();
 
         ~WebView() {
@@ -167,6 +201,8 @@ namespace WebViewControl {
             GC.SuppressFinalize(this);
         }
 
+        partial void PartialsInnerDispose();
+        
         private void InnerDispose() {
             lock (SyncRoot) {
                 if (isDisposing) {
@@ -183,6 +219,8 @@ namespace WebViewControl {
                 }
 
                 disposed = true;
+                
+                PartialsInnerDispose();
 
                 AsyncCancellationTokenSource?.Cancel();
 
@@ -198,6 +236,8 @@ namespace WebViewControl {
                 TitleChanged = null;
                 UnhandledAsyncException = null;
                 JavascriptContextReleased = null;
+
+                DetachChromiumHandlers();
 
                 foreach (var disposable in disposables.Concat(JsExecutors?.Values)) {
                     disposable?.Dispose();
