@@ -52,9 +52,7 @@ namespace WebViewControl {
             }
         }
 
-        protected override void InternalDispose() {
-            Dispose();
-        }
+        protected override void InternalDispose() => Dispose();
 
         private void OnAddressChanged(object o, string address) {
             ExecuteInUI(() => Address = address);

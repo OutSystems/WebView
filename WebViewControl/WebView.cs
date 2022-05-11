@@ -35,8 +35,7 @@ namespace WebViewControl {
 
         private object SyncRoot { get; } = new object();
 
-        private Dictionary<string, JavascriptExecutor> JsExecutors { get; } =
-            new Dictionary<string, JavascriptExecutor>();
+        private Dictionary<string, JavascriptExecutor> JsExecutors { get; } = new Dictionary<string, JavascriptExecutor>();
 
         private CountdownEvent JavascriptPendingCalls { get; } = new CountdownEvent(1);
 
