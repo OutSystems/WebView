@@ -156,26 +156,6 @@ namespace WebViewControl {
             chromium.KeyboardHandler = new InternalKeyboardHandler(this);
         }
 
-        private void DetachChromiumHandlers() {
-            chromium.BrowserInitialized -= OnWebViewBrowserInitialized;
-            chromium.LoadEnd -= OnWebViewLoadEnd;
-            chromium.LoadError -= OnWebViewLoadError;
-            chromium.TitleChanged -= OnChromiumTitleChanged;
-            chromium.JavascriptContextCreated -= OnJavascriptContextCreated;
-            chromium.JavascriptContextReleased -= OnJavascriptContextReleased;
-            chromium.JavascriptUncaughException -= OnJavascriptUncaughException;
-            chromium.UnhandledException -= OnChromiumUnhandledException;
-
-            chromium.RequestHandler = null;
-            chromium.LifeSpanHandler = null;
-            chromium.ContextMenuHandler = null;
-            chromium.DialogHandler = null;
-            chromium.DownloadHandler = null;
-            chromium.JSDialogHandler = null;
-            chromium.DragHandler = null;
-            chromium.KeyboardHandler = null;
-        }
-
         private void OnChromiumUnhandledException(object sender, AsyncUnhandledExceptionEventArgs e) {
             ForwardUnhandledAsyncException(e.Exception);
         }
@@ -195,8 +175,6 @@ namespace WebViewControl {
             GC.SuppressFinalize(this);
         }
 
-        partial void PartialsInnerDispose();
-
         private void InnerDispose() {
             lock (SyncRoot) {
                 if (isDisposing) {
@@ -215,8 +193,6 @@ namespace WebViewControl {
 
                 disposed = true;
 
-                PartialsInnerDispose();
-
                 AsyncCancellationTokenSource?.Cancel();
 
                 WebViewInitialized = null;
@@ -231,8 +207,6 @@ namespace WebViewControl {
                 TitleChanged = null;
                 UnhandledAsyncException = null;
                 JavascriptContextReleased = null;
-
-                DetachChromiumHandlers();
 
                 foreach (var disposable in disposables.Concat(JsExecutors?.Values)) {
                     disposable?.Dispose();

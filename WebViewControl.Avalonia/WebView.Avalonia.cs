@@ -56,10 +56,6 @@ namespace WebViewControl {
             Dispose();
         }
 
-        partial void PartialsInnerDispose() {
-            chromium.AddressChanged -= OnAddressChanged;
-        }
-
         private void OnAddressChanged(object o, string address) {
             ExecuteInUI(() => Address = address);
         }

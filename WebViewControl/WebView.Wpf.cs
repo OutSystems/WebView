@@ -12,8 +12,7 @@ namespace WebViewControl {
 
         private bool IsInDesignMode => DesignerProperties.GetIsInDesignMode(this);
 
-        public static readonly DependencyProperty AddressProperty =
-            DependencyProperty.Register(nameof(Address), typeof(string), typeof(WebView));
+        public static readonly DependencyProperty AddressProperty = DependencyProperty.Register(nameof(Address), typeof(string), typeof(WebView));
 
         public string Address {
             get { return (string)GetValue(AddressProperty); }
@@ -56,10 +55,6 @@ namespace WebViewControl {
                 ToggleDeveloperTools();
                 e.Handled = true;
             }
-        }
-
-        partial void PartialsInnerDispose() {
-            chromium.AddressChanged -= OnAddressChanged;
         }
 
         private void OnAddressChanged(object o, string address) {
