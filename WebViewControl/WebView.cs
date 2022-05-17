@@ -199,8 +199,12 @@ namespace WebViewControl {
                 UnhandledAsyncException = null;
                 JavascriptContextReleased = null;
 
-                foreach (var disposable in disposables.Concat(JsExecutors?.Values)) {
+                foreach (var disposable in disposables) {
                     disposable?.Dispose();
+                }
+                
+                lock (JsExecutors) {
+                    DisposeJavascriptExecutors(JsExecutors.Keys.ToArray());
                 }
 
                 Disposed?.Invoke();
