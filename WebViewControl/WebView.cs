@@ -185,8 +185,10 @@ namespace WebViewControl {
                 disposed = true;
 
                 AsyncCancellationTokenSource?.Cancel();
-                UnsubscribeChromiumJavascriptContextEvents();
-                
+
+                chromium.JavascriptContextCreated -= OnJavascriptContextCreated;
+                chromium.JavascriptContextReleased -= OnJavascriptContextReleased;
+
                 WebViewInitialized = null;
                 BeforeNavigate = null;
                 BeforeResourceLoad = null;
@@ -426,6 +428,10 @@ namespace WebViewControl {
             }
 
             lock (JsExecutors) {
+                if (isDisposing) {
+                    return null;
+                }
+
                 var frameNameForIndex = frameName ?? "";
                 if (!JsExecutors.TryGetValue(frameNameForIndex, out var jsExecutor)) {
                     jsExecutor = new JavascriptExecutor(this, this.GetFrame(frameName));
@@ -501,11 +507,6 @@ namespace WebViewControl {
                     JsExecutors.Remove(indexedExecutorKey);
                 }
             }
-        }
-
-        private void UnsubscribeChromiumJavascriptContextEvents() {
-            chromium.JavascriptContextCreated -= OnJavascriptContextCreated;
-            chromium.JavascriptContextReleased -= OnJavascriptContextReleased;
         }
 
         protected virtual string GetRequestUrl(string url, ResourceType resourceType) => url;
