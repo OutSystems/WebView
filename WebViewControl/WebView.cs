@@ -202,10 +202,8 @@ namespace WebViewControl {
                 foreach (var disposable in disposables) {
                     disposable?.Dispose();
                 }
-                
-                lock (JsExecutors) {
-                    DisposeJavascriptExecutors(JsExecutors.Keys.ToArray());
-                }
+
+                DisposeJavascriptExecutors();
 
                 Disposed?.Invoke();
             }
@@ -424,7 +422,7 @@ namespace WebViewControl {
         private JavascriptExecutor GetJavascriptExecutor(string frameName) {
             lock (JsExecutors) {
                 var frameNameForIndex = frameName ?? "";
-                if (!JsExecutors.TryGetValue(frameNameForIndex, out var jsExecutor)) {
+                if (!JsExecutors.TryGetValue(frameNameForIndex, out var jsExecutor) && !isDisposing) {
                     jsExecutor = new JavascriptExecutor(this, this.GetFrame(frameName));
                     JsExecutors.Add(frameNameForIndex, jsExecutor);
                 }
@@ -483,6 +481,10 @@ namespace WebViewControl {
         }
 
         private void HandleRenderProcessCrashed() {
+            DisposeJavascriptExecutors();
+        }
+
+        private void DisposeJavascriptExecutors() {
             lock (JsExecutors) {
                 DisposeJavascriptExecutors(JsExecutors.Keys.ToArray());
             }
