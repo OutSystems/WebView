@@ -444,12 +444,20 @@ namespace WebViewControl {
         private void OnJavascriptContextCreated(object sender, JavascriptContextLifetimeEventArgs e) => HandleJavascriptContextCreated(e.Frame);
 
         private void HandleJavascriptContextCreated(CefFrame frame) {
+            if (isDisposing) {
+                return;
+            }
+
             ExecuteWithAsyncErrorHandling(() => {
                 if (UrlHelper.IsChromeInternalUrl(frame.Url)) {
                     return;
                 }
 
                 lock (JsExecutors) {
+                    if (isDisposing) {
+                        return;
+                    }
+
                     var frameName = frame.Name;
 
                     if (this.IsMainFrame(frameName)) {
