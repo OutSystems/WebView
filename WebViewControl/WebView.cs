@@ -480,9 +480,7 @@ namespace WebViewControl {
             ForwardUnhandledAsyncException(javascriptException, e.Frame.Name);
         }
 
-        private void HandleRenderProcessCrashed() {
-            DisposeJavascriptExecutors();
-        }
+        private void HandleRenderProcessCrashed() => DisposeJavascriptExecutors();
 
         private void DisposeJavascriptExecutors() {
             lock (JsExecutors) {
