@@ -12,7 +12,7 @@
     <Copyright>Copyright ©  2019</Copyright>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Version>2.91.17</Version>
+    <Version>2.91.18</Version>
     <PackageId>WebViewControl-WPF</PackageId>
     <Authors>OutSystems</Authors>
     <PackageProjectUrl>https://github.com/OutSystems/WebView</PackageProjectUrl>

@@ -186,6 +186,9 @@ namespace WebViewControl {
 
                 AsyncCancellationTokenSource?.Cancel();
 
+                chromium.JavascriptContextCreated -= OnJavascriptContextCreated;
+                chromium.JavascriptContextReleased -= OnJavascriptContextReleased;
+
                 WebViewInitialized = null;
                 BeforeNavigate = null;
                 BeforeResourceLoad = null;
@@ -199,9 +202,11 @@ namespace WebViewControl {
                 UnhandledAsyncException = null;
                 JavascriptContextReleased = null;
 
-                foreach (var disposable in disposables.Concat(JsExecutors?.Values)) {
+                foreach (var disposable in disposables) {
                     disposable?.Dispose();
                 }
+
+                DisposeJavascriptExecutors();
 
                 Disposed?.Invoke();
             }
@@ -418,7 +423,15 @@ namespace WebViewControl {
         }
 
         private JavascriptExecutor GetJavascriptExecutor(string frameName) {
+            if (isDisposing) {
+                return null;
+            }
+
             lock (JsExecutors) {
+                if (isDisposing) {
+                    return null;
+                }
+
                 var frameNameForIndex = frameName ?? "";
                 if (!JsExecutors.TryGetValue(frameNameForIndex, out var jsExecutor)) {
                     jsExecutor = new JavascriptExecutor(this, this.GetFrame(frameName));
@@ -431,12 +444,20 @@ namespace WebViewControl {
         private void OnJavascriptContextCreated(object sender, JavascriptContextLifetimeEventArgs e) => HandleJavascriptContextCreated(e.Frame);
 
         private void HandleJavascriptContextCreated(CefFrame frame) {
+            if (isDisposing) {
+                return;
+            }
+
             ExecuteWithAsyncErrorHandling(() => {
                 if (UrlHelper.IsChromeInternalUrl(frame.Url)) {
                     return;
                 }
 
                 lock (JsExecutors) {
+                    if (isDisposing) {
+                        return;
+                    }
+
                     var frameName = frame.Name;
 
                     if (this.IsMainFrame(frameName)) {
@@ -446,7 +467,7 @@ namespace WebViewControl {
                     }
 
                     var jsExecutor = GetJavascriptExecutor(frameName);
-                    jsExecutor.StartFlush(frame);
+                    jsExecutor?.StartFlush(frame);
 
                     JavascriptContextCreated?.Invoke(frameName);
                 }
@@ -478,7 +499,9 @@ namespace WebViewControl {
             ForwardUnhandledAsyncException(javascriptException, e.Frame.Name);
         }
 
-        private void HandleRenderProcessCrashed() {
+        private void HandleRenderProcessCrashed() => DisposeJavascriptExecutors();
+
+        private void DisposeJavascriptExecutors() {
             lock (JsExecutors) {
                 DisposeJavascriptExecutors(JsExecutors.Keys.ToArray());
             }
