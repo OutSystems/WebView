@@ -202,7 +202,7 @@ namespace WebViewControl {
                 UnhandledAsyncException = null;
                 JavascriptContextReleased = null;
 
-                // dispose the js executors before the browser to prevent throwing the browser from throwing cancellation exceptions
+                // dispose the js executors before the browser to prevent (the browser) from throwing cancellation exceptions
                 DisposeJavascriptExecutors();
                 
                 foreach (var disposable in disposables) {
