@@ -147,8 +147,8 @@ namespace WebViewControl {
             EditCommands = new EditCommands(chromium);
 
             disposables = new IDisposable[] {
-                chromium,
-                AsyncCancellationTokenSource
+                AsyncCancellationTokenSource,
+                chromium // browser should be the last
             };
 
             ExtraInitialize();
@@ -202,11 +202,12 @@ namespace WebViewControl {
                 UnhandledAsyncException = null;
                 JavascriptContextReleased = null;
 
+                // dispose the js executors before the browser to prevent throwing the browser from throwing cancellation exceptions
+                DisposeJavascriptExecutors();
+                
                 foreach (var disposable in disposables) {
                     disposable?.Dispose();
                 }
-
-                DisposeJavascriptExecutors();
 
                 Disposed?.Invoke();
             }
