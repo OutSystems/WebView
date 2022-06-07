@@ -272,6 +272,7 @@ namespace WebViewControl {
             }
 
             private static Exception ParseException(Exception exception, IEnumerable<string> evaluatedScriptFunctions) {
+                var evaluatedScriptsMessage = " Evaluated Scripts: " + evaluatedScriptFunctions.Count() + ";";
                 var jsErrorJSON = ((exception is AggregateException aggregateException) ? aggregateException.InnerExceptions.FirstOrDefault(e => IsInternalException(e.Message))?.Message : exception.Message) ?? "";
 
                 // try parse js exception
@@ -306,11 +307,11 @@ namespace WebViewControl {
                             }
                         }
 
-                        return new JavascriptException(jsError.Name, jsError.Message, parsedStack);
+                        return new JavascriptException(jsError.Name, jsError.Message + evaluatedScriptsMessage, parsedStack);
                     }
                 }
 
-                return new JavascriptException(exception.Message, evaluatedStackFrames, exception.StackTrace);
+                return new JavascriptException(exception.Message + evaluatedScriptsMessage, evaluatedStackFrames, exception.StackTrace);
             }
 
             internal static bool IsInternalException(string exceptionMessage) {
