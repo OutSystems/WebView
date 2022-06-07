@@ -59,7 +59,7 @@ namespace Tests.WebView {
             await Run(async () => {
                 var exception = await Assertions.AssertThrows<JavascriptException>(async () => await TargetView.EvaluateScript<int>("(function foo() { (function bar() { throw new Error('ups'); })() })()"));
                 
-                Assert.AreEqual("Error: ups", exception.Message);
+                Assert.AreEqual("Error: ups Evaluated Scripts: 1;", exception.Message);
                 var stack = exception.StackTrace.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
                 Assert.Greater(stack.Length, 2);
                 StringAssert.StartsWith("   at bar in about", stack.ElementAt(0));
