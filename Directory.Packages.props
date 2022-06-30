@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+    <PropertyGroup>
+        <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    </PropertyGroup>
+
+    <ItemDefinitionGroup>
+        <!--
+            Disable transitive package references
+            https://docs.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files#controlling-dependency-assets
+            https://github.com/dotnet/sdk/issues/11803
+        -->
+        <PackageReference>
+            <PrivateAssets>$(PrivateAssets);compile</PrivateAssets>
+        </PackageReference>
+    </ItemDefinitionGroup>
+
+    <ItemGroup>
+        <PackageVersion Include="Avalonia" Version="0.10.15" />
+        <PackageVersion Include="Avalonia.Desktop" Version="0.10.15" />
+        <PackageVersion Include="Avalonia.ReactiveUI" Version="0.10.15" />
+
+        <PackageVersion Include="CefGlue.Avalonia" Version="91.4472.30" />
+        <PackageVersion Include="CefGlue.Wpf" Version="91.4472.30" />
+        
+        <PackageVersion Include="Microsoft.CSharp" Version="4.5.0" />
+        <PackageVersion Include="System.Runtime.Loader" Version="4.3.0" />
+        <PackageVersion Include="Dotnet.Bundle" Version="0.9.13" />
+        
+        <PackageVersion Include="nunit" Version="3.13.0" />
+        <PackageVersion Include="NUnit3TestAdapter" Version="3.17.0" />
+        <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
+    </ItemGroup>
+</Project>
