@@ -1,4 +1,5 @@
-﻿using Xilium.CefGlue;
+﻿using System.Collections.Specialized;
+using Xilium.CefGlue;
 
 namespace WebViewControl {
 
@@ -27,5 +28,17 @@ namespace WebViewControl {
         public bool Canceled { get; private set; }
 
         internal bool IsMainFrame => CefRequest.ResourceType == CefResourceType.MainFrame;
+
+        public NameValueCollection GetHeaderMap() =>
+            CefRequest.GetHeaderMap();
+
+        public void SetHeaderMap(NameValueCollection headers) =>
+            CefRequest.SetHeaderMap(headers);
+
+        public string GetHeaderByName(string name) => 
+            CefRequest.GetHeaderByName(name);
+
+        public void SetHeaderByName(string name, string value, bool overwrite) => 
+            CefRequest.SetHeaderByName(name, value, overwrite);
     }
 }
