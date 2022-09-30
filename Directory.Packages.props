@@ -20,13 +20,13 @@
         <PackageVersion Include="Avalonia.Desktop" Version="0.10.15" />
         <PackageVersion Include="Avalonia.ReactiveUI" Version="0.10.15" />
 
-        <PackageVersion Include="CefGlue.Avalonia" Version="91.4472.30" />
-        <PackageVersion Include="CefGlue.Wpf" Version="91.4472.30" />
-        
+        <PackageVersion Include="CefGlue.Avalonia" Version="91.4472.31" />
+        <PackageVersion Include="CefGlue.Wpf" Version="91.4472.31" />
+
         <PackageVersion Include="Microsoft.CSharp" Version="4.5.0" />
         <PackageVersion Include="System.Runtime.Loader" Version="4.3.0" />
         <PackageVersion Include="Dotnet.Bundle" Version="0.9.13" />
-        
+
         <PackageVersion Include="nunit" Version="3.13.0" />
         <PackageVersion Include="NUnit3TestAdapter" Version="3.17.0" />
         <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
