@@ -16,9 +16,9 @@
     </ItemDefinitionGroup>
 
     <ItemGroup>
-        <PackageVersion Include="Avalonia" Version="0.10.15" />
-        <PackageVersion Include="Avalonia.Desktop" Version="0.10.15" />
-        <PackageVersion Include="Avalonia.ReactiveUI" Version="0.10.15" />
+        <PackageVersion Include="Avalonia" Version="0.10.999-cibuild0027170-beta" />
+        <PackageVersion Include="Avalonia.Desktop" Version="0.10.999-cibuild0027170-beta" />
+        <PackageVersion Include="Avalonia.ReactiveUI" Version="0.10.999-cibuild0027170-beta" />
 
         <PackageVersion Include="CefGlue.Avalonia" Version="91.4472.31" />
         <PackageVersion Include="CefGlue.Wpf" Version="91.4472.31" />
