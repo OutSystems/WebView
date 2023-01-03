@@ -2,7 +2,8 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
+    <RollForward>LatestMajor</RollForward>
     <Configurations>Debug;Release;ReleaseAvalonia;ReleaseWPF;ReleaseAvaloniaRemoteDebugSupport</Configurations>
     <RuntimeIdentifiers>osx-x64;win-x64</RuntimeIdentifiers>
   </PropertyGroup>
