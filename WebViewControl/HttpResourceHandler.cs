@@ -22,9 +22,10 @@ namespace WebViewControl {
                 try {
                     var httpRequest = WebRequest.CreateHttp(request.Url);
                     var headers = request.GetHeaderMap();
-                    foreach (var key in request.GetHeaderMap().AllKeys) {
+                    foreach (var key in headers.AllKeys) {
                         httpRequest.Headers.Add(key, headers[key]);
                     }
+
                     var response = await httpRequest.GetResponseAsync();
                     Response = response.GetResponseStream();
                     Headers = response.Headers;
