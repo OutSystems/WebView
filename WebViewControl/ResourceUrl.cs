@@ -86,7 +86,7 @@ namespace WebViewControl {
         }
 
         internal string WithDomain(string domain) {
-            return string.Format(Url, string.IsNullOrEmpty(domain) ? "" : ("." + domain));
+            return string.Format(Url, string.IsNullOrEmpty(domain) ? "" : ("_" + domain));
         }
     }
 }
