@@ -14,7 +14,8 @@ namespace WebViewControl {
             // These resources types need an "Access-Control-Allow-Origin" header response entry
             // to comply with CORS security restrictions.
             CefResourceType.SubFrame,
-            CefResourceType.FontResource
+            CefResourceType.FontResource,
+            CefResourceType.Stylesheet
         };
 
         protected override RequestHandlingFashion ProcessRequestAsync(CefRequest request, CefCallback callback) {
