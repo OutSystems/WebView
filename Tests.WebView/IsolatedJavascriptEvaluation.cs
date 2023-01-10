@@ -50,7 +50,7 @@ namespace Tests.WebView {
                     return originalFunc();
                 }
                 TargetView.RegisterJavascriptObject(DotNetObject, functionToCall, Interceptor);
-                await Load($"<html><script>{DotNetObject}.invoke();</script><body></body></html>");
+                await Load($"<html><script>{EnsureObjectIsBoundWrapper(DotNetObject, $"{DotNetObject}.invoke()")}</script><body></body></html>");
                 var functionCalled = await taskCompletionSource.Task;
 
                 Assert.IsTrue(functionCalled);
@@ -68,7 +68,7 @@ namespace Tests.WebView {
                     taskCompletionSource.SetResult(new Tuple<string, string[]>(arg1, arg2));
                 };
                 TargetView.RegisterJavascriptObject(DotNetObject, functionToCall);
-                await Load($"<html><script>{DotNetObject}.invoke(null, ['hello', null, 'world']);</script><body></body></html>");
+                await Load($"<html><script>{EnsureObjectIsBoundWrapper(DotNetObject, $"{DotNetObject}.invoke(null, ['hello', null, 'world'])")}</script><body></body></html>");
 
                 var obtainedArgs = await taskCompletionSource.Task;
                 Assert.AreEqual(null, obtainedArgs.Item1);
@@ -101,7 +101,7 @@ namespace Tests.WebView {
 
                 TargetView.RegisterJavascriptObject(DotNetObject, functionToCall);
                 TargetView.RegisterJavascriptObject(DotNetSetResult, setResult);
-                await Load($"<html><script>(async function test() {{ var result = await {DotNetObject}.invoke(); {DotNetSetResult}.invoke(result); }})()</script><body></body></html>");
+                await Load($"<html><script>(async function test() {{ await Promise.all([{EnsureObjectIsBound(DotNetObject)}, {EnsureObjectIsBound(DotNetSetResult)}]); var result = await {DotNetObject}.invoke(); {DotNetSetResult}.invoke(result); }})()</script><body></body></html>");
 
                 var result = await taskCompletionSource.Task;
                 Assert.IsNotNull(result);
@@ -185,6 +185,14 @@ namespace Tests.WebView {
                 Assert.AreEqual(1, x);
                 Assert.AreEqual(2, y);
             });
+        }
+
+        private string EnsureObjectIsBoundWrapper(string objName, string testCode) {
+            return $"(async function() {{ await {EnsureObjectIsBound(objName)};{testCode};}})();";
+        }
+
+        private string EnsureObjectIsBound(string objName) {
+            return $"cefglue.checkObjectBound('{objName}')";
         }
     }
 }
