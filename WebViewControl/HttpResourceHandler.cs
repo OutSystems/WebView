@@ -9,7 +9,6 @@ namespace WebViewControl {
     internal class HttpResourceHandler : DefaultResourceHandler {
 
         private const string AccessControlAllowOriginHeaderKey = "Access-Control-Allow-Origin";
-        private const string ContentTypeHeaderKey = "Content-Type";
 
         internal static readonly CefResourceType[] AcceptedResources = new CefResourceType[] {
             // These resources types need an "Access-Control-Allow-Origin" header response entry
@@ -28,13 +27,9 @@ namespace WebViewControl {
                         httpRequest.Headers.Add(key, headers[key]);
                     }
 
-                    var response = (HttpWebResponse) await httpRequest.GetResponseAsync();
+                    var response = await httpRequest.GetResponseAsync();
                     Response = response.GetResponseStream();
                     Headers = response.Headers;
-
-                    this.MimeType = response.Headers[ContentTypeHeaderKey];
-                    this.Status = (int) response.StatusCode;
-                    this.StatusText = response.StatusDescription;
 
                     // we have to smash any existing value here
                     Headers.Remove(AccessControlAllowOriginHeaderKey);
@@ -47,7 +42,7 @@ namespace WebViewControl {
                 }
 
             });
-            return RequestHandlingFashion.ContinueAsync;
+            return RequestHandlingFashion.ContinueAsync;       
         }
 
         protected override bool Read(Stream outResponse, int bytesToRead, out int bytesRead, CefResourceReadCallback callback) {
