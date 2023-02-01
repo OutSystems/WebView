@@ -32,9 +32,9 @@ namespace WebViewControl {
                     Response = response.GetResponseStream();
                     Headers = response.Headers;
 
-                   MimeType = response.ContentType;
-                    this.Status = (int) response.StatusCode;
-                    this.StatusText = response.StatusDescription;
+                    MimeType = response.ContentType;
+                    Status = (int) response.StatusCode;
+                    StatusText = response.StatusDescription;
 
                     // we have to smash any existing value here
                     Headers.Remove(AccessControlAllowOriginHeaderKey);
