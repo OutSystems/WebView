@@ -9,7 +9,6 @@ namespace WebViewControl {
     internal class HttpResourceHandler : DefaultResourceHandler {
 
         private const string AccessControlAllowOriginHeaderKey = "Access-Control-Allow-Origin";
-        private const string ContentTypeHeaderKey = "Content-Type";
 
         internal static readonly CefResourceType[] AcceptedResources = new CefResourceType[] {
             // These resources types need an "Access-Control-Allow-Origin" header response entry
