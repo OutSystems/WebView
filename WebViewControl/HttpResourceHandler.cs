@@ -32,7 +32,7 @@ namespace WebViewControl {
                     Response = response.GetResponseStream();
                     Headers = response.Headers;
 
-                    this.MimeType = response.Headers[ContentTypeHeaderKey];
+                   MimeType = response.ContentType;
                     this.Status = (int) response.StatusCode;
                     this.StatusText = response.StatusDescription;
 
