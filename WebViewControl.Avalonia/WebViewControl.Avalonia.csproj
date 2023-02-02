@@ -31,43 +31,7 @@
     <Optimize>true</Optimize>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Compile Include="..\WebViewControl\AssemblyCache.cs" Link="AssemblyCache.cs" />
-    <Compile Include="..\WebViewControl\AsyncResourceHandler.cs" Link="AsyncResourceHandler.cs" />
-    <Compile Include="..\WebViewControl\ChromiumBrowser.cs" Link="ChromiumBrowser.cs" />
-    <Compile Include="..\WebViewControl\EditCommands.cs" Link="EditCommands.cs" />
-    <Compile Include="..\WebViewControl\GlobalSettings.cs" Link="GlobalSettings.cs" />
-    <Compile Include="..\WebViewControl\HttpResourceHandler.cs" Link="HttpResourceHandler.cs" />
-    <Compile Include="..\WebViewControl\HttpResourceRequestHandler.cs" Link="HttpResourceRequestHandler.cs" />
-    <Compile Include="..\WebViewControl\JavascriptSerializationHelper.cs" Link="JavascriptSerializationHelper.cs" />
-    <Compile Include="..\WebViewControl\ProxyAuthentication.cs" Link="ProxyAuthentication.cs" />
-    <Compile Include="..\WebViewControl\RenderProcessTerminatedException.cs" Link="RenderProcessTerminatedException.cs" />
-    <Compile Include="..\WebViewControl\Request.cs" Link="Request.cs" />
-    <Compile Include="..\WebViewControl\ResourcesManager.cs" Link="ResourcesManager.cs" />
-    <Compile Include="..\WebViewControl\ResourceHandlerExtensions.cs" Link="ResourceHandlerExtensions.cs" />
-    <Compile Include="..\WebViewControl\ResourceType.cs" Link="ResourceType.cs" />
-    <Compile Include="..\WebViewControl\ResourceUrl.cs" Link="ResourceUrl.cs" />
-    <Compile Include="..\WebViewControl\SchemeHandlerFactory.cs" Link="SchemeHandlerFactory.cs" />
-    <Compile Include="..\WebViewControl\UnhandledAsyncExceptionEventArgs.cs" Link="UnhandledAsyncExceptionEventArgs.cs" />
-    <Compile Include="..\WebViewControl\UrlHelper.cs" Link="UrlHelper.cs" />
-    <Compile Include="..\WebViewControl\WebView.cs" Link="WebView.cs" />
-    <Compile Include="..\WebViewControl\WebView.Extensions.cs" Link="WebView.Extensions.cs" />
-    <Compile Include="..\WebViewControl\WebView.InternalContextMenuHandler.cs" Link="WebView.InternalContextMenuHandler.cs" />
-    <Compile Include="..\WebViewControl\WebView.InternalDialogHandler.cs" Link="WebView.InternalDialogHandler.cs" />
-    <Compile Include="..\WebViewControl\WebView.InternalDownloadHandler.cs" Link="WebView.InternalDownloadHandler.cs" />
-    <Compile Include="..\WebViewControl\WebView.InternalFocusHandler.cs" Link="WebView.InternalFocusHandler.cs" />
-    <Compile Include="..\WebViewControl\WebView.InternalJsDialogHandler.cs" Link="WebView.InternalJsDialogHandler.cs" />
-    <Compile Include="..\WebViewControl\WebView.InternalDragHandler.cs" Link="WebView.InternalDragHandler.cs" />
-    <Compile Include="..\WebViewControl\WebView.InternalKeyboardHandler.cs" Link="WebView.InternalKeyboardHandler.cs" />
-    <Compile Include="..\WebViewControl\WebView.InternalLifeSpanHandler.cs" Link="WebView.InternalLifeSpanHandler.cs" />
-    <Compile Include="..\WebViewControl\WebView.InternalRequestHandler.cs" Link="WebView.InternalRequestHandler.cs" />
-    <Compile Include="..\WebViewControl\WebView.InternalResourceRequestHandler.cs" Link="WebView.InternalResourceRequestHandler.cs" />
-    <Compile Include="..\WebViewControl\WebView.JavascriptException.cs" Link="WebView.JavascriptException.cs" />
-    <Compile Include="..\WebViewControl\WebView.JavascriptExecutionApi.cs" Link="WebView.JavascriptExecutionApi.cs" />
-    <Compile Include="..\WebViewControl\WebView.JavascriptExecutor.cs" Link="WebView.JavascriptExecutor.cs" />
-    <Compile Include="..\WebViewControl\WebView.ResourceHandler.cs" Link="WebView.ResourceHandler.cs" />
-    <Compile Include="..\WebViewControl\WebViewLoader.cs" Link="WebViewLoader.cs" />
-  </ItemGroup>
+
 
   <ItemGroup>
     <!--When we upload Avalonia here, we should increase the version of both WebViewControl.Avalonia as well as ReactViewControl.Avalonia-->

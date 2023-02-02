@@ -40,6 +40,44 @@
     <Reference Include="System.Xml" />
     <Reference Include="WindowsBase" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\WebViewControl.Avalonia\AssemblyCache.cs" Link="AssemblyCache.cs" />
+    <Compile Include="..\WebViewControl.Avalonia\AsyncResourceHandler.cs" Link="AsyncResourceHandler.cs" />
+    <Compile Include="..\WebViewControl.Avalonia\ChromiumBrowser.cs" Link="ChromiumBrowser.cs" />
+    <Compile Include="..\WebViewControl.Avalonia\EditCommands.cs" Link="EditCommands.cs" />
+    <Compile Include="..\WebViewControl.Avalonia\GlobalSettings.cs" Link="GlobalSettings.cs" />
+    <Compile Include="..\WebViewControl.Avalonia\HttpResourceHandler.cs" Link="HttpResourceHandler.cs" />
+    <Compile Include="..\WebViewControl.Avalonia\HttpResourceRequestHandler.cs" Link="HttpResourceRequestHandler.cs" />
+    <Compile Include="..\WebViewControl.Avalonia\JavascriptSerializationHelper.cs" Link="JavascriptSerializationHelper.cs" />
+    <Compile Include="..\WebViewControl.Avalonia\ProxyAuthentication.cs" Link="ProxyAuthentication.cs" />
+    <Compile Include="..\WebViewControl.Avalonia\RenderProcessTerminatedException.cs" Link="RenderProcessTerminatedException.cs" />
+    <Compile Include="..\WebViewControl.Avalonia\Request.cs" Link="Request.cs" />
+    <Compile Include="..\WebViewControl.Avalonia\ResourcesManager.cs" Link="ResourcesManager.cs" />
+    <Compile Include="..\WebViewControl.Avalonia\ResourceHandlerExtensions.cs" Link="ResourceHandlerExtensions.cs" />
+    <Compile Include="..\WebViewControl.Avalonia\ResourceType.cs" Link="ResourceType.cs" />
+    <Compile Include="..\WebViewControl.Avalonia\ResourceUrl.cs" Link="ResourceUrl.cs" />
+    <Compile Include="..\WebViewControl.Avalonia\SchemeHandlerFactory.cs" Link="SchemeHandlerFactory.cs" />
+    <Compile Include="..\WebViewControl.Avalonia\UnhandledAsyncExceptionEventArgs.cs" Link="UnhandledAsyncExceptionEventArgs.cs" />
+    <Compile Include="..\WebViewControl.Avalonia\UrlHelper.cs" Link="UrlHelper.cs" />
+    <Compile Include="..\WebViewControl.Avalonia\WebView.cs" Link="WebView.cs" />
+    <Compile Include="..\WebViewControl.Avalonia\WebView.Extensions.cs" Link="WebView.Extensions.cs" />
+    <Compile Include="..\WebViewControl.Avalonia\WebView.InternalContextMenuHandler.cs" Link="WebView.InternalContextMenuHandler.cs" />
+    <Compile Include="..\WebViewControl.Avalonia\WebView.InternalDialogHandler.cs" Link="WebView.InternalDialogHandler.cs" />
+    <Compile Include="..\WebViewControl.Avalonia\WebView.InternalDownloadHandler.cs" Link="WebView.InternalDownloadHandler.cs" />
+    <Compile Include="..\WebViewControl.Avalonia\WebView.InternalFocusHandler.cs" Link="WebView.InternalFocusHandler.cs" />
+    <Compile Include="..\WebViewControl.Avalonia\WebView.InternalJsDialogHandler.cs" Link="WebView.InternalJsDialogHandler.cs" />
+    <Compile Include="..\WebViewControl.Avalonia\WebView.InternalDragHandler.cs" Link="WebView.InternalDragHandler.cs" />
+    <Compile Include="..\WebViewControl.Avalonia\WebView.InternalKeyboardHandler.cs" Link="WebView.InternalKeyboardHandler.cs" />
+    <Compile Include="..\WebViewControl.Avalonia\WebView.InternalLifeSpanHandler.cs" Link="WebView.InternalLifeSpanHandler.cs" />
+    <Compile Include="..\WebViewControl.Avalonia\WebView.InternalRequestHandler.cs" Link="WebView.InternalRequestHandler.cs" />
+    <Compile Include="..\WebViewControl.Avalonia\WebView.InternalResourceRequestHandler.cs" Link="WebView.InternalResourceRequestHandler.cs" />
+    <Compile Include="..\WebViewControl.Avalonia\WebView.JavascriptException.cs" Link="WebView.JavascriptException.cs" />
+    <Compile Include="..\WebViewControl.Avalonia\WebView.JavascriptExecutionApi.cs" Link="WebView.JavascriptExecutionApi.cs" />
+    <Compile Include="..\WebViewControl.Avalonia\WebView.JavascriptExecutor.cs" Link="WebView.JavascriptExecutor.cs" />
+    <Compile Include="..\WebViewControl.Avalonia\WebView.ResourceHandler.cs" Link="WebView.ResourceHandler.cs" />
+    <Compile Include="..\WebViewControl.Avalonia\WebViewLoader.cs" Link="WebViewLoader.cs" />
+  </ItemGroup>
   
   <ItemGroup>
     <None Include="app.config" />
