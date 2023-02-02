@@ -27,9 +27,13 @@ namespace WebViewControl {
                         httpRequest.Headers.Add(key, headers[key]);
                     }
 
-                    var response = await httpRequest.GetResponseAsync();
+                    var response = (HttpWebResponse) await httpRequest.GetResponseAsync();
                     Response = response.GetResponseStream();
                     Headers = response.Headers;
+
+                    MimeType = response.ContentType;
+                    Status = (int) response.StatusCode;
+                    StatusText = response.StatusDescription;
 
                     // we have to smash any existing value here
                     Headers.Remove(AccessControlAllowOriginHeaderKey);
