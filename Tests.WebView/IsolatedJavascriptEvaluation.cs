@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using NUnit.Framework;
@@ -50,7 +51,11 @@ namespace Tests.WebView {
                     return originalFunc();
                 }
                 TargetView.RegisterJavascriptObject(DotNetObject, functionToCall, Interceptor);
-                await Load($"<html><script>{EnsureObjectIsBoundWrapper(DotNetObject, $"{DotNetObject}.invoke()")}</script><body></body></html>");
+
+                var script = $"{EnsureObjectsAreBound(DotNetObject)}; {DotNetObject}.invoke();";
+                var html = CreateHtmlDocumentWithScript(script);
+                await Load(html);
+                
                 var functionCalled = await taskCompletionSource.Task;
 
                 Assert.IsTrue(functionCalled);
@@ -68,7 +73,10 @@ namespace Tests.WebView {
                     taskCompletionSource.SetResult(new Tuple<string, string[]>(arg1, arg2));
                 };
                 TargetView.RegisterJavascriptObject(DotNetObject, functionToCall);
-                await Load($"<html><script>{EnsureObjectIsBoundWrapper(DotNetObject, $"{DotNetObject}.invoke(null, ['hello', null, 'world'])")}</script><body></body></html>");
+                
+                var script = $"{EnsureObjectsAreBound(DotNetObject)}; {DotNetObject}.invoke(null, ['hello', null, 'world']);";
+                var html = CreateHtmlDocumentWithScript(script);
+                await Load(html);
 
                 var obtainedArgs = await taskCompletionSource.Task;
                 Assert.AreEqual(null, obtainedArgs.Item1);
@@ -101,7 +109,13 @@ namespace Tests.WebView {
 
                 TargetView.RegisterJavascriptObject(DotNetObject, functionToCall);
                 TargetView.RegisterJavascriptObject(DotNetSetResult, setResult);
-                await Load($"<html><script>(async function test() {{ await Promise.all([{EnsureObjectIsBound(DotNetObject)}, {EnsureObjectIsBound(DotNetSetResult)}]); var result = await {DotNetObject}.invoke(); {DotNetSetResult}.invoke(result); }})()</script><body></body></html>");
+
+                var script =
+                    $"{EnsureObjectsAreBound(DotNetObject, DotNetSetResult)};" +
+                    $"var result = await {DotNetObject}.invoke();" +
+                    $"{DotNetSetResult}.invoke(result);";
+                var html = CreateHtmlDocumentWithScript(script);
+                await Load(html);
 
                 var result = await taskCompletionSource.Task;
                 Assert.IsNotNull(result);
@@ -131,7 +145,7 @@ namespace Tests.WebView {
                 };
 
                 TargetView.RegisterJavascriptObject(DotNetObject, functionToCall);
-                await Load($"<html><script>function test() {{ {DotNetObject}.invoke(); while(true); return 1; }}</script><body></body></html>");
+                await Load($"<html><script>async function test() {{ {DotNetObject}.invoke(); while(true); return 1; }}</script><body></body></html>");
 
                 TargetView.Disposed += () => taskCompletionSourceDispose.SetResult(true);
 
@@ -187,12 +201,14 @@ namespace Tests.WebView {
             });
         }
 
-        private string EnsureObjectIsBoundWrapper(string objName, string testCode) {
-            return $"(async function() {{ await {EnsureObjectIsBound(objName)};{testCode};}})();";
+        private static string EnsureObjectsAreBound(params string[] objectsName) {
+            var boundChecks = objectsName.Select(name => $"cefglue.checkObjectBound('{name}')");
+            return $"await Promise.all([{string.Join(',', boundChecks) }]);";
         }
 
-        private string EnsureObjectIsBound(string objName) {
-            return $"cefglue.checkObjectBound('{objName}')";
+        private static string CreateHtmlDocumentWithScript(string script) {
+            return $"<html><script>(async function() {{ { script } }})();</script><body></body></html>";
         }
+
     }
 }
