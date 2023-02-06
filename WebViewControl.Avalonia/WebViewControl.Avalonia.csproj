@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <RootNamespace>WebViewControl</RootNamespace>
     <AssemblyTitle>WebViewControl Avalonia</AssemblyTitle>
     <AssemblyVersion>2.0.0.0</AssemblyVersion>
@@ -13,7 +13,7 @@
     <Copyright>Copyright ©  2019</Copyright>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Version>2.106.0-preview-1</Version>
+    <Version>2.106.0-preview-2</Version>
     <PackageId>WebViewControl-Avalonia</PackageId>
     <Authors>OutSystems</Authors>
     <PackageProjectUrl>https://github.com/OutSystems/WebView</PackageProjectUrl>
@@ -73,6 +73,7 @@
     <!--When we upload Avalonia here, we should increase the version of both WebViewControl.Avalonia as well as ReactViewControl.Avalonia-->
     <PackageReference Include="Avalonia" />
     <PackageReference PrivateAssets="None" Include="CefGlue.Avalonia" />
+    <PackageReference PrivateAssets="None" Include="CefGlue.Common" />
     <PackageReference Include="Microsoft.CSharp" />
     <PackageReference Include="System.Runtime.Loader" />
   </ItemGroup>
