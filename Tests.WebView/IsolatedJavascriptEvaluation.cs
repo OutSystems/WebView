@@ -50,12 +50,11 @@ namespace Tests.WebView {
                     interceptorCalled = true;
                     return originalFunc();
                 }
-                TargetView.RegisterJavascriptObject(DotNetObject, functionToCall, Interceptor);
+                RegisterJavascriptObject(DotNetObject, functionToCall, Interceptor);
 
-                var script = $"{EnsureObjectsAreBound(DotNetObject)}; {DotNetObject}.invoke();";
-                var html = CreateHtmlDocumentWithScript(script);
-                await Load(html);
-                
+                var script = $"{DotNetObject}.invoke();";
+                await RunScript(script);
+
                 var functionCalled = await taskCompletionSource.Task;
 
                 Assert.IsTrue(functionCalled);
@@ -72,11 +71,10 @@ namespace Tests.WebView {
                 Action<string, string[]> functionToCall = (string arg1, string[] arg2) => {
                     taskCompletionSource.SetResult(new Tuple<string, string[]>(arg1, arg2));
                 };
-                TargetView.RegisterJavascriptObject(DotNetObject, functionToCall);
-                
-                var script = $"{EnsureObjectsAreBound(DotNetObject)}; {DotNetObject}.invoke(null, ['hello', null, 'world']);";
-                var html = CreateHtmlDocumentWithScript(script);
-                await Load(html);
+                RegisterJavascriptObject(DotNetObject, functionToCall);
+
+                var script = $"{DotNetObject}.invoke(null, ['hello', null, 'world']);";
+                await RunScript(script);
 
                 var obtainedArgs = await taskCompletionSource.Task;
                 Assert.AreEqual(null, obtainedArgs.Item1);
@@ -107,15 +105,11 @@ namespace Tests.WebView {
                     taskCompletionSource.SetResult(r);
                 };
 
-                TargetView.RegisterJavascriptObject(DotNetObject, functionToCall);
-                TargetView.RegisterJavascriptObject(DotNetSetResult, setResult);
+                RegisterJavascriptObject(DotNetObject, functionToCall);
+                RegisterJavascriptObject(DotNetSetResult, setResult);
 
-                var script =
-                    $"{EnsureObjectsAreBound(DotNetObject, DotNetSetResult)};" +
-                    $"var result = await {DotNetObject}.invoke();" +
-                    $"{DotNetSetResult}.invoke(result);";
-                var html = CreateHtmlDocumentWithScript(script);
-                await Load(html);
+                var script = $"var result = await {DotNetObject}.invoke(); {DotNetSetResult}.invoke(result);";
+                await RunScript(script);
 
                 var result = await taskCompletionSource.Task;
                 Assert.IsNotNull(result);
@@ -200,15 +194,5 @@ namespace Tests.WebView {
                 Assert.AreEqual(2, y);
             });
         }
-
-        private static string EnsureObjectsAreBound(params string[] objectsName) {
-            var boundChecks = objectsName.Select(name => $"cefglue.checkObjectBound('{name}')");
-            return $"await Promise.all([{string.Join(',', boundChecks) }]);";
-        }
-
-        private static string CreateHtmlDocumentWithScript(string script) {
-            return $"<html><script>(async function() {{ { script } }})();</script><body></body></html>";
-        }
-
     }
 }
