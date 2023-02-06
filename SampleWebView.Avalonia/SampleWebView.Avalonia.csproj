@@ -4,7 +4,7 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>$(DotnetVersion)</TargetFramework>
     <RollForward>LatestMajor</RollForward>
-    <Configurations>Debug;Release;ReleaseAvaloniaRemoteDebugSupport</Configurations>
+    <Configurations>Debug;Release;ReleaseRemoteDebugSupport</Configurations>
     <RuntimeIdentifiers>osx-x64;win-x64</RuntimeIdentifiers>
   </PropertyGroup>
     
