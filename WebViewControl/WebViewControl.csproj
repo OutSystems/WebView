@@ -1,49 +1,41 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-  
+
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
-    <AssemblyTitle>WebViewControl WPF</AssemblyTitle>
-    <Description>WebViewControl for WPF powered by CefGlue</Description>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>WebViewControl</RootNamespace>
+    <AssemblyTitle>WebViewControl Avalonia</AssemblyTitle>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <FileVersion>2.0.0.0</FileVersion>
+    <Description>WebViewControl for Avalonia powered by CefGlue</Description>
     <Configuration></Configuration>
     <Company></Company>
     <Product>WebViewControl</Product>
     <Copyright>Copyright ©  2019</Copyright>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <PackageId>WebViewControl-WPF</PackageId>
-    <Configurations>Debug;Release;ReleaseAvalonia;ReleaseWPF;ReleaseAvaloniaRemoteDebugSupport</Configurations>
+    <Version>2.106.0-preview-1</Version>
+    <PackageId>WebViewControl-Avalonia</PackageId>
+    <Authors>OutSystems</Authors>
+    <PackageProjectUrl>https://github.com/OutSystems/WebView</PackageProjectUrl>
+    <PackageOutputPath>$(MSBuildProjectDirectory)\..\nuget</PackageOutputPath>
+    <Configurations>Debug;Release;ReleaseAvalonia;ReleaseAvaloniaRemoteDebugSupport</Configurations>
   </PropertyGroup>
-  
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWPF|AnyCPU'">
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseAvaloniaRemoteDebugSupport|AnyCPU'">
+    <DefineConstants>REMOTE_DEBUG_SUPPORT</DefineConstants>
+    <PackageId>WebViewControl-Avalonia-RemoteDebugSupport</PackageId>
     <Optimize>true</Optimize>
   </PropertyGroup>
-  
-  <ItemGroup>
-    <Reference Include="PresentationCore" />
-    <Reference Include="PresentationFramework" />
-    <Reference Include="System" />
-    <Reference Include="System.Core" />
-    <Reference Include="System.Runtime.Serialization" />
-    <Reference Include="System.Web" />
-    <Reference Include="System.Xaml" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="System.Data.DataSetExtensions" />
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Net.Http" />
-    <Reference Include="System.Xml" />
-    <Reference Include="WindowsBase" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <None Include="app.config" />
-    <None Include="WebViewControl.nuspec">
-      <SubType>Designer</SubType>
-    </None>
-  </ItemGroup>
-  
-  <ItemGroup>
-    <PackageReference PrivateAssets="None" Include="CefGlue.Wpf" />
-  </ItemGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseAvalonia|AnyCPU'">
+    <Optimize>true</Optimize>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!--When we upload Avalonia here, we should increase the version of both WebViewControl.Avalonia as well as ReactViewControl.Avalonia-->
+    <PackageReference Include="Avalonia" />
+    <PackageReference PrivateAssets="None" Include="CefGlue.Avalonia" />
+    <PackageReference Include="Microsoft.CSharp" />
+    <PackageReference Include="System.Runtime.Loader" />
+  </ItemGroup>
 </Project>
