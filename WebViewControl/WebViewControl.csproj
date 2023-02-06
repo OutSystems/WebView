@@ -18,7 +18,7 @@
     <Authors>OutSystems</Authors>
     <PackageProjectUrl>https://github.com/OutSystems/WebView</PackageProjectUrl>
     <PackageOutputPath>$(MSBuildProjectDirectory)\..\nuget</PackageOutputPath>
-    <Configurations>Debug;Release;ReleaseAvalonia;ReleaseAvaloniaRemoteDebugSupport</Configurations>
+    <Configurations>Debug;Release;ReleaseAvaloniaRemoteDebugSupport</Configurations>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseAvaloniaRemoteDebugSupport|AnyCPU'">
@@ -27,7 +27,7 @@
     <Optimize>true</Optimize>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseAvalonia|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
     <Optimize>true</Optimize>
   </PropertyGroup>
 
