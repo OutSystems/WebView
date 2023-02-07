@@ -7,7 +7,7 @@ using Xilium.CefGlue;
 
 namespace WebViewControl {
 
-    public static partial class ResourcesManager {
+    public static class ResourcesManager {
 
         private static readonly AssemblyCache cache = new AssemblyCache();
 
@@ -102,6 +102,10 @@ namespace WebViewControl {
         public static string GetExtensionMimeType(string extension) {
             extension = string.IsNullOrEmpty(extension) ? "html" : extension.TrimStart('.');
             return CefRuntime.GetMimeType(extension);
+        }
+
+        private static Stream GetApplicationResource(string assemblyName, string resourceName) {
+            return null;  // TODO
         }
     }
 }

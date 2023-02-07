@@ -9,14 +9,14 @@
   </PropertyGroup>
     
   <PropertyGroup>
-    <CFBundleName>SampleWebView.Avalonia</CFBundleName> <!-- Also defines .app file name -->
+    <CFBundleName>SampleWebView</CFBundleName> <!-- Also defines .app file name -->
     <CFBundleDisplayName>SampleWebView</CFBundleDisplayName>
     <CFBundleIdentifier>com.example</CFBundleIdentifier>
     <CFBundleVersion>1.0.0</CFBundleVersion>
     <CFBundlePackageType>AAPL</CFBundlePackageType>
     <CFBundleSignature>4242</CFBundleSignature>
-    <CFBundleShortVersionString>DemoAvalonia</CFBundleShortVersionString>
-    <CFBundleExecutable>SampleWebView.Avalonia</CFBundleExecutable>
+    <CFBundleShortVersionString>Demo</CFBundleShortVersionString>
+    <CFBundleExecutable>SampleWebView</CFBundleExecutable>
     <CFBundleIconFile>AppName.icns</CFBundleIconFile> <!-- Will be copied from output directory -->
     <NSPrincipalClass>NSApplication</NSPrincipalClass>
     <NSHighResolutionCapable>true</NSHighResolutionCapable>

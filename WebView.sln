@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebViewControl", "WebViewCo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.WebView", "Tests.WebView\Tests.WebView.csproj", "{BE65D793-AFB3-4F5D-A85F-7B7396A5FE59}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleWebView.Avalonia", "SampleWebView.Avalonia\SampleWebView.Avalonia.csproj", "{68B0F20F-77AE-4819-83CB-92C9C78E8E05}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleWebView", "SampleWebView\SampleWebView.csproj", "{68B0F20F-77AE-4819-83CB-92C9C78E8E05}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{FD047A58-F2D5-4AE1-B918-685240AE2D57}"
 	ProjectSection(SolutionItems) = preProject

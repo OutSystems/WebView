@@ -30,13 +30,6 @@ Example/package-lock.json
 Example/viewgenerator.cache
 ViewPacker/tools/node_modules/
 !ReactViewResources/AMDLoader/AMDLoaderExports.js
-Example/.wpcache/
-Example/global.d.ts
-Example.Avalonia/.wpcache/
-Example.Avalonia/Generated/
-Example.Avalonia/node_modules/
-Example.Avalonia/viewgenerator.cache
-Example.Avalonia/global.d.ts
 Tests.ReactView/.wpcache/
 Tests.ReactView/Generated/
 Tests.ReactView/node_modules/
@@ -46,7 +39,6 @@ ReactViewControl/cake_tools
 ReactViewControl.Avalonia/cake_tools
 ReactViewResources/cake_tools
 WebViewControl/cake_tools
-WebViewControl.Avalonia/cake_tools
 ViewGenerator/cake_tools
 ViewGeneratorCore/cake_tools
 ViewPacker/cake_tools
@@ -57,4 +49,3 @@ launchSettings.json
 
 .idea
 WebViewControl/FodyWeavers.xsd
-WebViewControl.Avalonia/FodyWeavers.xsd
