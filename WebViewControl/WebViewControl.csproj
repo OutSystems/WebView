@@ -3,8 +3,6 @@
   <PropertyGroup>
     <TargetFramework>net472</TargetFramework>
     <AssemblyTitle>WebViewControl WPF</AssemblyTitle>
-    <AssemblyVersion>2.0.0.0</AssemblyVersion>
-    <FileVersion>2.0.0.0</FileVersion>
     <Description>WebViewControl for WPF powered by CefGlue</Description>
     <Configuration></Configuration>
     <Company></Company>
@@ -12,11 +10,7 @@
     <Copyright>Copyright ©  2019</Copyright>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Version>2.91.31</Version>
     <PackageId>WebViewControl-WPF</PackageId>
-    <Authors>OutSystems</Authors>
-    <PackageProjectUrl>https://github.com/OutSystems/WebView</PackageProjectUrl>
-    <PackageOutputPath>$(MSBuildProjectDirectory)\..\nuget</PackageOutputPath>
     <Configurations>Debug;Release;ReleaseAvalonia;ReleaseWPF;ReleaseAvaloniaRemoteDebugSupport</Configurations>
   </PropertyGroup>
   

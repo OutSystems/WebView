@@ -8,7 +8,7 @@ using WebViewControl;
 namespace Tests.WebView {
 
     public class WebViewTestBase : TestBase<WebViewControl.WebView> {
-        private List<string> registeredNativeObjects = new();
+        private readonly List<string> registeredJavascriptObjects = new();
 
         protected override void InitializeView() {
             if (TargetView != null) {
@@ -30,8 +30,8 @@ namespace Tests.WebView {
         }
 
         protected override Task TearDown() {
-            registeredNativeObjects.ForEach(objName => TargetView.UnregisterJavascriptObject(objName));
-            registeredNativeObjects.Clear();
+            registeredJavascriptObjects.ForEach(objName => TargetView.UnregisterJavascriptObject(objName));
+            registeredJavascriptObjects.Clear();
 
             return base.TearDown();
         }
@@ -75,14 +75,13 @@ namespace Tests.WebView {
             return true;
         }
 
-        protected void RegisterJavascriptObject(string name, object objectToBind,
-            Func<Func<object>, object> interceptCall = null) {
-            registeredNativeObjects.Add(name);
+        protected void RegisterJavascriptObject(string name, object objectToBind, Func<Func<object>, object> interceptCall = null) {
+            registeredJavascriptObjects.Add(name);
             TargetView.RegisterJavascriptObject(name, objectToBind, interceptCall);
         }
 
         protected Task RunScript(string script) {
-            var boundChecks = registeredNativeObjects.Select(name => $"cefglue.checkObjectBound('{name}')");
+            var boundChecks = registeredJavascriptObjects.Select(name => $"cefglue.checkObjectBound('{name}')");
             var html = $"<html><script>(async function() {{ await Promise.all([{string.Join(',', boundChecks)}]); {script} }})();</script><body></body></html>";
 
             return Load(html);

@@ -1,23 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>$(DotnetStandardVersion)</TargetFramework>
     <RootNamespace>WebViewControl</RootNamespace>
     <AssemblyTitle>WebViewControl Avalonia</AssemblyTitle>
-    <AssemblyVersion>2.0.0.0</AssemblyVersion>
-    <FileVersion>2.0.0.0</FileVersion>
     <Description>WebViewControl for Avalonia powered by CefGlue</Description>
     <Configuration></Configuration>
     <Company></Company>
-    <Product>WebViewControl</Product>
-    <Copyright>Copyright ©  2019</Copyright>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <Version>2.106.0-preview-2</Version>
     <PackageId>WebViewControl-Avalonia</PackageId>
-    <Authors>OutSystems</Authors>
-    <PackageProjectUrl>https://github.com/OutSystems/WebView</PackageProjectUrl>
-    <PackageOutputPath>$(MSBuildProjectDirectory)\..\nuget</PackageOutputPath>
     <Configurations>Debug;Release;ReleaseAvalonia;ReleaseWPF;ReleaseAvaloniaRemoteDebugSupport</Configurations>
   </PropertyGroup>
 
