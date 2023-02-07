@@ -2,7 +2,6 @@
 <Project>
   <PropertyGroup>
     <DotnetVersion>net6.0</DotnetVersion>
-    <DotnetStandardVersion>netstandard2.0</DotnetStandardVersion>
   </PropertyGroup>
 
   <PropertyGroup>
