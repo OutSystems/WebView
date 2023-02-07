@@ -21,8 +21,7 @@
         <PackageVersion Include="Avalonia.ReactiveUI" Version="0.10.17" />
 
         <PackageVersion Include="CefGlue.Avalonia" Version="106.5249.0" />
-        <PackageVersion Include="CefGlue.Common" Version="106.5249.1" />
-        <PackageVersion Include="CefGlue.Wpf" Version="106.5249.0" />
+        <PackageVersion Include="CefGlue.Wpf" Version="91.4472.31" />
 
         <PackageVersion Include="Microsoft.CSharp" Version="4.5.0" />
         <PackageVersion Include="System.Runtime.Loader" Version="4.3.0" />
