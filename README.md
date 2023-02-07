@@ -32,8 +32,6 @@ See the [Sample](SampleWebView) project for example web browsers built with WebV
 ## Notice
 The WPF browser control is not maintained anymore. You may find the latest built version here: [![WebViewControl-WPF](https://img.shields.io/nuget/v/WebViewControl-WPF.svg?style=flat&label=WebView-WPF)](https://www.nuget.org/packages/WebViewControl-WPF/)
 
-[![WebViewControl-WPF](https://img.shields.io/nuget/v/WebViewControl-WPF.svg?style=flat&label=WebView-WPF)](https://www.nuget.org/packages/WebViewControl-WPF/)
-
 ## Other
 - [Avalonia FuncUI Support](https://github.com/WhiteBlackGoose/MoreFuncUI#morefuncuiwebview). 
 
