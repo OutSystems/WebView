@@ -31,7 +31,7 @@ Stable binaries are released on NuGet, and contain everything you need to embed 
 See the [Sample](SampleWebView) project for example web browsers built with WebView. It demos some of the available features.
 
 ## Notice
-We are dropping support for WPF.
+The WPF browser control is not maintained anymore. You may find the latest built version here: [![WebViewControl-WPF](https://img.shields.io/nuget/v/WebViewControl-WPF.svg?style=flat&label=WebView-WPF)](https://www.nuget.org/packages/WebViewControl-WPF/)
 
 [![WebViewControl-WPF](https://img.shields.io/nuget/v/WebViewControl-WPF.svg?style=flat&label=WebView-WPF)](https://www.nuget.org/packages/WebViewControl-WPF/)
 
