@@ -1,13 +1,13 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   
   <PropertyGroup>
-    <TargetFramework>net472</TargetFramework>
+    <TargetFramework>$(DotnetVersion)-windows</TargetFramework>
     <AssemblyTitle>WebViewControl WPF</AssemblyTitle>
     <Description>WebViewControl for WPF powered by CefGlue</Description>
     <Configuration></Configuration>
     <Company></Company>
     <Product>WebViewControl</Product>
-    <Copyright>Copyright ©  2019</Copyright>
+    <Copyright>Copyright ©  2023</Copyright>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>WebViewControl-WPF</PackageId>
