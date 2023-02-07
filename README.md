@@ -1,11 +1,12 @@
 # WebView
 [![WebViewControl-Avalonia](https://img.shields.io/nuget/v/WebViewControl-Avalonia.svg?style=flat&label=WebView-Avalonia)](https://www.nuget.org/packages/WebViewControl-Avalonia/)
+[![WebViewControl-WPF](https://img.shields.io/nuget/v/WebViewControl-WPF.svg?style=flat&label=WebView-WPF)](https://www.nuget.org/packages/WebViewControl-WPF/)
 
 Avalonia control that wraps CefGlue webview control
 
 ![Screenshot](./SampleWebView/screenshot.png)
 
-WebView lets you embed Chromium in .NET apps. It is a .NET wrapper control around [CefGlue](https://github.com/OutSystems/CefGlue) and provides a better and simple API. Likewise CefGlue it can be used from C# or any other CLR language and provides both Avalonia web browser control implementations. The Avalonia implementation runs on Windows and macOS. Linux is not supported yet.
+WebView lets you embed Chromium in .NET apps. It is a .NET wrapper control around [CefGlue](https://github.com/OutSystems/CefGlue) and provides a better and simple API. Likewise CefGlue it can be used from C# or any other CLR language and provides an Avalonia web browser control implementation. It runs on Windows and macOS. Linux is not supported yet.
 
 It also provides the following additional features:
 - Strongly-typed javascript evaluation: results of javascript evaluation returns the appropriate type
@@ -28,6 +29,11 @@ Stable binaries are released on NuGet, and contain everything you need to embed 
 
 ## Documentation
 See the [Sample](SampleWebView) project for example web browsers built with WebView. It demos some of the available features.
+
+## Notice
+We are dropping support for WPF.
+
+[![WebViewControl-WPF](https://img.shields.io/nuget/v/WebViewControl-WPF.svg?style=flat&label=WebView-WPF)](https://www.nuget.org/packages/WebViewControl-WPF/)
 
 ## Other
 - [Avalonia FuncUI Support](https://github.com/WhiteBlackGoose/MoreFuncUI#morefuncuiwebview). 

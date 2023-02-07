@@ -3,7 +3,7 @@ using Xilium.CefGlue.Avalonia;
 
 namespace WebViewControl {
 
-    class ChromiumBrowser : AvaloniaCefBrowser {
+    internal class ChromiumBrowser : AvaloniaCefBrowser {
         internal CefBrowser GetBrowser() => UnderlyingBrowser;
 
         public new void CreateBrowser(int width, int height) {
