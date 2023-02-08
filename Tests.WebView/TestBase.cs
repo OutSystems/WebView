@@ -96,7 +96,7 @@ namespace Tests {
         }
 
         [TearDown]
-        protected async Task TearDown() {
+        protected virtual async Task TearDown() {
             if (Debugger.IsAttached && TestContext.CurrentContext.Result.FailCount > 0) {
                 if (ShowDebugConsole()) {
                     await new TaskCompletionSource<bool>().Task;

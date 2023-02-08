@@ -20,9 +20,9 @@ namespace WebViewControl {
                 ResourceRequestHandler = new InternalResourceRequestHandler(OwnerWebView);
             }
 
-            protected override bool OnQuotaRequest(CefBrowser browser, string originUrl, long newSize, CefRequestCallback callback) {
+            protected override bool OnQuotaRequest(CefBrowser browser, string originUrl, long newSize, CefCallback callback) {
                 using (callback) {
-                    callback.Continue(true);
+                    callback.Continue();
                     return true;
                 }
             }
@@ -56,10 +56,10 @@ namespace WebViewControl {
                 return cancel;
             }
 
-            protected override bool OnCertificateError(CefBrowser browser, CefErrorCode certError, string requestUrl, CefSslInfo sslInfo, CefRequestCallback callback) {
+            protected override bool OnCertificateError(CefBrowser browser, CefErrorCode certError, string requestUrl, CefSslInfo sslInfo, CefCallback callback) {
                 using (callback) {
                     if (OwnerWebView.IgnoreCertificateErrors) {
-                        callback.Continue(true);
+                        callback.Continue();
                         return true;
                     }
                     return false;

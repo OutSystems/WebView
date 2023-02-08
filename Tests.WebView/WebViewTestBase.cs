@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using WebViewControl;
@@ -6,6 +8,7 @@ using WebViewControl;
 namespace Tests.WebView {
 
     public class WebViewTestBase : TestBase<WebViewControl.WebView> {
+        private readonly List<string> registeredJavascriptObjects = new();
 
         protected override void InitializeView() {
             if (TargetView != null) {
@@ -24,6 +27,13 @@ namespace Tests.WebView {
 
             await taskCompletionSource.Task;
             await Load("<html><script>;</script><body>Test page</body></html>");
+        }
+
+        protected override Task TearDown() {
+            registeredJavascriptObjects.ForEach(objName => TargetView.UnregisterJavascriptObject(objName));
+            registeredJavascriptObjects.Clear();
+
+            return base.TearDown();
         }
 
         protected Task Load(string html) {
@@ -63,6 +73,18 @@ namespace Tests.WebView {
             }
             TargetView.ShowDeveloperTools();
             return true;
+        }
+
+        protected void RegisterJavascriptObject(string name, object objectToBind, Func<Func<object>, object> interceptCall = null) {
+            registeredJavascriptObjects.Add(name);
+            TargetView.RegisterJavascriptObject(name, objectToBind, interceptCall);
+        }
+
+        protected Task RunScript(string script) {
+            var boundChecks = registeredJavascriptObjects.Select(name => $"cefglue.checkObjectBound('{name}')");
+            var html = $"<html><script>(async function() {{ await Promise.all([{string.Join(',', boundChecks)}]); {script} }})();</script><body></body></html>";
+
+            return Load(html);
         }
     }
 }
