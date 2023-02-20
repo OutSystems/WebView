@@ -210,11 +210,11 @@ namespace WebViewControl {
             }
 
             public Task<T> EvaluateScriptFunction<T>(string functionName, bool serializeParams, params object[] args) {
-                return EvaluateScript<T>(MakeScript(functionName, serializeParams, args), functionName);
+                return EvaluateScript<T>(MakeScript(functionName, serializeParams, args, emitReturn: true), functionName);
             }
 
             public void ExecuteScriptFunction(string functionName, bool serializeParams, params object[] args) {
-                QueueScript(MakeScript(functionName, serializeParams, args), functionName);
+                QueueScript(MakeScript(functionName, serializeParams, args, emitReturn: false), functionName);
             }
 
             public void ExecuteScript(string script) {
@@ -244,7 +244,7 @@ namespace WebViewControl {
                 return type.IsPrimitive || type.IsEnum || type == typeof(string);
             }
 
-            private static string MakeScript(string functionName, bool serializeParams, object[] args) {
+            private static string MakeScript(string functionName, bool serializeParams, object[] args, bool emitReturn) {
                 string SerializeParam(object value) {
                     if (serializeParams || value == null) {
                         return JavascriptSerializer.Serialize(value);
@@ -253,7 +253,7 @@ namespace WebViewControl {
                     return value.ToString();
                 }
                 var argsSerialized = args.Select(SerializeParam);
-                return functionName + "(" + string.Join(",", argsSerialized) + ")";
+                return $"{(emitReturn ? "return " : string.Empty)}{functionName}({string.Join(",", argsSerialized)})";
             }
 
             private static string WrapScriptWithErrorHandling(string script) {
