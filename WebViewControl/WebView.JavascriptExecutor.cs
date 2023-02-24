@@ -163,7 +163,7 @@ namespace WebViewControl {
 #if DEBUG
                 System.Diagnostics.Debug.WriteLine($"{nameof(EvaluateScript)} '{script}' on ('{Id}')");
 #endif
-                var evaluationTask = new TaskCompletionSource<T>(TaskContinuationOptions.RunContinuationsAsynchronously);
+                var evaluationTask = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
 
                 void Evaluate(string scriptToEvaluate) {
 #if DEBUG

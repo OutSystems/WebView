@@ -2,6 +2,7 @@
 <Project>
   <PropertyGroup>
     <DotnetVersion>net6.0</DotnetVersion>
+    <PlatformTarget>anycpu</PlatformTarget>
   </PropertyGroup>
 
   <PropertyGroup>

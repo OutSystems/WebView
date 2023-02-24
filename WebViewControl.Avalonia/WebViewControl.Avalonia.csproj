@@ -2,7 +2,6 @@
 
   <PropertyGroup>
     <TargetFramework>$(DotnetVersion)</TargetFramework>
-    <PlatformTarget>AnyCPU</PlatformTarget>
     <RootNamespace>WebViewControl</RootNamespace>
     <AssemblyTitle>WebViewControl Avalonia</AssemblyTitle>
     <Description>WebViewControl for Avalonia powered by CefGlue</Description>
@@ -12,6 +11,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>WebViewControl-Avalonia</PackageId>
     <Configurations>Debug;Release;ReleaseAvalonia;ReleaseWPF;ReleaseAvaloniaRemoteDebugSupport</Configurations>
+    <RuntimeIdentifiers>osx-x64;win-x64</RuntimeIdentifiers>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseAvaloniaRemoteDebugSupport|AnyCPU'">
