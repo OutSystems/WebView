@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>$(DotnetVersion)</TargetFramework>
+    <PlatformTarget>AnyCPU</PlatformTarget>
     <RootNamespace>WebViewControl</RootNamespace>
     <AssemblyTitle>WebViewControl Avalonia</AssemblyTitle>
     <Description>WebViewControl for Avalonia powered by CefGlue</Description>

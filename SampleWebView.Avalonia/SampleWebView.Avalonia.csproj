@@ -6,6 +6,7 @@
     <RollForward>LatestMajor</RollForward>
     <Configurations>Debug;Release;ReleaseAvalonia;ReleaseWPF;ReleaseAvaloniaRemoteDebugSupport</Configurations>
     <RuntimeIdentifiers>osx-x64;win-x64</RuntimeIdentifiers>
+    <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
     
   <PropertyGroup>
