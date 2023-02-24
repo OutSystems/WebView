@@ -1,20 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
-    <PropertyGroup>
-        <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    </PropertyGroup>
-
-    <ItemDefinitionGroup>
-        <!--
-            Disable transitive package references
-            https://docs.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files#controlling-dependency-assets
-            https://github.com/dotnet/sdk/issues/11803
-        -->
-        <PackageReference>
-            <PrivateAssets>$(PrivateAssets);compile</PrivateAssets>
-        </PackageReference>
-    </ItemDefinitionGroup>
-
     <ItemGroup>
         <PackageVersion Include="Avalonia" Version="0.10.15" />
         <PackageVersion Include="Avalonia.Desktop" Version="0.10.15" />
