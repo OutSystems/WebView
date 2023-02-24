@@ -31,7 +31,7 @@ namespace Tests.WebView {
             await Run(async () => {
                 await Load("<html><script></script><body>1</body></html>");
                 await Load("<html><script></script><body>2</body></html>");
-                var result = await TargetView.EvaluateScript<int>("1", timeout: TimeSpan.FromSeconds(30));
+                var result = await TargetView.EvaluateScript<int>("return 1", timeout: TimeSpan.FromSeconds(30));
                 Assert.AreEqual(result, 1);
             });
         }
@@ -188,8 +188,8 @@ namespace Tests.WebView {
                     "</html>"
                 );
 
-                var x = await TargetView.EvaluateScript<int>("x", "");
-                var y = await TargetView.EvaluateScript<int>("test.y", "");
+                var x = await TargetView.EvaluateScript<int>("return x", "");
+                var y = await TargetView.EvaluateScript<int>("return test.y", "");
                 Assert.AreEqual(1, x);
                 Assert.AreEqual(2, y);
             });
