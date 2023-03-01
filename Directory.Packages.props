@@ -2,6 +2,7 @@
 <Project>
     <PropertyGroup>
         <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+        <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
     </PropertyGroup>
 
     <ItemDefinitionGroup>
@@ -20,8 +21,8 @@
         <PackageVersion Include="Avalonia.Desktop" Version="0.10.17" />
         <PackageVersion Include="Avalonia.ReactiveUI" Version="0.10.17" />
 
-        <PackageVersion Include="CefGlue.Avalonia" Version="106.5249.2" />
-        <PackageVersion Include="CefGlue.Wpf" Version="106.5249.2" />
+        <PackageVersion Include="CefGlue.Avalonia" Version="106.5249.6" />
+        <PackageVersion Include="CefGlue.Wpf" Version="106.5249.6" />
 
         <PackageVersion Include="Microsoft.CSharp" Version="4.5.0" />
         <PackageVersion Include="System.Runtime.Loader" Version="4.3.0" />
