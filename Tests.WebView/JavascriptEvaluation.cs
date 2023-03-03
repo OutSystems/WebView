@@ -11,7 +11,16 @@ namespace Tests.WebView {
         [Test(Description = "A simple script evaluates correctly")]
         public async Task EvaluateSimpleScript() {
             await Run(async () => {
-                var result = await TargetView.EvaluateScript<int>("2+1");
+                var result = await TargetView.EvaluateScript<int>("return 2+1");
+                Assert.AreEqual(3, result);
+            });
+        }
+
+        [Test(Description = "A simple script evaluates correctly")]
+        public async Task EvaluateSimpleScriptFunction() {
+            await Run(async () => {
+                TargetView.ExecuteScript("window.simpleFunction = function(a,b) {return a+b};");
+                var result = await TargetView.EvaluateScriptFunction<int>("simpleFunction", "2", "1");
                 Assert.AreEqual(3, result);
             });
         }
@@ -27,11 +36,11 @@ namespace Tests.WebView {
                         TargetView.ExecuteScript($"x += '{i},'");
                         expectedResult += i + ",";
                     }
-                    var result = await TargetView.EvaluateScript<string>("x");
+                    var result = await TargetView.EvaluateScript<string>("return x");
                     Assert.AreEqual(expectedResult, result);
 
                     TargetView.ExecuteScript("x = '-'");
-                    result = await TargetView.EvaluateScript<string>("x");
+                    result = await TargetView.EvaluateScript<string>("return x");
                     Assert.AreEqual("-", result);
 
                 } finally {
@@ -43,7 +52,7 @@ namespace Tests.WebView {
         [Test(Description = "Evaluation of complex objects returns the expected results")]
         public async Task ComplexObjectsEvaluation() {
             await Run(async () => {
-                var result = await TargetView.EvaluateScript<TestObject>("({ Name: 'Snows', Age: 32, Parent: { Name: 'Snows Parent', Age: 60 }, Kind: 2 })");
+                var result = await TargetView.EvaluateScript<TestObject>("return ({ Name: 'Snows', Age: 32, Parent: { Name: 'Snows Parent', Age: 60 }, Kind: 2 })");
                 Assert.IsNotNull(result);
                 Assert.AreEqual("Snows", result.Name);
                 Assert.AreEqual(32, result.Age);
@@ -82,13 +91,13 @@ namespace Tests.WebView {
         [Test(Description = "Evaluation of scripts with comments, json objects, and var declarations")]
         public async Task ScriptsWithComplexSyntaxAreEvaluated() {
             await Run(async () => {
-                var result = await TargetView.EvaluateScript<int>("2+1 // some comments");
+                var result = await TargetView.EvaluateScript<int>("return 2+1 // some comments");
                 Assert.AreEqual(3, result);
 
-                result = await TargetView.EvaluateScript<int>("var x = 1; 5");
+                result = await TargetView.EvaluateScript<int>("var x = 1; return 5");
                 Assert.AreEqual(5, result);
 
-                var resultObj = await TargetView.EvaluateScript<TestObject>("({ Name: 'Snows', Age: 32})");
+                var resultObj = await TargetView.EvaluateScript<TestObject>("return ({ Name: 'Snows', Age: 32})");
                 Assert.IsNotNull(resultObj);
             });
         }
@@ -120,7 +129,7 @@ namespace Tests.WebView {
                 await WithUnhandledExceptionHandling(async () => {
                     TargetView.ExecuteScript($"throw new Error('{ExceptionMessage}')");
 
-                    var result = await TargetView.EvaluateScript<int>("1+1"); // force exception to occur
+                    var result = await TargetView.EvaluateScript<int>("return 1+1"); // force exception to occur
                     Assert.AreEqual(2, result, "Result should not be affected");
 
                     await taskCompletionSource.Task;
