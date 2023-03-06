@@ -62,7 +62,7 @@ namespace Tests {
         }
 
         [SetUp]
-        protected async Task SetUp() {
+        protected virtual async Task SetUp() {
             var currentTestName = CurrentTestName; // we cannot access TestContext properly in asynchronous mode
 
             await Run(async () => {
