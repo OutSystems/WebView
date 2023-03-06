@@ -25,7 +25,7 @@ namespace Tests.WebView {
                 TargetView.LoadResource(embeddedResourceUrl);
                 await taskCompletionSource.Task;
 
-                var content = await TargetView.EvaluateScript<string>("document.documentElement.innerText");
+                var content = await TargetView.EvaluateScript<string>("return document.documentElement.innerText");
                 Assert.AreEqual("test", content);
             });
         }
