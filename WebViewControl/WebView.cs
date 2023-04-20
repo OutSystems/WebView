@@ -139,6 +139,10 @@ namespace WebViewControl {
             chromium.DragHandler = new InternalDragHandler(this);
             chromium.KeyboardHandler = new InternalKeyboardHandler(this);
 
+            if (Settings.BackgroundColor.HasValue) {
+                chromium.Settings.BackgroundColor = new CefColor((uint)Settings.BackgroundColor.Value.ToArgb());
+            }
+
             if (!Settings.OsrEnabled) {
                 // having the handler (by default) seems to cause some focus troubles, enable only osr disabled
                 chromium.FocusHandler = new InternalFocusHandler(this);

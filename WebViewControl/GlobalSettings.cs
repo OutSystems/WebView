@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Drawing;
 using System.IO;
 using Xilium.CefGlue.Common;
 
@@ -12,6 +13,15 @@ namespace WebViewControl {
         private string userAgent;
         private string logFile;
         private string cachePath = Path.Combine(Path.GetTempPath(), "WebView" + Guid.NewGuid().ToString().Replace("-", null) + DateTime.UtcNow.Ticks);
+        private Color? backgroundColor;
+
+        public Color? BackgroundColor {
+            get => backgroundColor;
+            set {
+                EnsureNotLoaded(nameof(BackgroundColor));
+                backgroundColor = value;
+            }
+        }
 
         public string CachePath {
             get => cachePath;
