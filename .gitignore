@@ -26,3 +26,6 @@ launchSettings.json
 .idea
 WebViewControl/FodyWeavers.xsd
 WebViewControl.Avalonia/FodyWeavers.xsd
+WebViewControl.Avalonia/.DS_Store
+SampleWebView.Avalonia/.DS_Store
+.DS_Store

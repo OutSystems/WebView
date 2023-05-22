@@ -11,6 +11,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>WebViewControl-Avalonia</PackageId>
     <Configurations>Debug;Release;ReleaseAvalonia;ReleaseWPF;ReleaseAvaloniaRemoteDebugSupport</Configurations>
+    <Platforms>AnyCPU;ARM64</Platforms>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseAvaloniaRemoteDebugSupport|AnyCPU'">
