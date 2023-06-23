@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -40,6 +41,10 @@ namespace WebViewControl {
                 UserAgent = settings.UserAgent
              
             };
+
+            if (settings.BackgroundColor.HasValue) {
+                cefSettings.BackgroundColor = new CefColor((uint)settings.BackgroundColor.Value.ToArgb());
+            }
 
             var customSchemes = CustomSchemes.Select(s => new CustomScheme() { 
                 SchemeName = s, 
