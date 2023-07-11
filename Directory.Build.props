@@ -3,6 +3,8 @@
   <PropertyGroup>
     <DotnetVersion>net6.0</DotnetVersion>
     <Platforms>x64;ARM64</Platforms>
+    <AvaloniaVersion>0.10.17</AvaloniaVersion>
+    <CefGlueVersion>106.5249.9</CefGlueVersion>
   </PropertyGroup>
 
   <PropertyGroup>

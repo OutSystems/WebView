@@ -16,12 +16,15 @@
     </ItemDefinitionGroup>
 
     <ItemGroup>
-        <PackageVersion Include="Avalonia" Version="0.10.17" />
-        <PackageVersion Include="Avalonia.Desktop" Version="0.10.17" />
-        <PackageVersion Include="Avalonia.ReactiveUI" Version="0.10.17" />
+        <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
+        <PackageVersion Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
+        <PackageVersion Include="Avalonia.ReactiveUI" Version="$(AvaloniaVersion)" />
 
-        <PackageVersion Include="CefGlue.Avalonia" Version="106.5249.7" />
-        <PackageVersion Include="CefGlue.Wpf" Version="106.5249.7" />
+        <PackageVersion Include="CefGlue.Avalonia" Version="$(CefGlueVersion)" />
+        <PackageVersion Include="CefGlue.WPF" Version="$(CefGlueVersion)" />
+
+        <PackageVersion Include="CefGlue.Avalonia.ARM64" Version="$(CefGlueVersion)" />
+        <PackageVersion Include="CefGlue.WPF.ARM64" Version="$(CefGlueVersion)" />
 
         <PackageVersion Include="Microsoft.CSharp" Version="4.5.0" />
         <PackageVersion Include="System.Runtime.Loader" Version="4.3.0" />
