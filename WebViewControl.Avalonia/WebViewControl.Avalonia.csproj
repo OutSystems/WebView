@@ -11,16 +11,15 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>WebViewControl-Avalonia</PackageId>
     <Configurations>Debug;Release;ReleaseAvalonia;ReleaseWPF;ReleaseAvaloniaRemoteDebugSupport</Configurations>
-    <Platforms>AnyCPU;ARM64</Platforms>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseAvaloniaRemoteDebugSupport|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)' == 'ReleaseAvaloniaRemoteDebugSupport'">
     <DefineConstants>REMOTE_DEBUG_SUPPORT</DefineConstants>
     <PackageId>WebViewControl-Avalonia-RemoteDebugSupport</PackageId>
     <Optimize>true</Optimize>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseAvalonia|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)' == 'ReleaseAvalonia'">
     <Optimize>true</Optimize>
   </PropertyGroup>
 

@@ -2,6 +2,7 @@
 <Project>
   <PropertyGroup>
     <DotnetVersion>net6.0</DotnetVersion>
+    <Platforms>x64;ARM64</Platforms>
   </PropertyGroup>
 
   <PropertyGroup>

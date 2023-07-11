@@ -14,7 +14,7 @@
     <Configurations>Debug;Release;ReleaseAvalonia;ReleaseWPF;ReleaseAvaloniaRemoteDebugSupport</Configurations>
   </PropertyGroup>
   
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWPF|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)' == 'ReleaseWPF'">
     <Optimize>true</Optimize>
   </PropertyGroup>
   
