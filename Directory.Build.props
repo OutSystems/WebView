@@ -19,11 +19,13 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Platform)' == '' or '$(Platform)' == 'x64'">
+    <PlatformTarget>x64</PlatformTarget>
     <PackageSuffix />
     <CefGluePackageSuffix />
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Platform)' == 'ARM64'">
+    <PlatformTarget>arm64</PlatformTarget>
     <PackageSuffix>-ARM64</PackageSuffix>
     <CefGluePackageSuffix>.ARM64</CefGluePackageSuffix>
   </PropertyGroup>
