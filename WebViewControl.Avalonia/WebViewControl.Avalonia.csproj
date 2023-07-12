@@ -15,7 +15,7 @@
 
   <PropertyGroup Condition="'$(Configuration)' == 'ReleaseAvaloniaRemoteDebugSupport'">
     <DefineConstants>REMOTE_DEBUG_SUPPORT</DefineConstants>
-    <PackageId>WebViewControl-Avalonia-RemoteDebugSupport</PackageId>
+    <PackageId>WebViewControl-Avalonia-RemoteDebugSupport$(PackageSuffix)</PackageId>
     <Optimize>true</Optimize>
   </PropertyGroup>
 
