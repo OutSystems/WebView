@@ -37,15 +37,11 @@ Global
 		{A1C2A0C7-DF81-4A8F-AEB5-B5375D5D1B47}.Release|x64.ActiveCfg = Release|x64
 		{A1C2A0C7-DF81-4A8F-AEB5-B5375D5D1B47}.Release|x64.Build.0 = Release|x64
 		{A1C2A0C7-DF81-4A8F-AEB5-B5375D5D1B47}.ReleaseAvalonia|x64.ActiveCfg = ReleaseAvalonia|x64
-		{A1C2A0C7-DF81-4A8F-AEB5-B5375D5D1B47}.ReleaseAvalonia|x64.Build.0 = ReleaseAvalonia|x64
 		{A1C2A0C7-DF81-4A8F-AEB5-B5375D5D1B47}.ReleaseAvaloniaRemoteDebugSupport|x64.ActiveCfg = ReleaseAvaloniaRemoteDebugSupport|x64
-		{A1C2A0C7-DF81-4A8F-AEB5-B5375D5D1B47}.ReleaseAvaloniaRemoteDebugSupport|x64.Build.0 = ReleaseAvaloniaRemoteDebugSupport|x64
 		{A1C2A0C7-DF81-4A8F-AEB5-B5375D5D1B47}.ReleaseWPF|x64.ActiveCfg = ReleaseWPF|x64
 		{A1C2A0C7-DF81-4A8F-AEB5-B5375D5D1B47}.ReleaseWPF|x64.Build.0 = ReleaseWPF|x64
 		{A1C2A0C7-DF81-4A8F-AEB5-B5375D5D1B47}.ReleaseAvalonia|ARM64.ActiveCfg = ReleaseAvalonia|ARM64
-		{A1C2A0C7-DF81-4A8F-AEB5-B5375D5D1B47}.ReleaseAvalonia|ARM64.Build.0 = ReleaseAvalonia|ARM64
 		{A1C2A0C7-DF81-4A8F-AEB5-B5375D5D1B47}.ReleaseAvaloniaRemoteDebugSupport|ARM64.ActiveCfg = ReleaseAvaloniaRemoteDebugSupport|ARM64
-		{A1C2A0C7-DF81-4A8F-AEB5-B5375D5D1B47}.ReleaseAvaloniaRemoteDebugSupport|ARM64.Build.0 = ReleaseAvaloniaRemoteDebugSupport|ARM64
 		{A1C2A0C7-DF81-4A8F-AEB5-B5375D5D1B47}.ReleaseWPF|ARM64.ActiveCfg = ReleaseWPF|ARM64
 		{A1C2A0C7-DF81-4A8F-AEB5-B5375D5D1B47}.ReleaseWPF|ARM64.Build.0 = ReleaseWPF|ARM64
 		{A1C2A0C7-DF81-4A8F-AEB5-B5375D5D1B47}.Debug|ARM64.ActiveCfg = Debug|ARM64
@@ -61,7 +57,6 @@ Global
 		{1B789CDF-1B73-450B-BA1D-EC265D498EFA}.ReleaseAvaloniaRemoteDebugSupport|x64.ActiveCfg = ReleaseAvaloniaRemoteDebugSupport|x64
 		{1B789CDF-1B73-450B-BA1D-EC265D498EFA}.ReleaseAvaloniaRemoteDebugSupport|x64.Build.0 = ReleaseAvaloniaRemoteDebugSupport|x64
 		{1B789CDF-1B73-450B-BA1D-EC265D498EFA}.ReleaseWPF|x64.ActiveCfg = ReleaseWPF|x64
-		{1B789CDF-1B73-450B-BA1D-EC265D498EFA}.ReleaseWPF|x64.Build.0 = ReleaseWPF|x64
 		{1B789CDF-1B73-450B-BA1D-EC265D498EFA}.Debug|ARM64.ActiveCfg = Debug|ARM64
 		{1B789CDF-1B73-450B-BA1D-EC265D498EFA}.Debug|ARM64.Build.0 = Debug|ARM64
 		{1B789CDF-1B73-450B-BA1D-EC265D498EFA}.Release|ARM64.ActiveCfg = Release|ARM64
@@ -71,7 +66,6 @@ Global
 		{1B789CDF-1B73-450B-BA1D-EC265D498EFA}.ReleaseAvaloniaRemoteDebugSupport|ARM64.ActiveCfg = ReleaseAvaloniaRemoteDebugSupport|ARM64
 		{1B789CDF-1B73-450B-BA1D-EC265D498EFA}.ReleaseAvaloniaRemoteDebugSupport|ARM64.Build.0 = ReleaseAvaloniaRemoteDebugSupport|ARM64
 		{1B789CDF-1B73-450B-BA1D-EC265D498EFA}.ReleaseWPF|ARM64.ActiveCfg = ReleaseWPF|ARM64
-		{1B789CDF-1B73-450B-BA1D-EC265D498EFA}.ReleaseWPF|ARM64.Build.0 = ReleaseWPF|ARM64
 		{BE65D793-AFB3-4F5D-A85F-7B7396A5FE59}.Debug|x64.ActiveCfg = Debug|x64
 		{BE65D793-AFB3-4F5D-A85F-7B7396A5FE59}.Debug|x64.Build.0 = Debug|x64
 		{BE65D793-AFB3-4F5D-A85F-7B7396A5FE59}.ReleaseAvalonia|x64.ActiveCfg = ReleaseAvalonia|x64
@@ -79,13 +73,11 @@ Global
 		{BE65D793-AFB3-4F5D-A85F-7B7396A5FE59}.ReleaseAvaloniaRemoteDebugSupport|x64.ActiveCfg = ReleaseAvaloniaRemoteDebugSupport|x64
 		{BE65D793-AFB3-4F5D-A85F-7B7396A5FE59}.ReleaseAvaloniaRemoteDebugSupport|x64.Build.0 = ReleaseAvaloniaRemoteDebugSupport|x64
 		{BE65D793-AFB3-4F5D-A85F-7B7396A5FE59}.ReleaseWPF|x64.ActiveCfg = ReleaseWPF|x64
-		{BE65D793-AFB3-4F5D-A85F-7B7396A5FE59}.ReleaseWPF|x64.Build.0 = ReleaseWPF|x64
 		{BE65D793-AFB3-4F5D-A85F-7B7396A5FE59}.ReleaseAvalonia|ARM64.ActiveCfg = ReleaseAvalonia|ARM64
 		{BE65D793-AFB3-4F5D-A85F-7B7396A5FE59}.ReleaseAvalonia|ARM64.Build.0 = ReleaseAvalonia|ARM64
 		{BE65D793-AFB3-4F5D-A85F-7B7396A5FE59}.ReleaseAvaloniaRemoteDebugSupport|ARM64.ActiveCfg = ReleaseAvaloniaRemoteDebugSupport|ARM64
 		{BE65D793-AFB3-4F5D-A85F-7B7396A5FE59}.ReleaseAvaloniaRemoteDebugSupport|ARM64.Build.0 = ReleaseAvaloniaRemoteDebugSupport|ARM64
 		{BE65D793-AFB3-4F5D-A85F-7B7396A5FE59}.ReleaseWPF|ARM64.ActiveCfg = ReleaseWPF|ARM64
-		{BE65D793-AFB3-4F5D-A85F-7B7396A5FE59}.ReleaseWPF|ARM64.Build.0 = ReleaseWPF|ARM64
 		{BE65D793-AFB3-4F5D-A85F-7B7396A5FE59}.Debug|ARM64.ActiveCfg = Debug|ARM64
 		{BE65D793-AFB3-4F5D-A85F-7B7396A5FE59}.Debug|ARM64.Build.0 = Debug|ARM64
 		{BE65D793-AFB3-4F5D-A85F-7B7396A5FE59}.Release|ARM64.ActiveCfg = Release|ARM64
@@ -101,7 +93,6 @@ Global
 		{68B0F20F-77AE-4819-83CB-92C9C78E8E05}.ReleaseAvaloniaRemoteDebugSupport|x64.ActiveCfg = ReleaseAvaloniaRemoteDebugSupport|x64
 		{68B0F20F-77AE-4819-83CB-92C9C78E8E05}.ReleaseAvaloniaRemoteDebugSupport|x64.Build.0 = ReleaseAvaloniaRemoteDebugSupport|x64
 		{68B0F20F-77AE-4819-83CB-92C9C78E8E05}.ReleaseWPF|x64.ActiveCfg = ReleaseWPF|x64
-		{68B0F20F-77AE-4819-83CB-92C9C78E8E05}.ReleaseWPF|x64.Build.0 = ReleaseWPF|x64
 		{68B0F20F-77AE-4819-83CB-92C9C78E8E05}.Debug|ARM64.ActiveCfg = Debug|ARM64
 		{68B0F20F-77AE-4819-83CB-92C9C78E8E05}.Debug|ARM64.Build.0 = Debug|ARM64
 		{68B0F20F-77AE-4819-83CB-92C9C78E8E05}.Release|ARM64.ActiveCfg = Release|ARM64
@@ -111,7 +102,6 @@ Global
 		{68B0F20F-77AE-4819-83CB-92C9C78E8E05}.ReleaseAvaloniaRemoteDebugSupport|ARM64.ActiveCfg = ReleaseAvaloniaRemoteDebugSupport|ARM64
 		{68B0F20F-77AE-4819-83CB-92C9C78E8E05}.ReleaseAvaloniaRemoteDebugSupport|ARM64.Build.0 = ReleaseAvaloniaRemoteDebugSupport|ARM64
 		{68B0F20F-77AE-4819-83CB-92C9C78E8E05}.ReleaseWPF|ARM64.ActiveCfg = ReleaseWPF|ARM64
-		{68B0F20F-77AE-4819-83CB-92C9C78E8E05}.ReleaseWPF|ARM64.Build.0 = ReleaseWPF|ARM64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
