@@ -4,7 +4,7 @@
     <DotnetVersion>net6.0</DotnetVersion>
     <Platforms>x64;ARM64</Platforms>
     <AvaloniaVersion>0.10.17</AvaloniaVersion>
-    <CefGlueVersion>106.5249.9</CefGlueVersion>
+    <CefGlueVersion>106.5249.18</CefGlueVersion>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -19,13 +19,11 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Platform)' == '' or '$(Platform)' == 'x64'">
-    <PlatformTarget>x64</PlatformTarget>
     <PackageSuffix />
     <CefGluePackageSuffix />
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Platform)' == 'ARM64'">
-    <PlatformTarget>arm64</PlatformTarget>
     <PackageSuffix>-ARM64</PackageSuffix>
     <CefGluePackageSuffix>.ARM64</CefGluePackageSuffix>
   </PropertyGroup>
