@@ -1,1 +1,0 @@
-dotnet publish Tests.WebView.csproj --framework net6.0 --configuration %1 --self-contained true --runtime win-x64

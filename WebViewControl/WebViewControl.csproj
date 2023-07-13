@@ -10,11 +10,11 @@
     <Copyright>Copyright ©  2023</Copyright>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <PackageId>WebViewControl-WPF</PackageId>
+    <PackageId>WebViewControl-WPF$(PackageSuffix)</PackageId>
     <Configurations>Debug;Release;ReleaseAvalonia;ReleaseWPF;ReleaseAvaloniaRemoteDebugSupport</Configurations>
   </PropertyGroup>
   
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseWPF|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)' == 'ReleaseWPF'">
     <Optimize>true</Optimize>
   </PropertyGroup>
   
@@ -43,7 +43,7 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference PrivateAssets="None" Include="CefGlue.Wpf" />
+    <PackageReference PrivateAssets="None" Include="CefGlue.Wpf$(CefGluePackageSuffix)" />
   </ItemGroup>
 
 </Project>

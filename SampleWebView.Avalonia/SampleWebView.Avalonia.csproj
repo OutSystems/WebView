@@ -5,7 +5,8 @@
     <TargetFramework>$(DotnetVersion)</TargetFramework>
     <RollForward>LatestMajor</RollForward>
     <Configurations>Debug;Release;ReleaseAvalonia;ReleaseWPF;ReleaseAvaloniaRemoteDebugSupport</Configurations>
-    <RuntimeIdentifiers>osx-x64;win-x64</RuntimeIdentifiers>
+    <RuntimeIdentifiers>osx-x64;win-x64;osx-arm64;win-arm64</RuntimeIdentifiers>
+    <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
   </PropertyGroup>
     
   <PropertyGroup>

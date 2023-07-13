@@ -9,17 +9,17 @@
     <Company></Company>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <PackageId>WebViewControl-Avalonia</PackageId>
+    <PackageId>WebViewControl-Avalonia$(PackageSuffix)</PackageId>
     <Configurations>Debug;Release;ReleaseAvalonia;ReleaseWPF;ReleaseAvaloniaRemoteDebugSupport</Configurations>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseAvaloniaRemoteDebugSupport|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)' == 'ReleaseAvaloniaRemoteDebugSupport'">
     <DefineConstants>REMOTE_DEBUG_SUPPORT</DefineConstants>
-    <PackageId>WebViewControl-Avalonia-RemoteDebugSupport</PackageId>
+    <PackageId>WebViewControl-Avalonia-RemoteDebugSupport$(PackageSuffix)</PackageId>
     <Optimize>true</Optimize>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='ReleaseAvalonia|AnyCPU'">
+  <PropertyGroup Condition="'$(Configuration)' == 'ReleaseAvalonia'">
     <Optimize>true</Optimize>
   </PropertyGroup>
 
@@ -64,7 +64,7 @@
   <ItemGroup>
     <!--When we upload Avalonia here, we should increase the version of both WebViewControl.Avalonia as well as ReactViewControl.Avalonia-->
     <PackageReference Include="Avalonia" />
-    <PackageReference PrivateAssets="None" Include="CefGlue.Avalonia" />
+    <PackageReference PrivateAssets="None" Include="CefGlue.Avalonia$(CefGluePackageSuffix)" />
     <PackageReference Include="Microsoft.CSharp" />
     <PackageReference Include="System.Runtime.Loader" />
   </ItemGroup>
