@@ -1,1 +1,1 @@
-dotnet publish Tests.WebView.csproj --framework net6.0 --configuration %1 --self-contained true --runtime %2
+dotnet publish Tests.WebView.csproj --no-restore --framework net6.0 --configuration %1 --self-contained true --runtime %2
