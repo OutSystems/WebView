@@ -18,12 +18,12 @@
     <PackageOutputPath>$(MSBuildProjectDirectory)\..\nuget</PackageOutputPath>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Platform)' == '' or '$(Platform)' == 'x64'">
+  <PropertyGroup Condition="'$(Platform)' == 'x64'">
     <PackageSuffix />
     <CefGluePackageSuffix />
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Platform)' == 'ARM64'">
+  <PropertyGroup Condition="'$(Platform)' == '' or '$(Platform)' == 'ARM64'">
     <PackageSuffix>-ARM64</PackageSuffix>
     <CefGluePackageSuffix>.ARM64</CefGluePackageSuffix>
   </PropertyGroup>
