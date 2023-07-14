@@ -64,9 +64,16 @@
   <ItemGroup>
     <!--When we upload Avalonia here, we should increase the version of both WebViewControl.Avalonia as well as ReactViewControl.Avalonia-->
     <PackageReference Include="Avalonia" />
-    <PackageReference PrivateAssets="None" Include="CefGlue.Avalonia.ARM64" />
     <PackageReference Include="Microsoft.CSharp" />
     <PackageReference Include="System.Runtime.Loader" />
+  </ItemGroup>
+  
+  <ItemGroup Condition="'$(Platform)' == 'x64'">
+    <PackageReference PrivateAssets="None" Include="CefGlue.Avalonia" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(Platform)' == 'ARM64'">
+    <PackageReference PrivateAssets="None" Include="CefGlue.Avalonia.ARM64" />
   </ItemGroup>
   
   <Target Name="PrintStuff" AfterTargets="BeforeBuild">
