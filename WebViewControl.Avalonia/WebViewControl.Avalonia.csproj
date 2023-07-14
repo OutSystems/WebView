@@ -68,8 +68,4 @@
     <PackageReference Include="Microsoft.CSharp" />
     <PackageReference Include="System.Runtime.Loader" />
   </ItemGroup>
-  
-  <Target Name="PrintStuff" AfterTargets="BeforeBuild">
-    <Message Text="I'm running on $(Platform)!" Importance="high" />
-  </Target>
 </Project>
