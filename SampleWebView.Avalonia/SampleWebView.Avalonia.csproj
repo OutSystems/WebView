@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>$(DotnetVersion)</TargetFramework>
-    <RollForward>LatestMajor</RollForward>
+    <RollForward>Major</RollForward>
     <Configurations>Debug;Release;ReleaseAvalonia;ReleaseWPF;ReleaseAvaloniaRemoteDebugSupport</Configurations>
     <RuntimeIdentifiers>osx-x64;win-x64;osx-arm64;win-arm64</RuntimeIdentifiers>
     <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
@@ -30,17 +30,18 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="App.xaml">
+    <AvaloniaResource  Include="App.xaml">
       <Generator>MSBuild:Compile</Generator>
-    </EmbeddedResource>
-    <EmbeddedResource Include="MainWindow.xaml">
+    </AvaloniaResource >
+    <AvaloniaResource  Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
-    </EmbeddedResource>
+    </AvaloniaResource >
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Avalonia.Desktop" />
     <PackageReference Include="Avalonia.ReactiveUI" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
     <PackageReference Include="Dotnet.Bundle" />
   </ItemGroup>
 

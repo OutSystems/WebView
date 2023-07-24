@@ -20,7 +20,7 @@ namespace WebViewControl {
             set => SetValue(AddressProperty, value);
         }
 
-        protected override void OnPropertyChanged<T>(AvaloniaPropertyChangedEventArgs<T> change) {
+        protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change) {
             base.OnPropertyChanged(change);
 
             if (change.Property == AddressProperty) {
@@ -91,7 +91,7 @@ namespace WebViewControl {
         /// <paramref name="isSystemEvent">True if is a system focus event, or false if is a navigation</paramref>
         /// </summary>
         protected virtual bool OnSetFocus(bool isSystemEvent) {
-            var focusedElement = KeyboardDevice.Instance.FocusedElement;
+            var focusedElement = TopLevel.GetTopLevel(this).FocusManager.GetFocusedElement();
             return !(focusedElement == chromium || focusedElement == this);
         }
     }

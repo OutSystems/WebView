@@ -15,12 +15,12 @@
                     <NativeMenu>
                         <NativeMenuItem Header="Undo" Command="{Binding UndoCommand}" Gesture="CMD+Z" />
                         <NativeMenuItem Header="Redo" Command="{Binding RedoCommand}" Gesture="Shift+CMD+Z" />
-                        <NativeMenuItemSeperator/>
+                        <NativeMenuItemSeparator/>
                         <NativeMenuItem Header="Cut" Command="{Binding CutCommand}" Gesture="CMD+X" />
                         <NativeMenuItem Header="Copy" Command="{Binding CopyCommand}" Gesture="CMD+C" />
                         <NativeMenuItem Header="Paste" Command="{Binding PasteCommand}" Gesture="CMD+V" />
                         <NativeMenuItem Header="Delete" Command="{Binding DeleteCommand}" Gesture="CMD+Back" />
-                        <NativeMenuItemSeperator/>
+                        <NativeMenuItemSeparator/>
                         <NativeMenuItem Header="Select All" Command="{Binding SelectAllCommand}" Gesture="CMD+A" />
                     </NativeMenu>
                 </NativeMenuItem.Menu>

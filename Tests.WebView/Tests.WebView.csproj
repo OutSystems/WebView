@@ -24,9 +24,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <EmbeddedResource Include="App.xaml">
+    <AvaloniaResource  Include="App.xaml">
       <Generator>MSBuild:Compile</Generator>
-    </EmbeddedResource>
+    </AvaloniaResource >
     <EmbeddedResource Include="Resources\dash-folder\EmbeddedJavascriptFile-With-Dashes.js" />
     <EmbeddedResource Include="Resources\EmbeddedHtml.html" />
     <EmbeddedResource Include="Resources\EmbeddedJavascriptFile.js" />
