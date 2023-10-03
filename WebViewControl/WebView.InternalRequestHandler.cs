@@ -12,19 +12,12 @@ namespace WebViewControl {
             private static readonly Lazy<HttpResourceRequestHandler> HttpResourceRequestHandler = new Lazy<HttpResourceRequestHandler>(() => new HttpResourceRequestHandler());
 
             private WebView OwnerWebView { get; }
-            
+
             private InternalResourceRequestHandler ResourceRequestHandler { get; }
 
             public InternalRequestHandler(WebView webView) {
                 OwnerWebView = webView;
                 ResourceRequestHandler = new InternalResourceRequestHandler(OwnerWebView);
-            }
-
-            protected override bool OnQuotaRequest(CefBrowser browser, string originUrl, long newSize, CefCallback callback) {
-                using (callback) {
-                    callback.Continue();
-                    return true;
-                }
             }
 
             protected override bool GetAuthCredentials(CefBrowser browser, string originUrl, bool isProxy, string host, int port, string realm, string scheme, CefAuthCallback callback) {
@@ -40,11 +33,11 @@ namespace WebViewControl {
                 if (UrlHelper.IsInternalUrl(request.Url)) {
                     return false;
                 }
-                
+
                 if (OwnerWebView.IsHistoryDisabled && request.TransitionType.HasFlag(CefTransitionType.ForwardBackFlag)) {
                     return true;
                 }
-               
+
                 var cancel = false;
                 var beforeNavigate = OwnerWebView.BeforeNavigate;
                 if (beforeNavigate != null) {
@@ -91,7 +84,7 @@ namespace WebViewControl {
                 OwnerWebView.ForwardUnhandledAsyncException(exception);
             }
 
-            protected override CefResourceRequestHandler GetResourceRequestHandler(CefBrowser browser, CefFrame frame, CefRequest request, bool isNavigation, bool isDownload, string requestInitiator, ref bool disableDefaultHandling) {              
+            protected override CefResourceRequestHandler GetResourceRequestHandler(CefBrowser browser, CefFrame frame, CefRequest request, bool isNavigation, bool isDownload, string requestInitiator, ref bool disableDefaultHandling) {
                 if (OwnerWebView.IsSecurityDisabled && HttpResourceHandler.AcceptedResources.Contains(request.ResourceType) && request.Url != null) {
                     var url = new Uri(request.Url);
                     if (url.Scheme == Uri.UriSchemeHttp || url.Scheme == Uri.UriSchemeHttps) {
