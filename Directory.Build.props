@@ -5,7 +5,7 @@
     <TargetDotnetVersions>net6.0;$(DefaultTargetDotnetVersion)</TargetDotnetVersions>
     <Platforms>x64;ARM64</Platforms>
     <AvaloniaVersion>11.0.0</AvaloniaVersion>
-    <CefGlueVersion>106.5249.19-avalonia11</CefGlueVersion>
+    <CefGlueVersion>120.6099.201</CefGlueVersion>
   </PropertyGroup>
 
   <PropertyGroup>
