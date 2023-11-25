@@ -38,20 +38,23 @@ namespace WebViewControl {
                 WindowlessRenderingEnabled = settings.OsrEnabled,
                 RemoteDebuggingPort = settings.GetRemoteDebuggingPort(),
                 UserAgent = settings.UserAgent
-             
+
             };
 
-            var customSchemes = CustomSchemes.Select(s => new CustomScheme() { 
-                SchemeName = s, 
+            var customSchemes = CustomSchemes.Select(s => new CustomScheme() {
+                SchemeName = s,
                 SchemeHandlerFactory = new SchemeHandlerFactory()
             }).ToArray();
 
-            var customFlags = new[] {
+            if (settings.Flags == null) {
+                settings.Flags = new();
+            }
+            if (!settings.Flags.ContainsKey("enable-experimental-web-platform-features")) {
                 // enable experimental feature flags
-                new KeyValuePair<string, string>("enable-experimental-web-platform-features", null)
-            };
+                settings.Flags.Add("enable-experimental-web-platform-features", null);
+            }
 
-            CefRuntimeLoader.Initialize(settings: cefSettings, flags: customFlags, customSchemes: customSchemes);
+            CefRuntimeLoader.Initialize(settings: cefSettings, flags: settings.Flags.ToArray(), customSchemes: customSchemes);
 
             AppDomain.CurrentDomain.ProcessExit += delegate { Cleanup(); };
         }
