@@ -16,11 +16,8 @@ namespace WebViewControl {
         private List<KeyValuePair<string, string>> commandLineSwitches = new();
 
         public void AddCommandLineSwitch(string key, string value) {
-            EnsureNotLoaded(nameof(flags));
-            if (flags == null) {
-                flags = new();
-            }
-            flags.Add(new KeyValuePair<string, string>(key, value));
+            EnsureNotLoaded(nameof(AddCommandLineSwitch));
+            commandLineSwitches.Add(new KeyValuePair<string, string>(key, value));
         }
         
         public IEnumerable<KeyValuePair<string, string>> CommandLineSwitches => commandLineSwitches;
