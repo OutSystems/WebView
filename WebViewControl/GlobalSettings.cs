@@ -22,9 +22,8 @@ namespace WebViewControl {
             }
             flags.Add(new KeyValuePair<string, string>(key, value));
         }
-        public KeyValuePair<string, string>[] GetCommandLineSwitches() {
-            return flags.ToArray();
-        }
+        
+        public IEnumerable<KeyValuePair<string, string>> CommandLineSwitches => commandLineSwitches;
 
         public string CachePath {
             get => cachePath;
