@@ -38,7 +38,6 @@ namespace WebViewControl {
                 WindowlessRenderingEnabled = settings.OsrEnabled,
                 RemoteDebuggingPort = settings.GetRemoteDebuggingPort(),
                 UserAgent = settings.UserAgent
-
             };
 
             var customSchemes = CustomSchemes.Select(s => new CustomScheme() {
