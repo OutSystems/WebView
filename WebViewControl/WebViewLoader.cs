@@ -46,15 +46,9 @@ namespace WebViewControl {
                 SchemeHandlerFactory = new SchemeHandlerFactory()
             }).ToArray();
 
-            if (settings.Flags == null) {
-                settings.Flags = new();
-            }
-            if (!settings.Flags.ContainsKey("enable-experimental-web-platform-features")) {
-                // enable experimental feature flags
-                settings.Flags.Add("enable-experimental-web-platform-features", null);
-            }
+            settings.AddCommandLineSwitch("enable-experimental-web-platform-features", null);
 
-            CefRuntimeLoader.Initialize(settings: cefSettings, flags: settings.Flags.ToArray(), customSchemes: customSchemes);
+            CefRuntimeLoader.Initialize(settings: cefSettings, flags: settings.GetCommandLineSwitches(), customSchemes: customSchemes);
 
             AppDomain.CurrentDomain.ProcessExit += delegate { Cleanup(); };
         }

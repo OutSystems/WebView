@@ -13,15 +13,19 @@ namespace WebViewControl {
         private string userAgent;
         private string logFile;
         private string cachePath = Path.Combine(Path.GetTempPath(), "WebView" + Guid.NewGuid().ToString().Replace("-", null) + DateTime.UtcNow.Ticks);
-        private Dictionary<string, string> flags;
+        private List<KeyValuePair<string, string>> flags;
 
-        public Dictionary<string, string> Flags {
-            get => flags;
-            set {
-                EnsureNotLoaded(nameof(Flags));
-                flags = value;
+        public void AddCommandLineSwitch(string key, string value) {
+            EnsureNotLoaded(nameof(flags));
+            if (flags == null) {
+                flags = new();
             }
+            flags.Add(new KeyValuePair<string, string>(key, value));
         }
+        public KeyValuePair<string, string>[] GetCommandLineSwitches() {
+            return flags.ToArray();
+        }
+
         public string CachePath {
             get => cachePath;
             set {
