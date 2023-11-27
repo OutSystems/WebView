@@ -13,7 +13,7 @@ namespace WebViewControl {
         private string userAgent;
         private string logFile;
         private string cachePath = Path.Combine(Path.GetTempPath(), "WebView" + Guid.NewGuid().ToString().Replace("-", null) + DateTime.UtcNow.Ticks);
-        private List<KeyValuePair<string, string>> commandLineSwitches = new();
+        private readonly List<KeyValuePair<string, string>> commandLineSwitches = new();
 
         /// <summary>
         /// Use this method to pass flags to the browser. List of available flags: https://peter.sh/experiments/chromium-command-line-switches/
