@@ -47,7 +47,7 @@ namespace WebViewControl {
 
             settings.AddCommandLineSwitch("enable-experimental-web-platform-features", null);
 
-            CefRuntimeLoader.Initialize(settings: cefSettings, flags: settings.GetCommandLineSwitches(), customSchemes: customSchemes);
+            CefRuntimeLoader.Initialize(settings: cefSettings, flags: settings.CommandLineSwitches.ToArray(), customSchemes: customSchemes);
 
             AppDomain.CurrentDomain.ProcessExit += delegate { Cleanup(); };
         }
