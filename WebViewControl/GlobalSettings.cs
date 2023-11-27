@@ -13,7 +13,7 @@ namespace WebViewControl {
         private string userAgent;
         private string logFile;
         private string cachePath = Path.Combine(Path.GetTempPath(), "WebView" + Guid.NewGuid().ToString().Replace("-", null) + DateTime.UtcNow.Ticks);
-        private List<KeyValuePair<string, string>> flags;
+        private List<KeyValuePair<string, string>> commandLineSwitches = new();
 
         public void AddCommandLineSwitch(string key, string value) {
             EnsureNotLoaded(nameof(flags));
