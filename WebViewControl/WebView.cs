@@ -22,6 +22,7 @@ namespace WebViewControl {
     public delegate void UnhandledAsyncExceptionEventHandler(UnhandledAsyncExceptionEventArgs eventArgs);
     public delegate void FilesDraggingEventHandler(string[] fileNames);
     public delegate void TextDraggingEventHandler(string textContent);
+    public delegate void OperationOccurredEventHandler(string operationName, Dictionary<string, string> parameters = null);
 
     internal delegate void JavacriptDialogShowEventHandler(string text, Action closeDialog);
     internal delegate void JavascriptContextReleasedEventHandler(string frameName);
@@ -72,6 +73,7 @@ namespace WebViewControl {
         public event Action TitleChanged;
         public event UnhandledAsyncExceptionEventHandler UnhandledAsyncException;
         public event Action</*url*/string> PopupOpening;
+        public event OperationOccurredEventHandler OperationOccurred;
 
         internal event Action Disposed;
         internal event JavascriptContextReleasedEventHandler JavascriptContextReleased;
@@ -127,7 +129,7 @@ namespace WebViewControl {
             chromium.TitleChanged += delegate { TitleChanged?.Invoke(); };
             chromium.JavascriptContextCreated += OnJavascriptContextCreated;
             chromium.JavascriptContextReleased += OnJavascriptContextReleased;
-            chromium.JavascriptUncaughException += OnJavascriptUncaughException;
+            chromium.JavascriptUncaughException += OnJavascriptUncaughtException;
             chromium.UnhandledException += (o, e) => ForwardUnhandledAsyncException(e.Exception);
 
             chromium.RequestHandler = new InternalRequestHandler(this);
@@ -201,10 +203,11 @@ namespace WebViewControl {
                 TitleChanged = null;
                 UnhandledAsyncException = null;
                 JavascriptContextReleased = null;
+                //OperationOccurred = null;
 
                 // dispose the js executors before the browser to prevent (the browser) from throwing cancellation exceptions
                 DisposeJavascriptExecutors();
-                
+
                 foreach (var disposable in disposables) {
                     disposable?.Dispose();
                 }
@@ -461,9 +464,18 @@ namespace WebViewControl {
 
                     var frameName = frame.Name;
 
+                    OperationOccurred?.Invoke("JS context created", new Dictionary<string, string> {
+                        { "frameName", frameName },
+                        { "isValid", frame.IsValid.ToString() },
+                        { "this.IsMainFrame", this.IsMainFrame(frameName).ToString() },
+                        { "frame.IsMain", frame.IsMain.ToString() },
+                    });
+
                     if (this.IsMainFrame(frameName)) {
                         // when a new main frame in created, dispose all running executors -> since they should not be valid anymore
                         // all child iframes were gone
+
+                        OperationOccurred?.Invoke("Dispose JS Executors for main frame");
                         DisposeJavascriptExecutors(JsExecutors.Where(je => !je.Value.IsValid).Select(je => je.Key).ToArray());
                     }
 
@@ -481,7 +493,15 @@ namespace WebViewControl {
                     return;
                 }
 
-                var frameName = e.Frame.Name;
+                var frame = e.Frame;
+                var frameName = frame.Name;
+
+                OperationOccurred?.Invoke("JS context released", new Dictionary<string, string> {
+                    { "frameName", frameName },
+                    { "isValid", frame.IsValid.ToString() },
+                    { "this.IsMainFrame", this.IsMainFrame(frameName).ToString() },
+                    { "frame.IsMain", frame.IsMain.ToString() },
+                });
 
                 lock (JsExecutors) {
                     DisposeJavascriptExecutors(new[] { frameName });
@@ -491,7 +511,7 @@ namespace WebViewControl {
             });
         }
 
-        private void OnJavascriptUncaughException(object sender, JavascriptUncaughtExceptionEventArgs e) {
+        private void OnJavascriptUncaughtException(object sender, JavascriptUncaughtExceptionEventArgs e) {
             if (JavascriptExecutor.IsInternalException(e.Message)) {
                 // ignore internal exceptions, they will be handled by the EvaluateScript caller
                 return;
@@ -500,7 +520,10 @@ namespace WebViewControl {
             ForwardUnhandledAsyncException(javascriptException, e.Frame.Name);
         }
 
-        private void HandleRenderProcessCrashed() => DisposeJavascriptExecutors();
+        private void HandleRenderProcessCrashed() {
+            OperationOccurred?.Invoke("Render process crashed");
+            DisposeJavascriptExecutors();
+        }
 
         private void DisposeJavascriptExecutors() {
             lock (JsExecutors) {
@@ -509,6 +532,10 @@ namespace WebViewControl {
         }
 
         private void DisposeJavascriptExecutors(string[] executorsKeys) {
+            OperationOccurred?.Invoke("Dispose JS executors", new Dictionary<string, string> {
+                { "executorCount", executorsKeys.Length.ToString() }
+            });
+
             foreach (var executorKey in executorsKeys) {
                 var indexedExecutorKey = executorKey ?? "";
                 if (JsExecutors.TryGetValue(indexedExecutorKey, out var executor)) {

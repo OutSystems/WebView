@@ -37,7 +37,7 @@ namespace WebViewControl {
             public string Script { get; }
 
             /// <summary>
-            /// We store the function name apart from the script and use it later in the exception details 
+            /// We store the function name apart from the script and use it later in the exception details
             /// this prevents any params to be shown in the message because they can contain sensitive information
             /// </summary>
             public string FunctionName { get; }
@@ -53,9 +53,9 @@ namespace WebViewControl {
             private static readonly TimeSpan InitializationTimeout = TimeSpan.FromSeconds(15);
 
             private static Regex StackFrameRegex { get; } = new Regex(@"at\s*(?<method>.*?)\s\(?(?<location>[^\s]+):(?<line>\d+):(?<column>\d+)", RegexOptions.Compiled);
-            
+
             private BlockingCollection<ScriptTask> PendingScripts { get; } = new BlockingCollection<ScriptTask>();
-            private CancellationTokenSource FlushTaskCancelationToken { get; } = new CancellationTokenSource();
+            private CancellationTokenSource FlushTaskCancellationTokenSource { get; } = new CancellationTokenSource();
 
             private WebView OwnerWebView { get; }
 
@@ -79,12 +79,14 @@ namespace WebViewControl {
 #if DEBUG
                 System.Diagnostics.Debug.WriteLine($"{nameof(StartFlush)} ('{Id}')");
 #endif
-                lock (FlushTaskCancelationToken) {
-                    if (flushTask != null || !frame.IsValid || FlushTaskCancelationToken.IsCancellationRequested) {
+                OwnerWebView.OperationOccurred?.Invoke($"StartFlush on '{frame.Name}'");
+
+                lock (FlushTaskCancellationTokenSource) {
+                    if (flushTask != null || !frame.IsValid || FlushTaskCancellationTokenSource.IsCancellationRequested) {
                         return;
                     }
                     this.frame = frame;
-                    flushTask = Task.Factory.StartNew(FlushScripts, FlushTaskCancelationToken.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+                    flushTask = Task.Factory.StartNew(FlushScripts, FlushTaskCancellationTokenSource.Token, TaskCreationOptions.LongRunning, TaskScheduler.Default);
                 }
             }
 
@@ -92,18 +94,20 @@ namespace WebViewControl {
 #if DEBUG
                 System.Diagnostics.Debug.WriteLine($"{nameof(StopFlush)} ('{Id}')");
 #endif
-                lock (FlushTaskCancelationToken) {
-                    if (FlushTaskCancelationToken.IsCancellationRequested) {
+                OwnerWebView.OperationOccurred?.Invoke($"StopFlush on '{frame.Name}'");
+
+                lock (FlushTaskCancellationTokenSource) {
+                    if (FlushTaskCancellationTokenSource.IsCancellationRequested) {
                         return;
                     }
-                    FlushTaskCancelationToken.Cancel();
+                    FlushTaskCancellationTokenSource.Cancel();
                     PendingScripts.CompleteAdding();
                 }
             }
 
             private ScriptTask QueueScript(string script, string functionName = null, Action<string> evaluate = null) {
-                lock (FlushTaskCancelationToken) {
-                    if (FlushTaskCancelationToken.IsCancellationRequested) {
+                lock (FlushTaskCancellationTokenSource) {
+                    if (FlushTaskCancellationTokenSource.IsCancellationRequested) {
                         return null;
                     }
 
@@ -137,19 +141,26 @@ namespace WebViewControl {
                     // stop
                 } finally {
                     PendingScripts.Dispose();
-                    FlushTaskCancelationToken.Dispose();
+                    FlushTaskCancellationTokenSource.Dispose();
                 }
             }
 
             private void BulkExecuteScripts(IEnumerable<ScriptTask> scriptsToExecute) {
                 var script = string.Join(";" + Environment.NewLine, scriptsToExecute.Select(s => s.Script));
+
+                OwnerWebView.OperationOccurred?.Invoke("Bulk execute scripts", new Dictionary<string, string> {
+                    { "frameName", frame.Name },
+                    { "isValid", frame.IsValid.ToString() },
+                    { "scriptsCount", scriptsToExecute.Count().ToString() }
+                });
+
                 if (frame.IsValid) {
                     var frameName = frame.Name;
                     try {
                         var timeout = OwnerWebView.DefaultScriptsExecutionTimeout ?? DefaultTimeout;
                         var task = OwnerWebView.chromium.EvaluateJavaScript<object>(WrapScriptWithErrorHandling(script), timeout: timeout);
-                        task.Wait(FlushTaskCancelationToken.Token);
-                    } catch (OperationCanceledException) { 
+                        task.Wait(FlushTaskCancellationTokenSource.Token);
+                    } catch (OperationCanceledException) {
                         // ignore
                     } catch (Exception e) {
                         var evaluatedScriptFunctions = scriptsToExecute.Select(s => s.FunctionName);
@@ -163,6 +174,12 @@ namespace WebViewControl {
 #if DEBUG
                 System.Diagnostics.Debug.WriteLine($"{nameof(EvaluateScript)} '{script}' on ('{Id}')");
 #endif
+                OwnerWebView.OperationOccurred?.Invoke("Evaluate script", new Dictionary<string, string> {
+                    { "frameName", frame.Name },
+                    { "isValid", frame.IsValid.ToString() },
+                    { "script", script }
+                });
+
                 var evaluationTask = new TaskCompletionSource<T>(TaskCreationOptions.RunContinuationsAsynchronously);
 
                 void Evaluate(string scriptToEvaluate) {
@@ -171,10 +188,10 @@ namespace WebViewControl {
 #endif
                     try {
                         var innerEvaluationTask = OwnerWebView.chromium.EvaluateJavaScript<T>(WrapScriptWithErrorHandling(scriptToEvaluate), timeout: timeout);
-                        innerEvaluationTask.Wait(FlushTaskCancelationToken.Token);
+                        innerEvaluationTask.Wait(FlushTaskCancellationTokenSource.Token);
                         evaluationTask.SetResult(GetResult<T>(innerEvaluationTask.Result));
                     } catch (Exception e) {
-                        if (FlushTaskCancelationToken.IsCancellationRequested) {
+                        if (FlushTaskCancellationTokenSource.IsCancellationRequested) {
                             evaluationTask.SetResult(GetResult<T>(default(T)));
                         } else if (e.InnerException is TaskCanceledException) {
                             evaluationTask.SetException(new JavascriptException(TimeoutExceptionName, "Script evaluation timed out"));
@@ -204,7 +221,7 @@ namespace WebViewControl {
                         }
                         // flush is already running, timeout will fire from the evaluation
                     }
-                } 
+                }
 
                 return await evaluationTask.Task;
             }
@@ -286,7 +303,7 @@ namespace WebViewControl {
                     try {
                         jsError = DeserializeJSON<JsError>(jsErrorJSON);
                     } catch {
-                        // ignore will throw error at the end   
+                        // ignore will throw error at the end
                     }
                     if (jsError != null) {
                         jsError.Name = jsError.Name ?? "";

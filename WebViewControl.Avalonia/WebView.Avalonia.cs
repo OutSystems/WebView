@@ -57,7 +57,9 @@ namespace WebViewControl {
         protected override void InternalDispose() => Dispose();
 
         private void ForwardException(ExceptionDispatchInfo exceptionInfo) {
-            // TODO
+            OperationOccurred?.Invoke("Exception not forwarded"); // Review this TODO
+
+            // TODO forward exception
         }
 
         private T ExecuteInUI<T>(Func<T> action) {
