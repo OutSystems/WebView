@@ -30,6 +30,7 @@ namespace WebViewControl {
 
         partial void ExtraInitialize() {
             VisualChildren.Add(chromium);
+            chromium[!FocusableProperty] = this[!FocusableProperty];
             chromium.AddressChanged += (o, address) => ExecuteInUI(() => Address = address);
         }
 
