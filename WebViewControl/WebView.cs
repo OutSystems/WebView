@@ -535,6 +535,6 @@ namespace WebViewControl {
         /// Enables or disable support for accessibility tools like screen readers.
         /// </summary>
         public void EnableAccessibility(bool enable) =>
-            this.SetAccessibilityState(enable ? CefState.Enabled : CefState.Disabled);
+            ExecuteWhenInitialized(() => this.SetAccessibilityState(enable ? CefState.Enabled : CefState.Disabled));
     }
 }
