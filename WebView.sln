@@ -1,13 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29230.47
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34525.116
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebViewControl", "WebViewControl\WebViewControl.csproj", "{A1C2A0C7-DF81-4A8F-AEB5-B5375D5D1B47}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebViewControl.Avalonia", "WebViewControl.Avalonia\WebViewControl.Avalonia.csproj", "{1B789CDF-1B73-450B-BA1D-EC265D498EFA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.WebView", "Tests.WebView\Tests.WebView.csproj", "{BE65D793-AFB3-4F5D-A85F-7B7396A5FE59}"
+	ProjectSection(ProjectDependencies) = postProject
+		{50037503-26BC-4853-BBF5-7F217E6FA421} = {50037503-26BC-4853-BBF5-7F217E6FA421}
+		{A4E4B970-35F0-4641-B5B9-5538931727F2} = {A4E4B970-35F0-4641-B5B9-5538931727F2}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleWebView.Avalonia", "SampleWebView.Avalonia\SampleWebView.Avalonia.csproj", "{68B0F20F-77AE-4819-83CB-92C9C78E8E05}"
 EndProject
@@ -17,6 +21,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		Directory.Packages.props = Directory.Packages.props
 		Directory.Build.props = Directory.Build.props
 	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "V1", "V1", "{54FF8FC2-5D9C-45AB-A7E6-6A69BD323FEC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestResourceAssembly", "TestResourceAssembly.V1.0.0.0\TestResourceAssembly.csproj", "{A4E4B970-35F0-4641-B5B9-5538931727F2}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "V2", "V2", "{BFFEA0F6-3BF7-4A1F-8EC6-73B21BA6766E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestResourceAssembly", "TestResourceAssembly.V2.0.0.0\TestResourceAssembly.csproj", "{50037503-26BC-4853-BBF5-7F217E6FA421}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -102,9 +114,53 @@ Global
 		{68B0F20F-77AE-4819-83CB-92C9C78E8E05}.ReleaseAvaloniaRemoteDebugSupport|ARM64.ActiveCfg = ReleaseAvaloniaRemoteDebugSupport|ARM64
 		{68B0F20F-77AE-4819-83CB-92C9C78E8E05}.ReleaseAvaloniaRemoteDebugSupport|ARM64.Build.0 = ReleaseAvaloniaRemoteDebugSupport|ARM64
 		{68B0F20F-77AE-4819-83CB-92C9C78E8E05}.ReleaseWPF|ARM64.ActiveCfg = ReleaseWPF|ARM64
+		{A4E4B970-35F0-4641-B5B9-5538931727F2}.Debug|ARM64.ActiveCfg = Debug|ARM64
+		{A4E4B970-35F0-4641-B5B9-5538931727F2}.Debug|ARM64.Build.0 = Debug|ARM64
+		{A4E4B970-35F0-4641-B5B9-5538931727F2}.Debug|x64.ActiveCfg = Debug|x64
+		{A4E4B970-35F0-4641-B5B9-5538931727F2}.Debug|x64.Build.0 = Debug|x64
+		{A4E4B970-35F0-4641-B5B9-5538931727F2}.Release|ARM64.ActiveCfg = Release|ARM64
+		{A4E4B970-35F0-4641-B5B9-5538931727F2}.Release|ARM64.Build.0 = Release|ARM64
+		{A4E4B970-35F0-4641-B5B9-5538931727F2}.Release|x64.ActiveCfg = Release|x64
+		{A4E4B970-35F0-4641-B5B9-5538931727F2}.Release|x64.Build.0 = Release|x64
+		{A4E4B970-35F0-4641-B5B9-5538931727F2}.ReleaseAvalonia|ARM64.ActiveCfg = Release|ARM64
+		{A4E4B970-35F0-4641-B5B9-5538931727F2}.ReleaseAvalonia|ARM64.Build.0 = Release|ARM64
+		{A4E4B970-35F0-4641-B5B9-5538931727F2}.ReleaseAvalonia|x64.ActiveCfg = Release|x64
+		{A4E4B970-35F0-4641-B5B9-5538931727F2}.ReleaseAvalonia|x64.Build.0 = Release|x64
+		{A4E4B970-35F0-4641-B5B9-5538931727F2}.ReleaseAvaloniaRemoteDebugSupport|ARM64.ActiveCfg = Release|ARM64
+		{A4E4B970-35F0-4641-B5B9-5538931727F2}.ReleaseAvaloniaRemoteDebugSupport|ARM64.Build.0 = Release|ARM64
+		{A4E4B970-35F0-4641-B5B9-5538931727F2}.ReleaseAvaloniaRemoteDebugSupport|x64.ActiveCfg = Release|x64
+		{A4E4B970-35F0-4641-B5B9-5538931727F2}.ReleaseAvaloniaRemoteDebugSupport|x64.Build.0 = Release|x64
+		{A4E4B970-35F0-4641-B5B9-5538931727F2}.ReleaseWPF|ARM64.ActiveCfg = Release|ARM64
+		{A4E4B970-35F0-4641-B5B9-5538931727F2}.ReleaseWPF|ARM64.Build.0 = Release|ARM64
+		{A4E4B970-35F0-4641-B5B9-5538931727F2}.ReleaseWPF|x64.ActiveCfg = Release|x64
+		{A4E4B970-35F0-4641-B5B9-5538931727F2}.ReleaseWPF|x64.Build.0 = Release|x64
+		{50037503-26BC-4853-BBF5-7F217E6FA421}.Debug|ARM64.ActiveCfg = Debug|ARM64
+		{50037503-26BC-4853-BBF5-7F217E6FA421}.Debug|ARM64.Build.0 = Debug|ARM64
+		{50037503-26BC-4853-BBF5-7F217E6FA421}.Debug|x64.ActiveCfg = Debug|x64
+		{50037503-26BC-4853-BBF5-7F217E6FA421}.Debug|x64.Build.0 = Debug|x64
+		{50037503-26BC-4853-BBF5-7F217E6FA421}.Release|ARM64.ActiveCfg = Release|ARM64
+		{50037503-26BC-4853-BBF5-7F217E6FA421}.Release|ARM64.Build.0 = Release|ARM64
+		{50037503-26BC-4853-BBF5-7F217E6FA421}.Release|x64.ActiveCfg = Release|x64
+		{50037503-26BC-4853-BBF5-7F217E6FA421}.Release|x64.Build.0 = Release|x64
+		{50037503-26BC-4853-BBF5-7F217E6FA421}.ReleaseAvalonia|ARM64.ActiveCfg = Release|ARM64
+		{50037503-26BC-4853-BBF5-7F217E6FA421}.ReleaseAvalonia|ARM64.Build.0 = Release|ARM64
+		{50037503-26BC-4853-BBF5-7F217E6FA421}.ReleaseAvalonia|x64.ActiveCfg = Release|x64
+		{50037503-26BC-4853-BBF5-7F217E6FA421}.ReleaseAvalonia|x64.Build.0 = Release|x64
+		{50037503-26BC-4853-BBF5-7F217E6FA421}.ReleaseAvaloniaRemoteDebugSupport|ARM64.ActiveCfg = Release|ARM64
+		{50037503-26BC-4853-BBF5-7F217E6FA421}.ReleaseAvaloniaRemoteDebugSupport|ARM64.Build.0 = Release|ARM64
+		{50037503-26BC-4853-BBF5-7F217E6FA421}.ReleaseAvaloniaRemoteDebugSupport|x64.ActiveCfg = Release|x64
+		{50037503-26BC-4853-BBF5-7F217E6FA421}.ReleaseAvaloniaRemoteDebugSupport|x64.Build.0 = Release|x64
+		{50037503-26BC-4853-BBF5-7F217E6FA421}.ReleaseWPF|ARM64.ActiveCfg = Release|ARM64
+		{50037503-26BC-4853-BBF5-7F217E6FA421}.ReleaseWPF|ARM64.Build.0 = Release|ARM64
+		{50037503-26BC-4853-BBF5-7F217E6FA421}.ReleaseWPF|x64.ActiveCfg = Release|x64
+		{50037503-26BC-4853-BBF5-7F217E6FA421}.ReleaseWPF|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{A4E4B970-35F0-4641-B5B9-5538931727F2} = {54FF8FC2-5D9C-45AB-A7E6-6A69BD323FEC}
+		{50037503-26BC-4853-BBF5-7F217E6FA421} = {BFFEA0F6-3BF7-4A1F-8EC6-73B21BA6766E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {FD9150A9-9C08-4609-B953-D4B900FD27C0}

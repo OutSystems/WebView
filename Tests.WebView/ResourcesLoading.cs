@@ -1,4 +1,6 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using WebViewControl;
@@ -53,6 +55,46 @@ namespace Tests.WebView {
                 Assert.DoesNotThrow(() => missingResource = ResourcesManager.TryGetResourceWithFullPath(GetType().Assembly, new[] { "Resources", "Missing.txt" }));
                 Assert.IsNull(missingResource);
             });
+        }
+
+        [Test(Description = "Resources from dynamically loaded assemblies can be loaded and the correct version is fetched")]
+        public void DynamicallyLoadedAssemblyFile() {
+            var resourcesAssemblyName = "TestResourceAssembly";
+
+            ResourceUrl GetResourceUrl(Version version) {
+                var executingAssembly = Assembly.GetExecutingAssembly();
+                var executingDdirectory = Path.GetDirectoryName(executingAssembly.Location);
+                var dllDirectory = executingDdirectory.Replace(executingAssembly.GetName().Name, $"{resourcesAssemblyName}.V{version}");
+                var dllPath = Path.Combine(dllDirectory, $"{resourcesAssemblyName}.dll");
+                var assembly = Assembly.Load(File.ReadAllBytes(dllPath));
+                return new ResourceUrl(assembly, "Resource.txt");
+            }
+
+            string GetExpectedContent(Version version) => $"Resource with V{version} content";
+
+            string GetResourceContent(Uri uri) {
+                Stream resourceStream = null;
+                Assert.DoesNotThrow(() => resourceStream = ResourcesManager.TryGetResource(uri));
+                Assert.IsNotNull(resourceStream);
+
+                using var reader = new StreamReader(resourceStream);
+                return reader.ReadToEnd();
+            }
+
+            var version1 = new Version(1, 0, 0, 0);
+            var version2 = new Version(2, 0, 0, 0);
+            var versionsToTry = new[] { version1, version2 };
+            foreach (var version in versionsToTry) {
+                var uri = new Uri(GetResourceUrl(version).ToString());
+                var content = GetResourceContent(uri);
+                Assert.That(content, Is.EqualTo(GetExpectedContent(version)));
+            }
+
+            // check that we are also able to retrieve the resource without specifying a version,
+            // but in that case the resource may be from either version
+            var unversionedUri = new Uri($"embedded://webview/{resourcesAssemblyName}/Resource.txt");
+            var unversionedContent = GetResourceContent(unversionedUri);
+            Assert.That(unversionedContent, Is.AnyOf(GetExpectedContent(version1), GetExpectedContent(version2)));
         }
     }
 }
