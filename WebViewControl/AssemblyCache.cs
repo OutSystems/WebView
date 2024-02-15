@@ -1,31 +1,30 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 
 namespace WebViewControl {
 
-     internal class AssemblyCache {
+    internal partial class AssemblyCache {
 
         private object SyncRoot { get; } = new object();
 
         // We now allow to load multiple versions of the same assembly, which means that resource urls can
         // (optionally) specify the version. We don't force the version to be specified to maintain backwards
-        // compatibility, and thus need to store assemblies by their name, in addition to by (name,version).
-        // Note that assembliesByName naturally doesn't handle duplicates, and no guarantee is provided about
-        // which version is resolved if there are multiple loaded assemblies with the same name.
+        // compatibility, and thus for each assembly name we two entries in the dictionary: with and without a version.
+        // Note that no guarantee is provided about which version is resolved if there are multiple loaded assemblies
+        // with the same name and no specific version is provided.
         // This, consumer apps are encouraged to include the version in the resource url
-        private Dictionary<(string, Version), Assembly> assembliesByNameAndVersion;
-        private Dictionary<string, Assembly> assembliesByName;
+        private Dictionary<(string AssemblyName, Version AssemblyVersion), Assembly> assemblies;
         
         private bool newAssembliesLoaded = true;
 
         internal Assembly ResolveResourceAssembly(Uri resourceUrl, bool failOnMissingAssembly) {
-            if (assembliesByNameAndVersion == null) {
+            if (assemblies == null) {
                 lock (SyncRoot) {
-                    if (assembliesByNameAndVersion == null) {
-                        assembliesByNameAndVersion = new Dictionary<(string, Version), Assembly>();
-                        assembliesByName = new Dictionary<string, Assembly>();
+                    if (assemblies == null) {
+                        assemblies = new Dictionary<(string, Version), Assembly>();
                         AppDomain.CurrentDomain.AssemblyLoad += delegate { newAssembliesLoaded = true; };
                     }
                 }
@@ -41,11 +40,7 @@ namespace WebViewControl {
                             // add loaded assemblies to cache
                             newAssembliesLoaded = false;
                             foreach (var domainAssembly in AppDomain.CurrentDomain.GetAssemblies()) {
-                                var domainAssemblyName = domainAssembly.GetName().Name;
-                                var domainAssemblyVersion = domainAssembly.GetName().Version;
-                                // replace if duplicated (can happen)
-                                assembliesByNameAndVersion[(domainAssemblyName, domainAssemblyVersion)] = domainAssembly;
-                                assembliesByName[domainAssemblyName] = domainAssembly;
+                                AddOrReplace(domainAssembly);
                             }
                         }
                     }
@@ -63,8 +58,7 @@ namespace WebViewControl {
 
                     if (assembly != null) {
                         lock (SyncRoot) {
-                            assembliesByNameAndVersion[(assembly.GetName().Name, assembly.GetName().Version)] = assembly;
-                            assembliesByName[assembly.GetName().Name] = assembly;
+                            AddOrReplace(assembly);
                         }
                     }
                 }
@@ -76,14 +70,22 @@ namespace WebViewControl {
             return assembly;
         }
 
+        private void AddOrReplace(Assembly assembly) {
+            var identity = assembly.GetName();
+            var assemblyName = identity.Name;
+            if (assemblyName == null) {
+                return;
+            }
+
+            // add two entries, with and without the version
+            var version = identity.Version;
+            assemblies[(assemblyName, null)] = assembly;
+            assemblies[(assemblyName, version)] = assembly;
+        }
+
         private Assembly GetAssemblyByNameAndVersion(string assemblyName, Version assemblyVersion) {
             lock (SyncRoot) {
-                Assembly assembly;
-                if (assemblyVersion == null) {
-                    assembliesByName.TryGetValue(assemblyName, out assembly);
-                } else {
-                    assembliesByNameAndVersion.TryGetValue((assemblyName, assemblyVersion), out assembly);
-                }
+                assemblies.TryGetValue((assemblyName, assemblyVersion), out var assembly);
                 return assembly;
             }
         }

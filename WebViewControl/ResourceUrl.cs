@@ -96,9 +96,9 @@ namespace WebViewControl {
 
         private static (string, Version) GetAssemblyNameAndVersion(string assemblyNameAndVersion) {
             var parts = assemblyNameAndVersion.Split(AssemblyVersionSeparator);
-            return parts.Length == 1 ?
-                (parts[0], null) :
-                (parts[0], new Version(parts[1]));
+            return parts.Length == 2 ?
+                (parts[0], new Version(parts[1])) :
+                (parts[0], null);
         }
 
         internal string WithDomain(string domain) {

@@ -7,7 +7,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebViewControl", "WebViewCo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WebViewControl.Avalonia", "WebViewControl.Avalonia\WebViewControl.Avalonia.csproj", "{1B789CDF-1B73-450B-BA1D-EC265D498EFA}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.WebView", "Tests.WebView\Tests.WebView.csproj", "{BE65D793-AFB3-4F5D-A85F-7B7396A5FE59}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.WebView", "tests\Tests.WebView\Tests.WebView.csproj", "{BE65D793-AFB3-4F5D-A85F-7B7396A5FE59}"
 	ProjectSection(ProjectDependencies) = postProject
 		{50037503-26BC-4853-BBF5-7F217E6FA421} = {50037503-26BC-4853-BBF5-7F217E6FA421}
 		{A4E4B970-35F0-4641-B5B9-5538931727F2} = {A4E4B970-35F0-4641-B5B9-5538931727F2}
@@ -24,11 +24,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "V1", "V1", "{54FF8FC2-5D9C-45AB-A7E6-6A69BD323FEC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestResourceAssembly", "TestResourceAssembly.V1.0.0.0\TestResourceAssembly.csproj", "{A4E4B970-35F0-4641-B5B9-5538931727F2}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestResourceAssembly", "tests\TestResourceAssembly.V1.0.0.0\TestResourceAssembly.csproj", "{A4E4B970-35F0-4641-B5B9-5538931727F2}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "V2", "V2", "{BFFEA0F6-3BF7-4A1F-8EC6-73B21BA6766E}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestResourceAssembly", "TestResourceAssembly.V2.0.0.0\TestResourceAssembly.csproj", "{50037503-26BC-4853-BBF5-7F217E6FA421}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestResourceAssembly", "tests\TestResourceAssembly.V2.0.0.0\TestResourceAssembly.csproj", "{50037503-26BC-4853-BBF5-7F217E6FA421}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{B779EFF9-07A0-4BEF-8533-CF3F68830AB4}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -159,7 +161,10 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
+		{BE65D793-AFB3-4F5D-A85F-7B7396A5FE59} = {B779EFF9-07A0-4BEF-8533-CF3F68830AB4}
+		{54FF8FC2-5D9C-45AB-A7E6-6A69BD323FEC} = {B779EFF9-07A0-4BEF-8533-CF3F68830AB4}
 		{A4E4B970-35F0-4641-B5B9-5538931727F2} = {54FF8FC2-5D9C-45AB-A7E6-6A69BD323FEC}
+		{BFFEA0F6-3BF7-4A1F-8EC6-73B21BA6766E} = {B779EFF9-07A0-4BEF-8533-CF3F68830AB4}
 		{50037503-26BC-4853-BBF5-7F217E6FA421} = {BFFEA0F6-3BF7-4A1F-8EC6-73B21BA6766E}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
