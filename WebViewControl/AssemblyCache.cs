@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace WebViewControl {
 
-    internal partial class AssemblyCache {
+    internal class AssemblyCache {
 
         private object SyncRoot { get; } = new object();
 
