@@ -49,8 +49,10 @@ namespace WebViewControl {
                 assembly = GetAssemblyByNameAndVersion(assemblyName, assemblyVersion);
                 if (assembly == null) {
                     try {
-                        // try load assembly from its name
-                        var assemblyPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, assemblyName + ".dll");
+                        // try loading the assembly from a file named AssemblyName.dll (or AssemblyName-AssemblyVersion.dll if
+                        // a version was provided)
+                        var fileName = $"{assemblyName}{(assemblyVersion == null ? "" : $"-{assemblyVersion}")}.dll";
+                        var assemblyPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
                         assembly = AssemblyLoader.LoadAssembly(assemblyPath);
                     } catch (IOException) { 
                         // ignore
@@ -77,9 +79,13 @@ namespace WebViewControl {
                 return;
             }
 
-            // add two entries, with and without the version
+            // add two entries, with and without the version.
+            // for the null-version entry, keep the assembly with the highest version
             var version = identity.Version;
-            assemblies[(assemblyName, null)] = assembly;
+            if (!assemblies.TryGetValue((assemblyName, null), out var nullVersionAssembly) ||
+                (nullVersionAssembly.GetName().Version is { } previousVersion && previousVersion < version)) {
+                assemblies[(assemblyName, null)] = assembly;
+            }
             assemblies[(assemblyName, version)] = assembly;
         }
 
