@@ -24,8 +24,9 @@ namespace WebViewControl {
         }
 
         public ResourceUrl(Assembly assembly, params string[] path) : this(path) {
-            var assemblyName = assembly.GetName().Name;
-            var assemblyVersion = assembly.GetName().Version is { } version ? $"{AssemblyVersionSeparator}{version}" : "";
+            var identity = assembly.GetName();
+            var assemblyName = identity.Name;
+            var assemblyVersion = identity.Version is { } version ? $"{AssemblyVersionSeparator}{version}" : "";
 
             if (Url.StartsWith(PathSeparator)) {
                 // only prefix with assembly if necessary, to avoid having the same resource loaded from multiple locations
