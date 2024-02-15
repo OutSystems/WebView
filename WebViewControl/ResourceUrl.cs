@@ -69,9 +69,9 @@ namespace WebViewControl {
                 var indexOfPath = resourceUrl.AbsolutePath.IndexOf(AssemblyPathSeparator);
                 return resourceUrl.AbsolutePath.Substring(indexOfPath + 1).Split(new [] { PathSeparator }, StringSplitOptions.None);
             }
-            var uriParts = resourceUrl.Segments;
-            var assemblyName = uriParts[1].Split(AssemblyVersionSeparator).First();
-            return uriParts.Skip(2).Prepend(assemblyName).Select(p => p.Replace(PathSeparator, "")).ToArray();
+            var uriParts = resourceUrl.Segments.Select(p => p.Replace(PathSeparator, "")).ToArray();
+            var (assemblyName, _) = GetAssemblyNameAndVersion(uriParts[1]);
+            return uriParts.Skip(2).Prepend(assemblyName).ToArray();
         }
 
         /// <summary>
