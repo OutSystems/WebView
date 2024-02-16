@@ -13,6 +13,7 @@ namespace WebViewControl {
         internal const string PathSeparator = "/";
 
         private const string AssemblyPathSeparator = ";";
+        private const char AssemblyVersionSeparator = '-';
         private const string AssemblyPrefix = "assembly:";
         private const string DefaultDomain = "webview{0}";
         
@@ -23,12 +24,15 @@ namespace WebViewControl {
         }
 
         public ResourceUrl(Assembly assembly, params string[] path) : this(path) {
-            var assemblyName = assembly.GetName().Name;
+            var identity = assembly.GetName();
+            var assemblyName = identity.Name;
+            var assemblyVersion = identity.Version is { } version ? $"{AssemblyVersionSeparator}{version}" : "";
+
             if (Url.StartsWith(PathSeparator)) {
                 // only prefix with assembly if necessary, to avoid having the same resource loaded from multiple locations
-                Url = AssemblyPrefix + assemblyName + AssemblyPathSeparator + Url.Substring(1);
+                Url = AssemblyPrefix + assemblyName + assemblyVersion + AssemblyPathSeparator + Url.Substring(1);
             } else {
-                Url = assemblyName + PathSeparator + Url;
+                Url = assemblyName + assemblyVersion + PathSeparator + Url;
             }
             Url = BuildUrl(EmbeddedScheme, Url);
         }
@@ -56,33 +60,46 @@ namespace WebViewControl {
         /// <summary>
         /// Supported syntax:
         /// embedded://webview/assembly:AssemblyName;Path/To/Resource
+        /// embedded://webview/assembly:AssemblyName-AssemblyVersion;Path/To/Resource
         /// embedded://webview/AssemblyName/Path/To/Resource (AssemblyName is also assumed as default namespace)
+        /// embedded://webview/AssemblyName-AssemblyVersion/Path/To/Resource
         /// </summary>
         internal static string[] GetEmbeddedResourcePath(Uri resourceUrl) {
             if (ContainsAssemblyLocation(resourceUrl)) {
                 var indexOfPath = resourceUrl.AbsolutePath.IndexOf(AssemblyPathSeparator);
                 return resourceUrl.AbsolutePath.Substring(indexOfPath + 1).Split(new [] { PathSeparator }, StringSplitOptions.None);
             }
-            var uriParts = resourceUrl.Segments;
-            return uriParts.Skip(1).Select(p => p.Replace(PathSeparator, "")).ToArray();
+            var uriParts = resourceUrl.Segments.Select(p => p.Replace(PathSeparator, "")).ToArray();
+            var (assemblyName, _) = GetAssemblyNameAndVersion(uriParts[1]);
+            return uriParts.Skip(2).Prepend(assemblyName).ToArray();
         }
 
         /// <summary>
         /// Supported syntax:
         /// embedded://webview/assembly:AssemblyName;Path/To/Resource
+        /// embedded://webview/assembly:AssemblyName-AssemblyVersion;Path/To/Resource
         /// embedded://webview/AssemblyName/Path/To/Resource (AssemblyName is also assumed as default namespace)
+        /// embedded://webview/AssemblyName-AssemblyVersion/Path/To/Resource
         /// </summary>
-        public static string GetEmbeddedResourceAssemblyName(Uri resourceUrl) {
+        public static (string, Version) GetEmbeddedResourceAssemblyNameAndVersion(Uri resourceUrl) {
             if (ContainsAssemblyLocation(resourceUrl)) {
                 var resourcePath = resourceUrl.AbsolutePath.Substring((PathSeparator + AssemblyPrefix).Length);
                 var indexOfPath = Math.Max(0, resourcePath.IndexOf(AssemblyPathSeparator));
-                return resourcePath.Substring(0, indexOfPath);
+                return GetAssemblyNameAndVersion(resourcePath.Substring(0, indexOfPath));
             }
             if (resourceUrl.Segments.Length > 1) {
                 var assemblySegment = resourceUrl.Segments[1];
-                return assemblySegment.EndsWith(PathSeparator) ? assemblySegment.Substring(0, assemblySegment.Length - PathSeparator.Length) : assemblySegment; // default assembly name to the first path
+                // default assembly name to the first path
+                return GetAssemblyNameAndVersion(assemblySegment.EndsWith(PathSeparator) ? assemblySegment.Substring(0, assemblySegment.Length - PathSeparator.Length) : assemblySegment);
             }
-            return string.Empty;
+            return (string.Empty, null);
+        }
+
+        private static (string, Version) GetAssemblyNameAndVersion(string assemblyNameAndVersion) {
+            var parts = assemblyNameAndVersion.Split(AssemblyVersionSeparator);
+            return parts.Length == 2 ?
+                (parts[0], new Version(parts[1])) :
+                (parts[0], null);
         }
 
         internal string WithDomain(string domain) {
