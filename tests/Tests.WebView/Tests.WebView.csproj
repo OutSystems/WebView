@@ -12,7 +12,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\WebViewControl.Avalonia\WebViewControl.Avalonia.csproj" />
+    <ProjectReference Include="..\..\WebViewControl.Avalonia\WebViewControl.Avalonia.csproj" />
   </ItemGroup>
     
   <ItemGroup>
