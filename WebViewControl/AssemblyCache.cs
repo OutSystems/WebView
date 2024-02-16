@@ -16,7 +16,7 @@ namespace WebViewControl {
         // Note that no guarantee is provided about which version is resolved if there are multiple loaded assemblies
         // with the same name and no specific version is provided.
         // This, consumer apps are encouraged to include the version in the resource url
-        private Dictionary<(string AssemblyName, Version AssemblyVersion), Assembly> assemblies;
+        private IDictionary<(string AssemblyName, Version AssemblyVersion), Assembly> assemblies;
         
         private bool newAssembliesLoaded = true;
 
