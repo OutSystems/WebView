@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>$(DotnetVersion)</TargetFramework>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+        <OutputPath>$(MSBuildProjectDirectory)\bin\</OutputPath>
+        <RootNamespace>TestResourceAssembly</RootNamespace>
+        <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <EmbeddedResource Include="Resource.txt" />
+    </ItemGroup>
+</Project>

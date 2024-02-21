@@ -3,14 +3,14 @@
   <PropertyGroup>
     <DotnetVersion>net6.0</DotnetVersion>
     <Platforms>x64;ARM64</Platforms>
-    <AvaloniaVersion>11.0.0</AvaloniaVersion>
-    <CefGlueVersion>117.5938.2-avalonia11</CefGlueVersion>
+    <AvaloniaVersion>0.10.17</AvaloniaVersion>
+    <CefGlueVersion>120.6099.1</CefGlueVersion>
   </PropertyGroup>
 
   <PropertyGroup>
     <AssemblyVersion>2.0.0.0</AssemblyVersion>
     <FileVersion>2.0.0.0</FileVersion>
-    <Version>2.117.5-avalonia11</Version>
+    <Version>2.121.1</Version>
     <Authors>OutSystems</Authors>
     <Product>WebViewControl</Product>
     <Copyright>Copyright © OutSystems 2023</Copyright>
