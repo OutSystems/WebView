@@ -4,7 +4,7 @@
     <DefaultTargetDotnetVersion>net8.0</DefaultTargetDotnetVersion>
     <TargetDotnetVersions>net6.0;$(DefaultTargetDotnetVersion)</TargetDotnetVersions>
     <Platforms>x64;ARM64</Platforms>
-    <AvaloniaVersion>11.0.0</AvaloniaVersion>
+    <AvaloniaVersion>11.0.9</AvaloniaVersion>
     <CefGlueVersion>120.6099.201</CefGlueVersion>
   </PropertyGroup>
 
