@@ -38,20 +38,16 @@ namespace WebViewControl {
                 WindowlessRenderingEnabled = settings.OsrEnabled,
                 RemoteDebuggingPort = settings.GetRemoteDebuggingPort(),
                 UserAgent = settings.UserAgent
-             
             };
 
-            var customSchemes = CustomSchemes.Select(s => new CustomScheme() { 
-                SchemeName = s, 
+            var customSchemes = CustomSchemes.Select(s => new CustomScheme() {
+                SchemeName = s,
                 SchemeHandlerFactory = new SchemeHandlerFactory()
             }).ToArray();
 
-            var customFlags = new[] {
-                // enable experimental feature flags
-                new KeyValuePair<string, string>("enable-experimental-web-platform-features", null)
-            };
+            settings.AddCommandLineSwitch("enable-experimental-web-platform-features", null);
 
-            CefRuntimeLoader.Initialize(settings: cefSettings, flags: customFlags, customSchemes: customSchemes);
+            CefRuntimeLoader.Initialize(settings: cefSettings, flags: settings.CommandLineSwitches.ToArray(), customSchemes: customSchemes);
 
             AppDomain.CurrentDomain.ProcessExit += delegate { Cleanup(); };
         }

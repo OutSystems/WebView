@@ -15,12 +15,12 @@
                     <NativeMenu>
                         <NativeMenuItem Header="Undo" Command="{Binding UndoCommand}" Gesture="CMD+Z" />
                         <NativeMenuItem Header="Redo" Command="{Binding RedoCommand}" Gesture="Shift+CMD+Z" />
-                        <NativeMenuItemSeperator/>
+                        <NativeMenuItemSeparator/>
                         <NativeMenuItem Header="Cut" Command="{Binding CutCommand}" Gesture="CMD+X" />
                         <NativeMenuItem Header="Copy" Command="{Binding CopyCommand}" Gesture="CMD+C" />
                         <NativeMenuItem Header="Paste" Command="{Binding PasteCommand}" Gesture="CMD+V" />
                         <NativeMenuItem Header="Delete" Command="{Binding DeleteCommand}" Gesture="CMD+Back" />
-                        <NativeMenuItemSeperator/>
+                        <NativeMenuItemSeparator/>
                         <NativeMenuItem Header="Select All" Command="{Binding SelectAllCommand}" Gesture="CMD+A" />
                     </NativeMenu>
                 </NativeMenuItem.Menu>
@@ -50,14 +50,14 @@
 
             <DockPanel DockPanel.Dock="Top" Margin="0 0 400 0">
                 <Button DockPanel.Dock="Right" Background="Transparent" Command="{Binding ShowDevToolsCommand}">Show DevTools</Button>
-                <TextBox Background="Transparent" Text="{Binding Address}" Margin="80 0 0 0">
+                <TextBox Background="Transparent" TabIndex="0" Text="{Binding Address}" Margin="80 0 0 0">
                     <TextBox.KeyBindings>
                         <KeyBinding Gesture="Enter" Command="{Binding NavigateCommand}" />
                     </TextBox.KeyBindings>
                 </TextBox>
             </DockPanel>
 
-            <webview:WebView x:Name="webview" Address="{Binding CurrentAddress}" />
+            <webview:WebView x:Name="webview" Focusable="True" Address="{Binding CurrentAddress}" />
         </DockPanel>
     </Panel>
 </Window>

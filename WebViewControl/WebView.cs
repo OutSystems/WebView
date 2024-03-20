@@ -530,5 +530,11 @@ namespace WebViewControl {
         /// focus was on the last HTML element and the user pressed the TAB key.
         /// </summary>
         protected virtual void OnLostFocus() { }
+        
+        /// <summary>
+        /// Enables or disable support for accessibility tools like screen readers.
+        /// </summary>
+        public void EnableAccessibility(bool enable) =>
+            ExecuteWhenInitialized(() => this.SetAccessibilityState(enable ? CefState.Enabled : CefState.Disabled));
     }
 }

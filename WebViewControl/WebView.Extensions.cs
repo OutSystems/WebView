@@ -24,6 +24,10 @@ namespace WebViewControl {
         internal static void SendKeyEvent(this WebView webview, CefKeyEvent keyEvent) {
             webview.GetCefBrowser()?.GetHost()?.SendKeyEvent(keyEvent);
         }
+        
+        internal static void SetAccessibilityState(this WebView webview, CefState state) {
+            webview.GetCefBrowser()?.GetHost()?.SetAccessibilityState(state);
+        }
 
         private static CefBrowser GetCefBrowser(this WebView webview) {
             return webview.UnderlyingBrowser.GetBrowser();

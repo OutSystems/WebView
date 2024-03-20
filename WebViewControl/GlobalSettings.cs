@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using Xilium.CefGlue.Common;
 
@@ -12,6 +13,17 @@ namespace WebViewControl {
         private string userAgent;
         private string logFile;
         private string cachePath = Path.Combine(Path.GetTempPath(), "WebView" + Guid.NewGuid().ToString().Replace("-", null) + DateTime.UtcNow.Ticks);
+        private readonly List<KeyValuePair<string, string>> commandLineSwitches = new();
+
+        /// <summary>
+        /// Use this method to pass flags to the browser. List of available flags: https://peter.sh/experiments/chromium-command-line-switches/
+        /// </summary>
+        public void AddCommandLineSwitch(string key, string value) {
+            EnsureNotLoaded(nameof(AddCommandLineSwitch));
+            commandLineSwitches.Add(new KeyValuePair<string, string>(key, value));
+        }
+        
+        public IEnumerable<KeyValuePair<string, string>> CommandLineSwitches => commandLineSwitches;
 
         public string CachePath {
             get => cachePath;
