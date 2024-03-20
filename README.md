@@ -19,10 +19,7 @@ It also provides the following additional features:
 - Ability to disable history navigation
 - Error handling
 - Proxy configuration support
-- Option to run in [offscreen rendering mode](https://bitbucket.org/chromiumembedded/cef/wiki/GeneralUsage#markdown-header-off-screen-rendering)
-
-Note:
-Currently only x64 architecture is supported.
+- Option to run in [offscreen rendering mode](https://bitbucket.org/chromiumembedded/cef/wiki/GeneralUsage#markdown-header-off-screen-rendering) (not recommended as it has several issues)
 
 ## Releases
 Stable binaries are released on NuGet, and contain everything you need to embed Chromium in your .NET/CLR application.
