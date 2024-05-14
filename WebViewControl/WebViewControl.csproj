@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   
   <PropertyGroup>
-    <TargetFrameworks>$(TargetDotnetVersions)</TargetFrameworks>
+    <TargetFrameworks>$(TargetDotnetVersionsWindows)</TargetFrameworks>
     <AssemblyTitle>WebViewControl WPF</AssemblyTitle>
     <Description>WebViewControl for WPF powered by CefGlue</Description>
     <Configuration></Configuration>
@@ -12,7 +12,6 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>WebViewControl-WPF$(PackageSuffix)</PackageId>
     <Configurations>Debug;Release;ReleaseAvalonia;ReleaseWPF;ReleaseAvaloniaRemoteDebugSupport</Configurations>
-    <NetVersionSuffix>-windows</NetVersionSuffix>
   </PropertyGroup>
   
   <PropertyGroup Condition="'$(Configuration)' == 'ReleaseWPF'">
