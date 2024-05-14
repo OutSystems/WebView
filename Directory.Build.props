@@ -1,8 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup>
-    <DotnetVersionSuffix />
-    <TargetDotnetVersions>net6.0$(DotnetVersionSuffix);net8.0$(DotnetVersionSuffix)</TargetDotnetVersions>
+    <TargetDotnetVersions>net6.0;net8.0</TargetDotnetVersions>
     <Platforms>x64;ARM64</Platforms>
     <AvaloniaVersion>0.10.17</AvaloniaVersion>
     <CefGlueVersion>120.6099.1</CefGlueVersion>
