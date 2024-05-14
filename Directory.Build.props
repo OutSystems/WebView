@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup>
+    <TargetDotnetVersion>net8.0</TargetDotnetVersion>
     <TargetDotnetVersions>net6.0;net8.0</TargetDotnetVersions>
     <TargetDotnetVersionsWindows>net6.0-windows;net8.0-windows</TargetDotnetVersionsWindows>
     <Platforms>x64;ARM64</Platforms>
