@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   
   <PropertyGroup>
-    <TargetFramework>$(DotnetVersion)-windows</TargetFramework>
+    <TargetFrameworks>$(TargetDotnetVersionsWindows)</TargetFrameworks>
     <AssemblyTitle>WebViewControl WPF</AssemblyTitle>
     <Description>WebViewControl for WPF powered by CefGlue</Description>
     <Configuration></Configuration>
