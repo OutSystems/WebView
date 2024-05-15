@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>$(DotnetVersion)</TargetFramework>
+    <TargetFrameworks>$(TargetDotnetVersions)</TargetFrameworks>
     <RootNamespace>WebViewControl</RootNamespace>
     <AssemblyTitle>WebViewControl Avalonia</AssemblyTitle>
     <Description>WebViewControl for Avalonia powered by CefGlue</Description>

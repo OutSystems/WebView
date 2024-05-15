@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>$(DotnetVersion)</TargetFramework>
-        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+        <TargetFrameworks>$(TargetDotnetVersions)</TargetFrameworks>
         <OutputPath>$(MSBuildProjectDirectory)\bin\</OutputPath>
         <RootNamespace>TestResourceAssembly</RootNamespace>
         <AssemblyVersion>1.0.0.0</AssemblyVersion>

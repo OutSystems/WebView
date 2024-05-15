@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup>
-    <DotnetVersion>net6.0</DotnetVersion>
+    <DefaultTargetDotnetVersion>net8.0</DefaultTargetDotnetVersion>
+    <TargetDotnetVersions>net6.0;$(DefaultTargetDotnetVersion)</TargetDotnetVersions>
     <Platforms>x64;ARM64</Platforms>
     <AvaloniaVersion>0.10.17</AvaloniaVersion>
-    <CefGlueVersion>120.6099.1</CefGlueVersion>
+    <CefGlueVersion>120.6099.3</CefGlueVersion>
   </PropertyGroup>
 
   <PropertyGroup>
     <AssemblyVersion>2.0.0.0</AssemblyVersion>
     <FileVersion>2.0.0.0</FileVersion>
-    <Version>2.121.1</Version>
+    <Version>2.121.2</Version>
     <Authors>OutSystems</Authors>
     <Product>WebViewControl</Product>
     <Copyright>Copyright © OutSystems 2023</Copyright>
