@@ -30,5 +30,14 @@ See the [Sample](SampleWebView.Avalonia) project for example web browsers built 
 ## Other
 - [Avalonia FuncUI Support](https://github.com/WhiteBlackGoose/MoreFuncUI#morefuncuiwebview). 
 
+## Versioning
+The versioning system works as follows:
+
+`<major>.<cef_version>.<patch>`
+
+Whenever you fix a bug, please increase the patch version. \
+Whenever you bring a new feature, please increase the major version. \
+Use the minor version for the current cef version.
+
 ## TODO
 - Improve documentation
