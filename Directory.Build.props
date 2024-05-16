@@ -5,13 +5,13 @@
     <TargetDotnetVersions>net6.0;$(DefaultTargetDotnetVersion)</TargetDotnetVersions>
     <Platforms>x64;ARM64</Platforms>
     <AvaloniaVersion>0.10.17</AvaloniaVersion>
-    <CefGlueVersion>120.6099.3</CefGlueVersion>
+    <CefGlueVersion>120.6099.200</CefGlueVersion>
   </PropertyGroup>
 
   <PropertyGroup>
     <AssemblyVersion>2.0.0.0</AssemblyVersion>
     <FileVersion>2.0.0.0</FileVersion>
-    <Version>2.121.2</Version>
+    <Version>3.120.0</Version>
     <Authors>OutSystems</Authors>
     <Product>WebViewControl</Product>
     <Copyright>Copyright © OutSystems 2023</Copyright>
