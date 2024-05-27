@@ -92,6 +92,8 @@ namespace WebViewControl {
         /// <paramref name="isSystemEvent">True if is a system focus event, or false if is a navigation</paramref>
         /// </summary>
         protected virtual bool OnSetFocus(bool isSystemEvent) {
+            // Null check is done for TopLevel as VisualRoot can be null in case when
+            // user detaches tab and proxy is enabled and there is a dummy webview created to set proxy information
             var focusedElement = TopLevel.GetTopLevel(this)?.FocusManager.GetFocusedElement();
             return !(focusedElement == chromium || focusedElement == this);
         }
