@@ -92,7 +92,8 @@ namespace WebViewControl {
         /// <paramref name="isSystemEvent">True if is a system focus event, or false if is a navigation</paramref>
         /// </summary>
         protected virtual bool OnSetFocus(bool isSystemEvent) {
-            var focusedElement = TopLevel.GetTopLevel(this).FocusManager.GetFocusedElement();
+            // VisualRoot can be null when webview is not yet added to the Visual tree
+            var focusedElement = TopLevel.GetTopLevel(this)?.FocusManager.GetFocusedElement();
             return !(focusedElement == chromium || focusedElement == this);
         }
     }
