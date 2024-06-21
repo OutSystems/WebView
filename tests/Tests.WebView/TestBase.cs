@@ -22,7 +22,7 @@ namespace Tests {
 
         protected Task Run(Func<Task> func) => Dispatcher.UIThread.InvokeAsync(func, DispatcherPriority.Background);
 
-        protected Task Run(Action action) => Dispatcher.UIThread.InvokeAsync(action, DispatcherPriority.Background);
+        protected Task Run(Action action) => Dispatcher.UIThread.InvokeAsync(action, DispatcherPriority.Background).GetTask();
 
         [OneTimeSetUp]
         protected Task OneTimeSetUp() {
