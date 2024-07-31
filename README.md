@@ -6,7 +6,22 @@ Avalonia/WPF control that wraps CefGlue webview control
 
 ![Screenshot](./SampleWebView.Avalonia/screenshot.png)
 
-WebView lets you embed Chromium in .NET apps. It is a .NET wrapper control around [CefGlue](https://github.com/OutSystems/CefGlue) and provides a better and simple API. Likewise CefGlue it can be used from C# or any other CLR language and provides both Avalonia and WPF web browser control implementations. The Avalonia implementation runs on Windows and macOS. Linux is supported with some [issues](https://github.com/OutSystems/CefGlue/blob/main/LINUX.md).
+WebView lets you embed Chromium in .NET apps. It is a .NET wrapper control around [CefGlue](https://github.com/OutSystems/CefGlue) and provides a better and simple API. Likewise CefGlue it can be used from C# or any other CLR language and provides both Avalonia and WPF web browser control implementations. 
+
+Here's a table for supported architectures, frameworks and operating systems:
+
+| OS      | x64 | ARM64 | WPF | Avalonia |
+|---------|-----|-------|-----|----------|
+| Windows | ✔️  | ✔️      | ✔️   | ✔️        |
+| macOS   | ✔️  | ✔️      | ❌  | ✔️        |
+| Linux   | ✔️  | 🔘     | ❌  | ✔️        |
+
+✔️ Supported
+❌ Not supported
+🔘 Works with issues.
+
+See [LINUX.md](./LINUX.md) for more information about issues and tested distribution list. 
+Currently only x64 and ARM64 architectures are supported.
 
 It also provides the following additional features:
 - Strongly-typed javascript evaluation: results of javascript evaluation returns the appropriate type
