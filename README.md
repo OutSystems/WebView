@@ -18,7 +18,7 @@ Here's a table for supported architectures, frameworks and operating systems:
 
 ✔️ Supported | ❌ Not supported | 🔘 Works with issues.
 
-See [LINUX.md](./LINUX.md) for more information about issues and tested distribution list. 
+See [LINUX.md](https://github.com/OutSystems/CefGlue/blob/main/LINUX.md) for more information about issues and tested distribution list. 
 Currently only x64 and ARM64 architectures are supported.
 
 It also provides the following additional features:
