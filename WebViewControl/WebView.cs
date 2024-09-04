@@ -72,7 +72,7 @@ namespace WebViewControl {
         public event Action TitleChanged;
         public event UnhandledAsyncExceptionEventHandler UnhandledAsyncException;
         public event Action</*url*/string> PopupOpening;
-        public event ConsoleMessageEventHandler OnConsoleMessage;
+        public event ConsoleMessageEventHandler ConsoleMessageEmitted;
 
         internal event Action Disposed;
         internal event JavascriptContextReleasedEventHandler JavascriptContextReleased;
@@ -130,7 +130,7 @@ namespace WebViewControl {
             chromium.JavascriptContextReleased += OnJavascriptContextReleased;
             chromium.JavascriptUncaughException += OnJavascriptUncaughException;
             chromium.UnhandledException += (o, e) => ForwardUnhandledAsyncException(e.Exception);
-            chromium.ConsoleMessage += (o, e) => OnConsoleMessage.Invoke(o, e);
+            chromium.ConsoleMessage += (o, e) => ConsoleMessageEmitted.Invoke(o, e);
 
 
             chromium.RequestHandler = new InternalRequestHandler(this);
