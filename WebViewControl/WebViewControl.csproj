@@ -12,6 +12,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageId>WebViewControl-WPF$(PackageSuffix)</PackageId>
     <Configurations>Debug;Release;ReleaseAvalonia;ReleaseWPF;ReleaseAvaloniaRemoteDebugSupport</Configurations>
+    <UseWPF>true</UseWPF>
   </PropertyGroup>
   
   <PropertyGroup Condition="'$(Configuration)' == 'ReleaseWPF'">
