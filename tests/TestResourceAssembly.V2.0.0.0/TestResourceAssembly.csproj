@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFrameworks>$(TargetDotnetVersions)</TargetFrameworks>
+        <TargetFramework>$(TargetDotnetVersion)</TargetFramework>
         <OutputPath>$(MSBuildProjectDirectory)\bin\</OutputPath>
         <RootNamespace>TestResourceAssembly</RootNamespace>
         <AssemblyVersion>2.0.0.0</AssemblyVersion>
