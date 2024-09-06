@@ -130,8 +130,7 @@ namespace WebViewControl {
             chromium.JavascriptContextReleased += OnJavascriptContextReleased;
             chromium.JavascriptUncaughException += OnJavascriptUncaughException;
             chromium.UnhandledException += (o, e) => ForwardUnhandledAsyncException(e.Exception);
-            chromium.ConsoleMessage += (o, e) => ConsoleMessageEmitted.Invoke(o, e);
-
+            chromium.ConsoleMessage += (o, e) => ConsoleMessageEmitted.Invoke(o, new ConsoleMessageEventArgs((ELogSeverity)e.Level, e.Message, e.Source, e.Line));
 
             chromium.RequestHandler = new InternalRequestHandler(this);
             chromium.LifeSpanHandler = new InternalLifeSpanHandler(this);
