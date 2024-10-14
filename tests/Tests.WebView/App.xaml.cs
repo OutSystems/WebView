@@ -8,7 +8,6 @@ namespace Tests {
         public App() { }
 
         public override void Initialize() {
-            WebViewControl.WebView.Settings.OsrEnabled = false;
             AvaloniaXamlLoader.Load(this);
         }
     }

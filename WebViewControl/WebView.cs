@@ -140,7 +140,7 @@ namespace WebViewControl {
             chromium.KeyboardHandler = new InternalKeyboardHandler(this);
 
             if (!Settings.OsrEnabled) {
-                // having the handler (by default) seems to cause some focus troubles, enable only osr disabled
+                // having the handler (by default) seems to cause some focus troubles, enable only when osr disabled
                 chromium.FocusHandler = new InternalFocusHandler(this);
             }
 
