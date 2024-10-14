@@ -9,7 +9,7 @@ namespace WebViewControl {
 
         private bool persistCache;
         private bool enableErrorLogOnly;
-        private bool osrEnabled = true;
+        private bool osrEnabled = false;
         private string userAgent;
         private string logFile;
         private string cachePath = Path.Combine(Path.GetTempPath(), "WebView" + Guid.NewGuid().ToString().Replace("-", null) + DateTime.UtcNow.Ticks);
@@ -65,6 +65,11 @@ namespace WebViewControl {
             }
         }
 
+        /// <summary>
+        /// Set to true to enable off-screen rendering support.
+        /// Do not enable this setting if the application does not use off-screen rendering
+        /// as it may reduce rendering performance and cause some issues.
+        /// </summary>
         public bool OsrEnabled {
             get => osrEnabled;
             set {

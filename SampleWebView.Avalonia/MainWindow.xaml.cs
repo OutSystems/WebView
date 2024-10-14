@@ -7,7 +7,6 @@ namespace SampleWebView.Avalonia {
     internal class MainWindow : Window {
 
         public MainWindow() {
-            WebView.Settings.OsrEnabled = false;
             WebView.Settings.LogFile = "ceflog.txt";
             AvaloniaXamlLoader.Load(this);
 
