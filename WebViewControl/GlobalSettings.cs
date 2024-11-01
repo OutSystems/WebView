@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using Xilium.CefGlue.Common;
 
@@ -14,6 +15,7 @@ namespace WebViewControl {
         private string logFile;
         private string cachePath = Path.Combine(Path.GetTempPath(), "WebView" + Guid.NewGuid().ToString().Replace("-", null) + DateTime.UtcNow.Ticks);
         private readonly List<KeyValuePair<string, string>> commandLineSwitches = new();
+        private Color backgroundColor = Color.White;
 
         /// <summary>
         /// Use this method to pass flags to the browser. List of available flags: https://peter.sh/experiments/chromium-command-line-switches/
@@ -75,6 +77,14 @@ namespace WebViewControl {
             set {
                 EnsureNotLoaded(nameof(OsrEnabled));
                 osrEnabled = value;
+            }
+        }
+
+        public Color BackgroundColor {
+            get => backgroundColor;
+            set {
+                EnsureNotLoaded(nameof(BackgroundColor));
+                backgroundColor = value;
             }
         }
 
