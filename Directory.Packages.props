@@ -1,39 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
-    <PropertyGroup>
-        <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    </PropertyGroup>
-
-    <ItemDefinitionGroup>
-        <!--
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <!--
             Disable transitive package references
             https://docs.microsoft.com/en-us/nuget/consume-packages/package-references-in-project-files#controlling-dependency-assets
             https://github.com/dotnet/sdk/issues/11803
         -->
-        <PackageReference>
-            <PrivateAssets>$(PrivateAssets);compile</PrivateAssets>
-        </PackageReference>
-    </ItemDefinitionGroup>
-
-    <ItemGroup>
-        <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
-        <PackageVersion Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
-        <PackageVersion Include="Avalonia.ReactiveUI" Version="$(AvaloniaVersion)" />
-        <PackageVersion Include="Avalonia.Themes.Simple" Version="$(AvaloniaVersion)" />
-        <PackageVersion Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
-
-        <PackageVersion Include="CefGlue.Avalonia" Version="$(CefGlueVersion)" />
-        <PackageVersion Include="CefGlue.WPF" Version="$(CefGlueVersion)" />
-
-        <PackageVersion Include="CefGlue.Avalonia.ARM64" Version="$(CefGlueVersion)" />
-        <PackageVersion Include="CefGlue.WPF.ARM64" Version="$(CefGlueVersion)" />
-
-        <PackageVersion Include="Microsoft.CSharp" Version="4.5.0" />
-        <PackageVersion Include="System.Runtime.Loader" Version="4.3.0" />
-        <PackageVersion Include="Dotnet.Bundle" Version="0.9.13" />
-
-        <PackageVersion Include="nunit" Version="3.13.0" />
-        <PackageVersion Include="NUnit3TestAdapter" Version="3.17.0" />
-        <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
-    </ItemGroup>
+    <PackageReference>
+      <PrivateAssets>$(PrivateAssets);compile</PrivateAssets>
+    </PackageReference>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
+    <PackageVersion Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
+    <PackageVersion Include="Avalonia.ReactiveUI" Version="$(AvaloniaVersion)" />
+    <PackageVersion Include="Avalonia.Themes.Simple" Version="$(AvaloniaVersion)" />
+    <PackageVersion Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
+    <PackageVersion Include="CefGlue.Avalonia" Version="$(CefGlueVersion)" />
+    <PackageVersion Include="CefGlue.WPF" Version="$(CefGlueVersion)" />
+    <PackageVersion Include="CefGlue.Avalonia.ARM64" Version="$(CefGlueVersion)" />
+    <PackageVersion Include="CefGlue.WPF.ARM64" Version="$(CefGlueVersion)" />
+    <PackageVersion Include="Microsoft.CSharp" Version="4.5.0" />
+    <PackageVersion Include="System.Runtime.Loader" Version="4.3.0" />
+    <PackageVersion Include="Dotnet.Bundle" Version="0.9.13" />
+    <PackageVersion Include="nunit" Version="3.13.0" />
+    <PackageVersion Include="NUnit3TestAdapter" Version="3.17.0" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
+  </ItemGroup>
 </Project>

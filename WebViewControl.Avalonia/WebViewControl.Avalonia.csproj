@@ -59,6 +59,8 @@
     <Compile Include="..\WebViewControl\WebView.JavascriptExecutor.cs" Link="WebView.JavascriptExecutor.cs" />
     <Compile Include="..\WebViewControl\WebView.ResourceHandler.cs" Link="WebView.ResourceHandler.cs" />
     <Compile Include="..\WebViewControl\WebViewLoader.cs" Link="WebViewLoader.cs" />
+    <Compile Include="..\WebViewControl\DelegateStringVisitor.cs" Link="DelegateStringVisitor.cs" />
+    <Compile Include="..\WebViewControl\ThreadSafeDelegateStringVisitor.cs" Link="ThreadSafeDelegateStringVisitor.cs" />
   </ItemGroup>
 
   <ItemGroup>

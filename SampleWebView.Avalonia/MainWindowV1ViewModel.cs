@@ -5,21 +5,16 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reactive;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using Avalonia;
-using Avalonia.Controls.ApplicationLifetimes;
 using ReactiveUI;
 using WebViewControl;
 
 namespace SampleWebView.Avalonia;
 
-public class MainWindowViewModel : ReactiveObject {
+public class MainWindowV1ViewModel : ReactiveObject {
     #region Fields
 
-    private readonly Dictionary<uint, DownloadItem> downloads = new();
-    private readonly List<DownloadItem> completedDownloads = new();
+    private readonly Dictionary<string, DownloadItemModel> downloads = new();
     private readonly WebView webView;
 
     private readonly ReactiveCommand<Unit, Unit> navigateCommand;
@@ -35,14 +30,13 @@ public class MainWindowViewModel : ReactiveObject {
     private readonly ReactiveCommand<Unit, Unit> forwardCommand;
     private readonly ReactiveCommand<Unit, Unit> getSourceCommand;
     private readonly ReactiveCommand<Unit, Unit> getTextCommand;
-    private readonly ReactiveCommand<Unit, Unit> exitCommand;
 
     private string address;
     private string currentAddress;
     
-    private double downloadPercentage;
     private bool isDownloading;
     private bool isDownloadDeterminate;
+    private double downloadPercentage;
     private string downloadMessage;
     private string downloadProgress;
 
@@ -53,21 +47,18 @@ public class MainWindowViewModel : ReactiveObject {
 
     #endregion Fields
 
-    public MainWindowViewModel(WebView webview) {
+    public MainWindowV1ViewModel(WebView webview) {
         Address = CurrentAddress = "http://www.google.com/";
         //Address = CurrentAddress = "http://www.testfile.org/";
         webView = webview;
-
+        
         webview.AllowDeveloperTools = true;
 
         webview.Navigated += OnNavigated;
 
-        webView.PopupOpening += OnPopupOpening;
-
-        webview.DownloadItemStarted += DownloadItemStarted;
-        webview.DownloadItemProgressChanged += DownloadItemProgressChanged;
-        webView.DownloadItemCompleted += DownloadItemCompleted;
-        webview.DownloadItemStopped += DownloadItemStopped;
+        webview.DownloadCancelled += OnDownloadCancelled;
+        webview.DownloadCompleted += OnDownloadCompleted;
+        webview.DownloadProgressChanged += OnDownloadProgressChanged;
 
         navigateCommand = ReactiveCommand.Create(() => {
             CurrentAddress = Address;
@@ -115,13 +106,9 @@ public class MainWindowViewModel : ReactiveObject {
             webview.GetSource(OnSourceAvailable);
         });
 
-        exitCommand = ReactiveCommand.Create(() => {
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopApp) {
-                desktopApp.Shutdown();
-            }
-        });
-
         PropertyChanged += OnPropertyChanged;
+
+
     }
 
     public ReactiveCommand<Unit, Unit> NavigateCommand => navigateCommand;
@@ -149,8 +136,6 @@ public class MainWindowViewModel : ReactiveObject {
     public ReactiveCommand<Unit, Unit> GetSourceCommand => getSourceCommand;
 
     public ReactiveCommand<Unit, Unit> GetTextCommand => getTextCommand;
-
-    public ReactiveCommand<Unit, Unit> ExitCommand => exitCommand;
 
     public string Address {
         get => address;
@@ -213,11 +198,6 @@ public class MainWindowViewModel : ReactiveObject {
         }
     }
 
-    private void OnPopupOpening(string url) {
-        // Catch window.open(), since we are a SDI browser we will simply Navigate to the new url 
-        CurrentAddress = url;
-    }
-
     private void OnNavigated(string url, string frameName) {
         if (!string.IsNullOrWhiteSpace(frameName)) {
             return;
@@ -225,7 +205,7 @@ public class MainWindowViewModel : ReactiveObject {
 
         Text = "";
         TextAvailable = false;
-        //webView.GetText(OnTextAvailable);
+        webView.GetText(OnTextAvailable);
 
         Source = "";
         SourceAvailable = false;
@@ -234,92 +214,102 @@ public class MainWindowViewModel : ReactiveObject {
     private void OnSourceAvailable(string str) {
         Source = str;
         SourceAvailable = true;
-
-        var sourceFilePath = SaveAs("Data\\sample.html", str);
-
-        Debug.WriteLine($"Page source saved successfully to {sourceFilePath}");
     }
 
     private void OnTextAvailable(string str) {
         Text = str;
         TextAvailable = true;
-
-        var textFilePath = SaveAs("Data\\sample.txt", str);
-
-        Debug.WriteLine($"Page text saved successfully to {textFilePath}");
     }
 
-    private string SaveAs(string fileName, string fileContents) {
-        if (string.IsNullOrWhiteSpace(fileName) || fileName == "/" || fileName == "\\") {
-            return "";
+    #region Download V1 Event Implementation
+
+    private void OnDownloadProgressChanged(string resourcePath, long receivedBytes, long totalBytes) {
+        // Tracking multiple file downloads at once is potentially wonky due to not being given the downloadItem.Id
+
+        // Download Started
+        if (receivedBytes == 0) {
+            //  Since the File Dialog is Modal we know that there can only ever be one downloadItem = "" at a time
+            downloads.Add("", new DownloadItemModel("", receivedBytes, totalBytes));
         }
 
-        try {
-            var fileInfo = new FileInfo(fileName);
-
-            if (fileInfo.Directory is null || fileInfo.Attributes == FileAttributes.Directory) {
-                return "";
+        // Progress Changed
+        DownloadItemModel downloadItem;//= new DownloadItem(resourcePath, receivedBytes, totalBytes);
+        // The download proceeds in the background while waiting for the resourcePath from the user
+        if (!string.IsNullOrWhiteSpace(resourcePath)) {
+            // Try to get the downloadItem by resourcePath
+            if (!downloads.TryGetValue(resourcePath, out downloadItem)) {
+                // Not found, so get the downloadItem = ""
+                if (downloads.TryGetValue("", out downloadItem)) {
+                    // Now we need to first remove it from the collection as "", then put it back in the collection as resourcePath
+                    downloads.Remove("");
+                    downloadItem.FullPath = resourcePath;
+                    downloads.Add(resourcePath, downloadItem);
+                }
             }
-
-            if (!fileInfo.Directory.Exists) {
-                fileInfo.Directory.Create();
-            }
-
-            if (fileInfo.Exists && fileInfo.IsReadOnly) {
-                return "";
-            }
-
-            using var sourceStreamWriter = File.CreateText(fileName);
-            sourceStreamWriter.Write(fileContents);
-            sourceStreamWriter.Close();
-
-            return fileInfo.FullName;
-        } catch {
-            return "";
+        } else {
+            // Get the downloadItem = ""
+            downloads.TryGetValue("", out downloadItem);
         }
-    }
 
-    #region Download V2 Event Implementation
-
-    private void DownloadItemStarted(DownloadItem item) {
-        downloads.Add(item.Id, item);
-
-        IsDownloading = true;
-    }
-
-    private void DownloadItemProgressChanged(DownloadItem item) {
-        downloads[item.Id] = item;
+        // Now update the downloadItem...
+        downloadItem?.Update(resourcePath, receivedBytes, totalBytes);
 
         UpdateDownloadPanel();
+
+        // Download Completed
+        if (receivedBytes == totalBytes && !string.IsNullOrWhiteSpace(resourcePath)) {
+            // We have to stop tracking here because the resourcePath could change between now and the DownloadCompleted firing
+            //  the PropertyChanged Event will fire two more time after this???, so rather than remove it now we flag it for removal by the Completed Event
+            downloadItem?.SetCompleted();
+        }
+
+        //Debug.WriteLine($"{nameof(OnDownloadProgressChanged)}( count: {downloads.Count}, downloadItem: ( fullPath: {downloadItem.FullPath}, receivedBytes: {downloadItem.ReceivedBytes}, totalBytes {downloadItem.TotalBytes}, percentage {downloadItem.PercentComplete}, isCompleted {downloadItem.IsCompleted} ))");
     }
 
-    private void DownloadItemCompleted(DownloadItem item) {
-        downloads.Remove(item.Id);
-        completedDownloads.Add(item);
+    private void OnDownloadCompleted(string resourcePath) {
+        // Here the resourcePath may be different from the resourcePath passed to PropertyChanged
 
-        // Manage UI
-        IsDownloadDeterminate = true;
+        // Remove the Completed DownloadItems
+        var completed = downloads.Values
+            .Where(x => x.IsCompleted)
+            .ToList();
+
+        if (completed.Count == 1) {
+            var downloadItem = completed[0];
+            downloadItem.Update(resourcePath);
+            downloads.Remove(downloadItem.FullPath);
+            completed.Add(downloadItem);
+        }
+        foreach (var item in completed) {
+            downloads.Remove(item.FullPath);
+        }
+
+        DownloadMessage = $"Download Completed: {Path.GetFileName(resourcePath)}";
         DownloadPercentage = 100.0;
-        DownloadMessage = $"Download Completed: {item.FullPath}";
-        DownloadProgress = $"{item.ReceivedBytes}/{item.TotalBytes}, Time Remaining: None";
+        IsDownloadDeterminate = true;
 
         CloseDownloadPanel();
     }
 
-    private void DownloadItemStopped(DownloadItem item) {
-        downloads.Remove(item.Id);
+    private void OnDownloadCancelled(string resourcePath) {
+        // Here the resourcePath probably will be null
+        DownloadItemModel downloadItem; 
+        if (string.IsNullOrWhiteSpace(resourcePath)) {
+            downloads.Remove("", out downloadItem);
+        } else {
+            downloads.Remove(resourcePath, out downloadItem);
+        }
 
-        // Manage UI
+        downloadItem?.SetCancelled(resourcePath);
+
+        DownloadMessage = "Download Cancelled";
         IsDownloadDeterminate = false;
-        DownloadProgress = "";
-        DownloadMessage = $"Download Stopped ({item.InterruptReason}): {item.FullPath}";
 
         CloseDownloadPanel();
     }
 
     private void CloseDownloadPanel() {
         Debug.WriteLine($"{nameof(CloseDownloadPanel)}: ({downloads.Count})");
-
         if (downloads.Count != 0) {
             return;
         }
@@ -352,5 +342,78 @@ public class MainWindowViewModel : ReactiveObject {
         DownloadProgress = $"{downloadItem.ReceivedBytes}/{downloadItem.TotalBytes} bytes, Time Remaining: {estimated}";
     }
 
-    #endregion Download V2 Event Implementation
+    private class DownloadItemModel(string fullPath, long receivedBytes, long totalBytes) {
+        private readonly Stopwatch elapsedTime = Stopwatch.StartNew();
+
+        public string FullPath { get; set; } = fullPath;
+
+        public string FileName {
+            get {
+                return Path.GetFileName(FullPath);
+            }
+        }
+
+        public long ReceivedBytes { get; set; } = receivedBytes;
+
+        public long TotalBytes { get; set; } = totalBytes;
+
+        public double PercentComplete {
+            get {
+                return (double)ReceivedBytes / TotalBytes * 100.0;
+            }
+        }
+
+        public long RemainingBytes {
+            get {
+                return TotalBytes - ReceivedBytes;
+            }
+        }
+
+        public long CurrentSpeed {
+            get {
+                return (ReceivedBytes / elapsedTime.Elapsed.Seconds);
+            }
+        }   // BytesPerSecond
+
+        public long EstimatedTimeRemaining {
+            get;
+            set;
+        }   // Seconds
+
+        public string StoppedReason { get; set; }
+
+        public bool IsCompleted { get; set; }
+
+        public void Update(string fullPath, long receivedBytes, long totalBytes) {
+            FullPath = fullPath;
+            ReceivedBytes = receivedBytes;
+            TotalBytes = totalBytes;
+
+            if (RemainingBytes == 0) {
+                elapsedTime.Stop();
+            }
+
+            if (CurrentSpeed > 0) {
+                EstimatedTimeRemaining = (long)((double)RemainingBytes / CurrentSpeed);
+            }
+        }
+
+        public void Update(string fullPath) {
+            FullPath = fullPath;
+        }
+
+        public void SetCompleted() {
+            elapsedTime.Stop();
+            IsCompleted = true;
+        }
+
+        public void SetCancelled(string fullPath) {
+            elapsedTime.Stop();
+            FullPath = fullPath;
+            StoppedReason = "UserCancelled";
+            ReceivedBytes = 0;
+        }
+    }
+
+    #endregion Download V1 Event Implementation
 }

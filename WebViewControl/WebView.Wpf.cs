@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Runtime.ExceptionServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -52,10 +53,11 @@ namespace WebViewControl {
         }
 
         protected override void OnPreviewKeyDown(KeyEventArgs e) {
-            if (AllowDeveloperTools && e.Key == Key.F12) {
-                ToggleDeveloperTools();
-                e.Handled = true;
-            }
+            // See WebView.InternalKeyboardHandler
+            //if (AllowDeveloperTools && e.Key == Key.F12) {
+            //    ToggleDeveloperTools();
+            //    e.Handled = true;
+            //}
         }
 
         private void OnHostWindowClosed(object sender, EventArgs e) {
@@ -74,6 +76,25 @@ namespace WebViewControl {
 
         private T ExecuteInUI<T>(Func<T> action) {
             return Dispatcher.Invoke(action);
+        }
+
+        private void AsyncExecuteInUI<T>(Action<T> action, T value) {
+            if (isDisposing) {
+                return;
+            }
+            // use async call to avoid dead-locks, otherwise if the source action tries to to evaluate js it would block
+            Dispatcher.InvokeAsync(
+                () => {
+                    if (!isDisposing) {
+                        try {
+                            action?.Invoke(value);
+                        } catch (Exception ex) {
+                            ForwardUnhandledAsyncException(ex);
+                        }
+                    }
+                },
+                DispatcherPriority.Normal,
+                AsyncCancellationTokenSource.Token);
         }
 
         private void AsyncExecuteInUI(Action action) {
