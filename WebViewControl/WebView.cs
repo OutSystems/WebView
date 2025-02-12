@@ -23,7 +23,9 @@ namespace WebViewControl {
     public delegate void FilesDraggingEventHandler(string[] fileNames);
     public delegate void TextDraggingEventHandler(string textContent);
 
-    internal delegate void JavacriptDialogShowEventHandler(string text, Action closeDialog);
+    public delegate void DownloadItemEventHandler(DownloadItem downloadItem);
+
+    internal delegate void JavascriptDialogShownEventHandler(string text, Action closeDialog);
     internal delegate void JavascriptContextReleasedEventHandler(string frameName);
     internal delegate void KeyPressedEventHandler(CefKeyEvent keyEvent, out bool handled);
 
@@ -65,9 +67,18 @@ namespace WebViewControl {
         public event NavigatedEventHandler Navigated;
         public event LoadFailedEventHandler LoadFailed;
         public event ResourceLoadFailedEventHandler ResourceLoadFailed;
+
+        // V1 Download Events
         public event DownloadProgressChangedEventHandler DownloadProgressChanged;
         public event DownloadStatusChangedEventHandler DownloadCompleted;
         public event DownloadStatusChangedEventHandler DownloadCancelled;
+
+        // V2 Download Events
+        public event DownloadItemEventHandler DownloadItemStarted;
+        public event DownloadItemEventHandler DownloadItemProgressChanged;
+        public event DownloadItemEventHandler DownloadItemStopped;
+        public event DownloadItemEventHandler DownloadItemCompleted;
+
         public event JavascriptContextCreatedEventHandler JavascriptContextCreated;
         public event Action TitleChanged;
         public event UnhandledAsyncExceptionEventHandler UnhandledAsyncException;
@@ -75,7 +86,7 @@ namespace WebViewControl {
 
         internal event Action Disposed;
         internal event JavascriptContextReleasedEventHandler JavascriptContextReleased;
-        internal event JavacriptDialogShowEventHandler JavacriptDialogShown;
+        internal event JavascriptDialogShownEventHandler JavascriptDialogShown;
         internal event FilesDraggingEventHandler FilesDragging;
         internal event TextDraggingEventHandler TextDragging;
         internal event KeyPressedEventHandler KeyPressed;
@@ -124,10 +135,11 @@ namespace WebViewControl {
             chromium.BrowserInitialized += OnWebViewBrowserInitialized;
             chromium.LoadEnd += OnWebViewLoadEnd;
             chromium.LoadError += OnWebViewLoadError;
+            
             chromium.TitleChanged += delegate { TitleChanged?.Invoke(); };
             chromium.JavascriptContextCreated += OnJavascriptContextCreated;
             chromium.JavascriptContextReleased += OnJavascriptContextReleased;
-            chromium.JavascriptUncaughException += OnJavascriptUncaughException;
+            chromium.JavascriptUncaughException += OnJavascriptUncaughtException;
             chromium.UnhandledException += (o, e) => ForwardUnhandledAsyncException(e.Exception);
 
             chromium.RequestHandler = new InternalRequestHandler(this);
@@ -229,6 +241,9 @@ namespace WebViewControl {
 
         internal bool IsDisposing => isDisposing;
 
+        /// <summary>
+        /// Allow F12 to ToggleDeveloperTools
+        /// </summary>
         public bool AllowDeveloperTools { get; set; }
 
         private string InternalAddress {
@@ -277,6 +292,9 @@ namespace WebViewControl {
             set { ExecuteWhenInitialized(() => chromium.ZoomLevel = Math.Log(value, PercentageToZoomFactor)); }
         }
 
+        /// <summary>
+        /// Ignores AllowDeveloperTools
+        /// </summary>
         public void ShowDeveloperTools() {
             ExecuteWhenInitialized(() => {
                 chromium.ShowDeveloperTools();
@@ -284,6 +302,9 @@ namespace WebViewControl {
             });
         }
 
+        /// <summary>
+        /// Ignores AllowDeveloperTools
+        /// </summary>
         public void CloseDeveloperTools() {
             if (isDeveloperToolsOpened) {
                 chromium.CloseDeveloperTools();
@@ -291,12 +312,33 @@ namespace WebViewControl {
             }
         }
 
+        /// <summary>
+        /// Ignores AllowDeveloperTools
+        /// </summary>
         private void ToggleDeveloperTools() {
             if (isDeveloperToolsOpened) {
                 CloseDeveloperTools();
             } else {
                 ShowDeveloperTools();
             }
+        }
+
+        public void GetText(Action<string> action, string frameName = MainFrameName) {
+            if (string.IsNullOrWhiteSpace(frameName)) {
+                frameName = "";
+            }
+
+            var visitor = new ThreadSafeDelegateStringVisitor(AsyncExecuteInUI<string>, action, frameName);
+            this.GetFrame(frameName).GetText(visitor);
+        }
+
+        public void GetSource(Action<string> action, string frameName = MainFrameName) {
+            if (string.IsNullOrWhiteSpace(frameName)) {
+                frameName = "";
+            }
+
+            var visitor = new ThreadSafeDelegateStringVisitor(AsyncExecuteInUI<string>, action, frameName);
+            this.GetFrame(frameName).GetSource(visitor);
         }
 
         public void LoadUrl(string address, string frameName = MainFrameName) {
@@ -491,7 +533,7 @@ namespace WebViewControl {
             });
         }
 
-        private void OnJavascriptUncaughException(object sender, JavascriptUncaughtExceptionEventArgs e) {
+        private void OnJavascriptUncaughtException(object sender, JavascriptUncaughtExceptionEventArgs e) {
             if (JavascriptExecutor.IsInternalException(e.Message)) {
                 // ignore internal exceptions, they will be handled by the EvaluateScript caller
                 return;

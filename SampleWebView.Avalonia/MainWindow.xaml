@@ -7,35 +7,6 @@
         ExtendClientAreaChromeHints="PreferSystemChrome"
         TransparencyLevelHint="AcrylicBlur"
         Background="Transparent">
-
-    <NativeMenu.Menu>
-        <NativeMenu>
-            <NativeMenuItem Header="Edit">
-                <NativeMenuItem.Menu>
-                    <NativeMenu>
-                        <NativeMenuItem Header="Undo" Command="{Binding UndoCommand}" Gesture="CMD+Z" />
-                        <NativeMenuItem Header="Redo" Command="{Binding RedoCommand}" Gesture="Shift+CMD+Z" />
-                        <NativeMenuItemSeparator/>
-                        <NativeMenuItem Header="Cut" Command="{Binding CutCommand}" Gesture="CMD+X" />
-                        <NativeMenuItem Header="Copy" Command="{Binding CopyCommand}" Gesture="CMD+C" />
-                        <NativeMenuItem Header="Paste" Command="{Binding PasteCommand}" Gesture="CMD+V" />
-                        <NativeMenuItem Header="Delete" Command="{Binding DeleteCommand}" Gesture="CMD+Back" />
-                        <NativeMenuItemSeparator/>
-                        <NativeMenuItem Header="Select All" Command="{Binding SelectAllCommand}" Gesture="CMD+A" />
-                    </NativeMenu>
-                </NativeMenuItem.Menu>
-            </NativeMenuItem>
-            <NativeMenuItem Header="Navigate">
-                <NativeMenuItem.Menu>
-                    <NativeMenu>
-                        <NativeMenuItem Header="Back" Command="{Binding BackCommand}" />
-                        <NativeMenuItem Header="Forward" Command="{Binding ForwardCommand}" />
-                    </NativeMenu>
-                </NativeMenuItem.Menu>
-            </NativeMenuItem>
-        </NativeMenu>
-    </NativeMenu.Menu>
-
     <Panel>
         <ExperimentalAcrylicBorder IsHitTestVisible="False">
             <ExperimentalAcrylicBorder.Material>
@@ -47,14 +18,66 @@
             </ExperimentalAcrylicBorder.Material>
         </ExperimentalAcrylicBorder>
         <DockPanel>
+          <DockPanel DockPanel.Dock="Top" Margin="5 15 5 5">
+            <Menu DockPanel.Dock="Top">
+              <MenuItem Header="_File">
+                <MenuItem Header="Open _DevTools" Command="{Binding ShowDevToolsCommand}"/>
+                <Separator/>
+                <MenuItem Header="Save _HTML" Command="{Binding GetSourceCommand}" IsEnabled="{Binding !SourceAvailable }"/>
+                <MenuItem Header="Save _Text" Command="{Binding GetTextCommand}" IsEnabled="{Binding !TextAvailable}"/>
+                <Separator/>
+                <MenuItem Header="E_xit" Command="{Binding ExitCommand}" InputGesture="Alt+F4"/>
+              </MenuItem>
+              <MenuItem Header="_Edit">
+                <MenuItem Header="_Undo" Command="{Binding UndoCommand}" InputGesture="CMD+Z" />
+                <MenuItem Header="_Redo" Command="{Binding RedoCommand}" InputGesture="Shift+CMD+Z" />
+                <Separator />
+                <MenuItem Header="C_ut" Command="{Binding CutCommand}" InputGesture="CMD+X" />
+                <MenuItem Header="C_opy" Command="{Binding CopyCommand}" InputGesture="CMD+C" />
+                <MenuItem Header="_Paste" Command="{Binding PasteCommand}" InputGesture="CMD+V" />
+                <MenuItem Header="_Delete" Command="{Binding DeleteCommand}" InputGesture="CMD+Back" />
+                <Separator />
+                <MenuItem Header="Select _All" Command="{Binding SelectAllCommand}" InputGesture="CMD+A" />
+              </MenuItem>
+              <MenuItem Header="_Navigate">
+                <MenuItem Header="_Back" Command="{Binding BackCommand}"/>
+                <MenuItem Header="_Forward" Command="{Binding ForwardCommand}"/>
+              </MenuItem>
+            </Menu>
 
-            <DockPanel DockPanel.Dock="Top" Margin="0 0 400 0">
-                <Button DockPanel.Dock="Right" Background="Transparent" Command="{Binding ShowDevToolsCommand}">Show DevTools</Button>
-                <TextBox Background="Transparent" TabIndex="0" Text="{Binding Address}" Margin="80 0 0 0">
-                    <TextBox.KeyBindings>
-                        <KeyBinding Gesture="Enter" Command="{Binding NavigateCommand}" />
-                    </TextBox.KeyBindings>
-                </TextBox>
+            <TextBox Background="Transparent" TabIndex="0" Text="{Binding Address}" Margin="5 0 5 0">
+              <TextBox.KeyBindings>
+                <KeyBinding Gesture="Enter" Command="{Binding NavigateCommand}" />
+              </TextBox.KeyBindings>
+            </TextBox>
+          </DockPanel>
+
+            <DockPanel Dock="Bottom"
+                       VerticalAlignment="Center"
+                       Background="LightGray"
+                       IsVisible="{Binding IsDownloading}">
+                <Grid DockPanel.Dock="Right"
+                      Margin="10, 10, 10, 10"
+                      RowDefinitions="Auto, Auto, Auto"
+                      ColumnDefinitions="Auto">
+                    <Label Grid.Row="0" Grid.Column="0" 
+                           Content="{Binding DownloadMessage}"/>
+                    <Label Grid.Row="1" Grid.Column="0" 
+                           Content="{Binding DownloadProgress}"/>
+                    <ProgressBar Grid.Row="2" Grid.Column="0"
+                                 VerticalAlignment="Center"
+                                 Background="Transparent"
+                                 Height="26"
+                                 Foreground="Aqua"
+                                 IsIndeterminate="{Binding !IsDownloadDeterminate}"
+                                 Value="{Binding DownloadPercentage}" />
+                    <TextBlock Grid.Row="2" Grid.Column="0"
+                               Background="Transparent"
+                               HorizontalAlignment="Center"
+                               VerticalAlignment="Center"
+                               IsVisible="{Binding IsDownloadDeterminate}"
+                               Text="{Binding DownloadPercentage, StringFormat={}{0:0}%, Mode=OneWay}" />
+                </Grid>
             </DockPanel>
 
             <webview:WebView x:Name="webview" Focusable="True" Address="{Binding CurrentAddress}" />

@@ -27,16 +27,23 @@
   <ItemGroup>
     <None Remove="App.xaml" />
     <None Remove="MainWindow.xaml" />
+    <None Remove="MainWindowV1.xaml" />
     <None Remove="tmp\**\*.*" />
   </ItemGroup>
 
   <ItemGroup>
-    <AvaloniaResource  Include="App.xaml">
+    <AvaloniaResource Include="App.xaml">
       <Generator>MSBuild:Compile</Generator>
-    </AvaloniaResource >
-    <AvaloniaResource  Include="MainWindow.xaml">
+    </AvaloniaResource>
+    <AvaloniaResource Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
-    </AvaloniaResource >
+    </AvaloniaResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaXaml Include="MainWindowV1.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </AvaloniaXaml>
   </ItemGroup>
 
   <ItemGroup>

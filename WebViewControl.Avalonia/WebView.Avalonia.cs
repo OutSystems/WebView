@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Runtime.ExceptionServices;
 using Avalonia;
 using Avalonia.Controls;
@@ -35,10 +36,11 @@ namespace WebViewControl {
         }
 
         protected override void OnKeyDown(KeyEventArgs e) {
-            if (AllowDeveloperTools && e.Key == Key.F12) {
-                ToggleDeveloperTools();
-                e.Handled = true;
-            }
+            // See WebView.InternalKeyboardHandler
+            //if (AllowDeveloperTools && e.Key == Key.F12) {
+            //    ToggleDeveloperTools();
+            //    e.Handled = true;
+            //}
         }
 
         protected override void OnGotFocus(GotFocusEventArgs e) {
@@ -66,6 +68,24 @@ namespace WebViewControl {
                 return action();
             }
             return Dispatcher.UIThread.InvokeAsync<T>(action).Result;
+        }
+
+        private void AsyncExecuteInUI<T>(Action<T> action, T value) {
+            if (isDisposing) {
+                return;
+            }
+            // use async call to avoid dead-locks, otherwise if the source action tries to to evaluate js it would block
+            Dispatcher.UIThread.InvokeAsync(
+                () => {
+                    if (!isDisposing) {
+                        try {
+                            action?.Invoke(value);
+                        } catch (Exception ex) {
+                            ForwardUnhandledAsyncException(ex);
+                        }
+                    }
+                },
+                DispatcherPriority.Normal);
         }
 
         private void AsyncExecuteInUI(Action action) {

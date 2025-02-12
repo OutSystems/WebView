@@ -16,8 +16,8 @@ namespace WebViewControl {
             protected override bool OnJSDialog(CefBrowser browser, string originUrl, CefJSDialogType dialogType, string message_text, string default_prompt_text, CefJSDialogCallback callback, out bool suppress_message) {
                 suppress_message = false;
 
-                var javacriptDialogShown = OwnerWebView.JavacriptDialogShown;
-                if (javacriptDialogShown == null) {
+                var javascriptDialogShown = OwnerWebView.JavascriptDialogShown;
+                if (javascriptDialogShown == null) {
                     return false;
                 }
 
@@ -26,7 +26,7 @@ namespace WebViewControl {
                     callback.Dispose();
                 }
 
-                javacriptDialogShown.Invoke(message_text, Close);
+                javascriptDialogShown.Invoke(message_text, Close);
                 return true;
             }
 
