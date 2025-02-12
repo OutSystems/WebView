@@ -135,7 +135,7 @@ namespace WebViewControl {
             PercentComplete = cefDownloadItem.PercentComplete;
             Url = cefDownloadItem.Url;
             OriginalUrl = cefDownloadItem.OriginalUrl;
-            FullPath = cefDownloadItem.FullPath;
+            FullPath = cefDownloadItem.FullPath ?? "";
             MimeType = cefDownloadItem.MimeType;
             InterruptReason = (DownloadItemInterruptReason)((int)cefDownloadItem.InterruptReason);
 
