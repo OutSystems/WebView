@@ -461,7 +461,7 @@ namespace WebViewControl {
 
                     var frameName = frame.Name;
 
-                    if (this.IsMainFrame(frameName)) {
+                    if (frame.IsMain) {
                         // when a new main frame in created, dispose all running executors -> since they should not be valid anymore
                         // all child iframes were gone
                         DisposeJavascriptExecutors(JsExecutors.Where(je => !je.Value.IsValid).Select(je => je.Key).ToArray());
