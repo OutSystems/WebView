@@ -44,8 +44,8 @@ To start, add these to `ProjectName.csproj`
 <ItemGroup Condition="$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture) == 'X64'">
     <PackageReference Include="WebViewControl-Avalonia" Version="3.120.5" />
 </ItemGroup>
-<PackageReference Include="WebViewControl-Avalonia-ARM64" Version="3.120.5" />
-    <ItemGroup Condition="$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture) == 'Arm64'">
+<ItemGroup Condition="$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture) == 'Arm64'">
+    <PackageReference Include="WebViewControl-Avalonia-ARM64" Version="3.120.5" />
 </ItemGroup>
 
 ```
