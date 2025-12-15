@@ -47,7 +47,11 @@ namespace WebViewControl {
             }).ToArray();
 
             settings.AddCommandLineSwitch("enable-experimental-web-platform-features", null);
-
+            
+            if (settings.EnableVideoAutoplay) {
+                settings.AddCommandLineSwitch("autoplay-policy", "no-user-gesture-required");
+            }
+            
             CefRuntimeLoader.Initialize(settings: cefSettings, flags: settings.CommandLineSwitches.ToArray(), customSchemes: customSchemes);
 
             AppDomain.CurrentDomain.ProcessExit += delegate { Cleanup(); };
