@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using Xilium.CefGlue.Common;
 
@@ -7,6 +8,7 @@ namespace WebViewControl {
 
     public class GlobalSettings {
 
+        private Color backgroundColor = Color.White;
         private bool persistCache;
         private bool enableErrorLogOnly;
         private bool osrEnabled = false;
@@ -24,6 +26,14 @@ namespace WebViewControl {
         }
         
         public IEnumerable<KeyValuePair<string, string>> CommandLineSwitches => commandLineSwitches;
+
+        public Color BackgroundColor {
+            get => backgroundColor;
+            set {
+                EnsureNotLoaded(nameof(BackgroundColor));
+                backgroundColor = value;
+            }
+        }
 
         public string CachePath {
             get => cachePath;
