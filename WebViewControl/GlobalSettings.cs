@@ -28,6 +28,11 @@ namespace WebViewControl {
         
         public IEnumerable<KeyValuePair<string, string>> CommandLineSwitches => commandLineSwitches;
 
+        /// <summary>
+        /// Gets or sets the background color used for the browser before a document is loaded or when no document is loaded.
+        /// Default is <see cref="Color.White"/>.
+        /// Note: Colors with an alpha value are not supported.
+        /// </summary>
         public Color BackgroundColor {
             get => backgroundColor;
             set {
