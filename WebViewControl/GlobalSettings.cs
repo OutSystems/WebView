@@ -31,7 +31,7 @@ namespace WebViewControl {
         /// <summary>
         /// Gets or sets the background color used for the browser before a document is loaded or when no document is loaded.
         /// Default is <see cref="Color.White"/>.
-        /// Note: Colors with an alpha value are not supported.
+        /// Note: Transparent colors (alpha &lt; 255) are not supported.
         /// </summary>
         public Color BackgroundColor {
             get => backgroundColor;
