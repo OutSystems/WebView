@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using Xilium.CefGlue.Common;
 
@@ -7,8 +8,10 @@ namespace WebViewControl {
 
     public class GlobalSettings {
 
+        private Color backgroundColor = Color.White;
         private bool persistCache;
         private bool enableErrorLogOnly;
+        private bool enableVideoAutoplay = false; 
         private bool osrEnabled = false;
         private string userAgent;
         private string logFile;
@@ -24,6 +27,14 @@ namespace WebViewControl {
         }
         
         public IEnumerable<KeyValuePair<string, string>> CommandLineSwitches => commandLineSwitches;
+
+        public Color BackgroundColor {
+            get => backgroundColor;
+            set {
+                EnsureNotLoaded(nameof(BackgroundColor));
+                backgroundColor = value;
+            }
+        }
 
         public string CachePath {
             get => cachePath;
@@ -75,6 +86,19 @@ namespace WebViewControl {
             set {
                 EnsureNotLoaded(nameof(OsrEnabled));
                 osrEnabled = value;
+            }
+        }
+
+        /// <summary>
+        /// Set to true to enable video autoplay without requiring user interaction.
+        /// This allows muted videos with the autoplay attribute to play automatically.
+        /// Default is false for security and user experience considerations.
+        /// </summary>
+        public bool EnableVideoAutoplay {
+            get => enableVideoAutoplay;
+            set {
+                EnsureNotLoaded(nameof(EnableVideoAutoplay));
+                enableVideoAutoplay = value;
             }
         }
 

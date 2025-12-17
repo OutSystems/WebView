@@ -37,7 +37,8 @@ namespace WebViewControl {
                 CachePath = settings.CachePath, // enable cache for external resources to speedup loading
                 WindowlessRenderingEnabled = settings.OsrEnabled,
                 RemoteDebuggingPort = settings.GetRemoteDebuggingPort(),
-                UserAgent = settings.UserAgent
+                UserAgent = settings.UserAgent,
+                BackgroundColor = new CefColor((uint)settings.BackgroundColor.ToArgb())
             };
 
             var customSchemes = CustomSchemes.Select(s => new CustomScheme() {
@@ -46,7 +47,11 @@ namespace WebViewControl {
             }).ToArray();
 
             settings.AddCommandLineSwitch("enable-experimental-web-platform-features", null);
-
+            
+            if (settings.EnableVideoAutoplay) {
+                settings.AddCommandLineSwitch("autoplay-policy", "no-user-gesture-required");
+            }
+            
             CefRuntimeLoader.Initialize(settings: cefSettings, flags: settings.CommandLineSwitches.ToArray(), customSchemes: customSchemes);
 
             AppDomain.CurrentDomain.ProcessExit += delegate { Cleanup(); };
