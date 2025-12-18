@@ -11,7 +11,7 @@
     <AssemblyVersion>2.0.0.0</AssemblyVersion>
     <FileVersion>2.0.0.0</FileVersion>
     <!-- Please see https://github.com/OutSystems/WebView?tab=readme-ov-file#versioning for versioning rules -->
-    <Version>3.120.10</Version>
+    <Version>3.120.11</Version>
     <Authors>OutSystems</Authors>
     <Product>WebViewControl</Product>
     <Copyright>Copyright © OutSystems 2023</Copyright>

@@ -1,3 +1,4 @@
+using System.Drawing;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 using WebViewControl;
@@ -8,6 +9,7 @@ namespace SampleWebView.Avalonia {
 
         public MainWindow() {
             WebView.Settings.LogFile = "ceflog.txt";
+            WebView.Settings.BackgroundColor = Color.Bisque;
             AvaloniaXamlLoader.Load(this);
 
             DataContext = new MainWindowViewModel(this.FindControl<WebView>("webview"));
