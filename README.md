@@ -1,6 +1,7 @@
 # WebView
-[![WebViewControl-Avalonia](https://img.shields.io/nuget/v/WebViewControl-Avalonia.svg?style=flat&label=WebView-Avalonia)](https://www.nuget.org/packages/WebViewControl-Avalonia/)
-[![WebViewControl-WPF](https://img.shields.io/nuget/v/WebViewControl-WPF.svg?style=flat&label=WebView-WPF)](https://www.nuget.org/packages/WebViewControl-WPF/)
+[![WebViewControl-Avalonia](https://img.shields.io/nuget/v/WebViewControl-Avalonia.svg?style=flat&label=WebViewControl-Avalonia)](https://www.nuget.org/packages/WebViewControl-Avalonia/)
+[![WebViewControl-Avalonia-Arm64](https://img.shields.io/nuget/v/WebViewControl-Avalonia-Arm64.svg?style=flat&label=WebViewControl-Avalonia-Arm64)](https://www.nuget.org/packages/WebViewControl-Avalonia-Arm64/)
+[![WebViewControl-WPF](https://img.shields.io/nuget/v/WebViewControl-WPF.svg?style=flat&label=WebViewControl-WPF)](https://www.nuget.org/packages/WebViewControl-WPF/)
 
 Avalonia/WPF control that wraps CefGlue webview control
 
@@ -38,6 +39,16 @@ It also provides the following additional features:
 Stable binaries are released on NuGet, and contain everything you need to embed Chromium in your .NET/CLR application.
 
 ## Documentation
+To start, add these to `ProjectName.csproj`
+```xml
+<ItemGroup Condition="$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture) == 'X64'">
+    <PackageReference Include="WebViewControl-Avalonia" Version="3.120.5" />
+</ItemGroup>
+<ItemGroup Condition="$([System.Runtime.InteropServices.RuntimeInformation]::OSArchitecture) == 'Arm64'">
+    <PackageReference Include="WebViewControl-Avalonia-ARM64" Version="3.120.5" />
+</ItemGroup>
+
+```
 See the [Sample](SampleWebView.Avalonia) project for example web browsers built with WebView. It demos some of the available features.
 
 ## Other
