@@ -22,6 +22,8 @@ namespace WebViewControl {
 
         private static GlobalSettings globalSettings;
 
+        public static bool IsLoaded => CefRuntimeLoader.IsLoaded;
+
         [MethodImpl(MethodImplOptions.NoInlining)]
         public static void Initialize(GlobalSettings settings) {
             if (CefRuntimeLoader.IsLoaded) {

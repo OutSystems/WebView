@@ -34,6 +34,32 @@ It also provides the following additional features:
 - Proxy configuration support
 - Option to run in [offscreen rendering mode](https://bitbucket.org/chromiumembedded/cef/wiki/GeneralUsage#markdown-header-off-screen-rendering) (not recommended as it has several issues)
 
+## Web engines
+The controls render with one of two web engines, chosen at build time with the `WebViewEngine` property:
+
+| `WebViewEngine` | Engine | Avalonia package | WPF |
+|-----------------|--------|------------------|-----|
+| `Cef` (default) | Chromium bundled with the app, through CefGlue | `WebViewControl-Avalonia`, `WebViewControl-Avalonia-ARM64` | ✔️ |
+| `Native` | The web engine of the system: WKWebView on macOS, WebView2 on Windows | `WebViewControl-Avalonia-Native` (any architecture) | ❌ (always CEF) |
+
+```
+dotnet build WebViewControl.Avalonia/WebViewControl.Avalonia.csproj -p:WebViewEngine=Native
+```
+
+How the native engines work:
+- macOS: WKWebView, driven through the Objective-C runtime (no binding library) and hosted by an Avalonia `NativeControlHost`.
+- Windows: WebView2 (`Microsoft.Web.WebView2`), rendered in a child window hosted by an Avalonia `NativeControlHost`. It requires the WebView2 Runtime, which ships with Windows 10 and 11.
+- The `embedded`, `custom` and `local` schemes are served through the same `BeforeResourceLoad` pipeline as with CEF.
+- A javascript bridge (`window.webviewBridge`) replaces the CefGlue bindings: registered .NET objects are exposed as global objects whose methods return promises, and `webviewBridge.checkObjectBound(name)` replaces `cefglue.checkObjectBound(name)`.
+
+Differences from CEF, and features not available yet with the native engines:
+- Scripts are evaluated, and objects are bound, in the main frame only.
+- The UI thread must not block waiting for a script result (eg: `EvaluateScript(...).Result`), since results are delivered on the UI thread.
+- Not implemented yet: download events, drag events, javascript dialog interception, proxy authentication, `IsSecurityDisabled`, `DisableFileDialogs`, off-screen rendering, closing the developer tools on Windows.
+- macOS: `BeforeResourceLoad` only sees the custom schemes (WebKit doesn't let http(s) be intercepted), `KeyPressed` is not raised and resources of the custom schemes can't be redirected.
+- Windows: `KeyPressed` is only raised for accelerator keys (eg: with Ctrl or Alt, function keys).
+- Load error codes are those of the engine (NSURLError on macOS, `CoreWebView2WebErrorStatus` on Windows).
+
 ## Releases
 Stable binaries are released on NuGet, and contain everything you need to embed Chromium in your .NET/CLR application.
 

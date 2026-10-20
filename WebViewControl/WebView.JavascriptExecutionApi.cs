@@ -32,7 +32,7 @@ namespace WebViewControl {
         }
         
         private bool InnerRegisterJavascriptObject<T>(string name, object objectToBind, Func<Func<object>, T> interceptCall) where T : class {
-            if (chromium.IsJavascriptObjectRegistered(name)) {
+            if (engine.IsJavascriptObjectRegistered(name)) {
                 return false;
             }
 
@@ -64,7 +64,7 @@ namespace WebViewControl {
                 }
             }
 
-            chromium.RegisterJavascriptObject(objectToBind, name, CallTargetMethod);
+            engine.RegisterJavascriptObject(name, objectToBind, target => CallTargetMethod(target));
 
             return true;
         }
@@ -74,7 +74,7 @@ namespace WebViewControl {
         /// </summary>
         /// <param name="name"></param>
         public void UnregisterJavascriptObject(string name) {
-            chromium.UnregisterJavascriptObject(name);
+            engine.UnregisterJavascriptObject(name);
         }
 
         public Task<T> EvaluateScript<T>(string script, string frameName = MainFrameName, TimeSpan? timeout = null) {

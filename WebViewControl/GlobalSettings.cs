@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using Xilium.CefGlue.Common;
 
 namespace WebViewControl {
 
@@ -108,7 +107,7 @@ namespace WebViewControl {
         }
 
         private void EnsureNotLoaded(string propertyName) {
-            if (CefRuntimeLoader.IsLoaded) {
+            if (WebViewLoader.IsLoaded) {
                 throw new InvalidOperationException($"Cannot set {propertyName} after WebView engine has been loaded");
             }
         }

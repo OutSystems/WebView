@@ -18,50 +18,23 @@ namespace WebViewControl {
             }
 
             protected override CefResourceHandler GetResourceHandler(CefBrowser browser, CefFrame frame, CefRequest request) {
-                if (request.Url == OwnerWebView.DefaultLocalUrl) {
-                    return AsyncResourceHandler.FromText(OwnerWebView.htmlToLoad  ?? "");
+                if (OwnerWebView.TryGetHtmlToLoad(request.Url, out var html)) {
+                    return AsyncResourceHandler.FromText(html);
                 }
 
                 if (UrlHelper.IsChromeInternalUrl(request.Url)) {
                     return null;
                 }
 
-                var resourceHandler = new ResourceHandler(request, OwnerWebView.GetRequestUrl(request.Url, (ResourceType)request.ResourceType));
+                var resourceHandler = OwnerWebView.HandleResourceRequest(new CefRequestDetails(request), CreateResponse);
 
-                void TriggerBeforeResourceLoadEvent() {
-                    var beforeResourceLoad = OwnerWebView.BeforeResourceLoad;
-                    if (beforeResourceLoad != null) {
-                        OwnerWebView.ExecuteWithAsyncErrorHandling(() => beforeResourceLoad(resourceHandler));
-                    }
-                }
+                return (AsyncResourceHandler) resourceHandler.Handler;
+            }
 
-                if (Uri.TryCreate(resourceHandler.Url, UriKind.Absolute, out var url) && url.Scheme == ResourceUrl.EmbeddedScheme) {
-                    resourceHandler.BeginAsyncResponse(() => {
-                        var urlWithoutQuery = new UriBuilder(url);
-                        if (!string.IsNullOrEmpty(url.Query)) {
-                            urlWithoutQuery.Query = string.Empty;
-                        }
-
-                        OwnerWebView.ExecuteWithAsyncErrorHandling(() => resourceHandler.LoadEmbeddedResource(urlWithoutQuery.Uri));
-
-                        TriggerBeforeResourceLoadEvent();
-
-                        if (resourceHandler.Handled || OwnerWebView.IgnoreMissingResources) {
-                            return;
-                        }
-
-                        var resourceLoadFailed = OwnerWebView.ResourceLoadFailed;
-                        if (resourceLoadFailed != null) {
-                            resourceLoadFailed(url.ToString());
-                        } else {
-                            OwnerWebView.ForwardUnhandledAsyncException(new InvalidOperationException("Resource not found: " + url));
-                        }
-                    });
-                } else {
-                    TriggerBeforeResourceLoadEvent();
-                }
-
-                return resourceHandler.Handler;
+            private static IResourceResponse CreateResponse() {
+                var handler = new AsyncResourceHandler();
+                handler.Headers.Add("cache-control", "public, max-age=315360000");
+                return handler;
             }
         }
     }

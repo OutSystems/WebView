@@ -15,9 +15,8 @@ namespace WebViewControl {
             }
 
             protected override bool OnPreKeyEvent(CefBrowser browser, CefKeyEvent keyEvent, IntPtr os_event, out bool isKeyboardShortcut) {
-                var handler = OwnerWebView.KeyPressed;
-                if (handler != null && !browser.IsPopup) {
-                    handler(keyEvent, out var handled);
+                if (OwnerWebView.HasKeyPressedHandler && !browser.IsPopup) {
+                    var handled = OwnerWebView.HandleKeyPressed(new KeyEventDetails(keyEvent.WindowsKeyCode, keyEvent.Character));
                     isKeyboardShortcut = false;
                     return handled;
                 }

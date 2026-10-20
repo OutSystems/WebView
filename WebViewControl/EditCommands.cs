@@ -1,29 +1,25 @@
-﻿using Xilium.CefGlue;
-
-namespace WebViewControl {
+﻿namespace WebViewControl {
 
     public class EditCommands {
 
-        private ChromiumBrowser ChromiumBrowser { get; }
+        private IWebViewEngine Engine { get; }
 
-        internal EditCommands(ChromiumBrowser chromiumBrowser) {
-            ChromiumBrowser = chromiumBrowser;
+        internal EditCommands(IWebViewEngine engine) {
+            Engine = engine;
         }
 
-        private CefFrame GetFocusedFrame() => ChromiumBrowser.GetBrowser()?.GetFocusedFrame() ?? ChromiumBrowser.GetBrowser()?.GetMainFrame();
+        public void Cut() => Engine.ExecuteEditCommand(EditCommand.Cut);
 
-        public void Cut() => GetFocusedFrame()?.Cut();
+        public void Copy() => Engine.ExecuteEditCommand(EditCommand.Copy);
 
-        public void Copy() => GetFocusedFrame()?.Copy();
+        public void Paste() => Engine.ExecuteEditCommand(EditCommand.Paste);
 
-        public void Paste() => GetFocusedFrame()?.Paste();
+        public void SelectAll() => Engine.ExecuteEditCommand(EditCommand.SelectAll);
 
-        public void SelectAll() => GetFocusedFrame()?.SelectAll();
+        public void Undo() => Engine.ExecuteEditCommand(EditCommand.Undo);
 
-        public void Undo() => GetFocusedFrame()?.Undo();
+        public void Redo() => Engine.ExecuteEditCommand(EditCommand.Redo);
 
-        public void Redo() => GetFocusedFrame()?.Redo();
-
-        public void Delete() => GetFocusedFrame()?.Delete();
+        public void Delete() => Engine.ExecuteEditCommand(EditCommand.Delete);
     }
 }
