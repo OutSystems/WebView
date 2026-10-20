@@ -1,13 +1,15 @@
-﻿using Xilium.CefGlue;
+﻿namespace WebViewControl {
 
-namespace WebViewControl {
-
+    // values match the Chromium resource types (CefResourceType), so that they can be cast between both
     public enum ResourceType {
-        Stylesheet = CefResourceType.Stylesheet,
-        Script = CefResourceType.Script,
-        Image = CefResourceType.Image,
-        FontResource = CefResourceType.FontResource,
-        Xhr = CefResourceType.Xhr,
-        ServiceWorker = CefResourceType.ServiceWorker
+        MainFrame = 0,
+        SubFrame = 1,
+        Stylesheet = 2,
+        Script = 3,
+        Image = 4,
+        FontResource = 5,
+        SubResource = 6,
+        Xhr = 13,
+        ServiceWorker = 15
     }
 }

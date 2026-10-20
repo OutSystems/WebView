@@ -30,23 +30,7 @@ namespace WebViewControl {
             }
 
             protected override bool OnBeforeBrowse(CefBrowser browser, CefFrame frame, CefRequest request, bool userGesture, bool isRedirect) {
-                if (UrlHelper.IsInternalUrl(request.Url)) {
-                    return false;
-                }
-
-                if (OwnerWebView.IsHistoryDisabled && request.TransitionType.HasFlag(CefTransitionType.ForwardBackFlag)) {
-                    return true;
-                }
-
-                var cancel = false;
-                var beforeNavigate = OwnerWebView.BeforeNavigate;
-                if (beforeNavigate != null) {
-                    var wrappedRequest = new Request(request, OwnerWebView.GetRequestUrl(request.Url, (ResourceType) request.ResourceType));
-                    OwnerWebView.ExecuteWithAsyncErrorHandling(() => beforeNavigate(wrappedRequest));
-                    cancel = wrappedRequest.Canceled;
-                }
-
-                return cancel;
+                return OwnerWebView.HandleBeforeNavigate(new CefRequestDetails(request), request.TransitionType.HasFlag(CefTransitionType.ForwardBackFlag));
             }
 
             protected override bool OnCertificateError(CefBrowser browser, CefErrorCode certError, string requestUrl, CefSslInfo sslInfo, CefCallback callback) {
@@ -60,28 +44,12 @@ namespace WebViewControl {
             }
 
             protected override void OnRenderProcessTerminated(CefBrowser browser, CefTerminationStatus status) {
-                OwnerWebView.HandleRenderProcessCrashed();
-
-                const string ExceptionPrefix = "WebView render process ";
-
-                Exception exception;
-
-                switch (status) {
-                    case CefTerminationStatus.ProcessCrashed:
-                        exception = new RenderProcessCrashedException(ExceptionPrefix + "crashed");
-                        break;
-                    case CefTerminationStatus.WasKilled:
-                        exception = new RenderProcessKilledException(ExceptionPrefix + "was killed", OwnerWebView.IsDisposing);
-                        break;
-                    case CefTerminationStatus.OutOfMemory:
-                        exception = new RenderProcessOutOfMemoryException(ExceptionPrefix + "ran out of memory");
-                        break;
-                    default:
-                        exception = new RenderProcessCrashedException(ExceptionPrefix + "terminated with an unknown reason");
-                        break;
-                }
-
-                OwnerWebView.ForwardUnhandledAsyncException(exception);
+                OwnerWebView.HandleRenderProcessTerminated(status switch {
+                    CefTerminationStatus.ProcessCrashed => RenderProcessTerminationStatus.Crashed,
+                    CefTerminationStatus.WasKilled => RenderProcessTerminationStatus.Killed,
+                    CefTerminationStatus.OutOfMemory => RenderProcessTerminationStatus.OutOfMemory,
+                    _ => RenderProcessTerminationStatus.Unknown
+                });
             }
 
             protected override CefResourceRequestHandler GetResourceRequestHandler(CefBrowser browser, CefFrame frame, CefRequest request, bool isNavigation, bool isDownload, string requestInitiator, ref bool disableDefaultHandling) {

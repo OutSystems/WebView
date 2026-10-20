@@ -5,13 +5,20 @@
     <Platforms>x64;ARM64</Platforms>
     <AvaloniaVersion>11.0.10</AvaloniaVersion>
     <CefGlueVersion>120.6099.215</CefGlueVersion>
+    <WebView2Version>1.0.4258.31</WebView2Version>
+    <!--
+      The web engine the controls are built with:
+      - Cef (default): bundled Chromium, through CefGlue
+      - Native: the web engine of the operating system, WKWebView on macOS and WebView2 on Windows
+    -->
+    <WebViewEngine Condition="'$(WebViewEngine)' == ''">Cef</WebViewEngine>
   </PropertyGroup>
 
   <PropertyGroup>
     <AssemblyVersion>2.0.0.0</AssemblyVersion>
     <FileVersion>2.0.0.0</FileVersion>
     <!-- Please see https://github.com/OutSystems/WebView?tab=readme-ov-file#versioning for versioning rules -->
-    <Version>3.120.13</Version>
+    <Version>4.120.0</Version>
     <Authors>OutSystems</Authors>
     <Product>WebViewControl</Product>
     <Copyright>Copyright © OutSystems 2023</Copyright>
@@ -27,5 +34,10 @@
   <PropertyGroup Condition="'$(Platform)' == 'ARM64'">
     <PackageSuffix>-ARM64</PackageSuffix>
     <CefGluePackageSuffix>.ARM64</CefGluePackageSuffix>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(WebViewEngine)' == 'Native'">
+    <!-- the native flavor ships no browser binaries, the same package serves every architecture -->
+    <PackageSuffix>-Native</PackageSuffix>
   </PropertyGroup>
 </Project>

@@ -9,8 +9,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Xilium.CefGlue;
-using Xilium.CefGlue.Common.Events;
 
 namespace WebViewControl {
 
@@ -53,6 +51,9 @@ namespace WebViewControl {
             private static readonly TimeSpan InitializationTimeout = TimeSpan.FromSeconds(15);
 
             private static Regex StackFrameRegex { get; } = new(@"at\s*(?<method>.*?)\s\(?(?<location>[^\s]+):(?<line>\d+):(?<column>\d+)", RegexOptions.Compiled);
+
+            // JavaScriptCore (WKWebView) stack frames have the format: method@location:line:column (evaluated code has no location: method@)
+            private static Regex WebKitStackFrameRegex { get; } = new(@"^\s*(?<method>[^@]*)@(?:(?<location>.+):(?<line>\d+):(?<column>\d+)|(?<location>[^:]*))\s*$", RegexOptions.Compiled);
             
             private BlockingCollection<ScriptTask> PendingScripts { get; } = new();
             private CancellationTokenSource FlushTaskCancellationToken { get; } = new();
@@ -63,10 +64,10 @@ namespace WebViewControl {
             private string Id { get; } = Guid.NewGuid().ToString();
 #endif
 
-            private CefFrame frame;
+            private IJavascriptFrame frame;
             private Task flushTask;
 
-            public JavascriptExecutor(WebView owner, CefFrame frame = null) {
+            public JavascriptExecutor(WebView owner, IJavascriptFrame frame = null) {
                 OwnerWebView = owner;
                 this.frame = frame;
             }
@@ -75,7 +76,7 @@ namespace WebViewControl {
 
             private bool IsFlushTaskInitializing => flushTask == null || flushTask.Status < TaskStatus.Running;
 
-            public void StartFlush(CefFrame frame) {
+            public void StartFlush(IJavascriptFrame frame) {
 #if DEBUG
                 System.Diagnostics.Debug.WriteLine($"{nameof(StartFlush)} ('{Id}')");
 #endif
@@ -150,7 +151,7 @@ namespace WebViewControl {
                     var frameName = frame.Name;
                     try {
                         var timeout = OwnerWebView.DefaultScriptsExecutionTimeout ?? DefaultTimeout;
-                        var task = OwnerWebView.chromium.EvaluateJavaScript<object>(WrapScriptWithErrorHandling(script), timeout: timeout);
+                        var task = frame.EvaluateScript<object>(WrapScriptWithErrorHandling(script), timeout);
                         task.Wait(FlushTaskCancellationToken.Token);
                     } catch (OperationCanceledException) { 
                         // ignore
@@ -173,7 +174,7 @@ namespace WebViewControl {
                     System.Diagnostics.Debug.WriteLine($"Evaluating '{script}' on ('{Id}')");
 #endif
                     try {
-                        var innerEvaluationTask = OwnerWebView.chromium.EvaluateJavaScript<T>(WrapScriptWithErrorHandling(scriptToEvaluate), timeout: timeout);
+                        var innerEvaluationTask = frame.EvaluateScript<T>(WrapScriptWithErrorHandling(scriptToEvaluate), timeout);
                         innerEvaluationTask.Wait(FlushTaskCancellationToken.Token);
                         evaluationTask.SetResult(GetResult<T>(innerEvaluationTask.Result));
                     } catch (Exception e) {
@@ -295,7 +296,10 @@ namespace WebViewControl {
                         jsError.Name = jsError.Name ?? "";
                         jsError.Message = jsError.Message ?? "";
                         jsError.Stack = jsError.Stack ?? "";
-                        var jsStack = jsError.Stack.Substring(Math.Min(jsError.Stack.Length, (jsError.Name + ": " + jsError.Message).Length))
+                        // V8 stacks start with the "name: message" header, JavaScriptCore stacks only contain the frames
+                        var stackHeader = jsError.Name + ": " + jsError.Message;
+                        var stackHeaderLength = jsError.Stack.StartsWith(stackHeader, StringComparison.Ordinal) || !WebKitStackFrameRegex.IsMatch(jsError.Stack.Split('\n')[0]) ? stackHeader.Length : 0;
+                        var jsStack = jsError.Stack.Substring(Math.Min(jsError.Stack.Length, stackHeaderLength))
                                                    .Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
 
                         var parsedStack = new List<JavascriptStackFrame>();
@@ -304,8 +308,11 @@ namespace WebViewControl {
 
                         foreach (var stackFrame in jsStack) {
                             var frameParts = StackFrameRegex.Match(stackFrame);
+                            if (!frameParts.Success) {
+                                frameParts = WebKitStackFrameRegex.Match(stackFrame);
+                            }
                             if (frameParts.Success) {
-                                parsedStack.Add(new JavascriptStackFrame(frameParts.Groups["method"].Value, frameParts.Groups["location"].Value, int.Parse(frameParts.Groups["column"].Value), int.Parse(frameParts.Groups["line"].Value)));
+                                parsedStack.Add(new JavascriptStackFrame(frameParts.Groups["method"].Value, frameParts.Groups["location"].Value, ParseNumber(frameParts.Groups["column"]), ParseNumber(frameParts.Groups["line"])));
                             }
                         }
 
@@ -315,6 +322,8 @@ namespace WebViewControl {
 
                 return new JavascriptException(exception.Message, evaluatedStackFrames, exception.StackTrace);
             }
+
+            private static int ParseNumber(Group group) => int.TryParse(group.Value, out var number) ? number : 0;
 
             internal static bool IsInternalException(string exceptionMessage) {
                 return exceptionMessage.EndsWith(InternalException);

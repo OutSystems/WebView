@@ -10,7 +10,7 @@ namespace WebViewControl {
 
     partial class WebView : UserControl {
 
-        internal IInputElement FocusableElement => chromium;
+        internal IInputElement FocusableElement => engine.View;
 
         private bool IsInDesignMode => DesignerProperties.GetIsInDesignMode(this);
 
@@ -43,13 +43,13 @@ namespace WebViewControl {
         }
 
         partial void ExtraInitialize() {
-            Content = chromium;
-
-            chromium.AddressChanged += (o, address) => AsyncExecuteInUI(() => Address = address);
+            Content = engine.View;
 
             FocusManager.SetIsFocusScope(this, true);
             FocusManager.SetFocusedElement(this, FocusableElement);
         }
+
+        internal void HandleAddressChanged(string address) => AsyncExecuteInUI(() => Address = address);
 
         protected override void OnPreviewKeyDown(KeyEventArgs e) {
             if (AllowDeveloperTools && e.Key == Key.F12) {
@@ -92,7 +92,7 @@ namespace WebViewControl {
         }
 
         internal void InitializeBrowser(int initialWidth, int initialHeight) {
-            chromium.CreateBrowser(initialWidth, initialHeight);
+            engine.CreateBrowser(initialWidth, initialHeight);
         }
 
         /// <summary>

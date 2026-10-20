@@ -23,15 +23,28 @@
     <Optimize>true</Optimize>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(WebViewEngine)' == 'Native'">
+    <Description>WebViewControl for Avalonia powered by the web engine of the system (WKWebView on macOS, WebView2 on Windows)</Description>
+    <DefineConstants>$(DefineConstants);WEBVIEW_NATIVE</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!-- the download and drag events are only raised by the CEF engine -->
+    <NoWarn>$(NoWarn);CS0067;CS0414</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(WebViewEngine)' != 'Native'">
+    <DefineConstants>$(DefineConstants);WEBVIEW_CEF</DefineConstants>
+  </PropertyGroup>
+
+  <!-- engine independent -->
   <ItemGroup>
     <Compile Include="..\WebViewControl\AssemblyCache.cs" Link="AssemblyCache.cs" />
-    <Compile Include="..\WebViewControl\AsyncResourceHandler.cs" Link="AsyncResourceHandler.cs" />
-    <Compile Include="..\WebViewControl\ChromiumBrowser.cs" Link="ChromiumBrowser.cs" />
     <Compile Include="..\WebViewControl\EditCommands.cs" Link="EditCommands.cs" />
     <Compile Include="..\WebViewControl\GlobalSettings.cs" Link="GlobalSettings.cs" />
-    <Compile Include="..\WebViewControl\HttpResourceHandler.cs" Link="HttpResourceHandler.cs" />
-    <Compile Include="..\WebViewControl\HttpResourceRequestHandler.cs" Link="HttpResourceRequestHandler.cs" />
+    <Compile Include="..\WebViewControl\IRequestDetails.cs" Link="IRequestDetails.cs" />
+    <Compile Include="..\WebViewControl\IWebViewEngine.cs" Link="IWebViewEngine.cs" />
     <Compile Include="..\WebViewControl\JavascriptSerializationHelper.cs" Link="JavascriptSerializationHelper.cs" />
+    <Compile Include="..\WebViewControl\JavascriptStackFrame.cs" Link="JavascriptStackFrame.cs" />
+    <Compile Include="..\WebViewControl\MimeTypes.cs" Link="MimeTypes.cs" />
     <Compile Include="..\WebViewControl\ProxyAuthentication.cs" Link="ProxyAuthentication.cs" />
     <Compile Include="..\WebViewControl\RenderProcessTerminatedException.cs" Link="RenderProcessTerminatedException.cs" />
     <Compile Include="..\WebViewControl\Request.cs" Link="Request.cs" />
@@ -39,11 +52,24 @@
     <Compile Include="..\WebViewControl\ResourceHandlerExtensions.cs" Link="ResourceHandlerExtensions.cs" />
     <Compile Include="..\WebViewControl\ResourceType.cs" Link="ResourceType.cs" />
     <Compile Include="..\WebViewControl\ResourceUrl.cs" Link="ResourceUrl.cs" />
-    <Compile Include="..\WebViewControl\SchemeHandlerFactory.cs" Link="SchemeHandlerFactory.cs" />
     <Compile Include="..\WebViewControl\UnhandledAsyncExceptionEventArgs.cs" Link="UnhandledAsyncExceptionEventArgs.cs" />
     <Compile Include="..\WebViewControl\UrlHelper.cs" Link="UrlHelper.cs" />
     <Compile Include="..\WebViewControl\WebView.cs" Link="WebView.cs" />
     <Compile Include="..\WebViewControl\WebView.Extensions.cs" Link="WebView.Extensions.cs" />
+    <Compile Include="..\WebViewControl\WebView.JavascriptException.cs" Link="WebView.JavascriptException.cs" />
+    <Compile Include="..\WebViewControl\WebView.JavascriptExecutionApi.cs" Link="WebView.JavascriptExecutionApi.cs" />
+    <Compile Include="..\WebViewControl\WebView.JavascriptExecutor.cs" Link="WebView.JavascriptExecutor.cs" />
+    <Compile Include="..\WebViewControl\WebView.ResourceHandler.cs" Link="WebView.ResourceHandler.cs" />
+  </ItemGroup>
+
+  <!-- CEF engine -->
+  <ItemGroup Condition="'$(WebViewEngine)' != 'Native'">
+    <Compile Include="..\WebViewControl\AsyncResourceHandler.cs" Link="AsyncResourceHandler.cs" />
+    <Compile Include="..\WebViewControl\ChromiumBrowser.cs" Link="ChromiumBrowser.cs" />
+    <Compile Include="..\WebViewControl\HttpResourceHandler.cs" Link="HttpResourceHandler.cs" />
+    <Compile Include="..\WebViewControl\HttpResourceRequestHandler.cs" Link="HttpResourceRequestHandler.cs" />
+    <Compile Include="..\WebViewControl\SchemeHandlerFactory.cs" Link="SchemeHandlerFactory.cs" />
+    <Compile Include="..\WebViewControl\WebView.CefEngine.cs" Link="WebView.CefEngine.cs" />
     <Compile Include="..\WebViewControl\WebView.InternalContextMenuHandler.cs" Link="WebView.InternalContextMenuHandler.cs" />
     <Compile Include="..\WebViewControl\WebView.InternalDialogHandler.cs" Link="WebView.InternalDialogHandler.cs" />
     <Compile Include="..\WebViewControl\WebView.InternalDownloadHandler.cs" Link="WebView.InternalDownloadHandler.cs" />
@@ -54,18 +80,37 @@
     <Compile Include="..\WebViewControl\WebView.InternalLifeSpanHandler.cs" Link="WebView.InternalLifeSpanHandler.cs" />
     <Compile Include="..\WebViewControl\WebView.InternalRequestHandler.cs" Link="WebView.InternalRequestHandler.cs" />
     <Compile Include="..\WebViewControl\WebView.InternalResourceRequestHandler.cs" Link="WebView.InternalResourceRequestHandler.cs" />
-    <Compile Include="..\WebViewControl\WebView.JavascriptException.cs" Link="WebView.JavascriptException.cs" />
-    <Compile Include="..\WebViewControl\WebView.JavascriptExecutionApi.cs" Link="WebView.JavascriptExecutionApi.cs" />
-    <Compile Include="..\WebViewControl\WebView.JavascriptExecutor.cs" Link="WebView.JavascriptExecutor.cs" />
-    <Compile Include="..\WebViewControl\WebView.ResourceHandler.cs" Link="WebView.ResourceHandler.cs" />
     <Compile Include="..\WebViewControl\WebViewLoader.cs" Link="WebViewLoader.cs" />
+    <Compile Remove="Native\**" />
+    <None Remove="Native\**" />
+  </ItemGroup>
+
+  <!-- native engines (WKWebView and WebView2) -->
+  <ItemGroup Condition="'$(WebViewEngine)' == 'Native'">
+    <Compile Remove="ChromiumBrowser.Avalonia.cs;WebView.CefEngine.Avalonia.cs" />
+    <None Remove="Native\WebViewBridge.js" />
+    <EmbeddedResource Include="Native\WebViewBridge.js" LogicalName="WebViewControl.Native.WebViewBridge.js" />
   </ItemGroup>
 
   <ItemGroup>
     <!--When we upload Avalonia here, we should increase the version of both WebViewControl.Avalonia as well as ReactViewControl.Avalonia-->
     <PackageReference Include="Avalonia" />
-    <PackageReference PrivateAssets="None" Include="CefGlue.Avalonia$(CefGluePackageSuffix)" />
     <PackageReference Include="Microsoft.CSharp" />
     <PackageReference Include="System.Runtime.Loader" />
   </ItemGroup>
+
+  <ItemGroup Condition="'$(WebViewEngine)' != 'Native'">
+    <PackageReference PrivateAssets="None" Include="CefGlue.Avalonia$(CefGluePackageSuffix)" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(WebViewEngine)' == 'Native'">
+    <!-- WebView2 renders on Windows (WKWebView is part of macOS) -->
+    <PackageReference PrivateAssets="None" Include="Microsoft.Web.WebView2" />
+  </ItemGroup>
+  <!-- only the core assembly of WebView2 is used: drop its WPF and WinForms assemblies, which reference the windows desktop frameworks -->
+  <Target Name="RemoveWebView2UIFrameworkReferences" BeforeTargets="ResolveAssemblyReferences" Condition="'$(WebViewEngine)' == 'Native'">
+    <ItemGroup>
+      <Reference Remove="@(Reference)" Condition="'%(Filename)' == 'Microsoft.Web.WebView2.Wpf' Or '%(Filename)' == 'Microsoft.Web.WebView2.WinForms'" />
+    </ItemGroup>
+  </Target>
 </Project>

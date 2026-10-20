@@ -1,24 +1,23 @@
 ﻿using System.Collections.Specialized;
-using Xilium.CefGlue;
 
 namespace WebViewControl {
 
     public class Request {
 
-        private CefRequest CefRequest { get; }
+        private IRequestDetails RequestDetails { get; }
         private string UrlOverride { get; }
 
-        internal Request(CefRequest request, string urlOverride) {
-            CefRequest = request;
+        internal Request(IRequestDetails request, string urlOverride) {
+            RequestDetails = request;
             UrlOverride = urlOverride;
         }
 
         public string Method {
-            get { return CefRequest.Method; }
+            get { return RequestDetails.Method; }
         }
 
         public string Url {
-            get { return UrlOverride ?? CefRequest.Url; }
+            get { return UrlOverride ?? RequestDetails.Url; }
         }
 
         public virtual void Cancel() {
@@ -27,18 +26,18 @@ namespace WebViewControl {
 
         public bool Canceled { get; private set; }
 
-        internal bool IsMainFrame => CefRequest.ResourceType == CefResourceType.MainFrame;
+        internal bool IsMainFrame => RequestDetails.ResourceType == ResourceType.MainFrame;
 
         public NameValueCollection GetHeaderMap() =>
-            CefRequest.GetHeaderMap();
+            RequestDetails.GetHeaderMap();
 
         public void SetHeaderMap(NameValueCollection headers) =>
-            CefRequest.SetHeaderMap(headers);
+            RequestDetails.SetHeaderMap(headers);
 
         public string GetHeaderByName(string name) => 
-            CefRequest.GetHeaderByName(name);
+            RequestDetails.GetHeaderByName(name);
 
         public void SetHeaderByName(string name, string value, bool overwrite) => 
-            CefRequest.SetHeaderByName(name, value, overwrite);
+            RequestDetails.SetHeaderByName(name, value, overwrite);
     }
 }

@@ -81,7 +81,7 @@ namespace Tests.WebView {
         }
 
         protected Task RunScript(string script) {
-            var boundChecks = registeredJavascriptObjects.Select(name => $"cefglue.checkObjectBound('{name}')");
+            var boundChecks = registeredJavascriptObjects.Select(name => $"(typeof webviewBridge !== 'undefined' ? webviewBridge : cefglue).checkObjectBound('{name}')");
             var html = $"<html><script>(async function() {{ await Promise.all([{string.Join(',', boundChecks)}]); {script} }})();</script><body></body></html>";
 
             return Load(html);

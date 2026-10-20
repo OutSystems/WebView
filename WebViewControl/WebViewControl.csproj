@@ -1,5 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   
+  <!-- WPF always renders with CEF, the native engines are only available for Avalonia -->
+  <PropertyGroup Condition="'$(WebViewEngine)' == 'Native'">
+    <PackageSuffix Condition="'$(Platform)' == 'ARM64'">-ARM64</PackageSuffix>
+    <PackageSuffix Condition="'$(Platform)' != 'ARM64'" />
+  </PropertyGroup>
+
   <PropertyGroup>
     <TargetFramework>$(TargetDotnetVersion)-windows</TargetFramework>
     <AssemblyTitle>WebViewControl WPF</AssemblyTitle>
@@ -13,6 +19,7 @@
     <PackageId>WebViewControl-WPF$(PackageSuffix)</PackageId>
     <Configurations>Debug;Release;ReleaseAvalonia;ReleaseWPF;ReleaseAvaloniaRemoteDebugSupport</Configurations>
     <UseWPF>true</UseWPF>
+    <DefineConstants>$(DefineConstants);WEBVIEW_CEF</DefineConstants>
   </PropertyGroup>
   
   <PropertyGroup Condition="'$(Configuration)' == 'ReleaseWPF'">

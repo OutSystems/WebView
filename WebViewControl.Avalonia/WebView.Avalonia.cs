@@ -29,10 +29,11 @@ namespace WebViewControl {
         }
 
         partial void ExtraInitialize() {
-            VisualChildren.Add(chromium);
-            chromium[!FocusableProperty] = this[!FocusableProperty];
-            chromium.AddressChanged += (o, address) => ExecuteInUI(() => Address = address);
+            VisualChildren.Add(engine.View);
+            engine.View[!FocusableProperty] = this[!FocusableProperty];
         }
+
+        internal void HandleAddressChanged(string address) => ExecuteInUI(() => Address = address);
 
         protected override void OnKeyDown(KeyEventArgs e) {
             if (AllowDeveloperTools && e.Key == Key.F12) {
@@ -49,7 +50,7 @@ namespace WebViewControl {
                 // use async call to avoid reentrancy, otherwise the webview will fight to get the focus
                 Dispatcher.UIThread.Post(() => {
                     if (IsFocused) {
-                        chromium.Focus();
+                        engine.Focus();
                     }
                 }, DispatcherPriority.Background);
             }
@@ -83,7 +84,7 @@ namespace WebViewControl {
         }
 
         internal void InitializeBrowser(int initialWidth, int initialHeight) {
-            chromium.CreateBrowser(initialWidth, initialHeight);
+            engine.CreateBrowser(initialWidth, initialHeight);
         }
 
         /// <summary>
@@ -94,7 +95,7 @@ namespace WebViewControl {
         protected virtual bool OnSetFocus(bool isSystemEvent) {
             // VisualRoot can be null when webview is not yet added to the Visual tree
             var focusedElement = TopLevel.GetTopLevel(this)?.FocusManager.GetFocusedElement();
-            return !(focusedElement == chromium || focusedElement == this);
+            return !(focusedElement == engine.View || focusedElement == this);
         }
     }
 }
