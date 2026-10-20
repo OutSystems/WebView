@@ -164,9 +164,8 @@ namespace WebViewControl {
         }
 
         public void UnregisterJavascriptObject(string name) {
-            if (!javascriptObjects.TryRemove(name, out _)) {
-                return;
-            }
+            javascriptObjects.TryRemove(name, out _);
+            // even when not registered: the page may be waiting for the object, which won't come
             RunOnUIThread(() => {
                 if (isJavascriptContextActive) {
                     PostToPage(new { type = "deleteObject", name });
@@ -468,10 +467,9 @@ namespace WebViewControl {
         }
 
         private void OnBindObject(string name) {
+            // like CefGlue, an object that is not registered yet is bound once registered (see RegisterJavascriptObject)
             if (javascriptObjects.TryGetValue(name ?? "", out var javascriptObject)) {
                 PostToPage(CreateDefineObjectsMessage(new[] { javascriptObject }));
-            } else {
-                PostToPage(new { type = "objectNotFound", name });
             }
         }
 

@@ -1,7 +1,8 @@
 // Bridge between the page and .NET for the system web engines (WKWebView on macOS, WebView2 on Windows).
 // It's injected at document start in the main frame and plays the role that CefGlue's javascript bindings play with CEF:
 // - objects registered in .NET are exposed as global objects whose methods return promises
-// - webviewBridge.checkObjectBound(name) resolves once the object is available (true) or when it's not registered (false)
+// - webviewBridge.checkObjectBound(name) resolves once the object is registered (true), waiting for the registration when
+//   needed, or when the object is unregistered meanwhile (false)
 // - .NET evaluates scripts through it and gets the JSON serialized result back
 (function () {
     "use strict";
@@ -70,6 +71,8 @@
             delete window[name];
         }
         boundObjects.delete(name);
+        // whoever is waiting for the object won't get it
+        resolveBindingWaiters(name, false);
     }
 
     function checkObjectBound(name) {
@@ -121,9 +124,6 @@
                 break;
             case "deleteObject":
                 deleteObject(message.name);
-                break;
-            case "objectNotFound":
-                resolveBindingWaiters(message.name, false);
                 break;
             case "callResult":
                 completeCall(message);
