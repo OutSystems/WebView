@@ -3,3 +3,4 @@
 [assembly: InternalsVisibleTo("Tests.ReactView")]
 [assembly: InternalsVisibleTo("Tests.WebView")]
 [assembly: InternalsVisibleTo("ReactViewControl.Avalonia")]
+[assembly: InternalsVisibleTo("Sample.Avalonia")]

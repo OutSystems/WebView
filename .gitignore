@@ -12,6 +12,7 @@ Debug/
 .vs/config/applicationhost.config
 .vs/
 *.js
+!WebViewControl.Avalonia/Resources/NativeBridge.js
 *.tgz
 *.css
 *.scss.d.ts

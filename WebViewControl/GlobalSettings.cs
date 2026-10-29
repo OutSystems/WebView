@@ -2,7 +2,9 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+#if !NATIVE_WEBVIEW
 using Xilium.CefGlue.Common;
+#endif
 
 namespace WebViewControl {
 
@@ -107,8 +109,19 @@ namespace WebViewControl {
             }
         }
 
+#if NATIVE_WEBVIEW
+        /// <summary>
+        /// True when the first web view has been created. From that point on the global settings are frozen.
+        /// </summary>
+        internal bool IsLoaded { get; set; }
+#endif
+
         private void EnsureNotLoaded(string propertyName) {
+#if NATIVE_WEBVIEW
+            if (IsLoaded) {
+#else
             if (CefRuntimeLoader.IsLoaded) {
+#endif
                 throw new InvalidOperationException($"Cannot set {propertyName} after WebView engine has been loaded");
             }
         }

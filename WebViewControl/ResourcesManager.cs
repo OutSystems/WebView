@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+#if !NATIVE_WEBVIEW
 using Xilium.CefGlue;
+#endif
 
 namespace WebViewControl {
 
@@ -101,7 +103,11 @@ namespace WebViewControl {
 
         public static string GetExtensionMimeType(string extension) {
             extension = string.IsNullOrEmpty(extension) ? "html" : extension.TrimStart('.');
+#if NATIVE_WEBVIEW
+            return GetNativeMimeType(extension);
+#else
             return CefRuntime.GetMimeType(extension);
+#endif
         }
     }
 }

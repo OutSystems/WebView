@@ -1,5 +1,4 @@
-﻿using System;
-using System.Runtime.ExceptionServices;
+using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
@@ -8,9 +7,7 @@ using Avalonia.Threading;
 
 namespace WebViewControl {
 
-    partial class WebView : BaseControl {
-
-        private bool IsInDesignMode => false;
+    partial class WebView {
 
         public static readonly StyledProperty<string> AddressProperty =
             AvaloniaProperty.Register<WebView, string>(nameof(Address), defaultBindingMode: BindingMode.TwoWay);
@@ -29,16 +26,8 @@ namespace WebViewControl {
         }
 
         partial void ExtraInitialize() {
-            VisualChildren.Add(chromium);
-            chromium[!FocusableProperty] = this[!FocusableProperty];
-            chromium.AddressChanged += (o, address) => ExecuteInUI(() => Address = address);
-        }
-
-        protected override void OnKeyDown(KeyEventArgs e) {
-            if (AllowDeveloperTools && e.Key == Key.F12) {
-                ToggleDeveloperTools();
-                e.Handled = true;
-            }
+            VisualChildren.Add(host);
+            host[!FocusableProperty] = this[!FocusableProperty];
         }
 
         protected override void OnGotFocus(GotFocusEventArgs e) {
@@ -48,8 +37,9 @@ namespace WebViewControl {
 
                 // use async call to avoid reentrancy, otherwise the webview will fight to get the focus
                 Dispatcher.UIThread.Post(() => {
-                    if (IsFocused) {
-                        chromium.Focus();
+                    if (IsFocused && !isDisposing && browser.IsCreated && !OnSetFocus(isSystemEvent: true)) {
+                        browser.Focus();
+                        OnGotFocus();
                     }
                 }, DispatcherPriority.Background);
             }
@@ -57,15 +47,15 @@ namespace WebViewControl {
 
         protected override void InternalDispose() => Dispose();
 
-        private void ForwardException(ExceptionDispatchInfo exceptionInfo) {
-            // TODO
-        }
-
-        private T ExecuteInUI<T>(Func<T> action) {
+        /// <summary>
+        /// Runs the action in the UI thread: immediately when already in it, or asynchronously otherwise.
+        /// </summary>
+        private static void RunInUI(Action action) {
             if (Dispatcher.UIThread.CheckAccess()) {
-                return action();
+                action();
+            } else {
+                Dispatcher.UIThread.Post(action);
             }
-            return Dispatcher.UIThread.InvokeAsync<T>(action).Result;
         }
 
         private void AsyncExecuteInUI(Action action) {
@@ -83,7 +73,7 @@ namespace WebViewControl {
         }
 
         internal void InitializeBrowser(int initialWidth, int initialHeight) {
-            chromium.CreateBrowser(initialWidth, initialHeight);
+            EnsureBrowserCreated(initialWidth, initialHeight);
         }
 
         /// <summary>
@@ -94,7 +84,7 @@ namespace WebViewControl {
         protected virtual bool OnSetFocus(bool isSystemEvent) {
             // VisualRoot can be null when webview is not yet added to the Visual tree
             var focusedElement = TopLevel.GetTopLevel(this)?.FocusManager.GetFocusedElement();
-            return !(focusedElement == chromium || focusedElement == this);
+            return !(focusedElement == host || focusedElement == this);
         }
     }
 }
